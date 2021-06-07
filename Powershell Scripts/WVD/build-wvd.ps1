@@ -142,12 +142,12 @@ write-host "Grabbing files from Git"
 
 if ($multiregion -eq "Y") {
 #Grab Multi-Region files from GitHub
-git clone https://github.com/andrew-s-taylor/WVD-Bicep-SR.git $path
+git clone https://github.com/andrew-s-taylor/wvd-deploy-bicep-MR.git $path
 
 }
 else {
 #Grab Single Region files from GitHub
-git clone https://github.com/andrew-s-taylor/WVD-Bicep-SR.git $path
+git clone https://github.com/andrew-s-taylor/wvd-deploy-bicep-SR.git $path
 
 }
 
@@ -372,7 +372,7 @@ $imgCustomParams = @{
     PowerShellCustomizer = $true
     CustomizerName       = 'MountAppShareAndRunInstaller'
     RunElevated          = $true
-    scriptUri            = 'https://raw.githubusercontent.com/andrew-s-taylor/andrewstaylor/main/Powershell%20Scripts/WVD/wvd-box-config-generic.ps1'
+    scriptUri            = 'https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/WVD/wvd-box-config-generic.ps1'
 }
 $Customizer01 = New-AzImageBuilderCustomizerObject @imgCustomParams
 
