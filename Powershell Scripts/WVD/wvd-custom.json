@@ -1,0 +1,132 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "imageTemplateName": {
+        "type": "string"
+        },
+        "api-version": {
+          "type": "string"
+        },
+        "svclocation": {
+            "type": "string"
+        }
+    },
+    
+    "variables": {
+    },
+
+
+    "resources": [
+      {
+        "name": "[parameters('imageTemplateName')]",
+        "type": "Microsoft.VirtualMachineImages/imageTemplates",
+        "apiVersion": "[parameters('api-version')]",
+        "location": "[parameters('svclocation')]",
+        "dependsOn": [],
+        "tags": {
+            "imagebuilderTemplate": "AzureImageBuilderSIG",
+            "userIdentity": "enabled"
+                },
+            "identity": {
+                "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                        "<imgBuilderId>": {}
+                            
+                    }
+                    },
+        
+        "properties": {
+            "buildTimeoutInMinutes" : 100,
+
+            "vmProfile": 
+                    {
+                    "vmSize": "Standard_D1_v2",
+                    "osDiskSizeGB": 127
+                    },
+        
+            "source": {
+                "type": "PlatformImage",
+                    "publisher": "MicrosoftWindowsDesktop",
+                    "offer": "office-365",
+                    "sku": "21h1-evd-o365pp",
+                    "version": "latest"
+                
+            },
+            "customize": [
+
+                    {
+                        "type": "PowerShell",
+                        "name": "CreateBuildPath",
+                        "scriptUri": "https://raw.githubusercontent.com/andrew-s-taylor/andrewstaylor/main/Powershell%20Scripts/WVD/wvd-box-config-generic.ps1"
+                    },
+                    {
+                        "type": "File",
+                        "name": "downloadBuildArtifacts",
+                        "sourceUri": "https://raw.githubusercontent.com/andrew-s-taylor/andrewstaylor/main/Powershell%20Scripts/WVD/index.html",
+                        "destination":"c:\\temp\\buildArtifacts\\index.html"
+                    },
+        
+                    {
+                        "type": "PowerShell",
+                        "name": "installchoco",
+                        "inline": [
+                        "$packages = $packages2.split(“,”);
+                        foreach ($package in $packages) {
+                        choco install $package -y
+                        }"
+                        ]
+                    },
+                        
+                    {
+                        "type": "PowerShell",
+                        "name": "FSLogix",
+                        "inline": [
+                        "if((Test-Path -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\") -ne $true) {  New-Item \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -force -ea SilentlyContinue };
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -Name \"Enabled\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -Name \"<locationtype>\" -Value \"<location>\" -PropertyType String -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -Name \"ConcurrentUserSessions\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -Name \"IsDynamic\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -Name \"KeepLocalDir\" -Value 0 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -Name \"VolumeType\" -Value \"vhdx\" -PropertyType String -Force -ea SilentlyContinue;
+        if((Test-Path -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\") -ne $true) {  New-Item \"HKLM:\\SOFTWARE\\FSLogix\\Profiles\" -force -ea SilentlyContinue };
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"Enabled\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"<locationtype>\" -Value \"<location>\" -PropertyType String -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeOneDrive\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeOneNote\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeOneNote_UWP\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeOutlook\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeOutlookPersonalization\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeSharepoint\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
+        New-ItemProperty -LiteralPath \"HKLM:\\SOFTWARE\\FSLogix\\ODFC\" -Name \"IncludeTeams\" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;"
+                        ]
+                    },
+                                        {
+                        "type": "WindowsRestart",
+                        "restartCheckCommand": "echo Azure-Image-Builder-Restarted-the-VM  > c:\\temp\\buildArtifacts\\azureImageBuilderRestart.txt",
+                        "restartTimeout": "5m"
+                    }
+
+            ],
+            "distribute": 
+            [
+                {   
+                    "type": "SharedImage",
+                    "galleryImageId": "/subscriptions/<subscriptionID>/resourceGroups/<rgName>/providers/Microsoft.Compute/galleries/<sharedImageGalName>/images/<imageDefName>",
+                    "runOutputName": "<runOutputName>",
+                    "artifactTags": {
+                        "source": "azureVmImageBuilder",
+                        "baseosimg": "windows-10"
+                    },
+                    "replicationRegions": [
+                      "<region1>",
+                      "<region2>"
+                    ]
+                }
+            ]
+            }
+        }
+
+    
+    ]
+}    
