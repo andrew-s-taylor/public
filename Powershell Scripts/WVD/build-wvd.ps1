@@ -405,7 +405,7 @@ $share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.param
 
 #Get Share Details
 $store = get-azstorageshare -Context $share.Context | Select-Object Name
-$files2 = "\\" + $store.Name + ".file.core.windows.net"
+$files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
 
 
 #Get Storage AccountDR
@@ -416,7 +416,7 @@ $sharedr = get-azstorageaccount -ResourceGroupName $fileresourcedr -Name $json.p
 
 #Get Share Details
 $storedr = get-azstorageshare -Context $sharedr.Context | Select-Object Name
-$files2dr = "\\" + $storedr.Name + ".file.core.windows.net"
+$files2dr = "\\" + $sharedr.StorageAccountName + ".file.core.windows.net\" + $storedr.Name
 
 $FSLogixCD = "type=smb,connectionString="+$files2+";type=smb,connectionString="+$files2DR
 
@@ -433,7 +433,7 @@ $ImgCustomParams02 = @{
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "KeepLocalDir" -Value 0 -PropertyType DWord -Force -ea SilentlyContinue;
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "VolumeType" -Value "vhdx" -PropertyType String -Force -ea SilentlyContinue;
     
-    if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\Profiles" -force -ea SilentlyContinue };
+    if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\ODFC" -force -ea SilentlyContinue };
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "Enabled" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "CCDLocations" -Value $FSLogixCD -PropertyType String -Force -ea SilentlyContinue;
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneDrive" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
@@ -460,7 +460,7 @@ $share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.param
 
 #Get Share Details
 $store = get-azstorageshare -Context $share.Context | Select-Object Name
-$files2 = "\\" + $store.Name + ".file.core.windows.net"
+$files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
 
 
 $ImgCustomParams02 = @{
@@ -475,7 +475,7 @@ $ImgCustomParams02 = @{
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "KeepLocalDir" -Value 0 -PropertyType DWord -Force -ea SilentlyContinue;
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "VolumeType" -Value "vhdx" -PropertyType String -Force -ea SilentlyContinue;
     
-    if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\Profiles" -force -ea SilentlyContinue };
+    if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\ODFC" -force -ea SilentlyContinue };
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "Enabled" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "VHDLocations" -Value $files2 -PropertyType String -Force -ea SilentlyContinue;
     New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneDrive" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
