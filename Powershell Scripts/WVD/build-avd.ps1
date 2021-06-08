@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-  Builds a WVD environment
+  Builds an AVD environment
 .DESCRIPTION
-Builds WVD environment using Project Bicep and then builds an image using image builder
+Builds AVD environment using Project Bicep and then builds an image using image builder
 
 .INPUTS
 None required
