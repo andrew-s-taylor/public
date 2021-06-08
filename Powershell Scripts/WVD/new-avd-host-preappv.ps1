@@ -1,10 +1,10 @@
 
 <#
 .SYNOPSIS
-  Configured WVD Host
+  Configured AVD Host
 
 .DESCRIPTION
- Configured a new WVD host for use with image builder.  Cleans image, installs chocolatey and enables App-V
+ Configured a new AD host for use with image builder.  Cleans image, installs chocolatey and enables App-V
 
 
 .INPUTS
@@ -22,11 +22,11 @@ Verbose output
   Purpose/Change: Initial script development
   
 .EXAMPLE
-new-wvd-host-preappv.ps1 -chocopackages "https:\\your-url" -FSLogixCD1 "\\YOURURL1.file.core.windows.net\fslogixprofiles" -FSLogixCD2 "\\YOURURL2.file.core.windows.net\fslogixprofiles"
+new-Avd-host-preappv.ps1 -chocopackages "https:\\your-url" -FSLogixCD1 "\\YOURURL1.file.core.windows.net\fslogixprofiles" -FSLogixCD2 "\\YOURURL2.file.core.windows.net\fslogixprofiles"
 #>
 
 ##############################
-#    WVD Script Parameters   #
+#    AVD Script Parameters   #
 ##############################
 Param (        
     [Parameter(Mandatory=$false)]
@@ -43,15 +43,15 @@ Param (
 New-Item -Path c:\log -ItemType Directory
 New-Item -Path c:\log\ -Name New-WVDSessionHost.log -ItemType File
 ######################
-#    WVD Variables   #
+#    AVD Variables   #
 ######################
-$LocalWVDpath            = "c:\temp\wvd\"
-$WVDBootURI              = 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH'
-$WVDAgentURI             = 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv'
+$LocalAVDpath            = "c:\temp\avd\"
+$AVDBootURI              = 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH'
+$AVDAgentURI             = 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv'
 $FSLogixURI              = 'https://aka.ms/fslogix_download'
 $FSInstaller             = 'FSLogixAppsSetup.zip'
-$WVDAgentInstaller       = 'WVD-Agent.msi'
-$WVDBootInstaller        = 'WVD-Bootloader.msi'
+$AVDAgentInstaller       = 'WVD-Agent.msi'
+$AVDBootInstaller        = 'WVD-Bootloader.msi'
 
 $FSLogixCD = "type=smb,connectionString="+$FSLogixCD1+";type=smb,connectionString="+$FSLogixCD2
 
@@ -59,7 +59,7 @@ $FSLogixCD = "type=smb,connectionString="+$FSLogixCD1+";type=smb,connectionStrin
 #    Test/Create Temp Directory    #
 ####################################
 if((Test-Path c:\temp) -eq $false) {
-    Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "Create C:\temp Directory"
+    Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "Create C:\temp Directory"
     Write-Host `
         -ForegroundColor Cyan `
         -BackgroundColor Black `
@@ -67,22 +67,22 @@ if((Test-Path c:\temp) -eq $false) {
     New-Item -Path c:\temp -ItemType Directory
 }
 else {
-    Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "C:\temp Already Exists"
+    Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "C:\temp Already Exists"
     Write-Host `
         -ForegroundColor Yellow `
         -BackgroundColor Black `
         "temp directory already exists"
 }
 if((Test-Path $LocalWVDpath) -eq $false) {
-    Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "Create C:\temp\WVD Directory"
+    Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "Create C:\temp\WVD Directory"
     Write-Host `
         -ForegroundColor Cyan `
         -BackgroundColor Black `
         "creating c:\temp\wvd directory"
-    New-Item -Path $LocalWVDpath -ItemType Directory
+    New-Item -Path $LocalAVDpath -ItemType Directory
 }
 else {
-    Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "C:\temp\WVD Already Exists"
+    Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "C:\temp\AVD Already Exists"
     Write-Host `
         -ForegroundColor Yellow `
         -BackgroundColor Black `
@@ -90,7 +90,7 @@ else {
 }
 
 Add-Content `
--LiteralPath C:\log\New-WVDSessionHost.log `
+-LiteralPath C:\log\New-AVDSessionHost.log `
 "
 ProfilePath       = $ProfilePath
 RegistrationToken = $RegistrationToken
@@ -101,9 +101,9 @@ Optimize          = $Optimize
 #################################
 #    Download WVD Components    #
 #################################
-Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "Downloading WVD Boot Loader"
-    Invoke-WebRequest -Uri $WVDBootURI -OutFile "$LocalWVDpath$WVDBootInstaller"
-Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "Downloading FSLogix"
+Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "Downloading AVD Boot Loader"
+    Invoke-WebRequest -Uri $AVDBootURI -OutFile "$LocalAVDpath$WVDBootInstaller"
+Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "Downloading FSLogix"
     Invoke-WebRequest -Uri $FSLogixURI -OutFile "$LocalWVDpath$FSInstaller"
 Add-Content -LiteralPath C:\log\New-WVDSessionHost.log "Downloading WVD Agent"
     Invoke-WebRequest -Uri $WVDAgentURI -OutFile "$LocalWVDpath$WVDAgentInstaller"
