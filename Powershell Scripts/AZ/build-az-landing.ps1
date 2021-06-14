@@ -86,8 +86,12 @@ Connect-AzAccount
 
 #Create path for files
 #Ask for something to keep files individual
-$clientname = Read-Host "Who is the client?"
-$path = "c:\temp\" + $clientname + "\"
+$random = Get-Random -Maximum 1000 
+$random = $random.ToString()
+$date =get-date -format yyMMddmmss
+$date = $date.ToString()
+$path2 = $random + "-"  + $date
+$path = "c:\temp\" + $path2 + "\"
 
 New-Item -ItemType Directory -Path $path
 
