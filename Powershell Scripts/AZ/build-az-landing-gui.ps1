@@ -23,7 +23,7 @@ N/A
 #Create path for files
 #Ask for something to keep files individual
 
-
+#Create Temp Folder
 $random = Get-Random -Maximum 1000 
 $random = $random.ToString()
 $date =get-date -format yyMMddmmss
@@ -35,6 +35,10 @@ $output3 = "c:\temp\" + $path2 + "\main.zip"
 
 New-Item -ItemType Directory -Path $path
 
+
+###############################################################################################################################################
+#####                                                 SET VARIABLES                                                                          ##
+###############################################################################################################################################
 Write-Host "Directory Created"
 Set-Location $path
 $jsonfile = [PSCustomObject]@{value=$pathaz+"\parameters.json"}
@@ -43,12 +47,16 @@ $pathaz2 = [PSCustomObject]@{value=$pathaz}
 $output2 = [PSCustomObject]@{value=$output3}
 
 
+###############################################################################################################################################
+#####                                                  CREATE FORM                                                                           ##
+###############################################################################################################################################
+
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $Form                            = New-Object system.Windows.Forms.Form
 $Form.ClientSize                 = New-Object System.Drawing.Point(896,689)
-$Form.text                       = "Form"
+$Form.text                       = "Azure Landing Zone Creation Tool - v1.0"
 $Form.TopMost                    = $false
 
 $OrgMgmtGrpName                  = New-Object system.Windows.Forms.Label
@@ -629,9 +637,27 @@ $exit.height                     = 64
 $exit.location                   = New-Object System.Drawing.Point(654,589)
 $exit.Font                       = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
-$Form.controls.AddRange(@($OrgMgmtGrpName,$orggroup,$Label1,$devgroup,$Label2,$testgroup,$Label3,$prodgroup,$Label4,$excgroup,$Label5,$SubscriptionID,$Label6,$tagname,$Label7,$tagvalue,$Label8,$region,$Label9,$hubrgname,$Label10,$spokergname,$Label11,$hubname,$Label12,$hubspace,$Label13,$hubfwsubnet,$Label14,$spokename,$Label15,$spokespace,$Label16,$spokesnname,$Label17,$spokesnspace,$Label18,$logAnalyticsWorkspaceName,$Label19,$loganalyticslocation,$Label20,$monitoringrg,$Label21,$serverrg,$Label22,$adminUserName,$Label23,$adminPassword,$Label24,$dnsLabelPrefix,$Label25,$storageAccountName,$Label26,$vmName,$Label27,$networkSecurityGroupName,$Label28,$vpnsubnet,$Label29,$vpngwpipname,$Label30,$vpngwname,$Label31,$localnetworkgwname,$Label32,$addressprefixes,$Label33,$gwipaddress,$Label34,$bgppeeringpddress,$Label35,$devicesubnet,$Label36,$update,$login,$deploy,$exit))
+$Label37                         = New-Object system.Windows.Forms.Label
+$Label37.text                    = "Created by Andrew Taylor (andrewstaylor.com)"
+$Label37.AutoSize                = $true
+$Label37.width                   = 25
+$Label37.height                  = 10
+$Label37.location                = New-Object System.Drawing.Point(5,668)
+$Label37.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',8)
 
+$Form.controls.AddRange(@($OrgMgmtGrpName,$orggroup,$Label1,$devgroup,$Label2,$testgroup,$Label3,$prodgroup,$Label4,$excgroup,$Label5,$SubscriptionID,$Label6,$tagname,$Label7,$tagvalue,$Label8,$region,$Label9,$hubrgname,$Label10,$spokergname,$Label11,$hubname,$Label12,$hubspace,$Label13,$hubfwsubnet,$Label14,$spokename,$Label15,$spokespace,$Label16,$spokesnname,$Label17,$spokesnspace,$Label18,$logAnalyticsWorkspaceName,$Label19,$loganalyticslocation,$Label20,$monitoringrg,$Label21,$serverrg,$Label22,$adminUserName,$Label23,$adminPassword,$Label24,$dnsLabelPrefix,$Label25,$storageAccountName,$Label26,$vmName,$Label27,$networkSecurityGroupName,$Label28,$vpnsubnet,$Label29,$vpngwpipname,$Label30,$vpngwname,$Label31,$localnetworkgwname,$Label32,$addressprefixes,$Label33,$gwipaddress,$Label34,$bgppeeringpddress,$Label35,$devicesubnet,$Label36,$update,$login,$deploy,$exit,$Label37))
+
+
+
+
+
+###############################################################################################################################################
+#####                                                  UPDATE PARAMETERS                                                                     ##
+###############################################################################################################################################
 $update.Add_Click({  
+
+  #Download files and update parameters.json
+
   $url = "https://github.com/andrew-s-taylor/az-landing/archive/main.zip"
   $output = $output2.value
   $expath = $path2.value
@@ -640,6 +666,8 @@ $update.Add_Click({
   $wc.DownloadFile($url, $output)
   
   Expand-Archive $output -DestinationPath $expath -Force
+
+  #Remove Zip file downloaded
   remove-item $output -Force
 
 $json = Get-Content $jsonfile.value | ConvertFrom-Json 
@@ -679,12 +707,25 @@ $json.parameters.addressprefixes.value = $addressprefixes.text
 $json.parameters.gwipaddress.value = $gwipaddress.text
 $json.parameters.bgppeeringpddress.value = $bgppeeringpddress.text
 $json.parameters.devicesubnet.value = $devicesubnet.text
+
+#Update Params
 $json | ConvertTo-Json | Out-File $jsonfile.value
+
+#Popup box to show completed
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 $msgBody = "Parameters updated and saved to " + $jsonfile.value
 [System.Windows.MessageBox]::Show($msgBody)
 
 })
+
+
+
+
+
+
+###############################################################################################################################################
+#####                                                  AZURE LOGIN                                                                           ##
+###############################################################################################################################################
 $login.Add_Click({ 
 #Connectaz
 
@@ -696,6 +737,15 @@ $msgBody = "Azure Connected"
 [System.Windows.MessageBox]::Show($msgBody)
 
  })
+
+
+
+
+
+
+###############################################################################################################################################
+#####                                                  DEPLOY                                                                                ##
+###############################################################################################################################################
 $deploy.Add_Click({ 
 
 #Deploy
@@ -704,7 +754,7 @@ $Location =  $region.text
 
 write-host "Deploying Environment using Bicep"
 
-#Deploy WVD
+#Deploy Landing Zone
 New-AzSubscriptionDeployment -Location $location -TemplateFile ./main.bicep -TemplateParameterFile ./parameters.json
 
 
@@ -713,6 +763,15 @@ $msgBody = "Environment Built"
 [System.Windows.MessageBox]::Show($msgBody)
 
  })
+
+
+
+
+
+
+###############################################################################################################################################
+#####                                                  PRE-LOAD ITEMS                                                                        ##
+###############################################################################################################################################
 $Form.Add_Load({
 
 #Load Bits
@@ -756,10 +815,17 @@ write-host "Importing Modules"
 #Import AZ Module
 import-module -Name Az
 
-
-
-
   })
+
+
+
+
+
+
+
+###############################################################################################################################################
+#####                                                  EXIT AND CLEANUP                                                                      ##
+###############################################################################################################################################
 $exit.Add_Click({ 
 
 #Close Form and del dir
@@ -771,6 +837,10 @@ $form.Close()
 
 
 
-#Write your logic code here
 
+
+
+###############################################################################################################################################
+#####                                                  LOAD FORM                                                                             ##
+###############################################################################################################################################
 [void]$Form.ShowDialog()
