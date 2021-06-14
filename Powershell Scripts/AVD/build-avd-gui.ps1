@@ -371,13 +371,13 @@ $Label21.height                  = 10
 $Label21.location                = New-Object System.Drawing.Point(470,108)
 $Label21.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$templateImageResourceGroup      = New-Object system.Windows.Forms.TextBox
-$templateImageResourceGroup.multiline  = $false
-$templateImageResourceGroup.text  = "prefix + IMG"
-$templateImageResourceGroup.width  = 178
-$templateImageResourceGroup.height  = 20
-$templateImageResourceGroup.location  = New-Object System.Drawing.Point(694,98)
-$templateImageResourceGroup.Font  = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+#$templateImageResourceGroup      = New-Object system.Windows.Forms.TextBox
+#$templateImageResourceGroup.multiline  = $false
+#$templateImageResourceGroup.text  = "prefix + IMG"
+#$templateImageResourceGroup.width  = 178
+#$templateImageResourceGroup.height  = 20
+#$templateImageResourceGroup.location  = New-Object System.Drawing.Point(694,98)
+#$templateImageResourceGroup.Font  = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $Label22                         = New-Object system.Windows.Forms.Label
 $Label22.text                    = "User Identity Name"
@@ -805,13 +805,13 @@ $Label44.Font                    = New-Object System.Drawing.Font('Microsoft San
 
 if ($answer2 -eq 6) {
     #Display MR only
-    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label21,$templateImageResourceGroup,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$Label32,$Label33,$sigName2,$Label34,$Label35,$vnetName2,$Label36,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$logAnalyticsLocation2,$sigLocation2,$vnetaddressPrefix2,$subnetPrefix2,$subnetName2,$storageaccountName2,$fileshareFolderName2,$Label37,$Label38,$Label39,$Label40,$Label41,$Label42,$Label43,$vnetLocation2,$storageaccountlocation2,$Label44,$Build))
+    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label21,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$Label32,$Label33,$sigName2,$Label34,$Label35,$vnetName2,$Label36,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$logAnalyticsLocation2,$sigLocation2,$vnetaddressPrefix2,$subnetPrefix2,$subnetName2,$storageaccountName2,$fileshareFolderName2,$Label37,$Label38,$Label39,$Label40,$Label41,$Label42,$Label43,$vnetLocation2,$storageaccountlocation2,$Label44,$Build))
 
 }
 
 else {
     #Display SR
-    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label21,$templateImageResourceGroup,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$Label44,$Build))
+    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label21,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$Label44,$Build))
 
 
 }
@@ -862,7 +862,7 @@ $json.parameters.imageOffer.value = "office-365"
 $json.parameters.imageSKU.value = $imageSKU.Text
 $json.parameters.imageLocation.value = $imageLocation.Text
 $json.parameters.roleNameGalleryImage.value = $roleNameGalleryImage.Text
-$json.parameters.templateImageResourceGroup.value = $templateImageResourceGroup.Text
+$json.parameters.templateImageResourceGroup.value = $resourceGroupPrefix.Text + "-IMG"
 $json.parameters.useridentity.value = $useridentity.Text
 $json.parameters.vnetName.value = $vnetName.Text
 $json.parameters.vnetaddressPrefix.value = $vnetaddressPrefix.Text
