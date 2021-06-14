@@ -575,28 +575,35 @@ $Label36.location                = New-Object System.Drawing.Point(309,15)
 $Label36.Font                    = New-Object System.Drawing.Font('Calibri',20)
 
 $update                          = New-Object system.Windows.Forms.Button
-$update.text                     = "Update Params"
+$update.text                     = "1-Update Params"
 $update.width                    = 160
 $update.height                   = 65
 $update.location                 = New-Object System.Drawing.Point(278,716)
 $update.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
 $login                           = New-Object system.Windows.Forms.Button
-$login.text                      = "Azure Login"
+$login.text                      = "2-Azure Login"
 $login.width                     = 170
 $login.height                    = 65
 $login.location                  = New-Object System.Drawing.Point(464,716)
 $login.Font                      = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
 $deploy                          = New-Object system.Windows.Forms.Button
-$deploy.text                     = "Deploy"
+$deploy.text                     = "3-Deploy"
 $deploy.width                    = 160
 $deploy.height                   = 64
 $deploy.location                 = New-Object System.Drawing.Point(278,791)
 $deploy.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
+$Build                           = New-Object system.Windows.Forms.Button
+$Build.text                      = "4-Build Image"
+$Build.width                     = 169
+$Build.height                    = 63
+$Build.location                  = New-Object System.Drawing.Point(465,791)
+$Build.Font                      = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
+
 $exit                            = New-Object system.Windows.Forms.Button
-$exit.text                       = "Exit"
+$exit.text                       = "5-Exit"
 $exit.width                      = 172
 $exit.height                     = 64
 $exit.location                   = New-Object System.Drawing.Point(644,791)
@@ -793,12 +800,7 @@ $Label44.height                  = 10
 $Label44.location                = New-Object System.Drawing.Point(7,848)
 $Label44.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',8)
 
-$Build                           = New-Object system.Windows.Forms.Button
-$Build.text                      = "Build Image"
-$Build.width                     = 169
-$Build.height                    = 63
-$Build.location                  = New-Object System.Drawing.Point(465,791)
-$Build.Font                      = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
+
 
 
 if ($answer2 -eq 6) {

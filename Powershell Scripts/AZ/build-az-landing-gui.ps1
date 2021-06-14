@@ -610,28 +610,28 @@ $Label36.location                = New-Object System.Drawing.Point(309,15)
 $Label36.Font                    = New-Object System.Drawing.Font('Calibri',20)
 
 $update                          = New-Object system.Windows.Forms.Button
-$update.text                     = "Update Params"
+$update.text                     = "1-Update Params"
 $update.width                    = 160
 $update.height                   = 65
 $update.location                 = New-Object System.Drawing.Point(469,514)
 $update.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
 $login                           = New-Object system.Windows.Forms.Button
-$login.text                      = "Azure Login"
+$login.text                      = "2-Azure Login"
 $login.width                     = 170
 $login.height                    = 65
 $login.location                  = New-Object System.Drawing.Point(655,514)
 $login.Font                      = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
 $deploy                          = New-Object system.Windows.Forms.Button
-$deploy.text                     = "Deploy"
+$deploy.text                     = "3-Deploy"
 $deploy.width                    = 160
 $deploy.height                   = 64
 $deploy.location                 = New-Object System.Drawing.Point(469,589)
 $deploy.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',13)
 
 $exit                            = New-Object system.Windows.Forms.Button
-$exit.text                       = "Exit"
+$exit.text                       = "4-Exit"
 $exit.width                      = 172
 $exit.height                     = 64
 $exit.location                   = New-Object System.Drawing.Point(654,589)
