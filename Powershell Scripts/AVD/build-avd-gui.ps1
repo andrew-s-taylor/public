@@ -1212,13 +1212,27 @@ $fslocation = "VHDLocations"
 $FSLogixCD = $files2
 }
 
+
+#Set Variables
+$region1 = $json.parameters.sigLocation.value
+if ($answer.value -eq 6) {
+$region2 = $json.parameters.sigLocation2.value
+}
+else {
+  $replregion2 = "ukwest"
+}
+
+
+
+
 ## 3.2 DOWNLOAD AND CONFIGURE THE TEMPLATE WITH YOUR PARAMS
 $templateFilePath = "armTemplateWinSIG.json"
 
 Invoke-WebRequest `
    -Uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/AVD/avd-custom.json" `
    -OutFile $templateFilePath `
-   -UseBasicParsing
+   -UseBasicParsing `
+   -Headers @{"Cache-Control"="no-cache"}
 
 (Get-Content -path $templateFilePath -Raw ) `
    -replace '<subscriptionID>',$subscriptionID | Set-Content -Path $templateFilePath
@@ -1235,11 +1249,11 @@ Invoke-WebRequest `
 (Get-Content -path $templateFilePath -Raw ) `
    -replace '<region2>',$replRegion2 | Set-Content -Path $templateFilePath
 (Get-Content -path $templateFilePath -Raw ) `
-   -replace '<imagebuildersku>',$imageSKU.Text | Set-Content -Path $templateFilePath
+   -replace '<imagebuildersku>',$json.parameters.imageSKU.value | Set-Content -Path $templateFilePath
 (Get-Content -path $templateFilePath -Raw ) `
-   -replace '<locationtype>',$fslocation.Text | Set-Content -Path $templateFilePath
+   -replace '<locationtype>',$fslocation | Set-Content -Path $templateFilePath
 (Get-Content -path $templateFilePath -Raw ) `
-   -replace '<location>',$FSLogixCD.Text | Set-Content -Path $templateFilePath
+   -replace '<location>',$FSLogixCD | Set-Content -Path $templateFilePath
 ((Get-Content -path $templateFilePath -Raw) -replace '<imgBuilderId>',$identityNameResourceId) | Set-Content -Path $templateFilePath
 
 ##CREATE THE IMAGE VERSION
