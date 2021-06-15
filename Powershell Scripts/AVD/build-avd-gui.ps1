@@ -78,7 +78,7 @@ $AVDDeployment.text              = "AVD Deployment Tool V1.0"
 $AVDDeployment.TopMost           = $false
 
 $OrgMgmtGrpName                  = New-Object system.Windows.Forms.Label
-$OrgMgmtGrpName.text             = "Resource Group Prefix"
+$OrgMgmtGrpName.text             = "Resource Group Prefix(add trailing -)"
 $OrgMgmtGrpName.AutoSize         = $true
 $OrgMgmtGrpName.width            = 25
 $OrgMgmtGrpName.height           = 10
@@ -326,7 +326,7 @@ $Label18.Font                    = New-Object System.Drawing.Font('Microsoft San
 
 $imageSKU                        = New-Object system.Windows.Forms.TextBox
 $imageSKU.multiline              = $false
-$imageSKU.text                   = "office-36520h1-evd-o365pp"
+$imageSKU.text                   = "21h1-evd-o365pp"
 $imageSKU.width                  = 178
 $imageSKU.height                 = 20
 $imageSKU.location               = New-Object System.Drawing.Point(253,580)
@@ -363,13 +363,13 @@ $roleNameGalleryImage.height     = 20
 $roleNameGalleryImage.location   = New-Object System.Drawing.Point(694,72)
 $roleNameGalleryImage.Font       = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$Label21                         = New-Object system.Windows.Forms.Label
-$Label21.text                    = "Image Gallery Resource Group"
-$Label21.AutoSize                = $true
-$Label21.width                   = 25
-$Label21.height                  = 10
-$Label21.location                = New-Object System.Drawing.Point(470,108)
-$Label21.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+#$Label21                         = New-Object system.Windows.Forms.Label
+#$Label21.text                    = "Image Gallery Resource Group"
+#$Label21.AutoSize                = $true
+#$Label21.width                   = 25
+#$Label21.height                  = 10
+#$Label21.location                = New-Object System.Drawing.Point(470,108)
+#$Label21.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 #$templateImageResourceGroup      = New-Object system.Windows.Forms.TextBox
 #$templateImageResourceGroup.multiline  = $false
@@ -436,7 +436,7 @@ $Label25.Font                    = New-Object System.Drawing.Font('Microsoft San
 
 $subnetPrefix                    = New-Object system.Windows.Forms.TextBox
 $subnetPrefix.multiline          = $false
-$subnetPrefix.text               = "10.0.1.0/15"
+$subnetPrefix.text               = "10.0.1.0/24"
 $subnetPrefix.width              = 178
 $subnetPrefix.height             = 20
 $subnetPrefix.location           = New-Object System.Drawing.Point(694,208)
@@ -805,13 +805,13 @@ $Label44.Font                    = New-Object System.Drawing.Font('Microsoft San
 
 if ($answer2 -eq 6) {
     #Display MR only
-    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label21,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$Label32,$Label33,$sigName2,$Label34,$Label35,$vnetName2,$Label36,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$logAnalyticsLocation2,$sigLocation2,$vnetaddressPrefix2,$subnetPrefix2,$subnetName2,$storageaccountName2,$fileshareFolderName2,$Label37,$Label38,$Label39,$Label40,$Label41,$Label42,$Label43,$vnetLocation2,$storageaccountlocation2,$Label44,$Build))
+    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$Label32,$Label33,$sigName2,$Label34,$Label35,$vnetName2,$Label36,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$logAnalyticsLocation2,$sigLocation2,$vnetaddressPrefix2,$subnetPrefix2,$subnetName2,$storageaccountName2,$fileshareFolderName2,$Label37,$Label38,$Label39,$Label40,$Label41,$Label42,$Label43,$vnetLocation2,$storageaccountlocation2,$Label44,$Build))
 
 }
 
 else {
     #Display SR
-    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label21,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$Label44,$Build))
+    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$Label44,$Build))
 
 
 }
@@ -927,7 +927,7 @@ $msgBody = "Azure Connected"
 ###############################################################################################################################################
 $deploy.Add_Click({  
     Set-Location $pathaz
-    $Location =  $region.text
+    $Location =  $loganalyticslocation.text
 
     write-host "Deploying Environment using Bicep"
     Set-AzContext $azureSubscriptionID.Text
@@ -1164,115 +1164,37 @@ write-host "Creating Image"
    -OsType Windows `
    -Publisher 'BytesSoftwareServices' `
    -Offer 'Windows-10-App-Teams' `
-   -Sku '21h1-evd'
+   -Sku $imageSKU.Text
 
 
 
- #Create Image
- $SrcObjParams = @{
-    SourceTypePlatformImage = $true
-    Publisher = $json.parameters.imagePublisher.value
-    Offer = $json.parameters.imageOffer.value
-    Sku = $json.parameters.imageSKU.value
-    Version = 'latest'
-  }
-  $srcPlatform = New-AzImageBuilderSourceObject @SrcObjParams
+ ##Get Storage Details
+ 
+ if ($answer.value -eq 6) {
 
-  #Distributor Object
-
-    $disObjParams = @{
-    SharedImageDistributor = $true
-    ArtifactTag = @{tag='dis-share'}
-    GalleryImageId = "/subscriptions/$subscriptionID/resourceGroups/$imageResourceGroup/providers/Microsoft.Compute/galleries/$myGalleryName/images/$imageDefName"
-    ReplicationRegion = $location
-    RunOutputName = $runOutputName
-    ExcludeFromLatest = $false
-  }
-  $disSharedImg = New-AzImageBuilderDistributorObject @disObjParams
-
-  #Let's get customizing
-
-#Basic Script - For all deployments
-$imgCustomParams = @{
-    PowerShellCustomizer = $true
-    CustomizerName       = 'MountAppShareAndRunInstaller'
-    RunElevated          = $true
-    scriptUri            = 'https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/AVD/AVD-box-config-generic.ps1'
-}
-$Customizer01 = New-AzImageBuilderCustomizerObject @imgCustomParams
-
-if ($packages2.Text = "") {
-    Write-Verbose "Skipping Choco Install"
-}
-else {
-#Install Choco Apps
-$ImgCustomParams03 = @{
-    PowerShellCustomizer = $true
-    CustomizerName = 'settingUpMgmtAgtPath'
-    RunElevated = $false
-    Inline = @('
-    $packages = $packages2.split(“,”);
-    foreach ($package in $packages) {
-    choco install $package -y
-    }')
-  }
-$Customizer03 = New-AzImageBuilderCustomizerObject @ImgCustomParams03
-}
-#Configure FSLogix
-
-if ($answer.value -eq 6) {
-
-#Get Storage Account
-$files1 = $json.parameters.resourceGroupPrefix.value
-
-$fileresource = $files1 + "FILESERVICES"
-$share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.parameters.storageaccountName.value
-
-#Get Share Details
-$store = get-azstorageshare -Context $share.Context | Select-Object Name
-$files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
-
-
-#Get Storage AccountDR
-$files1dr = $json.parameters.resourceGroupPrefix.value
-
-$fileresourcedr = $files1dr + "FILESERVICES-DR"
-$sharedr = get-azstorageaccount -ResourceGroupName $fileresourcedr -Name $json.parameters.storageaccountName2.value
-
-#Get Share Details
-$storedr = get-azstorageshare -Context $sharedr.Context | Select-Object Name
-$files2dr = "\\" + $sharedr.StorageAccountName + ".file.core.windows.net\" + $storedr.Name
-
-$FSLogixCD = "type=smb,connectionString="+$files2+";type=smb,connectionString="+$files2DR
-
-
-$ImgCustomParams02 = @{
-    PowerShellCustomizer = $true
-    CustomizerName = 'settingUpMgmtAgtPath'
-    RunElevated = $false
-    Inline = @('if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\Profiles" -force -ea SilentlyContinue };
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "Enabled" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "CCDLocations" -Value $FSLogixCD -PropertyType String -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "ConcurrentUserSessions" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "IsDynamic" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "KeepLocalDir" -Value 0 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "VolumeType" -Value "vhdx" -PropertyType String -Force -ea SilentlyContinue;
-    
-    if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\ODFC" -force -ea SilentlyContinue };
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "Enabled" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "CCDLocations" -Value $FSLogixCD -PropertyType String -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneDrive" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneNote" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneNote_UWP" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOutlook" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOutlookPersonalization" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeSharepoint" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeTeams" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    Restart-Computer -Force ')
-  }
-$Customizer02 = New-AzImageBuilderCustomizerObject @ImgCustomParams02
-
-
+  #Get Storage Account
+  $files1 = $json.parameters.resourceGroupPrefix.value
+  
+  $fileresource = $files1 + "FILESERVICES"
+  $share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.parameters.storageaccountName.value
+  
+  #Get Share Details
+  $store = get-azstorageshare -Context $share.Context | Select-Object Name
+  $files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
+  
+  
+  #Get Storage AccountDR
+  $files1dr = $json.parameters.resourceGroupPrefix.value
+  
+  $fileresourcedr = $files1dr + "FILESERVICES-DR"
+  $sharedr = get-azstorageaccount -ResourceGroupName $fileresourcedr -Name $json.parameters.storageaccountName2.value
+  
+  #Get Share Details
+  $storedr = get-azstorageshare -Context $sharedr.Context | Select-Object Name
+  $files2dr = "\\" + $sharedr.StorageAccountName + ".file.core.windows.net\" + $storedr.Name
+  
+  $FSLogixCD = "type=smb,connectionString="+$files2+";type=smb,connectionString="+$files2DR
+  $fslocation = "CCDLocations"
 }
 
 else {
@@ -1286,82 +1208,81 @@ $share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.param
 #Get Share Details
 $store = get-azstorageshare -Context $share.Context | Select-Object Name
 $files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
-
-
-$ImgCustomParams02 = @{
-    PowerShellCustomizer = $true
-    CustomizerName = 'settingUpMgmtAgtPath'
-    RunElevated = $false
-    Inline = @('if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\Profiles" -force -ea SilentlyContinue };
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "Enabled" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "VHDLocations" -Value $files2 -PropertyType String -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "ConcurrentUserSessions" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "IsDynamic" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "KeepLocalDir" -Value 0 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\Profiles" -Name "VolumeType" -Value "vhdx" -PropertyType String -Force -ea SilentlyContinue;
-    
-    if((Test-Path -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC") -ne $true) {  New-Item "HKLM:\SOFTWARE\FSLogix\ODFC" -force -ea SilentlyContinue };
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "Enabled" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "VHDLocations" -Value $files2 -PropertyType String -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneDrive" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneNote" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOneNote_UWP" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOutlook" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeOutlookPersonalization" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeSharepoint" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    New-ItemProperty -LiteralPath "HKLM:\SOFTWARE\FSLogix\ODFC" -Name "IncludeTeams" -Value 1 -PropertyType DWord -Force -ea SilentlyContinue;
-    Restart-Computer -Force ')
-  }
-$Customizer02 = New-AzImageBuilderCustomizerObject @ImgCustomParams02
-
+$fslocation = "VHDLocations"
+$FSLogixCD = $files2
 }
 
-#Build the image template
-if ($packages2.Text = "") {
-    $ImgTemplateParams = @{
-        ImageTemplateName = $imageTemplateName
-        ResourceGroupName = $imageResourceGroup
-        Source = $srcPlatform
-        Distribute = $disSharedImg
-        Customize = $Customizer01, $Customizer02
-        Location = $location
-        UserAssignedIdentityId = $identityNameResourceId
-      }
-}
-else {
-    $ImgTemplateParams = @{
-        ImageTemplateName = $imageTemplateName
-        ResourceGroupName = $imageResourceGroup
-        Source = $srcPlatform
-        Distribute = $disSharedImg
-        Customize = $Customizer01, $Customizer02, $Customizer03
-        Location = $location
-        UserAssignedIdentityId = $identityNameResourceId
-      }
+## 3.2 DOWNLOAD AND CONFIGURE THE TEMPLATE WITH YOUR PARAMS
+$templateFilePath = "armTemplateWinSIG.json"
 
-}
+Invoke-WebRequest `
+   -Uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/AVD/avd-custom.json" `
+   -OutFile $templateFilePath `
+   -UseBasicParsing
 
-  New-AzImageBuilderTemplate @ImgTemplateParams
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<subscriptionID>',$subscriptionID | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<rgName>',$imageResourceGroup | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<runOutputName>',$runOutputName | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<imageDefName>',$imageDefName | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<sharedImageGalName>',$sigGalleryName | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<region1>',$location | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<region2>',$replRegion2 | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<imagebuildersku>',$imageSKU.Text | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<locationtype>',$fslocation.Text | Set-Content -Path $templateFilePath
+(Get-Content -path $templateFilePath -Raw ) `
+   -replace '<location>',$FSLogixCD.Text | Set-Content -Path $templateFilePath
+((Get-Content -path $templateFilePath -Raw) -replace '<imgBuilderId>',$identityNameResourceId) | Set-Content -Path $templateFilePath
+
+##CREATE THE IMAGE VERSION
+New-AzResourceGroupDeployment `
+   -ResourceGroupName $imageResourceGroup `
+   -TemplateFile $templateFilePath `
+   -api-version "2019-05-01-preview" `
+   -imageTemplateName $imageTemplateName `
+   -svclocation $location
+
+   ##BUILD THE IMAGE
+   Invoke-AzResourceAction `
+   -ResourceName $imageTemplateName `
+   -ResourceGroupName $imageResourceGroup `
+   -ResourceType Microsoft.VirtualMachineImages/imageTemplates `
+   -ApiVersion "2019-05-01-preview" `
+   -Action Run
+
+
+   #This has now kicked of a build into the AIB service which will do its stuff.
+   #To check the Image Build Process run the cmd below. 
+   #It will go from Building, to Distributing to Complete, it will take some time.
+   (Get-AzResource –ResourceGroupName $imageResourceGroup -ResourceType Microsoft.VirtualMachineImages/imageTemplates -Name $ImageTemplateName).Properties.lastRunStatus
+
+ 
  write-host "Image Building"
 
 
   #Wait for it to complete
 
   Do {
-    $state = Get-AzImageBuilderTemplate -ImageTemplateName $imageTemplateName -ResourceGroupName $imageResourceGroup | Select-Object -Property Name, LastRunStatusRunState, LastRunStatusMessage, ProvisioningState
+    $state = (Get-AzResource –ResourceGroupName $imageResourceGroup -ResourceType Microsoft.VirtualMachineImages/imageTemplates -Name $ImageTemplateName).Properties.lastRunStatus
     Write-Host "Running"
     Start-Sleep 5
 }
 Until (
     
-    $state = "Succeeded"
+    $state = "Complete"
 )
 Write-Host "Completed"
 
 
-  #Build the Image
-write-host "Starting Template Build"
-  Start-AzImageBuilderTemplate -ResourceGroupName $imageResourceGroup -Name $imageTemplateName
+
 
 
   write-host "Build Completed"
