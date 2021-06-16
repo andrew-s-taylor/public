@@ -1272,13 +1272,13 @@ if ($answer.value -eq 6) {
 
     
       Do {
-        $state = Get-AzImageBuilderTemplate -ImageTemplateName $imageTemplateName -ResourceGroupName $imageResourceGroup | Select-Object -Property Name, LastRunStatusRunState, LastRunStatusMessage, ProvisioningState
+        $state = Get-AzImageBuilderTemplate -ImageTemplateName $imageTemplateName -ResourceGroupName $imageResourceGroup | Select-Object -Property Name, LastRunStatusRunState, LastRunStatusMessage
         Write-Host "Running"
         Start-Sleep 5
     }
     Until (
         
-        $state = "Complete"
+        $state.LastRunStatusRunState -eq "Succeeded"
     )
     Write-Host "Completed"
     
