@@ -1129,6 +1129,8 @@ $Build.Add_Click({
     
     # Create the  role definition
     New-AzRoleDefinition -InputFile  ./aibRoleImageCreation.json
+
+    Start-Sleep -Seconds 120 
     
     # Grant role definition to image builder service principal
     New-AzRoleAssignment -ObjectId $identityNamePrincipalId -RoleDefinitionName $imageRoleDefName -Scope "/subscriptions/$subscriptionID/resourceGroups/$imageResourceGroup"
@@ -1254,7 +1256,8 @@ if ($answer.value -eq 6) {
       -ResourceType Microsoft.VirtualMachineImages/imageTemplates `
       -Pre `
       -Action Run `
-      -ApiVersion "2019-05-01-preview"
+      -ApiVersion "2019-05-01-preview" `
+      -Force
    
    
       #This has now kicked of a build into the AIB service which will do its stuff.
@@ -1269,7 +1272,7 @@ if ($answer.value -eq 6) {
 
     
       Do {
-        $state = Get-AzResource -ResourceGroupName $imageResourceGroup -ResourceType Microsoft.VirtualMachineImages/imageTemplates -Name $ImageTemplateName.Properties.lastRunStatus
+        $state = Get-AzImageBuilderTemplate -ImageTemplateName $imageTemplateName -ResourceGroupName $imageResourceGroup | Select-Object -Property Name, LastRunStatusRunState, LastRunStatusMessage, ProvisioningState
         Write-Host "Running"
         Start-Sleep 5
     }
