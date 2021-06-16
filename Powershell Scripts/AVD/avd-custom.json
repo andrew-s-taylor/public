@@ -58,7 +58,7 @@
                     {
                         "type": "PowerShell",
                         "name": "CreateBuildPath",
-                        "scriptUri": "https://raw.githubusercontent.com/andrew-s-taylor/andrewstaylor/main/Powershell%20Scripts/AVD/avd-box-config-generic.ps1"
+                        "scriptUri": "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/AVD/avd-box-config-generic.ps1"
                     },
                      
                     {

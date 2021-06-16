@@ -78,7 +78,7 @@ $AVDDeployment.text              = "AVD Deployment Tool V1.0"
 $AVDDeployment.TopMost           = $false
 
 $OrgMgmtGrpName                  = New-Object system.Windows.Forms.Label
-$OrgMgmtGrpName.text             = "Resource Group Prefix(add trailing -)"
+$OrgMgmtGrpName.text             = "Resource Group Prefix(add -)"
 $OrgMgmtGrpName.AutoSize         = $true
 $OrgMgmtGrpName.width            = 25
 $OrgMgmtGrpName.height           = 10
@@ -504,22 +504,6 @@ $fileshareFolderName.height      = 20
 $fileshareFolderName.location    = New-Object System.Drawing.Point(694,339)
 $fileshareFolderName.Font        = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$Label31                         = New-Object system.Windows.Forms.Label
-$Label31.text                    = "Comma separated packages list"
-$Label31.AutoSize                = $true
-$Label31.width                   = 25
-$Label31.height                  = 10
-$Label31.location                = New-Object System.Drawing.Point(470,370)
-$Label31.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
-
-$packages2                       = New-Object system.Windows.Forms.TextBox
-$packages2.multiline             = $false
-$packages2.text                  = "leave blank if no choco needed"
-$packages2.width                 = 178
-$packages2.height                = 20
-$packages2.location              = New-Object System.Drawing.Point(694,368)
-$packages2.Font                  = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
-
 $Label32                         = New-Object system.Windows.Forms.Label
 $Label32.text                    = "Log Analytics Location (DR)"
 $Label32.AutoSize                = $true
@@ -805,13 +789,13 @@ $Label44.Font                    = New-Object System.Drawing.Font('Microsoft San
 
 if ($answer2 -eq 6) {
     #Display MR only
-    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$Label32,$Label33,$sigName2,$Label34,$Label35,$vnetName2,$Label36,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$logAnalyticsLocation2,$sigLocation2,$vnetaddressPrefix2,$subnetPrefix2,$subnetName2,$storageaccountName2,$fileshareFolderName2,$Label37,$Label38,$Label39,$Label40,$Label41,$Label42,$Label43,$vnetLocation2,$storageaccountlocation2,$Label44,$Build))
+    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label32,$Label33,$sigName2,$Label34,$Label35,$vnetName2,$Label36,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$logAnalyticsLocation2,$sigLocation2,$vnetaddressPrefix2,$subnetPrefix2,$subnetName2,$storageaccountName2,$fileshareFolderName2,$Label37,$Label38,$Label39,$Label40,$Label41,$Label42,$Label43,$vnetLocation2,$storageaccountlocation2,$Label44,$Build))
 
 }
 
 else {
     #Display SR
-    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$Label31,$packages2,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$Label44,$Build))
+    $AVDDeployment.controls.AddRange(@($OrgMgmtGrpName,$resourceGroupPrefix,$Label1,$hostpoolName,$Label2,$hostpoolFriendlyName,$Label3,$appgroupName,$Label4,$appgroupFriendlyName,$Label5,$workspaceName,$Label6,$workspaceNameFriendlyName,$Label7,$Label8,$avdbackplanelocation,$Label9,$Label10,$Label11,$logAnalyticsWorkspaceName,$Label12,$Label13,$azureSubscriptionID,$Label14,$automationaccountname,$Label15,$sigName,$Label16,$Label17,$imageDefinitionName,$Label18,$imageSKU,$Label19,$loganalyticslocation,$Label20,$roleNameGalleryImage,$Label22,$useridentity,$Label23,$vnetName,$Label24,$vnetaddressPrefix,$Label25,$subnetPrefix,$Label26,$Label27,$subnetName,$Label28,$Label29,$storageaccountName,$Label30,$fileshareFolderName,$update,$login,$deploy,$exit,$preferredAppGroupType,$hostPoolType,$loadBalancerType,$sigLocation,$imageLocation,$vnetLocation,$storageaccountlocation,$Label44,$Build))
 
 
 }
@@ -1046,132 +1030,158 @@ $AVDDeployment.Close()
 #####                                                  Build Image                                                                           ##
 ###############################################################################################################################################
 
- $Build.Add_Click({ 
+$Build.Add_Click({ 
 
-###############################################################################################################################################
-#####                                                  IMAGE BUILDER                                                                         ##
-###############################################################################################################################################
-
-
-
-
-write-host "Begin Image Build"
-write-host "Registering AZ Provider"
-#Register Image Builder
-Register-AzProviderFeature -ProviderNamespace Microsoft.VirtualMachineImages -FeatureName VirtualMachineTemplatePreview
-
-#While Loop to check for Registered here
-
-Do {
-    $state = Get-AzProviderFeature -ProviderNamespace Microsoft.VirtualMachineImages -FeatureName VirtualMachineTemplatePreview | select-object RegistrationState
-    Write-Host "Unregistered"
-    Start-Sleep 5
-}
-Until (
+    ###############################################################################################################################################
+    #####                                                  IMAGE BUILDER                                                                         ##
+    ###############################################################################################################################################
     
-    $state = "Registered AZ Provider"
-)
-Write-Host "Registered AZ Provider"
+    
+    
+    
+    write-host "Begin Image Build"
+    write-host "Registering AZ Provider"
+    #Register Image Builder
+    Register-AzProviderFeature -ProviderNamespace Microsoft.VirtualMachineImages -FeatureName VirtualMachineTemplatePreview
+    
+    #While Loop to check for Registered here
+    
+    Do {
+        $state = Get-AzProviderFeature -ProviderNamespace Microsoft.VirtualMachineImages -FeatureName VirtualMachineTemplatePreview | select-object RegistrationState
+        Write-Host "Unregistered"
+        Start-Sleep 5
+    }
+    Until (
+        
+        $state = "Registered AZ Provider"
+    )
+    Write-Host "Registered AZ Provider"
+    
+    
+    #Register Other Components if required
+    write-host "Registering Other Components"
+    Get-AzResourceProvider -ProviderNamespace Microsoft.Compute, Microsoft.KeyVault, Microsoft.Storage, Microsoft.VirtualMachineImages, Microsoft.Network |
+      Where-Object RegistrationState -ne Registered |
+        Register-AzResourceProvider
+    
+    
+    #Define Variables using data above
+    
+    write-host "Grabbing details from parameters json"
+    #Get Set variables
+    
+    $json = Get-Content $jsonfile.value | ConvertFrom-Json 
+    
+    # Destination image resource group name
+    $igr1 = $json.parameters.resourceGroupPrefix.value
+    
+    $imageResourceGroup = $igr1 + "IMG"
+    
+    # Azure region
+    if ($answer.value -eq 6) {
+    
+    $location2 = $json.parameters.sigLocation2.value
+    $location1 = $json.parameters.imageLocation.value
+    $location = $location1 + "," + $location2
+    }
+    else {
+    $location = $json.parameters.imageLocation.value
+    }
+    
+    # Name of the image to be created
+    $imageTemplateName = $json.parameters.imageDefinitionName.value + "bld"
+    
+    # Distribution properties of the managed image upon completion
+    $runOutputName = 'myDistResults'
+    
+    # Your Azure Subscription ID
+    $subscriptionID = (Get-AzContext).Subscription.Id
+    Write-Output $subscriptionID
+    
+    
+    write-host "Creating Identity"
+    ##CREATE A USER ASSIGNED IDENTITY, THIS WILL BE USED TO ADD THE IMAGE TO THE SIG
+    # setup role def names, these need to be unique
+    [int]$timeInt = $(Get-Date -UFormat '%s')
+    $imageRoleDefName="Azure Image Builder Image Def"+$timeInt
+    $identityName="aibidentity$timeInt"
+    
+    ## Add AZ PS module to support AzUserAssignedIdentity
+    Install-Module -Name Az.ManagedServiceIdentity -scope CurrentUser
+    
+    # Create identity
+    # New-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName
+    New-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName
+    $identityNameResourceId=$(Get-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName).Id
+    $identityNamePrincipalId=$(Get-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName).PrincipalId
+    write-host "Identity Created"
+    
+    write-host "Assigning Permissions"
+    ## ASSIGN PERMISSIONS FOR THIS IDENTITY TO DISTRIBUTE IMAGES
+    $aibRoleImageCreationUrl="https://raw.githubusercontent.com/TomHickling/AzureImageBuilder/master/aibRoleImageCreation.json"
+    $aibRoleImageCreationPath = "aibRoleImageCreation.json"
+    
+    # Download config
+    Invoke-WebRequest -Uri $aibRoleImageCreationUrl -OutFile $aibRoleImageCreationPath -UseBasicParsing
+    ((Get-Content -path $aibRoleImageCreationPath -Raw) -replace '<subscriptionID>',$subscriptionID) | Set-Content -Path $aibRoleImageCreationPath
+    ((Get-Content -path $aibRoleImageCreationPath -Raw) -replace '<rgName>', $imageResourceGroup) | Set-Content -Path $aibRoleImageCreationPath
+    ((Get-Content -path $aibRoleImageCreationPath -Raw) -replace 'Azure Image Builder Service Image Creation Role', $imageRoleDefName) | Set-Content -Path $aibRoleImageCreationPath
+    
+    # Create the  role definition
+    New-AzRoleDefinition -InputFile  ./aibRoleImageCreation.json
+    
+    # Grant role definition to image builder service principal
+    New-AzRoleAssignment -ObjectId $identityNamePrincipalId -RoleDefinitionName $imageRoleDefName -Scope "/subscriptions/$subscriptionID/resourceGroups/$imageResourceGroup"
+    write-host "Permissions Assigned"
+    
+    write-host "Creating Image"
+    
+      $myGalleryName = $json.parameters.sigName.value
+      $imageDefName = $json.parameters.imageDefinitionName.value + "bld"
+    
+      New-AzGalleryImageDefinition `
+       -GalleryName $myGalleryName `
+       -ResourceGroupName $imageResourceGroup `
+       -Location $location `
+       -Name $imageDefName `
+       -OsState generalized `
+       -OsType Windows `
+       -Publisher 'BytesSoftwareServices' `
+       -Offer 'Windows-10-App-Teams' `
+       -Sku $imageSKU.Text
 
 
-#Register Other Components if required
-write-host "Registering Other Components"
-Get-AzResourceProvider -ProviderNamespace Microsoft.Compute, Microsoft.KeyVault, Microsoft.Storage, Microsoft.VirtualMachineImages, Microsoft.Network |
-  Where-Object RegistrationState -ne Registered |
-    Register-AzResourceProvider
-
-
-#Define Variables using data above
-
-write-host "Grabbing details from parameters json"
-#Get Set variables
-
-$json = Get-Content $jsonfile.value | ConvertFrom-Json 
-
-# Destination image resource group name
-$igr1 = $json.parameters.resourceGroupPrefix.value
-
-$imageResourceGroup = $igr1 + "IMG"
-
-# Azure region
+##Get Storage Details
+     
 if ($answer.value -eq 6) {
-
-$location2 = $json.parameters.sigLocation2.value
-$location1 = $json.parameters.imageLocation.value
-$location = $location1 + "," + $location2
-}
-else {
-$location = $json.parameters.imageLocation.value
-}
-
-# Name of the image to be created
-$imageTemplateName = $json.parameters.imageDefinitionName.value + "bld"
-
-# Distribution properties of the managed image upon completion
-$runOutputName = 'myDistResults'
-
-# Your Azure Subscription ID
-$subscriptionID = (Get-AzContext).Subscription.Id
-Write-Output $subscriptionID
-
-
-write-host "Creating Identity"
-##CREATE A USER ASSIGNED IDENTITY, THIS WILL BE USED TO ADD THE IMAGE TO THE SIG
-# setup role def names, these need to be unique
-[int]$timeInt = $(Get-Date -UFormat '%s')
-$imageRoleDefName="Azure Image Builder Image Def"+$timeInt
-$identityName="aibidentity$timeInt"
-
-## Add AZ PS module to support AzUserAssignedIdentity
-Install-Module -Name Az.ManagedServiceIdentity -scope CurrentUser
-
-# Create identity
-# New-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName
-New-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName
-$identityNameResourceId=$(Get-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName).Id
-$identityNamePrincipalId=$(Get-AzUserAssignedIdentity -ResourceGroupName $imageResourceGroup -Name $identityName).PrincipalId
-write-host "Identity Created"
-
-write-host "Assigning Permissions"
-## ASSIGN PERMISSIONS FOR THIS IDENTITY TO DISTRIBUTE IMAGES
-$aibRoleImageCreationUrl="https://raw.githubusercontent.com/TomHickling/AzureImageBuilder/master/aibRoleImageCreation.json"
-$aibRoleImageCreationPath = "aibRoleImageCreation.json"
-
-# Download config
-Invoke-WebRequest -Uri $aibRoleImageCreationUrl -OutFile $aibRoleImageCreationPath -UseBasicParsing
-((Get-Content -path $aibRoleImageCreationPath -Raw) -replace '<subscriptionID>',$subscriptionID) | Set-Content -Path $aibRoleImageCreationPath
-((Get-Content -path $aibRoleImageCreationPath -Raw) -replace '<rgName>', $imageResourceGroup) | Set-Content -Path $aibRoleImageCreationPath
-((Get-Content -path $aibRoleImageCreationPath -Raw) -replace 'Azure Image Builder Service Image Creation Role', $imageRoleDefName) | Set-Content -Path $aibRoleImageCreationPath
-
-# Create the  role definition
-New-AzRoleDefinition -InputFile  ./aibRoleImageCreation.json
-
-# Grant role definition to image builder service principal
-New-AzRoleAssignment -ObjectId $identityNamePrincipalId -RoleDefinitionName $imageRoleDefName -Scope "/subscriptions/$subscriptionID/resourceGroups/$imageResourceGroup"
-write-host "Permissions Assigned"
-
-write-host "Creating Image"
-
-  $myGalleryName = $json.parameters.sigName.value
-  $imageDefName = $json.parameters.imageDefinitionName.value + "bld"
-
-  New-AzGalleryImageDefinition `
-   -GalleryName $myGalleryName `
-   -ResourceGroupName $imageResourceGroup `
-   -Location $location `
-   -Name $imageDefName `
-   -OsState generalized `
-   -OsType Windows `
-   -Publisher 'BytesSoftwareServices' `
-   -Offer 'Windows-10-App-Teams' `
-   -Sku $imageSKU.Text
-
-
-
- ##Get Storage Details
- 
- if ($answer.value -eq 6) {
-
+    
+    #Get Storage Account
+    $files1 = $json.parameters.resourceGroupPrefix.value
+    
+    $fileresource = $files1 + "FILESERVICES"
+    $share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.parameters.storageaccountName.value
+    
+    #Get Share Details
+    $store = get-azstorageshare -Context $share.Context | Select-Object Name
+    $files2 = "\\\\" + $share.StorageAccountName + ".file.core.windows.net\\" + $store.Name
+    
+    
+    #Get Storage AccountDR
+    $files1dr = $json.parameters.resourceGroupPrefix.value
+    
+    $fileresourcedr = $files1dr + "FILESERVICES-DR"
+    $sharedr = get-azstorageaccount -ResourceGroupName $fileresourcedr -Name $json.parameters.storageaccountName2.value
+    
+    #Get Share Details
+    $storedr = get-azstorageshare -Context $sharedr.Context | Select-Object Name
+    $files2dr = "\\\\" + $sharedr.StorageAccountName + ".file.core.windows.net\\" + $storedr.Name
+    
+    $FSLogixCD = "type=smb,connectionString="+$files2+";type=smb,connectionString="+$files2DR
+    $fslocation = "CCDLocations"
+  }
+  
+  else {
+  
   #Get Storage Account
   $files1 = $json.parameters.resourceGroupPrefix.value
   
@@ -1180,133 +1190,108 @@ write-host "Creating Image"
   
   #Get Share Details
   $store = get-azstorageshare -Context $share.Context | Select-Object Name
-  $files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
-  
-  
-  #Get Storage AccountDR
-  $files1dr = $json.parameters.resourceGroupPrefix.value
-  
-  $fileresourcedr = $files1dr + "FILESERVICES-DR"
-  $sharedr = get-azstorageaccount -ResourceGroupName $fileresourcedr -Name $json.parameters.storageaccountName2.value
-  
-  #Get Share Details
-  $storedr = get-azstorageshare -Context $sharedr.Context | Select-Object Name
-  $files2dr = "\\" + $sharedr.StorageAccountName + ".file.core.windows.net\" + $storedr.Name
-  
-  $FSLogixCD = "type=smb,connectionString="+$files2+";type=smb,connectionString="+$files2DR
-  $fslocation = "CCDLocations"
-}
-
-else {
-
-#Get Storage Account
-$files1 = $json.parameters.resourceGroupPrefix.value
-
-$fileresource = $files1 + "FILESERVICES"
-$share = get-azstorageaccount -ResourceGroupName $fileresource -Name $json.parameters.storageaccountName.value
-
-#Get Share Details
-$store = get-azstorageshare -Context $share.Context | Select-Object Name
-$files2 = "\\" + $share.StorageAccountName + ".file.core.windows.net\" + $store.Name
-$fslocation = "VHDLocations"
-$FSLogixCD = $files2
-}
+  $files2 = "\\\\" + $share.StorageAccountName + ".file.core.windows.net\\" + $store.Name
+  $fslocation = "VHDLocations"
+  $FSLogixCD = $files2
+  }
 
 
-#Set Variables
-$region1 = $json.parameters.sigLocation.value
-if ($answer.value -eq 6) {
-$region2 = $json.parameters.sigLocation2.value
-}
-else {
-  $replregion2 = "ukwest"
-}
-
-
-
-
-## 3.2 DOWNLOAD AND CONFIGURE THE TEMPLATE WITH YOUR PARAMS
-$templateFilePath = "armTemplateWinSIG.json"
-
-Invoke-WebRequest `
-   -Uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/AVD/avd-custom.json" `
-   -OutFile $templateFilePath `
-   -UseBasicParsing `
-   -Headers @{"Cache-Control"="no-cache"}
-
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<subscriptionID>',$subscriptionID | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<rgName>',$imageResourceGroup | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<runOutputName>',$runOutputName | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<imageDefName>',$imageDefName | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<sharedImageGalName>',$sigGalleryName | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<region1>',$location | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<region2>',$replRegion2 | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<imagebuildersku>',$json.parameters.imageSKU.value | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<locationtype>',$fslocation | Set-Content -Path $templateFilePath
-(Get-Content -path $templateFilePath -Raw ) `
-   -replace '<location>',$FSLogixCD | Set-Content -Path $templateFilePath
-((Get-Content -path $templateFilePath -Raw) -replace '<imgBuilderId>',$identityNameResourceId) | Set-Content -Path $templateFilePath
-
-##CREATE THE IMAGE VERSION
-New-AzResourceGroupDeployment `
-   -ResourceGroupName $imageResourceGroup `
-   -TemplateFile $templateFilePath `
-   -api-version "2019-05-01-preview" `
-   -imageTemplateName $imageTemplateName `
-   -svclocation $location
-
-   ##BUILD THE IMAGE
-   Invoke-AzResourceAction `
-   -ResourceName $imageTemplateName `
-   -ResourceGroupName $imageResourceGroup `
-   -ResourceType Microsoft.VirtualMachineImages/imageTemplates `
-   -ApiVersion "2019-05-01-preview" `
-   -Action Run
-
-
-   #This has now kicked of a build into the AIB service which will do its stuff.
-   #To check the Image Build Process run the cmd below. 
-   #It will go from Building, to Distributing to Complete, it will take some time.
-   (Get-AzResource –ResourceGroupName $imageResourceGroup -ResourceType Microsoft.VirtualMachineImages/imageTemplates -Name $ImageTemplateName).Properties.lastRunStatus
-
- 
- write-host "Image Building"
-
-
-  #Wait for it to complete
-
-  Do {
-    $state = (Get-AzResource –ResourceGroupName $imageResourceGroup -ResourceType Microsoft.VirtualMachineImages/imageTemplates -Name $ImageTemplateName).Properties.lastRunStatus
-    Write-Host "Running"
-    Start-Sleep 5
-}
-Until (
+      #Set Variables
+      $region1 = $json.parameters.sigLocation.value
+      if ($answer.value -eq 6) {
+      $region2 = $json.parameters.sigLocation2.value
+      }
+      else {
+        $replregion2 = "ukwest"
+      }
     
-    $state = "Complete"
-)
-Write-Host "Completed"
+      
+          ## 3.2 DOWNLOAD AND CONFIGURE THE TEMPLATE WITH YOUR PARAMS
+    $templateFilePath = "armTemplateWinSIG.json"
+    
+    Invoke-WebRequest `
+       -Uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/AVD/avd-custom.json" `
+       -OutFile $templateFilePath `
+       -UseBasicParsing `
+       -Headers @{"Cache-Control"="no-cache"}
+    
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<subscriptionID>',$subscriptionID | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<rgName>',$imageResourceGroup | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<runOutputName>',$runOutputName | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<imageDefName>',$imageDefName | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<sharedImageGalName>',$myGalleryName | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<region1>',$location | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<region2>',$replRegion2 | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<imagebuildersku>',$json.parameters.imageSKU.value | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<locationtype>',$fslocation | Set-Content -Path $templateFilePath
+    (Get-Content -path $templateFilePath -Raw ) `
+       -replace '<location>',$FSLogixCD | Set-Content -Path $templateFilePath
+    ((Get-Content -path $templateFilePath -Raw) -replace '<imgBuilderId>',$identityNameResourceId) | Set-Content -Path $templateFilePath
+
+    
+      ##CREATE THE IMAGE VERSION
+      New-AzResourceGroupDeployment `
+      -ResourceGroupName $imageResourceGroup `
+      -TemplateFile $templateFilePath `
+      -Pre `
+      -api-version "2019-05-01-preview" `
+      -imageTemplateName $imageTemplateName `
+      -svclocation $location
+   
+      ##BUILD THE IMAGE
+      Invoke-AzResourceAction `
+      -ResourceName $imageTemplateName `
+      -ResourceGroupName $imageResourceGroup `
+      -ResourceType Microsoft.VirtualMachineImages/imageTemplates `
+      -Pre `
+      -Action Run `
+      -ApiVersion "2019-05-01-preview"
+   
+   
+      #This has now kicked of a build into the AIB service which will do its stuff.
+      #To check the Image Build Process run the cmd below. 
+      #It will go from Building, to Distributing to Complete, it will take some time.
+
+           write-host "Image Building"
+    
+    
+      #Wait for it to complete
+
+
+    
+      Do {
+        $state = Get-AzResource -ResourceGroupName $imageResourceGroup -ResourceType Microsoft.VirtualMachineImages/imageTemplates -Name $ImageTemplateName.Properties.lastRunStatus
+        Write-Host "Running"
+        Start-Sleep 5
+    }
+    Until (
+        
+        $state = "Complete"
+    )
+    Write-Host "Completed"
+    
+    
+    
+    
+    
+      write-host "Build Completed"
 
 
 
-
-
-  write-host "Build Completed"
-
-
-  Add-Type -AssemblyName PresentationCore,PresentationFramework
-  $msgBody = "Environment Built"
-  [System.Windows.MessageBox]::Show($msgBody)
-
-  })
+       Add-Type -AssemblyName PresentationCore,PresentationFramework
+       $msgBody = "Environment Built"
+       [System.Windows.MessageBox]::Show($msgBody)
+     
+       })
 
 
 
