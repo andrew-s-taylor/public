@@ -813,8 +813,8 @@ $update.Add_Click({
   $output = $output2.value
   $expath = $path2.value
 
-  $wc = New-Object System.Net.WebClient
-  $wc.DownloadFile($url.value, $output)
+  Invoke-WebRequest -Uri $url -OutFile $output -Method Get -Headers @{"Authorization" = "Bearer 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"}
+
   
   Expand-Archive $output -DestinationPath $expath -Force
 
