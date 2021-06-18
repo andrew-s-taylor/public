@@ -26,9 +26,9 @@ Params prompted in runbook
 
 param (
     [Parameter(Mandatory=$true)] 
-    [String]  $FSLogixCD = '',
+    [String]  $FSLogixCD = 'FS Logix Path',
     [Parameter(Mandatory=$true)] 
-    [String]  $RGName = ''
+    [String]  $RGName = 'Resource Group Name'
 )
 
 # Ensures you do not inherit an AzContext in your runbook
