@@ -14,7 +14,7 @@ None
 Verbose output
 
 .NOTES
-  Version:        1.0
+  Version:        1.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
