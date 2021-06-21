@@ -28,8 +28,6 @@ Verbose output
 ##############################
 Param (        
     [Parameter(Mandatory=$false)]
-        [string]$RegistrationToken,
-    [Parameter(Mandatory=$false)]
         [string]$Optimize = $true           
 )
 New-Item -Path c:\log -ItemType Directory
@@ -38,10 +36,6 @@ New-Item -Path c:\log\ -Name New-AVDSessionHost.log -ItemType File
 #    AVD Variables   #
 ######################
 $LocalAVDpath            = "c:\temp\AVD\"
-$AVDBootURI              = 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH'
-$AVDAgentURI             = 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv'
-$AVDAgentInstaller       = 'AVD-Agent.msi'
-$AVDBootInstaller        = 'AVD-Bootloader.msi'
 
 
 ####################################
@@ -81,8 +75,6 @@ else {
 Add-Content `
 -LiteralPath C:\log\New-AVDSessionHost.log `
 "
-ProfilePath       = $ProfilePath
-RegistrationToken = $RegistrationToken
 Optimize          = $Optimize
 "
 
@@ -95,15 +87,8 @@ Optimize          = $Optimize
 #Disable Security Warnings on MSI
 $env:SEE_MASK_NOZONECHECKS = 1
 
-Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "Unzip FSLogix"
-Expand-Archive `
-    -LiteralPath "C:\temp\AVD\$FSInstaller" `
-    -DestinationPath "$LocalAVDpath\FSLogix" `
-    -Force `
-    -Verbose
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-cd $LocalAVDpath 
-Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "UnZip FXLogix Complete"
+set-location $LocalAVDpath 
 
 
 
@@ -166,17 +151,6 @@ New-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
 ###############################
 Set-ExecutionPolicy Unrestricted
 
-
-
-#########################
-#    FSLogix Install    #
-#########################
-Add-Content -LiteralPath C:\log\New-AVDSessionHost.log "Installing FSLogix"
-$fslogix_deploy_status = Start-Process `
-    -FilePath "$LocalAVDpath\FSLogix\x64\Release\FSLogixAppsSetup.exe" `
-    -ArgumentList "/install /quiet" `
-    -Wait `
-    -Passthru
 
 
 ##########################################
