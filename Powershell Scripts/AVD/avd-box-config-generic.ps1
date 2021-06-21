@@ -246,6 +246,20 @@ else {
 
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
+
+
+##########################
+##    Install Winget    ##
+##########################
+
+$wingetURL = 'https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle'
+$wingetInstaller = "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle"
+$LocalOptimizePath = "C:\temp\AVD\"
+Invoke-WebRequest `
+    -Uri $wingetURL `
+    -OutFile "$wingetInstaller"
+    Add-AppxPackage $LocalOptimizePath$wingetInstaller
+
 ##########################
 ##    Allow Shortpath   ##
 ##########################
