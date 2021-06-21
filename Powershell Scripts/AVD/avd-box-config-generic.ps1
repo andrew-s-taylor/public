@@ -259,7 +259,6 @@ Invoke-WebRequest `
     -Uri $wingetURL `
     -OutFile "$wingetInstaller"
     Add-AppxPackage $LocalOptimizePath$wingetInstaller
-
 ##########################
 ##    Allow Shortpath   ##
 ##########################
