@@ -181,7 +181,7 @@ If ($Optimize -eq $true) {
     New-Item -Path C:\ -Name Optimize -ItemType Directory -ErrorAction SilentlyContinue
     $LocalOptimizePath = "C:\Optimize\"
     ###Slightly modified to remove network optimizations
-    $AVDOptimizeURL = 'https://github.com/andrew-s-taylor/andrewstaylor/blob/main/Powershell%20Scripts/AVD/Virtual-Desktop-Optimization-Tool-master.zip'
+    $AVDOptimizeURL = 'https://github.com/andrew-s-taylor/public/blob/main/Powershell%20Scripts/AVD/Virtual-Desktop-Optimization-Tool-master.zip'
     $AVDOptimizeInstaller = "Windows_10_VDI_Optimize-master.zip"
     Invoke-WebRequest `
         -Uri $AVDOptimizeURL `
