@@ -1,0 +1,1 @@
+winget upgrade --all --force --silent
