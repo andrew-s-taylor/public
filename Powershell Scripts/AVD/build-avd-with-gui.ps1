@@ -1148,7 +1148,7 @@ $Build.Add_Click({
        -Name $imageDefName `
        -OsState generalized `
        -OsType Windows `
-       -Publisher 'BytesSoftwareServices' `
+       -Publisher 'You' `
        -Offer 'Windows-10-App-Teams' `
        -Sku $imageSKU.Text
 
