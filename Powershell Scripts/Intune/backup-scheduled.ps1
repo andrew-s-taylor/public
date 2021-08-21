@@ -47,9 +47,16 @@ $restoreurl="https://raw.githubusercontent.com/andrew-s-taylor/public/main/Batch
 $restorescript = "c:\backup-restore\restore.bat"
 Invoke-WebRequest -Uri $restoreurl -OutFile $restorescript -UseBasicParsing
 
+##Download Silent Launch Script
+$launchurl="https://raw.githubusercontent.com/andrew-s-taylor/public/main/Batch%20Scripts/run-invisible.vbs"
+$launchscript = "c:\backup-restore\run-invisible.vbs"
+Invoke-WebRequest -Uri $launchurl -OutFile $launchscript -UseBasicParsing
+
+
+
 ##Create scheduled task
 # Create a new task action
-$taskAction = New-ScheduledTaskAction -Execute 'c:\backup-restore\backup.bat' 
+$taskAction = New-ScheduledTaskAction -Execute 'c:\backup-restore\run-invisible.vbs' 
 
 ##Create Trigger (login)
 $taskTrigger = New-ScheduledTaskTrigger -AtLogOn

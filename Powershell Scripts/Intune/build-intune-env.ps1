@@ -61,7 +61,23 @@ Import-Module Microsoft.Graph.Intune
 Connect-MSGraph
 
 #Create path for files
-#Ask for something to keep files individual
+$DirectoryToCreate = "c:\temp"
+if (-not (Test-Path -LiteralPath $DirectoryToCreate)) {
+    
+    try {
+        New-Item -Path $DirectoryToCreate -ItemType Directory -ErrorAction Stop | Out-Null #-Force
+    }
+    catch {
+        Write-Error -Message "Unable to create directory '$DirectoryToCreate'. Error was: $_" -ErrorAction Stop
+    }
+    "Successfully created directory '$DirectoryToCreate'."
+
+}
+else {
+    "Directory already existed"
+}
+
+
 $random = Get-Random -Maximum 1000 
 $random = $random.ToString()
 $date =get-date -format yyMMddmmss
