@@ -51,17 +51,17 @@ $sLogPath = "C:\Windows\Temp\build-device.log"
 
 
 ##No special characters
-$clientname = ""
+$clientname = "CLIENTREPLACENAME"
 
-$o365tenant = ""
+$o365tenant = "CLIENTTENANT"
 
-$homepage = ""
+$homepage = "CLIENTHOMEPAGE"
 
 ##Include File Extension:
-$backgroundname = ""
+$backgroundname = "BACKGROUNDFILENAME"
 
 #Azure Blob SAS for background image
-$backgroundpath = ""
+$backgroundpath = "BACKGROUNDBLOBURL"
 
 
 
@@ -168,8 +168,6 @@ addregkey($registryPath, $Name, $value, $Type)
 
 ##Set Background
 
-$urlbase = $backgroundpath
-$urltemp = $url+$Background
 write-host "Download Desktop Images"
 #Open the folder en Windows Explorer under C:\Users\USERNAME\AppData\Roaming\CustomerXXXX
 ########################################################################################
@@ -183,35 +181,19 @@ If(!(test-path $path))
 
 $newpath = "c:\Windows\Web\Wallpaper"
 
-#Download the image from ImGur to user profile WALLPAPER
+#Download the image from Azure to user profile WALLPAPER
 ########################################################################################
-$url = $urltemp
-$output = $newpath + "\" + $Background
+$url = $backgroundpath
+$output = $newpath + "\" + $backgroundname
 Start-BitsTransfer -Source $url -Destination $output
 
 ########################################################################################
 
-#Download the image from ImGur to user profile WALLPAPER
-########################################################################################
-$url3 = $urltemp
-$output3 = $newpath + "\" + $Background
-Start-BitsTransfer -Source $url3 -Destination $output3
-
-########################################################################################
-
-
-#Download the image from ImGur to user profile LOCKSCREEN
-########################################################################################
-$url2 = $urltemp
-$output2 = $newpath + "\" + $Background
-Start-BitsTransfer -Source $url2 -Destination $output2
-
-########################################################################################
 
 write-host "Set Lockscreen"
 
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"
-$img =  "C:\Windows\Web\Wallpaper\"+$Background
+$img =  "C:\Windows\Web\Wallpaper\"+$backgroundname
 $Name = "LockScreenImage"
 $value = "1"
 $Type = "String"
@@ -266,8 +248,6 @@ $Name1 = "BuildNumber"
 $value1 = "1.0"
 $Name2 = "OS"
 $value2 = "Windows 10 Enterprise"
-$Name3 = "Imaged By"
-$value3 = "AndrewSTaylor.com"
 $Name4 = "Client"
 $value4 = $clientname
 $Name6 = "DatePCBuilt"
@@ -285,7 +265,6 @@ IF(!(Test-Path $registryPath))
 
     New-ItemProperty -Path $registryPath -Name $Name1 -Value $value1 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name2 -Value $value2 -PropertyType String -Force | Out-Null
-    New-ItemProperty -Path $registryPath -Name $Name3 -Value $value3 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name4 -Value $value4 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name6 -Value $value6 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name7 -Value $value7 -PropertyType String -Force | Out-Null
@@ -295,7 +274,6 @@ IF(!(Test-Path $registryPath))
 
     New-ItemProperty -Path $registryPath -Name $Name1 -Value $value1 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name2 -Value $value2 -PropertyType String -Force | Out-Null
-    New-ItemProperty -Path $registryPath -Name $Name3 -Value $value3 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name4 -Value $value4 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name6 -Value $value6 -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $registryPath -Name $Name7 -Value $value7 -PropertyType String -Force | Out-Null
