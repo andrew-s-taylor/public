@@ -20,6 +20,10 @@ Within Azure
 N/A
 #>
 
+
+###############################################################################################################
+######                                         Install Modules                                           ######
+###############################################################################################################
 Write-Host "Installing Intune modules if required (current user scope)"
 
 #Install MS Graph if not available
@@ -57,6 +61,22 @@ Import-Module IntuneBackupAndRestore
 Import-Module Microsoft.Graph.Intune
 
 
+###############################################################################################################
+######                                          Launch Form                                              ######
+###############################################################################################################
+
+
+
+
+
+
+
+
+###############################################################################################################
+######                                          Deploy                                                   ######
+###############################################################################################################
+
+
 ##Connect to Intune
 Connect-MSGraph
 
@@ -87,6 +107,9 @@ $path = "c:\temp\" + $path2 + "\"
 
 New-Item -ItemType Directory -Path $path
 
+
+$pathvar = [PSCustomObject]@{value=$path}
+
 Write-Host "Directory Created"
 
 #Set Paths
@@ -106,6 +129,42 @@ remove-item $output -Force
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 $msgBody = "Files saves to $path"
 [System.Windows.MessageBox]::Show($msgBody)
+
+
+##Edit details in ps scripts
+
+
+##Device Script
+$devicescript = $path + "\Device Management Scripts\Script Content\Device Config.ps1"
+
+#Update Client Name
+(Get-Content -path $devicescript -Raw ) `
+-replace '<CLIENTREPLACENAME>',$clientname | Set-Content -Path $devicescript
+
+
+#Update O365 Tenant
+(Get-Content -path $devicescript -Raw ) `
+-replace '<CLIENTTENANT>',$tenantid | Set-Content -Path $devicescript
+
+
+#Update Client Homepage
+(Get-Content -path $devicescript -Raw ) `
+-replace '<CLIENTHOMEPAGE>',$homepage | Set-Content -Path $devicescript
+
+#Update Background location
+(Get-Content -path $devicescript -Raw ) `
+-replace '<BACKGROUNDBLOBURL>',$bloburl | Set-Content -Path $devicescript
+
+
+#Update Background Name
+(Get-Content -path $devicescript -Raw ) `
+-replace '<BACKGROUNDFILENAME>',$backgroundfilename | Set-Content -Path $devicescript
+
+
+##User Script
+$userscript = $path + "\Device Management Scripts\Script Content\User-Config.ps1"
+(Get-Content -path $userscript -Raw ) `
+-replace '<BACKGROUNDFILENAME>',$backgroundfilename | Set-Content -Path $userscript
 
 ##Restore
 Start-IntuneRestoreConfig -Path $path
