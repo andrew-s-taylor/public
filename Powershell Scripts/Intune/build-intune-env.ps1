@@ -73,13 +73,9 @@ New-Item -ItemType Directory -Path $path
 
 Write-Host "Directory Created"
 
-       Add-Type -AssemblyName PresentationCore,PresentationFramework
-       $msgBody = "Files saves to $path"
-       [System.Windows.MessageBox]::Show($msgBody)
-
 #Set Paths
-    $url = "https://github.com/andrew-s-taylor/avd-deploy-bicep-MR/archive/main.zip"
-    $pathaz = "c:\temp\" + $path2 + "\avd-deploy-bicep-MR-main"
+    $url = "https://github.com/andrew-s-taylor/Intune-Config/archive/main.zip"
+    $pathaz = "c:\temp\" + $path2 + "\Intune-Config"
     $output = "c:\temp\" + $path2 + "\main.zip"
 
 #Download Files
@@ -89,3 +85,16 @@ Expand-Archive $output -DestinationPath $path -Force
 
 #Remove Zip file downloaded
 remove-item $output -Force
+
+
+Add-Type -AssemblyName PresentationCore,PresentationFramework
+$msgBody = "Files saves to $path"
+[System.Windows.MessageBox]::Show($msgBody)
+
+##Restore
+Start-IntuneRestoreConfig -Path $path
+
+
+Add-Type -AssemblyName PresentationCore,PresentationFramework
+$msgBody = "Environment Built"
+[System.Windows.MessageBox]::Show($msgBody)
