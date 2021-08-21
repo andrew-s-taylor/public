@@ -48,13 +48,6 @@ $sLogPath = "C:\Windows\Temp\build-user.log"
 ################################################## SET THESE FOR EACH CLIENT ###############################################
 
 
-##No special characters
-$clientname = ""
-
-$o365tenant = ""
-
-$homepage = ""
-
 ##Include File Extension:
 $backgroundname = ""
 
