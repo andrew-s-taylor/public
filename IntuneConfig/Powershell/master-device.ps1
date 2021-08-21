@@ -51,17 +51,17 @@ $sLogPath = "C:\Windows\Temp\build-device.log"
 
 
 ##No special characters
-$clientname = "CLIENTREPLACENAME"
+$clientname = "<CLIENTREPLACENAME>"
 
-$o365tenant = "CLIENTTENANT"
+$o365tenant = "<CLIENTTENANT>"
 
-$homepage = "CLIENTHOMEPAGE"
+$homepage = "<CLIENTHOMEPAGE>"
 
 ##Include File Extension:
-$backgroundname = "BACKGROUNDFILENAME"
+$backgroundname = "<BACKGROUNDFILENAME>"
 
 #Azure Blob SAS for background image
-$backgroundpath = "BACKGROUNDBLOBURL"
+$backgroundpath = "<BACKGROUNDBLOBURL>"
 
 
 
