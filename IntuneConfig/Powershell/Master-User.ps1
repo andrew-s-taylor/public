@@ -49,7 +49,7 @@ $sLogPath = "C:\Windows\Temp\build-user.log"
 
 
 ##Include File Extension:
-$backgroundname = ""
+$backgroundname = "BACKGROUNDFILENAME"
 
 
 
