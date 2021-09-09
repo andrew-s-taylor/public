@@ -191,7 +191,7 @@ $region                          = New-Object system.Windows.Forms.ComboBox
 $region.text                     = "region"
 $region.width                    = 178
 $region.height                   = 20
-@('uksouth','ukwest','northeurope','westeurope') | ForEach-Object {[void] $region.Items.Add($_)}
+@('uksouth','ukwest','northeurope','westeurope','australiaeast','australiasoutheast') | ForEach-Object {[void] $region.Items.Add($_)}
 $region.location                 = New-Object System.Drawing.Point(253,286)
 $region.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
@@ -357,7 +357,7 @@ $loganalyticslocation            = New-Object system.Windows.Forms.ComboBox
 $loganalyticslocation.text       = "region"
 $loganalyticslocation.width      = 178
 $loganalyticslocation.height     = 20
-@('uksouth','ukwest','northeurope','westeurope') | ForEach-Object {[void] $loganalyticslocation.Items.Add($_)}
+@('uksouth','ukwest','northeurope','westeurope','australiaeast','australiasoutheast') | ForEach-Object {[void] $loganalyticslocation.Items.Add($_)} 
 $loganalyticslocation.location   = New-Object System.Drawing.Point(254,619)
 $loganalyticslocation.Font       = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
