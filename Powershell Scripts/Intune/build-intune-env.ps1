@@ -283,7 +283,7 @@ $userscript = $path + "\Intune-Config-main\Device Management Scripts\Script Cont
 -replace '<BACKGROUNDFILENAME>',$backgroundfilename | Set-Content -Path $userscript
 
 ##Restore
-##Start-IntuneRestoreConfig -Path $path
+Start-IntuneRestoreConfig -Path $path
 
 
 Add-Type -AssemblyName PresentationCore,PresentationFramework
