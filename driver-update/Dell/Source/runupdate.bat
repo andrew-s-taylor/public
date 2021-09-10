@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Dell\CommandUpdate\dcu-cli.exe" /driverinstall -silent -reboot=disable -outputlog="c:\driversupd\log.log"
