@@ -662,8 +662,8 @@ $update.Add_Click({
   $output = $output2.value
   $expath = $path2.value
 
-    Invoke-WebRequest -Uri $url -OutFile $output -Method Get -Headers @{"Authorization" = "Bearer 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"}
-  
+    Invoke-WebRequest -Uri $url -OutFile $output -Method Get
+    
   Expand-Archive $output -DestinationPath $expath -Force
 
   #Remove Zip file downloaded
