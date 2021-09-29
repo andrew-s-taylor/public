@@ -1,3 +1,19 @@
+<#PSScriptInfo
+.VERSION 1.0
+.GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
+.AUTHOR AndrewTaylor
+.DESCRIPTION Display an Intune applist in a grid to find more details
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS az azure AVD WVD environment
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES azureAD
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES
+.RELEASENOTES
+#>
 <#
 .SYNOPSIS
   Displays List of apps from Intune

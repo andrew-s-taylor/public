@@ -1,9 +1,39 @@
+<#PSScriptInfo
+.VERSION 1.1
+.GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
+.AUTHOR AndrewTaylor
+.DESCRIPTION Lists all intune apps with install counts
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS intune app endpoint
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES azureAD
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES
+.RELEASENOTES
+#>
 <#
+.SYNOPSIS
+  Displays Intune app installs
+.DESCRIPTION
+Lists all intune apps with install counts
 
-.COPYRIGHT
-Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-See LICENSE in the project root for license information.
-
+.INPUTS
+None required
+.OUTPUTS
+GridView
+.NOTES
+  Version:        1.1
+  Author:         Andrew Taylor
+  Twitter:        @AndrewTaylor_2
+  WWW:            andrewstaylor.com
+  Creation Date:  29/09/2021
+  Purpose/Change: Initial script development
+  
+.EXAMPLE
+N/A
 #>
 
 ####################################################
@@ -36,23 +66,13 @@ function Get-AuthToken {
     
     Write-Host "Checking for AzureAD module..."
     
-        $AadModule = Get-Module -Name "AzureAD" -ListAvailable
-    
-        if ($AadModule -eq $null) {
-    
-            Write-Host "AzureAD PowerShell module not found, looking for AzureADPreview"
-            $AadModule = Get-Module -Name "AzureADPreview" -ListAvailable
-    
-        }
-    
-        if ($AadModule -eq $null) {
-            write-host
-            write-host "AzureAD Powershell module not installed..." -f Red
-            write-host "Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-            write-host "Script can't continue..." -f Red
-            write-host
-            exit
-        }
+    $AadModule = Get-Module -Name "AzureAD" -ListAvailable
+
+    if ($AadModule -eq $null) {
+
+        install-module AzureAD -Scope CurrentUser -AllowClobber -Force
+
+    }
     
     # Getting path to ActiveDirectory Assemblies
     # If the module count is greater than 1 find the latest version
