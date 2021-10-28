@@ -18,7 +18,7 @@ $ErrorActionPreference = 'silentlycontinue'
 
 
 #Create Folder
-$DebloatFolder = "C:\Temp\Windows10Debloater"
+$DebloatFolder = "C:\Temp\WindowsDebloater"
 If (Test-Path $DebloatFolder) {
     Write-Output "$DebloatFolder exists. Skipping."
 }
@@ -33,7 +33,7 @@ Else {
     #Removes AppxPackages
     #Credit to /u/GavinEke for a modified version of my whitelist code
     $WhitelistedApps = 'Microsoft.ScreenSketch|Microsoft.Paint3D|Microsoft.WindowsCalculator|Microsoft.WindowsStore|Microsoft.Windows.Photos|CanonicalGroupLimited.UbuntuonWindows|`
-    Microsoft.XboxGameCallableUI|Microsoft.XboxGamingOverlay|Microsoft.Xbox.TCUI|Microsoft.XboxGamingOverlay|Microsoft.XboxIdentityProvider|Microsoft.MicrosoftStickyNotes|Microsoft.MSPaint|Microsoft.WindowsCamera|.NET|Framework|`
+    |Microsoft.MicrosoftStickyNotes|Microsoft.MSPaint|Microsoft.WindowsCamera|.NET|Framework|`
     Microsoft.HEIFImageExtension|Microsoft.ScreenSketch|Microsoft.StorePurchaseApp|Microsoft.VP9VideoExtensions|Microsoft.WebMediaExtensions|Microsoft.WebpImageExtension|Microsoft.DesktopAppInstaller|WindSynthBerry|MIDIBerry|Slack'
     #NonRemovable Apps that where getting attempted and the system would reject the uninstall, speeds up debloat and prevents 'initalizing' overlay when removing apps
     $NonRemovable = '1527c705-839a-4832-9118-54d4Bd6a0c89|c5e2524a-ea46-4f67-841f-6a9465d9d515|E2A4F912-2574-4A75-9BB0-0D023378592B|F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE|InputApp|Microsoft.AAD.BrokerPlugin|Microsoft.AccountsControl|`
@@ -49,7 +49,7 @@ Else {
 ##Remove bloat
     $Bloatware = @(
 
-        #Unnecessary Windows 10 AppX Apps
+        #Unnecessary Windows 10/11 AppX Apps
         "Microsoft.BingNews"
         "Microsoft.GetHelp"
         "Microsoft.Getstarted"
@@ -83,6 +83,10 @@ Else {
         "Microsoft.XboxSpeechToTextOverlay"
         "Microsoft.ZuneMusic"
         "Microsoft.ZuneVideo"
+        "MicrosoftTeams"
+        "Microsoft.YourPhone"
+        "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
+        "Microsoft.GamingApp"
 
         #Sponsored Windows 10 AppX Apps
         #Add sponsored/featured apps to remove in the "*AppName*" format
@@ -330,3 +334,40 @@ Else {
         Remove-Item $Objects64 -Recurse 
     }
 
+
+    #Windows 11 Customisations
+
+    #Remove XBox Game Bar
+    Get-AppxPackage Microsoft.XboxGamingOverlay | Remove-AppxPackage
+    Get-AppxPackage Microsoft.XboxGameCallableUI | Remove-AppxPackage
+
+    #Remove Cortana
+    Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
+
+    #Remove GetStarted
+    Get-AppxPackage *getstarted* | Remove-AppxPackage
+
+    #Remove Parental Controls
+   Get-AppxPackage Microsoft.Windows.ParentalControls | Remove-AppxPackage 
+
+   #Remove Teams 'Chat'
+$MSTeams = "MicrosoftTeams"
+
+$WinPackage = Get-AppxPackage | Where-Object {$_.Name -eq $MSTeams}
+$ProvisionedPackage = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $WinPackage }
+If ($null -ne $WinPackage) 
+{
+    Remove-AppxPackage -Package $WinPackage.PackageFullName
+} 
+
+If ($null -ne $ProvisionedPackage) 
+{
+    Remove-AppxProvisionedPackage -online -Packagename $ProvisionedPackage.Packagename
+}
+
+$WinPackageCheck = Get-AppxPackage | Where-Object {$_.Name -eq $MSTeams}
+$ProvisionedPackageCheck = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $WinPackage }
+If (($WinPackageCheck) -or ($ProvisionedPackageCheck))
+{
+    throw
+}
