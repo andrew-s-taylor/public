@@ -1,3 +1,19 @@
+<#PSScriptInfo
+.VERSION 1.1
+.GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
+.AUTHOR AndrewTaylor
+.DESCRIPTION Builds an Intune environment using intunebackupandrestore
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS intune endpoint MEM environment
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES microsoft.graph.intune intunebackupandrestore
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES 
+.RELEASENOTES
+#>
 <#
 .SYNOPSIS
   Builds an Intune Environment
@@ -9,7 +25,7 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        1.0
+  Version:        1.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -55,11 +71,32 @@ else {
     }
 }
 
+Write-Host "Installing AzureAD Preview modules if required (current user scope)"
+
+#Install AZ Module if not available
+if (Get-Module -ListAvailable -Name AzureADPreview) {
+    Write-Host "AZ Ad Preview Module Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
+
+
+
+
 
 #Importing Modules
 Import-Module IntuneBackupAndRestore
 Import-Module Microsoft.Graph.Intune
-
+import-module -Name AzureADPreview
 
 ###############################################################################################################
 ######                                          Launch Form                                              ######
@@ -192,6 +229,17 @@ $build.Add_Click({
 ######                                          Deploy                                                   ######
 ###############################################################################################################
 
+
+#Connect to Azure AD
+Connect-AzureAD
+
+#Create Azure AD Group
+New-AzureADMSGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""ZTDid]""))" -MembershipRuleProcessingState "On"
+
+#Notify complete
+Add-Type -AssemblyName PresentationCore,PresentationFramework
+$msgBody = "Autopilot AAD Group Created, moving on to Intune Deployment"
+[System.Windows.MessageBox]::Show($msgBody)
 
 ##Connect to Intune
 Connect-MSGraph
