@@ -1,0 +1,16 @@
+<Configuration>
+
+  <Remove All="FALSE">
+    <Product ID="VisioProRetail">
+      <Language ID="en-us" />
+    </Product>
+  </Remove>
+
+  <Updates Enabled="TRUE" Channel="Monthly" />
+
+  <Display Level="None" AcceptEULA="TRUE" />
+
+  <Property Name="AUTOACTIVATE" Value="1" />
+
+<Logging Level="Standard" Path="%temp%" /> 
+</Configuration>

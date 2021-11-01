@@ -1,0 +1,17 @@
+<Configuration ID="3c5aba9e-67dc-48d2-b1a2-c09cb4f05916">
+  <Add OfficeClientEdition="64" Channel="Current" ForceUpgrade="TRUE" MigrateArch="TRUE">
+    <Product ID="ProjectProRetail">
+      <Language ID="MatchOS" />
+    </Product>
+  </Add>
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="PinIconsToTaskbar" Value="FALSE" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Property Name="AUTOACTIVATE" Value="0" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
+  <Property Name="DeviceBasedLicensing" Value="0" />
+  <Updates Enabled="FALSE" />
+  <RemoveMSI />
+  <Display Level="None" AcceptEULA="FALSE" />
+  <Logging Level="Off" />
+</Configuration>

@@ -1,0 +1,18 @@
+<Configuration ID="c1230666-d756-491b-b093-2d4d64413b17">
+  <Add OfficeClientEdition="64" Channel="Current" ForceUpgrade="TRUE">
+    <Product ID="VisioProRetail">
+      <Language ID="MatchOS" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="OneDrive" />
+    </Product>
+  </Add>
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="PinIconsToTaskbar" Value="FALSE" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Property Name="AUTOACTIVATE" Value="0" />
+  <Property Name="DeviceBasedLicensing" Value="0" />
+  <Updates Enabled="TRUE" />
+  <RemoveMSI />
+  <Display Level="None" AcceptEULA="FALSE" />
+  <Logging Level="Off" />
+</Configuration>
