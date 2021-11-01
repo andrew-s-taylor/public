@@ -62,14 +62,14 @@ Try {
 	##*===============================================
 	## Variables: Application
 	[string]$appVendor = 'Microsoft'
-	[string]$appName = 'Office 365 ProPlus & Visio'
-	[string]$appVersion = '16.0.11328.20420'
+	[string]$appName = 'Visio'
+	[string]$appVersion = 'Latest'
 	[string]$appArch = 'x86'
 	[string]$appLang = 'EN'
 	[string]$appRevision = '01'
 	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = '06/08/2021'
-	[string]$appScriptAuthor = 'Advanced'
+	[string]$appScriptDate = '01/11/2021'
+	[string]$appScriptAuthor = 'Andrew Taylor'
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
 	[string]$installName = 'Visio'
@@ -146,7 +146,7 @@ Try {
 		[string]$installPhase = 'Post-Installation'
 		
 		## <Perform Post-Installation tasks here>
-		
+	
 		## Display a message at the end of the install
 		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'Installation has been completed. You will find Visio in the All Programs section.' -ButtonRightText 'OK' -Icon Information -NoWait }
 	}

@@ -62,14 +62,14 @@ Try {
 	##*===============================================
 	## Variables: Application
 	[string]$appVendor = 'Microsoft'
-	[string]$appName = 'Office 365 ProPlus & Project'
-	[string]$appVersion = '16.0.11328.20420'
-	[string]$appArch = 'x86'
+	[string]$appName = 'Project'
+	[string]$appVersion = 'Latest'
+	[string]$appArch = 'x64'
 	[string]$appLang = 'EN'
 	[string]$appRevision = '01'
 	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = '06/08/2021'
-	[string]$appScriptAuthor = 'Advanced'
+	[string]$appScriptDate = '01/11/2021'
+	[string]$appScriptAuthor = 'Andrew Taylor'
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
 	[string]$installName = 'Project'
