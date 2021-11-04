@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.1
+.VERSION 2.0
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Builds an Intune environment using intunebackupandrestore
