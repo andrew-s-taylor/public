@@ -45,7 +45,7 @@ If(!(test-path $path))
 {
       New-Item -ItemType Directory -Force -Path $path
 }
-$sourceDirectory  = "\\uk-ncl-vapps2\Win7-Login-Resources\templates\*"
+$sourceDirectory  = ""
 $destinationDirectory = "C:\templates\"
 Copy-item -Force -Recurse -Verbose $sourceDirectory -Destination $destinationDirectory
 }
