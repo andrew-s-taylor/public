@@ -20,6 +20,6 @@ Invoke-WebRequest `
    -UseBasicParsing `
    -Headers @{"Cache-Control"="no-cache"}
 
- 
+   $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\AppInstallerCLI.exe")
 
-   winget install --silent  --manifest $templateFilePath
+   &$winget install --silent  --manifest $templateFilePath
