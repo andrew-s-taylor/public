@@ -1,5 +1,7 @@
 Try {
-    $updatecheck = winget upgrade
+    $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\AppInstallerCLI.exe")
+
+    $updatecheck = &$winget upgrade
     If ($updatecheck.count -lt 3){
         Write-Output "Compliant"
         Exit 0
