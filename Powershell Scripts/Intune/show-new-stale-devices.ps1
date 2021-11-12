@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        1.0
+  Version:        1.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -492,7 +492,7 @@ function Get-AuthToken {
             $DeviceCount = @($Devices).count
     
     
-            $Devices | Select-Object deviceName | Out-GridView -Title "New Devices" -passthru | ForEach-Object {
+            $Devices | Select-Object deviceName, enrolledDateTime | Out-GridView -Title "New Devices" -passthru | ForEach-Object {
             
     
                 # Looping through all the devices returned
@@ -651,7 +651,7 @@ function Get-AuthToken {
                 
                 if($Devices){
         
-                    $Devices | Select-Object deviceName | Out-GridView -Title "Old Devices" -passthru | ForEach-Object {
+                    $Devices | Select-Object deviceName, lastSyncDateTime | Out-GridView -Title "Old Devices" -passthru | ForEach-Object {
                 
         
                         # Looping through all the devices returned
