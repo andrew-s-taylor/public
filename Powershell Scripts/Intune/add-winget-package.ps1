@@ -2,6 +2,7 @@
 .VERSION 1.1
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates an Intune application from a Winget Manifest
+.GUID ebed646c-ee4a-418c-ac46-0a2af1925016
 .COMPANYNAME 
 .COPYRIGHT GPL
 .TAGS intune aad
@@ -209,34 +210,18 @@ $setupfilename = "$name-Install.ps1"
 ##Create Install File
 Set-Content $setupfile @'
 
-$URL = 
+$filename2 = 
 '@ -NoNewline
 add-Content $setupfile @"
-"$yamlFile"
+"$filename"
 "@
 add-Content $setupfile @'
-$directory = $env:TEMP
-#Create Temp location
-$random = Get-Random -Maximum 1000 
-$random = $random.ToString()
-$date =get-date -format yyMMddmmss
-$date = $date.ToString()
-$path2 = $random + "-"  + $date
-$path = $directory + "\" + $path2 + "\"
-new-item -ItemType Directory -Path $path
-$filename = $URL.Substring($URL.LastIndexOf("/") + 1)
-
-##File Name
-$templateFilePath = $path + $filename
-Invoke-WebRequest `
-   -Uri $url `
-   -OutFile $templateFilePath `
-   -UseBasicParsing `
-   -Headers @{"Cache-Control"="no-cache"}
-
+$filename = $filename2.Substring($filename2.LastIndexOf("/") + 1)
+   $curDir = Get-Location
+   $filebase = Join-Path $curDir $filename
    $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\AppInstallerCLI.exe")
-   &$winget settings --enable LocalManifestFiles
-   &$winget install --silent  --manifest $templateFilePath
+   Start-Process -NoNewWindow -FilePath $winget -ArgumentList "settings --enable LocalManifestFiles"
+   Start-Process -NoNewWindow -FilePath $winget -ArgumentList "install --silent  --manifest $filename"
 
 '@
 
