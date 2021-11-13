@@ -235,15 +235,14 @@ Invoke-WebRequest `
    -Headers @{"Cache-Control"="no-cache"}
 
    $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\AppInstallerCLI.exe")
-
+   &$winget settings --enable LocalManifestFiles
    &$winget install --silent  --manifest $templateFilePath
 
 '@
 
-$detectionfile = "$path$name-Detection.ps1"
-    ## Create Detection Powershell File
-    Set-Content $detectionfile $detectionrule
-
+$path4 = $detectionrule
+$fname = $path4.Substring($path4.LastIndexOf("\") + 1)
+$fpath = Split-Path -Path $path4
 
     # Package as .intunewin file
     $SourceFolder = $path
@@ -256,9 +255,8 @@ $detectionfile = "$path$name-Detection.ps1"
     # Create custom display name like 'Name' and 'Version'
     $DisplayName = $name
 
-    # Create PowerShell script detection rule
-    $DetectionScriptFile = Get-ChildItem -Path $path | Where-Object Name -Like "*-Detection.ps1"
-    $DetectionRule = New-IntuneWin32AppDetectionRuleScript -ScriptFile $DetectionScriptFile.FullName -EnforceSignatureCheck $false -RunAs32Bit $false
+    # Create detection rule
+    $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -Path "$fpath" -FileOrFolder $fname -Check32BitOn64System $false -DetectionType "exists"
 
     # Add new EXE Win32 app
     $InstallationScriptFile = Get-ChildItem -Path $path | Where-Object Name -Like "*-Install.ps1"
