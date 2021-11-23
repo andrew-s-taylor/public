@@ -1590,11 +1590,12 @@ $json = @"
 
 
         # Defining Variables
+        $ap1 = Get-AutoPilotProfile -name $profilename
+$id = $ap1.id
         $graphApiVersion = "beta"
         $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"        
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource/$id/assignments"        
-$ap1 = Get-AutoPilotProfile -name $profilename
-$id = $ap1.id
+
 $groupid = $autopilotgrp.id
 
         $full_assignment_id = $id + "_" + $groupid + "_0" 
