@@ -1,4 +1,40 @@
+<#PSScriptInfo
+.VERSION 1.0
+.GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
+.AUTHOR AndrewTaylor
+.DESCRIPTION Synchronises All Intune managed devices
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS intune endpoint MEM environment
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES microsoft.graph.intune
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES 
+.RELEASENOTES
+#>
+<#
+.SYNOPSIS
+  Synchronises All Intune managed devices
+.DESCRIPTION
+Synchronises All Intune managed devices
 
+.INPUTS
+None required
+.OUTPUTS
+Within Azure
+.NOTES
+  Version:        1.0
+  Author:         Andrew Taylor
+  Twitter:        @AndrewTaylor_2
+  WWW:            andrewstaylor.com
+  Creation Date:  24/11/2021
+  Purpose/Change: Initial script development
+  
+.EXAMPLE
+N/A
+#>
 
 ####################################################
 
@@ -222,4 +258,6 @@ $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 $devices = (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
 foreach ($device in $devices) {
     SyncDevice -Deviceid $device.id
+    $devicename = $device.deviceName
+    write-host "Sync sent to $devicename"
 }

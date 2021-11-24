@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0
+.VERSION 2.1
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Builds an Intune environment using intunebackupandrestore
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.0
+  Version:        2.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -36,7 +36,7 @@ Within Azure
 N/A
 #>
 
-$version = "2.0"
+$version = "2.1"
 ###############################################################################################################
 ######                                         Install Modules                                           ######
 ###############################################################################################################
