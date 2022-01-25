@@ -813,7 +813,7 @@ $update.Add_Click({
   $output = $output2.value
   $expath = $path2.value
 
-  Invoke-WebRequest -Uri $url -OutFile $output -Method Get
+  Invoke-WebRequest -Uri $url.value -OutFile $output -Method Get
 
   
   Expand-Archive $output -DestinationPath $expath -Force
