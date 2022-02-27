@@ -84,7 +84,7 @@ Import-Module AzureADPreview
 ### Connect to Azure AD ###
 Connect-AzureAD
 
-### Create Form ###
+####################################### Create Form ################################################
 
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
@@ -219,8 +219,10 @@ $Label11.location                = New-Object System.Drawing.Point(105,354)
 $Label11.Font                    = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $IntuneAzureADGroups.controls.AddRange(@($Label1,$Autopilot,$project,$Visio,$Office,$rings,$Label2,$Label3,$Label4,$Label5,$Label6,$Label7,$Label8,$Label9,$Label10,$Label11))
+########################################### END FORM ###############################################
 
-### Form Actions ###
+
+########################################### Form Actions ###############################################
 
 ##Autopilot Group Clicked
 $Autopilot.Add_Click({ 
@@ -286,15 +288,10 @@ $project.Add_Click({
     write-host "Groups Project-Install, Project-Uninstall created successfully"
 })
 
+############################################# END FORM ACTION ################################################################
 
 
-#region Logic 
-
-#endregion
-
-
-#[void]$IntuneAzureADGroups.ShowDialog()
-### Switch on Params ###
+############################################ Switch on Params ##################################################################
 
 switch ($groupname) {
     "Autopilot"{
@@ -344,3 +341,4 @@ switch ($groupname) {
          break
     }
 }
+######################################################## END SWITCH ##############################################################
