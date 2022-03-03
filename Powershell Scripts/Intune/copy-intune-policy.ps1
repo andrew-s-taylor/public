@@ -45,8 +45,23 @@ $ErrorActionPreference = "Continue"
 $date = get-date -format ddMMyyyy
 Start-Transcript -Path $env:TEMP\intune-$date.log
 
+###############################################################################################################
+######                                      Install Module                                               ######
+###############################################################################################################
 
-
+#Install AZ Module if not available
+if (Get-Module -ListAvailable -Name AzureADPreview) {
+    Write-Host "AZ Ad Preview Module Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
 
 
 ###############################################################################################################
@@ -810,12 +825,17 @@ function addpolicy() {
         $resource,
         $policyid
     )
-    write-host $resource
+
     $graphApiVersion = "beta"
+    ## Switch on the resources passed through to configure the policy
     switch ($resource) {
+
+    ## Device Configuration Policy
     "deviceManagement/deviceConfigurations" {
      $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+     ## We need to decrypt some of these for this to work
      $policy = Get-DecryptedDeviceConfigurationPolicy -dcpid $id
+     ## Rename to Copy of
      $oldname = $policy.displayName
      $newname = "Copy Of " + $oldname
      $policy.displayName = $newname
@@ -832,9 +852,13 @@ function addpolicy() {
             }
         }
     }
+
+    ## Settings Catalog policies
     "deviceManagement/configurationPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceConfigurationPolicysc -id $id
+
+        ## The settings live in their own different location, we need to grab them
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         $settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
 
@@ -844,19 +868,24 @@ function addpolicy() {
             $policy.Settings = $settings
         }
         
-        #
+        ## Rename to Copy Of
         $oldname = $policy.Name
         $newname = "Copy Of " + $oldname
         $policy.Name = $newname
 
     }
+
+
+    ## Compliance Policies
     "deviceManagement/deviceCompliancePolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceCompliancePolicy -id $id
+        ## Rename to Copy Of
         $oldname = $policy.DisplayName
         $newname = "Copy Of " + $oldname
         $policy.DisplayName = $newname
-        
+        ##The action is removed in the output, we need to add it back in
+        ## Create the action
             $scheduledActionsForRule = @(
                 @{
                     ruleName = "PasswordRequired"
@@ -869,19 +898,27 @@ function addpolicy() {
                     )
                 }
             )
+            ## Add the action
             $policy | Add-Member -NotePropertyName scheduledActionsForRule -NotePropertyValue $scheduledActionsForRule
             
             
     }
+
+    ## Security Policies
     "deviceManagement/intents" {
+        ## We need to get the policy template IT
         $policy = Get-DeviceSecurityPolicy -id $id
         $templateid = $policy.templateID
+        ## Now grab the template details
         $uri = "https://graph.microsoft.com/beta/deviceManagement/templates/$templateId/createInstance"
         $template = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -Headers $authToken -Method Get
         $templateCategory = Invoke-RestMethod -Uri -Url "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Headers $authToken -Method Get | Get-MSGraphAllPages
+        ## Grab the policy settings
         $intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
+        ## Rename
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
+        ## Add the settings
         $policy = @{
             "displayName" = $newname
             "description" = $policy.description
@@ -889,27 +926,34 @@ function addpolicy() {
             "roleScopeTagIds" = $policy.roleScopeTagIds
         }
         $policy | Add-Member -NotePropertyName displayName -NotePropertyValue $newname
-
-
-
     }
+
+    ## Autopilot Profiles
     "deviceManagement/windowsAutopilotDeploymentProfiles" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AutoPilotProfile -id $id
+        ## Rename
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy.displayName = $newname
     }
+
+    ## Autopilot ESP
     "deviceManagement/deviceEnrollmentConfigurations" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AutoPilotESP -id $id
+        ## Rename
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy.displayName = $newname
     }
+
+    ## Android App protection Policies
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
+        ## Grab the policy (weird URLs)
         $policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
+        ## Rename
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy.displayName = $newname
@@ -928,9 +972,14 @@ function addpolicy() {
 
 
     }
+
+
+    ## iOS App protection Policies
     "deviceAppManagement/managedAppPoliciesios" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
+        ## Grab the policy (weird URLs)
         $policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
+        ## Rename to Copy Of
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy.displayName = $newname
@@ -961,7 +1010,6 @@ function addpolicy() {
    try {
        # Add the policy
     Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $policy.toString() -ContentType "application/json"  
-    #invoke-MSGraphRequest -Url $uri -HttpMethod POST -Content $policy.ToString()
     }
     catch {
         Write-Error $_.Exception 
