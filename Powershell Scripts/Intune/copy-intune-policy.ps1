@@ -1114,7 +1114,7 @@ $iosapp = Get-ManagedAppProtectionios | Select-Object -expandproperty Value
 $configuration += $iosapp | Select-Object ID, DisplayName, Description
 
 
-$configuration | Out-GridView -PassThru | ForEach-Object {
+$configuration | Out-GridView -Title "Policies" -PassThru | ForEach-Object {
 
 ##Find out what it is
 $id = $_.ID
