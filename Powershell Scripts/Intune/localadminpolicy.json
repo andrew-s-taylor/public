@@ -40,7 +40,7 @@
                                                                 {
                                                                     "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
                                                                     "settingValueTemplateReference": null,
-                                                                    "value": "AzureAD\\REPLACEME"
+                                                                    "value": "AzureAD\\<REPLACEME>"
                                                                 }
                                                             ]
                                                         }
