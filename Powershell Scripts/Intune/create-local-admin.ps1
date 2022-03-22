@@ -357,25 +357,33 @@ $global:authToken = Get-AuthToken -User $User
 ####################################################
 
 ##Configure the JSON
-$templateid = "0f2b5d70-d4e9-4156-8c16-1397eb6c54a5"
-$templateuri = "https://graph.microsoft.com/beta/deviceManagement/intents?$filter=templateId eq '0f2b5d70-d4e9-4156-8c16-1397eb6c54a5'"
+$initialjson="https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/localadminpolicy.json"
+$jsonpath = "intuneadmin.json"
 
-$localadmins = Invoke-RestMethod -Method Get -Uri $templateuri -Headers $authtoken
-$localadmins.value
+# Download config
+Invoke-WebRequest -Uri $initialjson -OutFile $jsonpath -UseBasicParsing
+((Get-Content -path $jsonpath -Raw) -replace '<REPLACEME>',$UPN) | Set-Content -Path $jsonpath
+
+$ImportPath = ".\intunenadmin.json"
+
+$JSON_Data = gc "$ImportPath"
+
+$JSON_Convert = $JSON_Data | ConvertFrom-Json | Select-Object -Property * -ExcludeProperty id,createdDateTime,lastModifiedDateTime,version,supportsScopeTags
+
+$JSON_Output = $JSON_Convert | ConvertTo-Json -Depth 5
+
+    $uri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+
+$body = ([System.Text.Encoding]::UTF8.GetBytes($JSON_Output.tostring()))
+Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
+
+
 
 
 
 ##Create the policy
 
-$request = @{
-    displayName = "IntuneLocalAdmins"
-    description = "Create Local Admin"
-    templateId = $localadmins.value.id
-} | ConvertTo-Json
-$instance = Invoke-RestMethod -Method Post -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$($localadmins.value.id)/createInstance" -Headers $authtoken -ContentType 'Application/Json' -body $request
-$instance
 
-$definitionbase = "deviceConfiguration--deviceManagementUserRightsSetting_localUsersOrGroups"
 
 
 ##All done, notify

@@ -1,9 +1,6 @@
 {
-    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('787b71be-e259-43e5-9919-866487dd54fd')/settings(settingDefinitions())",
-    "@odata.count": 1,
-    "value": [
+   "value": [
         {
-            "id": "0",
             "settingInstance": {
                 "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
                 "settingDefinitionId": "device_vendor_msft_policy_config_localusersandgroups_configure",
