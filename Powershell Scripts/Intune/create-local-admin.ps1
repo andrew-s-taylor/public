@@ -358,19 +358,20 @@ $global:authToken = Get-AuthToken -User $User
 
 ##Configure the JSON
 $initialjson="https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/localadminpolicy.json"
-$jsonpath = "intuneadmin.json"
+$jsonpath = $env:Temp+"\intuneadmin.json"
 
 # Download config
 Invoke-WebRequest -Uri $initialjson -OutFile $jsonpath -UseBasicParsing
 ((Get-Content -path $jsonpath -Raw) -replace '<REPLACEME>',$UPN) | Set-Content -Path $jsonpath
 
-$ImportPath = ".\intunenadmin.json"
+$ImportPath = $env:Temp+"\intuneadmin.json"
 
 $JSON_Data = gc "$ImportPath"
 
 $JSON_Convert = $JSON_Data | ConvertFrom-Json | Select-Object -Property * -ExcludeProperty id,createdDateTime,lastModifiedDateTime,version,supportsScopeTags
 
-$JSON_Output = $JSON_Convert | ConvertTo-Json -Depth 5
+$JSON_Output =  $JSON_Convert | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource | ConvertTo-Json -Depth 100
+
 
     $uri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
 
