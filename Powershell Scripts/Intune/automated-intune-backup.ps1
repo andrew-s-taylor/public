@@ -73,6 +73,6 @@ Connect-AzAccount -Credential $psCred -TenantId $tenantid -ServicePrincipal
 
 
 ##Upload to Azure Blob
-$files = "$env:TEMP\IntuneBackup" 
+$files = "$env:TEMP\IntuneBackup$date" 
 $context = New-AzStorageContext -StorageAccountName $storageaccount -StorageAccountKey $storagekey
 Get-ChildItem -Path $files -File -Recurse | Set-AzStorageBlobContent -Container $storagecontainer -Context $context
