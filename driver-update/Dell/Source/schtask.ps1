@@ -22,7 +22,7 @@ N/A
 #Configure Scheduled Task for driver updates
 
 #Set the action
-$action = New-ScheduledTaskAction -Execute 'c:\driversupd\runupdate.bat'
+$action = New-ScheduledTaskAction -Execute '"C:\Program Files (x86)\Dell\CommandUpdate\dcu-cli.exe" /driverinstall -silent -reboot=disable -outputlog="c:\driversupd\log.log"'
 
 #Set a trigger
 $trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 2 -DaysOfWeek Friday -At 1pm 
