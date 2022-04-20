@@ -122,7 +122,7 @@ $breakglass = New-AzureADUser -DisplayName "Azure BreakGlass Account" -PasswordP
 ##Create PIM if licensed for Global Admins
 $tenantid = $tenantdetails.ObjectID
 $licensing = $tenantdetails.AssignedPlans
-$islicensed = $licensing -contains "eec0eb4f-6444-4f95-aba0-50c24d67f998"
+$islicensed = $licensing.ServicePlanId -contains "eec0eb4f-6444-4f95-aba0-50c24d67f998"
 
 if ($islicensed -eq $True) {
 write-host "Azure AD P2 licensing in place, continuing"
