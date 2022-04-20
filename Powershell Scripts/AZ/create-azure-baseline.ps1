@@ -191,7 +191,7 @@ New-AzureADMSNamedLocationPolicy -OdataType "#microsoft.graph.ipNamedLocation" -
 
 ###Block Access from blocked countries
 #Get Location ID
-$location = get-AzureADMSNamedLocationPolicy | where-object DisplayName -eq "Blocked"
+$location = get-AzureADMSNamedLocationPolicy | where-object DisplayName -eq "Blocked-Locations"
 $locationid = $location.id
 ## Create Conditional Access Policy
 $conditions = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessConditionSet
@@ -203,7 +203,7 @@ $conditions.Applications.IncludeApplications = "All"
 ##All users except the Azure AD admins role and group
 $conditions.Users = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessUserCondition
 $conditions.Users.IncludeUsers = "All"
-$conditions.Users.ExcludeUsers = $breakglass.id
+$conditions.Users.ExcludeUsers = $breakglass.ObjectID
 $conditions.Locations = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessLocationCondition
 $conditions.Locations.IncludeLocations = $locationid
  
@@ -245,7 +245,7 @@ $conditions.Applications.IncludeApplications = "All"
 ##All users except the Azure AD admins role and group
 $conditions.Users = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessUserCondition
 $conditions.Users.IncludeUsers = "All"
-$conditions.Users.ExcludeUsers = $breakglass.id
+$conditions.Users.ExcludeUsers = $breakglass.ObjectID
 $conditions.Locations = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessLocationCondition
 $conditions.Locations.IncludeLocations = "All"
 $conditions.Locations.ExcludeLocations = $locationid
@@ -284,7 +284,7 @@ $conditions.Applications.IncludeApplications = "All"
 ##All users except the Azure AD admins role and group
 $conditions.Users = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessUserCondition
 $conditions.Users.IncludeUsers = "All"
-$conditions.Users.ExcludeUsers = $breakglass.id
+$conditions.Users.ExcludeUsers = $breakglass.ObjectID
  
 ##All devices
 $conditions.ClientAppTypes = @('ExchangeActiveSync', 'Other')
@@ -321,7 +321,7 @@ $conditions.Applications.IncludeApplications = "All"
 ##All users except the Azure AD admins role and group
 $conditions.Users = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessUserCondition
 $conditions.Users.IncludeRoles = @('62e90394-69f5-4237-9190-012177145e10', 'f28a1f50-f6e7-4571-818b-6a12f2af6b6c', '29232cdf-9323-42fd-ade2-1d097af3e4de', 'b1be1c3e-b65d-4f19-8427-f6fa0d97feb9', '194ae4cb-b126-40b2-bd5b-6091b380977d', '729827e3-9c14-49f7-bb1b-9608f156bbb8', '966707d0-3269-4727-9be2-8c3a10f19b9d', 'b0f54661-2d74-4c50-afa3-1ec803f12efe', 'fe930be7-5e62-47db-91af-98c3a49a38b1')
-$conditions.Users.ExcludeUsers = $breakglass.id
+$conditions.Users.ExcludeUsers = $breakglass.ObjectID
  
 ##All devices
 $conditions.ClientAppTypes = "All"
@@ -358,7 +358,7 @@ $conditions.Applications.IncludeApplications = "All"
 ##All users except the Azure AD admins role and group
 $conditions.Users = New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessUserCondition
 $conditions.Users.IncludeUsers = "GuestsOrExternalUsers"
-$conditions.Users.ExcludeUsers = $breakglass.id
+$conditions.Users.ExcludeUsers = $breakglass.ObjectID
  
 ##All devices
 $conditions.ClientAppTypes = "All"
