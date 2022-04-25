@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.1.0
 .GUID 29d19c3c-8a33-4ada-a7a7-f39bfb439c1b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Assigns everything within Intune with options to select
@@ -27,12 +27,14 @@ GUI to select AAD group and what to assign
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        1.0.0
+  Version:        1.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  23/03/2022
+  Amended Date:   25/04/2022
   Purpose/Change: Initial script development
+  Change: Added option to set apps as Required
 .EXAMPLE
 N/A
 #>
@@ -3610,7 +3612,7 @@ Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $Form                            = New-Object system.Windows.Forms.Form
-$Form.ClientSize                 = New-Object System.Drawing.Point(400,618)
+$Form.ClientSize                 = New-Object System.Drawing.Point(400,686)
 $Form.text                       = "Form"
 $Form.TopMost                    = $false
 
@@ -3623,14 +3625,9 @@ $Label1.location                 = New-Object System.Drawing.Point(16,73)
 $Label1.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $aad                             = New-Object system.Windows.Forms.ComboBox
-$aad.text                        = "Select AAD Group"
+$aad.text                        = "AADGroup"
 $aad.width                       = 201
 $aad.height                      = 20
-$aadgroups = get-azureadgroup | select-object DisplayName
-
-ForEach ($aadgroup in $aadgroups) {
-    [void] $aad.Items.Add($aadgroup.DisplayName)
-}
 $aad.location                    = New-Object System.Drawing.Point(170,69)
 $aad.Font                        = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
@@ -3646,7 +3643,7 @@ $Submit                          = New-Object system.Windows.Forms.Button
 $Submit.text                     = "Assign"
 $Submit.width                    = 60
 $Submit.height                   = 30
-$Submit.location                 = New-Object System.Drawing.Point(170,556)
+$Submit.location                 = New-Object System.Drawing.Point(161,641)
 $Submit.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $config                          = New-Object system.Windows.Forms.CheckBox
@@ -3654,7 +3651,7 @@ $config.text                     = "Config Policies"
 $config.AutoSize                 = $false
 $config.width                    = 200
 $config.height                   = 20
-$config.location                 = New-Object System.Drawing.Point(34,155)
+$config.location                 = New-Object System.Drawing.Point(32,155)
 $config.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $settings                        = New-Object system.Windows.Forms.CheckBox
@@ -3752,7 +3749,23 @@ $email.height                    = 20
 $email.location                  = New-Object System.Drawing.Point(50,36)
 $email.Font                      = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$Form.controls.AddRange(@($Label1,$aad,$Label2,$Submit,$config,$settings,$compliance,$security,$scripts,$autopilot,$esp,$windows,$macos,$android,$ios,$Ewfewijpeqwj,$email))
+$Label3                          = New-Object system.Windows.Forms.Label
+$Label3.text                     = "Application Assignment Type:"
+$Label3.AutoSize                 = $true
+$Label3.width                    = 25
+$Label3.height                   = 10
+$Label3.location                 = New-Object System.Drawing.Point(31,543)
+$Label3.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+
+$ComboBox1                       = New-Object system.Windows.Forms.ComboBox
+$ComboBox1.text                  = "Available"
+$ComboBox1.width                 = 100
+$ComboBox1.height                = 20
+@('Required','Available') | ForEach-Object {[void] $ComboBox1.Items.Add($_)}
+$ComboBox1.location              = New-Object System.Drawing.Point(127,572)
+$ComboBox1.Font                  = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+
+$Form.controls.AddRange(@($Label1,$aad,$Label2,$Submit,$config,$settings,$compliance,$security,$scripts,$autopilot,$esp,$windows,$macos,$android,$ios,$Ewfewijpeqwj,$email,$Label3,$ComboBox1))
 
 $Submit.Add_Click({ 
  
@@ -3900,6 +3913,7 @@ $global:authToken = Get-AuthToken -User $User
 
 ###############################################################################################################
 
+$aasignmenttype = $comboBox1.text
  
 
 ##Anything to Ignore, Add here
@@ -4211,7 +4225,7 @@ if ($windows.checked -eq $True) {
 ##Assign Windows apps
 
  foreach ($windowsapp in $windowsapps) {
-    Add-ApplicationAssignment -ApplicationId $windowsapp.id -TargetGroupId $intunegrp.objectid -InstallIntent "Available"
+    Add-ApplicationAssignment -ApplicationId $windowsapp.id -TargetGroupId $intunegrp.objectid -InstallIntent $assignmenttype
     Write-Host "Assigned $($intunegrp.DisplayName) to $($windowsapp.displayName)/$($windowsapp.id)" -ForegroundColor Green
  }
  Add-Type -AssemblyName PresentationCore,PresentationFramework
@@ -4238,7 +4252,7 @@ if ($android.Checked -eq $True) {
 ##Assign Android apps
 
     foreach ($androidapp in $androidapps) {
-        Add-ApplicationAssignment -ApplicationId $androidapp.id -TargetGroupId $intunegrp.objectid -InstallIntent "Available"
+        Add-ApplicationAssignment -ApplicationId $androidapp.id -TargetGroupId $intunegrp.objectid -InstallIntent $assignmenttype
         Write-Host "Assigned $($intunegrp.DisplayName) to $($androidapp.displayName)/$($androidapp.id)" -ForegroundColor Green
 
     }
@@ -4251,7 +4265,7 @@ if ($ios.checked -eq $True) {
 ##Assign iOS apps
 
     foreach ($iosapp in $iosapps) {
-        Add-ApplicationAssignment -ApplicationId $iosapp.id -TargetGroupId $intunegrp.objectid -InstallIntent "Available"
+        Add-ApplicationAssignment -ApplicationId $iosapp.id -TargetGroupId $intunegrp.objectid -InstallIntent $assignmenttype
         Write-Host "Assigned $($intunegrp.DisplayName) to $($iosapp.displayName)/$($iosapp.id)" -ForegroundColor Green
 
     }
