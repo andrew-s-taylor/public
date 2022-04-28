@@ -2,8 +2,7 @@
 .VERSION 1.1.0
 .GUID 29d19c3c-8a33-4ada-a7a7-f39bfb439c1b
 .AUTHOR AndrewTaylor
-.DESCRIPTION Assigns everything within Intune with options to select
-Batch assignment to selected group of all policies, scripts and apps
+.DESCRIPTION Assigns everything within Intune with options to select.  Batch assignment to selected group of all policies, scripts and apps
 .COMPANYNAME
 .COPYRIGHT GPL
 .TAGS intune endpoint MEM environment
@@ -19,8 +18,7 @@ Batch assignment to selected group of all policies, scripts and apps
 .SYNOPSIS
   Bulk Intune Assigment
 .DESCRIPTION
-Assigns everything within Intune with options to select
-Batch assignment to selected group of all policies, scripts and apps
+Assigns everything within Intune with options to select.  Batch assignment to selected group of all policies, scripts and apps
 .INPUTS
 Runmode:
 GUI to select AAD group and what to assign
