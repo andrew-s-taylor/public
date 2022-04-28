@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.1
+.VERSION 2.2
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Builds an Intune environment using intunebackupandrestore
@@ -25,12 +25,14 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.1
+  Version:        2.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  21/08/2021
   Purpose/Change: Initial script development
+  Updated: 28/04/2022
+  Reason: Fixed issue with Update ring assignments
   
 .EXAMPLE
 N/A
@@ -1705,6 +1707,7 @@ if($DCP){
     $Assignment = Add-DeviceConfigurationPolicyAssignment -ConfigurationPolicyId $DCP.id -TargetGroupId $vipgrp.id -AssignmentType Excluded
     $Assignment = Add-DeviceConfigurationPolicyAssignment -ConfigurationPolicyId $DCP.id -TargetGroupId $pilotgrp.id -AssignmentType Excluded
     $Assignment = Add-DeviceConfigurationPolicyAssignment -ConfigurationPolicyId $DCP.id -TargetGroupId $previewgrp.id -AssignmentType Excluded
+    $Assignment = Add-DeviceConfigurationPolicyAssignment -ConfigurationPolicyId $DCP.id -TargetGroupId $autopilotgrp.id -AssignmentType Included
     Write-Host "Assigned exclusion groups to $($DCP.displayName)/$($DCP.id)" -ForegroundColor Green
     Write-Host
 
@@ -1793,15 +1796,61 @@ else {
 
 
 #Broad Ring
-$PolicyName = "Office-BroadRing"
+$PolicyName = "CONNECT: Office-BroadRing"
 
 $DCP = Get-DeviceConfigurationPolicySC -name "$PolicyName"
 
 if($DCP){
+$vipuser = $vipgrp.Id
+$pilotuser = $pilotgrp.Id
+$previewuser = $previewgrp.Id
+$intuneuser = $autopilotgrp.Id
+    $graphApiVersion = "Beta"
+    $configid = $dcp.id
+        $Resource = "deviceManagement/configurationPolicies/$configid/assign"
 
-    $Assignment = Add-DeviceConfigurationPolicyAssignmentSC -ConfigurationPolicyId $DCP.id -TargetGroupId $vipgrp.id -AssignmentType Excluded
-    $Assignment = Add-DeviceConfigurationPolicyAssignmentSc -ConfigurationPolicyId $DCP.id -TargetGroupId $pilotgrp.id -AssignmentType Excluded
-    $Assignment = Add-DeviceConfigurationPolicyAssignmentSC -ConfigurationPolicyId $DCP.id -TargetGroupId $previewgrp.id -AssignmentType Excluded
+$JSON =@"
+{
+    "assignments":  [
+                        {
+                            "target":  {
+                                           "@odata.type":  "#microsoft.graph.groupAssignmentTarget",
+                                           "deviceAndAppManagementAssignmentFilterId":  null,
+                                           "deviceAndAppManagementAssignmentFilterType":  "none",
+                                           "groupId":  "$intuneuser"
+                                       }
+                        },
+                        {
+                            "target":  {
+                                           "@odata.type":  "#microsoft.graph.exclusionGroupAssignmentTarget",
+                                           "deviceAndAppManagementAssignmentFilterId":  null,
+                                           "deviceAndAppManagementAssignmentFilterType":  "none",
+                                           "groupId":  "$previewuser"
+                                       }
+                        },
+                        {
+                            "target":  {
+                                           "@odata.type":  "#microsoft.graph.exclusionGroupAssignmentTarget",
+                                           "deviceAndAppManagementAssignmentFilterId":  null,
+                                           "deviceAndAppManagementAssignmentFilterType":  "none",
+                                           "groupId":  "$pilotuser"
+                                       }
+                        },
+                        {
+                            "target":  {
+                                           "@odata.type":  "#microsoft.graph.exclusionGroupAssignmentTarget",
+                                           "deviceAndAppManagementAssignmentFilterId":  null,
+                                           "deviceAndAppManagementAssignmentFilterType":  "none",
+                                           "groupId":  "$vipuser"
+                                       }
+                        }
+                    ]
+}
+"@
+        
+            # POST to Graph Service
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
+            Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $JSON -ContentType "application/json"
     Write-Host "Assigned all exclusion groups to $($DCP.displayName)/$($DCP.id)" -ForegroundColor Green
     Write-Host
 
