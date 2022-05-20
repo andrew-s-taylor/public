@@ -41,14 +41,9 @@ $EmailAddress = "<YOUR EMAIL ADDRESS>"
 ##From Address
 $MailSender = "<YOUR FROM ADDRESS>"
 
+
 ##############################################################################################################################################
 
-$authority = "https://login.windows.net/$tenant"
-
-## Connect to MS Graph
-Update-MSGraphEnvironment -AppId $clientId -Quiet
-Update-MSGraphEnvironment -AuthUrl $authority -Quiet
-Connect-MSGraph -ClientSecret $ClientSecret -Quiet
 
 #Connect to GRAPH API
 $tokenBody = @{
@@ -66,7 +61,7 @@ $headers = @{
 #MDM Push
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $pushuri = "https://graph.microsoft.com/beta/deviceManagement/applePushNotificationCertificate"
-$pushcert = Invoke-MSGraphRequest -HttpMethod GET -Url $pushuri
+$pushcert = (Invoke-RestMethod -Uri $pushuri -Headers $headers -Method Get).value
 $pushexpiryplaintext = $pushcert.expirationDate
 $pushexpiry = ($pushcert.expirationDateTime).ToString("yyyy-MM-dd")
 if ($pushexpiry -lt $30days) {
@@ -108,7 +103,7 @@ write-host "All fine" -ForegroundColor Green
 #VPP
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $vppuri = "https://graph.microsoft.com/beta/deviceAppManagement/vppTokens"
-$vppcert = Invoke-MSGraphRequest -HttpMethod GET -Url $vppuri
+$vppcert = (Invoke-RestMethod -Uri $vppuri -Headers $headers -Method Get).value
 $vppexpiryvalue = $vppcert.value
 $vppexpiryplaintext = $vppexpiryvalue.expirationDateTime
 $vppexpiry = ($vppexpiryvalue.expirationDateTime).ToString("yyyy-MM-dd")
@@ -153,7 +148,7 @@ write-host "All fine" -ForegroundColor Green
 #DEP
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $depuri = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
-$depcert = Invoke-MSGraphRequest -HttpMethod GET -Url $depuri
+$depcert = (Invoke-RestMethod -Uri $depuri -Headers $headers -Method Get).value
 $depexpiryvalue = $depcert.value
 $depexpiryplaintext = $depexpiryvalue.expirationDateTime
 
