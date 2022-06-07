@@ -1,0 +1,46 @@
+{
+"Rules":[ 
+    { 
+       "SettingName":"Manufacturer",
+       "Operator":"IsEquals",
+       "DataType":"String",
+       "Operand":"Dell",
+       "MoreInfoUrl":"https://andrewstaylor.com",
+       "RemediationStrings":[ 
+          { 
+             "Language":"en_US",
+             "Title":"This machine is not a Dell.",
+             "Description": "We only support Dell devices, please contact us for more information."
+          }
+       ]
+    },
+    { 
+       "SettingName":"RAM",
+       "Operator":"GreaterEquals",
+       "DataType":"int64",
+       "Operand":8,
+       "MoreInfoUrl":"https://andrewstaylor.com",
+       "RemediationStrings":[ 
+          { 
+             "Language": "en_US",
+             "Title": "Insufficient RAM.",
+             "Description": "Please arrange for your machine to be replaced, or RAM upgraded to 8Gb Minimum"
+          }
+       ]
+    },
+    { 
+       "SettingName":"Steam",
+       "Operator":"IsEquals",
+       "DataType":"String",
+       "Operand":"Not Detected",
+       "MoreInfoUrl":"https://andrewstaylor.com",
+       "RemediationStrings":[ 
+          { 
+             "Language": "en_US",
+             "Title": "Unsupported Application Detected",
+             "Description": "Steam has been detected on your device, please uninstall and try again."
+          }
+       ]
+    }
+ ]
+}
