@@ -61,8 +61,8 @@ $headers = @{
 #MDM Push
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $pushuri = "https://graph.microsoft.com/beta/deviceManagement/applePushNotificationCertificate"
-$pushcert = (Invoke-RestMethod -Uri $pushuri -Headers $headers -Method Get).value
-$pushexpiryplaintext = $pushcert.expirationDate
+$pushcert = (Invoke-RestMethod -Uri $pushuri -Headers $headers -Method Get)
+$pushexpiryplaintext = $pushcert.expirationDateTime
 $pushexpiry = ($pushcert.expirationDateTime).ToString("yyyy-MM-dd")
 if ($pushexpiry -lt $30days) {
 write-host "Cert Expiring" -ForegroundColor Red
@@ -103,7 +103,7 @@ write-host "All fine" -ForegroundColor Green
 #VPP
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $vppuri = "https://graph.microsoft.com/beta/deviceAppManagement/vppTokens"
-$vppcert = (Invoke-RestMethod -Uri $vppuri -Headers $headers -Method Get).value
+$vppcert = (Invoke-RestMethod -Uri $vppuri -Headers $headers -Method Get)
 $vppexpiryvalue = $vppcert.value
 $vppexpiryplaintext = $vppexpiryvalue.expirationDateTime
 $vppexpiry = ($vppexpiryvalue.expirationDateTime).ToString("yyyy-MM-dd")
@@ -148,7 +148,7 @@ write-host "All fine" -ForegroundColor Green
 #DEP
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $depuri = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
-$depcert = (Invoke-RestMethod -Uri $depuri -Headers $headers -Method Get).value
+$depcert = (Invoke-RestMethod -Uri $depuri -Headers $headers -Method Get)
 $depexpiryvalue = $depcert.value
 $depexpiryplaintext = $depexpiryvalue.expirationDateTime
 
