@@ -150,7 +150,7 @@ $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $depuri = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
 $depcert = (Invoke-RestMethod -Uri $depuri -Headers $headers -Method Get)
 $depexpiryvalue = $depcert.value
-$depexpiryplaintext = $depexpiryvalue.expirationDateTime
+$depexpiryplaintext = $depexpiryvalue.tokenexpirationDateTime
 
 $depexpiry = ($depexpiryvalue.tokenExpirationDateTime).ToString("yyyy-MM-dd")
 if ($depexpiry -lt $30days) {
