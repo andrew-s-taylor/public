@@ -1,0 +1,2 @@
+C:\Program Files\WindowsApps\Microsoft.CompanyPortal_2022.409.807.0_neutral_~_8wekyb3d8bbwe
+AppxSignature.p7x

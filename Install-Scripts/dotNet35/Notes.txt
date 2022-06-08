@@ -1,0 +1,4 @@
+Install - powershell.exe -ExecutionPolicy Bypass -file Install.ps1 -Mode Install
+Uninstall - powershell.exe -ExecutionPolicy Bypass -file Install.ps1 -Mode Uninstall
+
+Detection: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v3.0
