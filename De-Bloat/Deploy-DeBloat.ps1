@@ -1,24 +1,24 @@
 <#PSScriptInfo
 .VERSION 1.0
-.GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
+.GUID 91dfcf8e-2e73-4440-bbd5-0f9a74da7888
 .AUTHOR AndrewTaylor
-.DESCRIPTION Display an Intune applist in a grid to find more details
+.DESCRIPTION Deploys De-Bloat application
 .COMPANYNAME 
 .COPYRIGHT GPL
-.TAGS az azure AVD WVD environment
+.TAGS bloat intune graph
 .LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
 .PROJECTURI https://github.com/andrew-s-taylor/public
 .ICONURI 
-.EXTERNALMODULEDEPENDENCIES azureAD
+.EXTERNALMODULEDEPENDENCIES 
 .REQUIREDSCRIPTS 
 .EXTERNALSCRIPTDEPENDENCIES
 .RELEASENOTES
 #>
 <#
 .SYNOPSIS
-  Displays List of apps from Intune
+  Deploys De-Bloat application
 .DESCRIPTION
-Display an Intune applist in a grid to find more details
+Deploys De-Bloat application
 
 .INPUTS
 None required
