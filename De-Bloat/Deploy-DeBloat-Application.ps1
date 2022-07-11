@@ -235,7 +235,7 @@ $path = "c:\temp\" + $path2 + "\"
 New-Item -ItemType Directory -Path $path
 
 # Find the app
-$appurl = "https://github.com/andrew-s-taylor/public/tree/main/De-Bloat\removebloat.intunewin"
+$appurl = "https://github.com/andrew-s-taylor/public/tree/main/De-Bloat\debloat-intune-script.intunewin"
 
 #Set the download location
 $output = "c:\temp\" + $path2 + "\Deploy-Application.intunewin"
@@ -261,7 +261,7 @@ $ReturnCodes = Get-DefaultReturnCodes
 # Win32 Application Upload
 Upload-Win32Lob -SourceFile "$SourceFile" -DisplayName "Windows De-Bloat" -publisher "Andrew Taylor" `
 -description "Removes Windows Bloat" -detectionRules $DetectionRule -returnCodes $ReturnCodes `
--installCmdLine 'powershell -executionpolicy bypass -file removebloat.ps1' `
+-installCmdLine 'powershell -executionpolicy bypass -file debloat-intune-script.ps1' `
 -uninstallCmdLine 'cmd.exe /c'
 
 # Assign it
