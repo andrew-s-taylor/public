@@ -219,7 +219,7 @@ add-Content $setupfile @'
 $filename = $filename2.Substring($filename2.LastIndexOf("/") + 1)
    $curDir = Get-Location
    $filebase = Join-Path $curDir $filename
-   $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\AppInstallerCLI.exe")
+   $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\Winget.exe")
    Start-Process -NoNewWindow -FilePath $winget -ArgumentList "settings --enable LocalManifestFiles"
    Start-Process -NoNewWindow -FilePath $winget -ArgumentList "install --silent  --manifest $filename"
 
