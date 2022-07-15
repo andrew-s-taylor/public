@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 43e38b3f-984a-456c-aff0-129d869514a3
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates an app registration for Graph, AzureAD and Conditional Access and outputs details to CSV
@@ -25,16 +25,25 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  05/06/2022
   Purpose/Change: Initial script development
+  Added logic to check Powershell version and warn if not at least 6.1
   
 .EXAMPLE
 N/A
 #>
+
+##Check Powershell version
+$PSVersion = $PSVersionTable.PSVersion
+
+#If version is less than 6.1, throw an error and stop execution of the script
+if ($PSVersion -lt 6.1) {
+    Throw "You need to be running Powershell 6.1 or above for this to complete, please upgrade"
+}
 
 ##Install Modules
 Write-Host "Installing AzureAD Preview modules if required (current user scope)"
