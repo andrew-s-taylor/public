@@ -89,7 +89,6 @@ Invoke-WebRequest `
 $string = @"
 [void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
 [System.Windows.Forms.SendKeys]::SendWait("+{f10}") 
-set-executionpolicy unrestricted
 start-process powershell.exe -argument '-nologo -noprofile -noexit -executionpolicy bypass -command C:\ProgramData\ServiceUI\tools.ps1 ' -Wait
 "@
 
