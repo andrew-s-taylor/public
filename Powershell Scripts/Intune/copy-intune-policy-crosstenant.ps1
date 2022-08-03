@@ -958,6 +958,13 @@ function addpolicy() {
 
 
    try {
+##Clear Tenant Connections
+Clear-Variable -Name authToken -Scope Global
+Clear-Variable -Name authResult -Scope Global
+##Get new Tenant details
+$tenant2 = Read-Host -Prompt "Please specify your destination tenant email address"
+##Conenct and copy
+$global:authToken = Get-AuthToken -user $tenant2
        # Add the policy
        $body = ([System.Text.Encoding]::UTF8.GetBytes($policy.tostring()))
     Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
@@ -1025,7 +1032,9 @@ else {
     }
 
 # Getting the authorization token
-$global:authToken = Get-AuthToken -User $User
+
+$tenant = Read-Host -Prompt "Please specify your source tenant email address"
+$global:authToken = Get-AuthToken -User $tenant
 
 }
 
@@ -1079,6 +1088,8 @@ $autopilot = Get-AutoPilotProfile -id $id
 $esp = Get-AutoPilotESP -id $id
 $android = Get-ManagedAppProtectionAndroid -id $id
 $ios = Get-ManagedAppProtectionios -id $id
+
+
 
 
 # Copy it
@@ -1142,7 +1153,3 @@ $copypolicy = addpolicy -resource $Resource -policyid $id
 }
 
 Stop-Transcript
-
-
-
-
