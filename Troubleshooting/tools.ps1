@@ -37,6 +37,8 @@ GridView
 N/A
 #>
 
+
+##Create the Form
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
@@ -102,22 +104,34 @@ $log2.Font                     = New-Object System.Drawing.Font('Microsoft Sans 
 
 $AutopilotMenu.controls.AddRange(@($Label1,$scriptrun,$eventvwr,$regedit,$explorer,$log1, $log2))
 
+
+##Launch Autopilot Diagnostics in new window (don't autoclose)
 $scriptrun.Add_Click({ 
 start-process powershell.exe -argument '-nologo -noprofile -noexit -executionpolicy bypass -command  Get-AutopilotDiagnostics ' -Wait
    
  })
+
+ ##Launch Event Viewer
 $eventvwr.Add_Click({ 
     start-process -filepath "C:\Windows\System32\eventvwr.exe"
  })
+
+ ##Launch Regedit
 $regedit.Add_Click({ 
     start-process -filepath "C:\Windows\regedit.exe"
  })
+
+ ##Launch Windows Explorer
 $explorer.Add_Click({ 
     start-process -filepath "C:\Windows\explorer.exe"
  })
+
+ ##Launch CMTrace on SetupAct.log
 $log1.Add_Click({ 
     start-process -filepath "C:\ProgramData\ServiceUI\cmtrace.exe" -argumentlist c:\windows\panther\setupact.log
  })
+
+    ##Launch CMTrace on IntuneMgmt.log
 $log2.Add_Click({ 
     start-process -filepath "C:\ProgramData\ServiceUI\cmtrace.exe" -argumentlist C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\intunemanagementextension.log 
 })
