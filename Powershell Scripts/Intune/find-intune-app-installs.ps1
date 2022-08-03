@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 2.0.0
 .GUID 71d4d716-70bb-468a-9322-a0441468919b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists Intune apps and shows which machines have it installed
@@ -25,12 +25,13 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        1.0.0
+  Version:        2.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/07/2022
   Purpose/Change: Initial script development
+  Change: Added CSV output
   
 .EXAMPLE
 N/A
@@ -293,6 +294,7 @@ function Get-AuthToken {
     $devicesuri = "https://graph.microsoft.com/beta/devicemanagement/manageddevices"
     $devicelist = (Invoke-RestMethod -Uri $devicesuri -Headers $authToken -Method Get).value
     $appinstalls = @()
+    $appinstallsgui = @()
     ##Foreach device
     foreach ($device in $devicelist) {
     ##Find Device ID
@@ -319,22 +321,27 @@ function Get-AuthToken {
                     $installdate2 = $installdate.Split(".")[0]
                 }
             }
-            $appinstalls += $devicename + " - " + $installdate2
+            $appinstallsgui += $devicename + " - " + $installdate2
+            $appinstalls += New-Object PsObject -property @{
+            "Device" = $devicename
+            "Install Date" = $installdate2
+            }
         }
     
     }
     }
-    
+    $filename = $env:temp + "\" + $thisapp + "-installs.csv"
         Write-Host
-   $split = $appinstalls  -join "`n" 
+   $split = $appinstallsgui  -join "`n" 
     $Appoutput = @"
     Also in your clipboard
+    Exported to $filename
     Name: $thisapp
     Installed Devices: 
     $split
 "@
 set-clipboard $Appoutput
-    
+$appinstalls | export-csv $filename -NoTypeInformation
     
     
         [System.Windows.MessageBox]::Show($Appoutput)
