@@ -87,7 +87,7 @@ $apps = get-content $templateFilePath | select-object -skip 1
 foreach ($app in $apps) {
 
 write-host "Installing $app"
-.\winget.exe install --exact --id $app --silent --accept-package-agreements --accept-source-agreements
+winget install --exact --id $app --silent --accept-package-agreements --accept-source-agreements
 }
 
 ##Delete the .old file to replace it with the new one
