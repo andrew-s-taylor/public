@@ -1,7 +1,1 @@
-$folderpath = $PSScriptRoot
-$DependencyFolderPath = $folderpath.Path + "\Dependencies"
-$FullPathtoAppxbundle = $folderpath.Path + "\Microsoft.CompanyPortal_2022.409.807.0_neutral___8wekyb3d8bbwe.AppxBundle"
-
-$Dependencies = Get-ChildItem -Path $DependencyFolderPath -Filter "*.appx*" | Select-Object -ExpandProperty FullName
-
-Add-AppxPackage -Path $FullPathtoAppxbundle -DependencyPath $Dependencies
+Add-ProvisionedAppxPackage -online -PackagePath:.\Microsoft.CompanyPortal_2022.409.807.0_neutral___8wekyb3d8bbwe.AppxBundle -DependencyPackagePath .\Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.Appx,.\Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.Appx,.\Microsoft.Services.Store.Engagement_10.0.19011.0_x64__8wekyb3d8bbwe.Appx,.\Microsoft.UI.Xaml.2.7_7.2203.17001.0_x64__8wekyb3d8bbwe.Appx,.\Microsoft.VCLibs.140.00_14.0.30704.0_x64__8wekyb3d8bbwe.Appx

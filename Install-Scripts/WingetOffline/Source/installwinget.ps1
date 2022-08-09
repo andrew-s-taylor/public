@@ -1,7 +1,1 @@
-$folderpath = $PSScriptRoot
-$DependencyFolderPath = $folderpath.Path + "\Dependencies"
-$FullPathtoAppxbundle = $folderpath.Path + "\Microsoft.DesktopAppInstaller_2022.610.123.0_neutral___8wekyb3d8bbwe.Msixbundle"
-
-$Dependencies = Get-ChildItem -Path $DependencyFolderPath -Filter "*.appx*" | Select-Object -ExpandProperty FullName
-
-Add-AppxPackage -Path $FullPathtoAppxbundle -DependencyPath $Dependencies
+Add-ProvisionedAppxPackage -online -PackagePath:.\Microsoft.DesktopAppInstaller_2022.610.123.0_neutral___8wekyb3d8bbwe.Msixbundle -DependencyPackagePath .\Microsoft.VCLibs.140.00.UWPDesktop_14.0.30704.0_x64__8wekyb3d8bbwe.Appx,.\Microsoft.UI.Xaml.2.7_7.2207.21001.0_x64__8wekyb3d8bbwe.Appx -SkipLicense
