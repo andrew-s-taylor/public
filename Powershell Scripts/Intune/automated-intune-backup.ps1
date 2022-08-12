@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 62e6e98b-8580-4c72-b9a4-05c7793a8532
 .AUTHOR AndrewTaylor
 .DESCRIPTION Automates Backup of Intune Environment
@@ -70,7 +70,9 @@ $azurePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
 $psCred = New-Object System.Management.Automation.PSCredential($clientID , $azurePassword)
 Connect-AzAccount -Credential $psCred -TenantId $tenantid -ServicePrincipal
 
+##Convert Storage Account to lowercase (just in case)
 
+$storageaccount = $storageaccount.ToLower()
 
 ##Upload to Azure Blob
 $files = "$env:TEMP\IntuneBackup$date" 
