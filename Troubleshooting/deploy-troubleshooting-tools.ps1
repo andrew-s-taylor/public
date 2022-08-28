@@ -100,7 +100,7 @@ $string | out-file $file2
 ##Check if we're during OOBE
 $intunepath = “HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Win32Apps”
 $intunecomplete = @(Get-ChildItem $intunepath).count
-if ($intunecomplete -eq 0) {
+if ($intunecomplete -lt 2) {
 
 ##Launch script with UI interaction
 start-process "C:\ProgramData\ServiceUI\serviceui.exe" -argumentlist ("-process:explorer.exe", 'c:\Windows\System32\WindowsPowershell\v1.0\powershell.exe -Executionpolicy bypass -file C:\ProgramData\ServiceUI\shiftf10.ps1 -windowstyle Hidden')
