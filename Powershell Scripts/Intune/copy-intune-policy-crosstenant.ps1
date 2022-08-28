@@ -792,16 +792,16 @@ Function Get-DecryptedDeviceConfigurationPolicy(){
 }
 
 #################################################################################################
-function addpolicy() {
+function getpolicyjson() {
         <#
     .SYNOPSIS
     This function is used to add a new device policy by copying an existing policy, manipulating the JSON and then adding via Graph
     .DESCRIPTION
-    The function grabs an existing policy, decrypts if requires, renames, removes any GUIDs and then re-adds with the new name
+    The function grabs an existing policy, decrypts if requires, renames, removes any GUIDs and then returns the JSON
     .EXAMPLE
-    addpolicy -policy $policy -name $name
+    getpolicyjson -policy $policy -name $name
     .NOTES
-    NAME: Get-AddPolicy
+    NAME: getpolicyjson
     #>
 
     param
@@ -957,23 +957,7 @@ function addpolicy() {
     $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource | ConvertTo-Json -Depth 100
 
 
-   try {
-##Clear Tenant Connections
-Clear-Variable -Name authToken -Scope Global
-Clear-Variable -Name authResult -Scope Global
-##Get new Tenant details
-$tenant2 = Read-Host -Prompt "Please specify your destination tenant email address"
-##Conenct and copy
-$global:authToken = Get-AuthToken -user $tenant2
-       # Add the policy
-       $body = ([System.Text.Encoding]::UTF8.GetBytes($policy.tostring()))
-    Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
-    #invoke-MSGraphRequest -Url $uri -HttpMethod POST -Content $body
-    }
-    catch {
-        Write-Error $_.Exception 
-        
-    }
+    return $policy, $uri
 
 }
 
@@ -1045,7 +1029,7 @@ $global:authToken = Get-AuthToken -User $tenant
 ###############################################################################################################
 ######                                          Grab the Profiles                                        ######
 ###############################################################################################################
-
+$profiles = @()
 ##Get Config Policies
 $configuration = Get-DeviceConfigurationPolicy | Select-Object ID, DisplayName, Description
 
@@ -1098,7 +1082,8 @@ if ($null -ne $policy) {
 write-host "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
 
 }
 if ($null -ne $catalog) {
@@ -1106,50 +1091,105 @@ if ($null -ne $catalog) {
 write-host "It's a Settings Catalog"
 $id = $catalog.id
 $Resource = "deviceManagement/configurationPolicies"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 if ($null -ne $compliance) {
     # Compliance Policy
 write-host "It's a Compliance Policy"
 $id = $compliance.id
 $Resource = "deviceManagement/deviceCompliancePolicies"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 if ($null -ne $security) {
     # Security Policy
 write-host "It's a Security Policy"
 $id = $security.id
 $Resource = "deviceManagement/intents"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 if ($null -ne $autopilot) {
     # Autopilot Profile
 write-host "It's an Autopilot Profile"
 $id = $autopilot.id
 $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 if ($null -ne $esp) {
     # Autopilot ESP
 write-host "It's an AutoPilot ESP"
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurations"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 if ($null -ne $android) {
     # Android App Protection
 write-host "It's an Android App Protection Policy"
 $id = $android.id
 $Resource = "deviceAppManagement/managedAppPoliciesandroid"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 if ($null -ne $ios) {
     # iOS App Protection
 write-host "It's an iOS App Protection Policy"
 $id = $ios.id
 $Resource = "deviceAppManagement/managedAppPoliciesios"
-$copypolicy = addpolicy -resource $Resource -policyid $id
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+
 }
 }
+
+
+        ##Clear Tenant Connections
+
+        if ($global:authToken)
+{
+    Clear-Variable -Name authToken -Scope Global
+}
+else{
+    Write-Host "The authtoken is null."
+}
+
+if ($global:authResult)
+{
+    Clear-Variable -Name authResult -Scope Global
+}
+else{
+    Write-Host "The authtoken is null."
+}
+        
+        ##Get new Tenant details
+        $tenant2 = Read-Host -Prompt "Please specify your destination tenant email address"
+        ##Conenct and copy
+        $global:authToken = Get-AuthToken -user $tenant2
+
+
+    ##Loop through array and create Profiles
+        foreach ($toupload in $profiles) {
+            $policyuri =  $toupload[1]
+            $policyjson =  $toupload[0]
+                try {
+               # Add the policy
+            $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
+            Invoke-RestMethod -Uri $policyuri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
+            #invoke-MSGraphRequest -Url $uri -HttpMethod POST -Content $body
+            }
+            catch {
+                Write-Error $_.Exception 
+                
+            }
+            }
 
 Stop-Transcript

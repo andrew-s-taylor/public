@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.1.0
 .GUID 600c7e1b-44a5-4aaa-9644-b2763b9ccc5e
 .AUTHOR AndrewTaylor
 .DESCRIPTION Downloads and deploys troubleshooting tools to display in Autopilot ESP
@@ -25,12 +25,14 @@ None required
 .OUTPUTS
 None required
 .NOTES
-  Version:        1.0.0
+  Version:        1.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  03/08/2022
+  Updated Date: 28/08/2022
   Purpose/Change: Initial script development
+  Change: Added logic to stop running outside OOBE
 
   
 .EXAMPLE
@@ -95,5 +97,12 @@ start-process powershell.exe -argument '-nologo -noprofile -noexit -executionpol
 $file2="C:\ProgramData\ServiceUI\shiftf10.ps1"
 $string | out-file $file2
 
+##Check if we're during OOBE
+$intunepath = “HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Win32Apps”
+$intunecomplete = @(Get-ChildItem $intunepath).count
+if ($intunecomplete -eq 0) {
+
 ##Launch script with UI interaction
 start-process "C:\ProgramData\ServiceUI\serviceui.exe" -argumentlist ("-process:explorer.exe", 'c:\Windows\System32\WindowsPowershell\v1.0\powershell.exe -Executionpolicy bypass -file C:\ProgramData\ServiceUI\shiftf10.ps1 -windowstyle Hidden')
+##Add script here
+}
