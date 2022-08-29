@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 2.0.0
+.VERSION 2.1.0
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.0
+  Version:        2.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -34,6 +34,7 @@ Creates a log file in %Temp%
   Updated: 28/08/2022
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
+  Change: Added Module installation
 
   
 .EXAMPLE
@@ -46,6 +47,41 @@ $ErrorActionPreference = "Continue"
 $date = get-date -format ddMMyyyy
 Start-Transcript -Path $env:TEMP\intune-$date.log
 
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
+#Install AZ Module if not available
+if (Get-Module -ListAvailable -Name AzureADPreview) {
+    Write-Host "AZ Ad Preview Module Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+Import-Module Microsoft.Graph.Intune
+
+#Group creation needs preview module so we need to remove non-preview first
+# Unload the AzureAD module (or continue if it's already unloaded)
+Remove-Module AzureAD -force -ErrorAction SilentlyContinue
+# Load the AzureADPreview module
+Import-Module AzureADPreview
 
 
 
@@ -84,7 +120,7 @@ function Get-AuthToken {
     
     Write-Host "Checking for AzureAD module..."
     
-        $AadModule = Get-Module -Name "AzureAD" -ListAvailable
+        $AadModule = Get-Module -Name "AzureADPreview" -ListAvailable
     
         if ($AadModule -eq $null) {
     
