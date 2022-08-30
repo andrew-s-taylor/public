@@ -381,6 +381,227 @@ Function Get-DeviceConfigurationPolicyGP(){
         }
     
 }
+
+####################################################
+Function Get-GroupPolicyConfigurationsDefinitionValues()
+{
+	
+    <#
+    .SYNOPSIS
+    This function is used to get device configuration policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device configuration policies
+    .EXAMPLE
+    Get-DeviceConfigurationPolicy
+    Returns any device configuration policies configured in Intune
+    .NOTES
+    NAME: Get-GroupPolicyConfigurations
+    #>
+	
+	[cmdletbinding()]
+	Param (
+		
+		[Parameter(Mandatory = $true)]
+		[string]$GroupPolicyConfigurationID
+		
+	)
+	
+	$graphApiVersion = "Beta"
+	#$DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues?`$filter=enabled eq true"
+	$DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues"
+	
+	
+	try
+	{
+		
+		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+		(Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+		
+	}
+	
+	catch
+	{
+		
+		$ex = $_.Exception
+		$errorResponse = $ex.Response.GetResponseStream()
+		$reader = New-Object System.IO.StreamReader($errorResponse)
+		$reader.BaseStream.Position = 0
+		$reader.DiscardBufferedData()
+		$responseBody = $reader.ReadToEnd();
+		Write-Host "Response content:`n$responseBody" -f Red
+		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+		write-host
+		break
+		
+	}
+	
+}
+
+####################################################
+Function Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues()
+{
+	
+    <#
+    .SYNOPSIS
+    This function is used to get device configuration policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device configuration policies
+    .EXAMPLE
+    Get-DeviceConfigurationPolicy
+    Returns any device configuration policies configured in Intune
+    .NOTES
+    NAME: Get-GroupPolicyConfigurations
+    #>
+	
+	[cmdletbinding()]
+	Param (
+		
+		[Parameter(Mandatory = $true)]
+		[string]$GroupPolicyConfigurationID,
+		[string]$GroupPolicyConfigurationsDefinitionValueID
+		
+	)
+	$graphApiVersion = "Beta"
+	
+	$DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/presentationValues"
+	
+	try
+	{
+		
+		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+		(Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+		
+	}
+	
+	catch
+	{
+		
+		$ex = $_.Exception
+		$errorResponse = $ex.Response.GetResponseStream()
+		$reader = New-Object System.IO.StreamReader($errorResponse)
+		$reader.BaseStream.Position = 0
+		$reader.DiscardBufferedData()
+		$responseBody = $reader.ReadToEnd();
+		Write-Host "Response content:`n$responseBody" -f Red
+		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+		write-host
+		break
+		
+	}
+	
+}
+
+Function Get-GroupPolicyConfigurationsDefinitionValuesdefinition ()
+{
+   <#
+    .SYNOPSIS
+    This function is used to get device configuration policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device configuration policies
+    .EXAMPLE
+    Get-DeviceConfigurationPolicy
+    Returns any device configuration policies configured in Intune
+    .NOTES
+    NAME: Get-GroupPolicyConfigurations
+    #>
+	
+	[cmdletbinding()]
+	Param (
+		
+		[Parameter(Mandatory = $true)]
+		[string]$GroupPolicyConfigurationID,
+		[Parameter(Mandatory = $true)]
+		[string]$GroupPolicyConfigurationsDefinitionValueID
+		
+	)
+	$graphApiVersion = "Beta"
+	$DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/definition"
+	
+	try
+	{
+		
+		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+		
+		$responseBody = Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get
+		
+		
+	}
+	
+	catch
+	{
+		
+		$ex = $_.Exception
+		$errorResponse = $ex.Response.GetResponseStream()
+		$reader = New-Object System.IO.StreamReader($errorResponse)
+		$reader.BaseStream.Position = 0
+		$reader.DiscardBufferedData()
+		$responseBody = $reader.ReadToEnd();
+		Write-Host "Response content:`n$responseBody" -f Red
+		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+		write-host
+		break
+		
+	}
+	$responseBody
+}
+
+
+Function Get-GroupPolicyDefinitionsPresentations ()
+{
+   <#
+    .SYNOPSIS
+    This function is used to get device configuration policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device configuration policies
+    .EXAMPLE
+    Get-DeviceConfigurationPolicy
+    Returns any device configuration policies configured in Intune
+    .NOTES
+    NAME: Get-GroupPolicyConfigurations
+    #>
+	
+	[cmdletbinding()]
+	Param (
+		
+		
+		[Parameter(Mandatory = $true)]
+		[string]$groupPolicyDefinitionsID,
+		[Parameter(Mandatory = $true)]
+		[string]$GroupPolicyConfigurationsDefinitionValueID
+		
+	)
+	$graphApiVersion = "Beta"
+	$DCP_resource = "deviceManagement/groupPolicyConfigurations/$groupPolicyDefinitionsID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/presentationValues?`$expand=presentation"
+	try
+	{
+		
+		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+		
+		(Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value.presentation
+		
+		
+	}
+	
+	catch
+	{
+		
+		$ex = $_.Exception
+		$errorResponse = $ex.Response.GetResponseStream()
+		$reader = New-Object System.IO.StreamReader($errorResponse)
+		$reader.BaseStream.Position = 0
+		$reader.DiscardBufferedData()
+		$responseBody = $reader.ReadToEnd();
+		Write-Host "Response content:`n$responseBody" -f Red
+		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+		write-host
+		break
+		
+	}
+	
+}
+
+
+####################################################
     
 ##########################################################################################
 
@@ -1187,6 +1408,46 @@ $id = $gp.id
 $Resource = "deviceManagement/groupPolicyConfigurations"
 $copypolicy = addpolicy -resource $Resource -policyid $id
 
+##Now grab the JSON
+$GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
+$OutDefjson = @()
+	foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
+	{
+		$GroupPolicyConfigurationsDefinitionValue
+		$DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		$DefinitionValuedefinitionID = $DefinitionValuedefinition.id
+		$DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
+		$GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		$DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		$OutDef = New-Object -TypeName PSCustomObject
+        $OutDef | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
+        $OutDef | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
+        if ($DefinitionValuePresentationValues) {
+            $i = 0
+            $PresValues = @()
+            foreach ($Pres in $DefinitionValuePresentationValues) {
+                $P = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
+                $GPDPID = $groupPolicyDefinitionsPresentations[$i].id
+                $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')"
+                $PresValues += $P
+                $i++
+            }
+            $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
+        }
+		$OutDefjson += ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
+        foreach ($json in $OutDefjson) {
+            $graphApiVersion = "beta"
+            $policyid = $copypolicy.id
+		
+            $DCP_resource = "deviceManagement/groupPolicyConfigurations/$($policyid)/definitionValues"
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            $ProgressPreference = 'SilentlyContinue' 
+			$apply = Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $json -ContentType "application/json"
+            $ProgressPreference = 'Continue'  
+
+        }
+
+}
 }
 if ($null -ne $catalog) {
     # Settings Catalog Policy
