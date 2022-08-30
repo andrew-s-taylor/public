@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 1.1.0
+.VERSION 1.2.0
 .GUID 0238c6f7-5628-4e82-be48-381741b79a75
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy
@@ -26,12 +26,13 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.1.0
+  Version:        1.2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  03/03/2022
   Purpose/Change: Initial script development
+  Update: Added support for Admin Templates
 
   
 .EXAMPLE
@@ -282,6 +283,69 @@ Function Get-DeviceConfigurationPolicy(){
     
     $graphApiVersion = "beta"
     $DCP_resource = "deviceManagement/deviceConfigurations"
+    
+        try {
+    
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
+            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+    
+            }
+    
+        }
+    
+        catch {
+    
+        $ex = $_.Exception
+        $errorResponse = $ex.Response.GetResponseStream()
+        $reader = New-Object System.IO.StreamReader($errorResponse)
+        $reader.BaseStream.Position = 0
+        $reader.DiscardBufferedData()
+        $responseBody = $reader.ReadToEnd();
+        Write-Host "Response content:`n$responseBody" -f Red
+        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+        write-host
+        
+    
+        }
+    
+}
+    
+##########################################################################################
+
+
+
+Function Get-DeviceConfigurationPolicyGP(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get device configuration policies from the Graph API REST interface - Group Policies
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device configuration policies
+    .EXAMPLE
+    Get-DeviceConfigurationPolicy
+    Returns any device configuration policies configured in Intune
+    .NOTES
+    NAME: Get-DeviceConfigurationPolicyGP
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/groupPolicyConfigurations"
     
         try {
     
@@ -832,6 +896,26 @@ function addpolicy() {
             }
         }
     }
+    "deviceManagement/groupPolicyConfigurations" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-DeviceConfigurationPolicyGP -id $id
+        $oldname = $policy.DisplayName
+        $newname = "Copy Of " + $oldname
+        $policy.displayName = $newname
+            # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
+       if ($policy.supportsScopeTags) {
+           $policy.supportsScopeTags = $false
+       }
+   
+           $policy.PSObject.Properties | Foreach-Object {
+               if ($null -ne $_.Value) {
+                   if ($_.Value.GetType().Name -eq "DateTime") {
+                       $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
+                   }
+               }
+           }
+       }
+    
     "deviceManagement/configurationPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceConfigurationPolicysc -id $id
@@ -1041,6 +1125,10 @@ $global:authToken = Get-AuthToken -User $User
 ##Get Config Policies
 $configuration = Get-DeviceConfigurationPolicy | Select-Object ID, DisplayName, Description
 
+##Get Admin Template Policies
+$configuration += Get-DeviceConfigurationPolicyGP | Select-Object ID, DisplayName, Description
+
+
 ##Get Settings Catalog Policies
 $configuration += Get-DeviceConfigurationPolicySC | Select-Object ID, @{N='DisplayName';E={$_.Name}}, Description
 
@@ -1073,6 +1161,7 @@ $configuration | Out-GridView -PassThru | ForEach-Object {
 $id = $_.ID
 write-host $id
 $policy = Get-DeviceConfigurationPolicy -id $id
+$gp = Get-DeviceConfigurationPolicyGP -id $id
 $catalog = Get-DeviceConfigurationPolicysc -id $id
 $compliance = Get-DeviceCompliancePolicy -id $id
 $security = Get-DeviceSecurityPolicy -id $id
@@ -1088,6 +1177,14 @@ if ($null -ne $policy) {
 write-host "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
+$copypolicy = addpolicy -resource $Resource -policyid $id
+
+}
+if ($null -ne $gp) {
+    # Standard Device Configuratio Policy
+write-host "It's an Admin Template"
+$id = $gp.id
+$Resource = "deviceManagement/groupPolicyConfigurations"
 $copypolicy = addpolicy -resource $Resource -policyid $id
 
 }
