@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 2.1.2
+.VERSION 2.1.3
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.1.2
+  Version:        2.1.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -45,7 +45,7 @@ N/A
 
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
-$date = get-date -format ddMMyyyy
+$date = get-date -format yyyyMMddTHHmmssffff
 Start-Transcript -Path $env:TEMP\intune-$date.log
 
 #Install MS Graph if not available
@@ -1232,5 +1232,24 @@ else{
                 
             }
             }
+
+        ##Clear Tenant Connections
+
+        if ($global:authToken)
+{
+    Clear-Variable -Name authToken -Scope Global
+}
+else{
+    Write-Host "The authtoken is null."
+}
+
+if ($global:authResult)
+{
+    Clear-Variable -Name authResult -Scope Global
+}
+else{
+    Write-Host "The authtoken is null."
+}
+    
 
 Stop-Transcript
