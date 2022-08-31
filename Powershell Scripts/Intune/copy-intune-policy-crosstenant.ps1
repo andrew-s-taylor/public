@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 2.1.1
+.VERSION 2.1.2
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.1.1
+  Version:        2.1.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -35,6 +35,7 @@ Creates a log file in %Temp%
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
+  Change: Declared $configuration as array
 
   
 .EXAMPLE
@@ -1069,8 +1070,9 @@ $global:authToken = Get-AuthToken -User $tenant
 ######                                          Grab the Profiles                                        ######
 ###############################################################################################################
 $profiles = @()
+$configuration = @()
 ##Get Config Policies
-$configuration = Get-DeviceConfigurationPolicy | Select-Object ID, DisplayName, Description
+$configuration += Get-DeviceConfigurationPolicy | Select-Object ID, DisplayName, Description
 
 ##Get Settings Catalog Policies
 $configuration += Get-DeviceConfigurationPolicySC | Select-Object ID, @{N='DisplayName';E={$_.Name}}, Description
