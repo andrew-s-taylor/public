@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.1.3
+  Version:        2.1.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -36,6 +36,7 @@ Creates a log file in %Temp%
   Change: Added support for multiple policy selection
   Change: Added Module installation
   Change: Declared $configuration as array
+  Change: Amended Encoding for Applocker Policies
 
   
 .EXAMPLE
@@ -857,18 +858,35 @@ function getpolicyjson() {
      $oldname = $policy.displayName
      $newname = "Copy Of " + $oldname
      $policy.displayName = $newname
+             ##Remove settings which break Custom OMA-URI
+        
+             $policyconvert = $policy.omaSettings
+             $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
+             foreach ($pvalue in $policyconvert) {
+             $unencoded = $pvalue.value
+             $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
+                $pvalue.value = $EncodedText
+             }
+             $policy.omaSettings = $policyconvert
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
     if ($policy.supportsScopeTags) {
         $policy.supportsScopeTags = $false
     }
+
+
 
         $policy.PSObject.Properties | Foreach-Object {
             if ($null -ne $_.Value) {
                 if ($_.Value.GetType().Name -eq "DateTime") {
                     $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
                 }
+                if ($_.Value.GetType().Name -eq "isEncrypted") {
+                    $_.Value = "false"
+                }
             }
         }
+
+
     }
     "deviceManagement/configurationPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -1225,7 +1243,6 @@ else{
                # Add the policy
             $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
             Invoke-RestMethod -Uri $policyuri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
-            #invoke-MSGraphRequest -Url $uri -HttpMethod POST -Content $body
             }
             catch {
                 Write-Error $_.Exception 
