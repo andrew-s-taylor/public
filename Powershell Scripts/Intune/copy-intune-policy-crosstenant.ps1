@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 2.1.5
+.VERSION 2.1.6
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.1.5
+  Version:        2.1.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -38,6 +38,7 @@ Creates a log file in %Temp%
   Change: Declared $configuration as array
   Change: Amended Encoding for Applocker Policies
   Change: Added support for GPO Admin Templates
+  Change: Fix for non custom admin templates
 
   
 .EXAMPLE
@@ -1137,9 +1138,12 @@ function getpolicyjson() {
      $oldname = $policy.displayName
      $newname = "Copy Of " + $oldname
      $policy.displayName = $newname
+
+     ##Custom settings only for OMA-URI
              ##Remove settings which break Custom OMA-URI
         
              $policyconvert = $policy.omaSettings
+             if ($policyconvert -ne "") {
              $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
              foreach ($pvalue in $policyconvert) {
              $unencoded = $pvalue.value
@@ -1147,6 +1151,8 @@ function getpolicyjson() {
                 $pvalue.value = $EncodedText
              }
              $policy.omaSettings = $policyconvert
+
+            }
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
     if ($policy.supportsScopeTags) {
         $policy.supportsScopeTags = $false
