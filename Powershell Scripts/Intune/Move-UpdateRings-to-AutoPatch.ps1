@@ -289,6 +289,18 @@ $global:authToken = Get-AuthToken -User $User
 ######                                          Time to Boogie                                           ######
 ###############################################################################################################
 
+#Create Folder
+$csvfolder = "C:\ProgramData\UpdateRings"
+If (Test-Path $csvfolder) {
+    Write-Output "$csvfolder exists. Skipping."
+}
+Else {
+    Write-Output "The folder '$csvfolder' doesn't exist. This folder will be used for storing logs created after the script runs. Creating now."
+    Start-Sleep 1
+    New-Item -Path "$csvfolder" -ItemType Directory
+    Write-Output "The folder $csvfolder was successfully created."
+}
+
 
 #Get Update Rings
 ##Filter to only Update Policies
@@ -370,11 +382,14 @@ connect-azureAD
 ##Move Broad Group Members
 write-host "Getting members of Broad Group"
 $currentbroadmembers = Get-AzureADGroupMember -ObjectId $broadgroupscurrent -All $true
-$newbroadgroupid = (Get-AzureADGroup -SearchString "Modern Workplace Devices-Windows Autopatch-Broad").ObjectID
-write-host "Adding to Modern Workplace Devices-Windows Autopatch-Broad"
+$newbroadgroupid = (Get-AzureADGroup -SearchString "Windows Autopatch Device Registration").ObjectID
+write-host "Exporting Pilot Members to CSV"
+$currentbroadmembers | Export-Csv "$csvfolder\BroadMembers.csv"
+
+write-host "Adding to Windows Autopatch Device Registration"
 foreach ($broadmember in $currentbroadmembers) {
 Add-AzureADGroupMember -ObjectId $newbroadgroupid -RefObjectId $broadmember.ObjectID
-write-host "Added $broadmember.DisplayName to Modern Workplace Devices-Windows Autopatch-Broad"
+write-host "Added $broadmember.DisplayName to Windows Autopatch Device Registration"
 }
 ##Remove Broad Group
 write-host "Removing Broad AAD Group"
@@ -385,11 +400,14 @@ write-host "Broad Group AAD Removed"
 ##Move Preview Group Members
 write-host "Getting members of Preview Group"
 $previewbroadmembers = Get-AzureADGroupMember -ObjectId $previewgroupscurrent -All $true
-$newpreviewgroupid = (Get-AzureADGroup -SearchString "Modern Workplace Devices-Windows Autopatch-Fast").ObjectID
-write-host "Adding to Modern Workplace Devices-Windows Autopatch-Fast"
+$newpreviewgroupid = (Get-AzureADGroup -SearchString "Windows Autopatch Device Registration").ObjectID
+write-host "Exporting Pilot Members to CSV"
+$previewbroadmembers | Export-Csv "$csvfolder\PreviewMembers.csv"
+
+write-host "Adding to Windows Autopatch Device Registration"
 foreach ($previewmember in $previewbroadmembers) {
 Add-AzureADGroupMember -ObjectId $newpreviewgroupid -RefObjectId $previewmember.ObjectID
-write-host "Added $previewmember.DisplayName to Modern Workplace Devices-Windows Autopatch-Fast"
+write-host "Added $previewmember.DisplayName to Windows Autopatch Device Registration"
 }
 ##Remove Broad Group
 write-host "Removing Preview AAD Group"
@@ -399,11 +417,14 @@ write-host "Preview Group AAD Removed"
 ##Move Pilot Group 
 write-host "Getting members of Pilot Group"
 $pilotbroadmembers = Get-AzureADGroupMember -ObjectId $pilotgroupscurrent -All $true
-$newpilotgroupid = (Get-AzureADGroup -SearchString "Modern Workplace Devices-Windows Autopatch-Test").ObjectID
-write-host "Adding to Modern Workplace Devices-Windows Autopatch-Test"
+$newpilotgroupid = (Get-AzureADGroup -SearchString "Windows Autopatch Device Registration").ObjectID
+write-host "Exporting Pilot Members to CSV"
+$pilotbroadmembers | Export-Csv "$csvfolder\PilotMembers.csv"
+write-host "Adding to Windows Autopatch Device Registration"
+
 foreach ($pilotmember in $pilotbroadmembers) {
 Add-AzureADGroupMember -ObjectId $newpilotgroupid -RefObjectId $pilotmember.ObjectID
-write-host "Added $pilotmember.DisplayName to Modern Workplace Devices-Windows Autopatch-Test"
+write-host "Added $pilotmember.DisplayName to Windows Autopatch Device Registration"
 }
 ##Remove Broad Group
 write-host "Removing Pilot AAD Group"
@@ -425,3 +446,4 @@ write-host "$policyname Deleted"
 }
 }
 write-host "Policies removed, script complete"
+invoke-item $csvfolder
