@@ -53,6 +53,7 @@ $authority = "https://login.windows.net/$tenant"
 ## Connect to MS Graph
 Update-MSGraphEnvironment -AppId $clientId -Quiet
 Update-MSGraphEnvironment -AuthUrl $authority -Quiet
+Update-MSGraphEnvironment -SchemaVersion “Beta” -Quiet
 Connect-MSGraph -ClientSecret $ClientSecret -Quiet
 
 ##Get Date
