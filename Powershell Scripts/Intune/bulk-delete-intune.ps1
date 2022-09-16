@@ -1,9 +1,9 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 3.0.0
-.GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
+.VERSION 1.0.0
+.GUID 35fb7c4b-4114-42a0-a2dd-09a6085cb542
 .AUTHOR AndrewTaylor
-.DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
+.DESCRIPTION Bulk Deletes Intune policies, Conditional Access, AAD Groups, Proactive Remediations and more
 .COMPANYNAME 
 .COPYRIGHT GPL
 .TAGS intune endpoint MEM environment
@@ -17,33 +17,20 @@
 #>
 <#
 .SYNOPSIS
-  Copies an Intune Policy.  Cross tenant version
+  Deleted Intune Policies
 .DESCRIPTION
-Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
-
+Bulk Deletes Intune policies, Conditional Access, AAD Groups, Proactive Remediations and more
 .INPUTS
 None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.0
+  Version:        1.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
-  Creation Date:  25/07/2022
-  Updated: 15/09/2022
+  Creation Date:  16/09/2022
   Purpose/Change: Initial script development
-  Change: Added support for multiple policy selection
-  Change: Added Module installation
-  Change: Declared $configuration as array
-  Change: Amended Encoding for Applocker Policies
-  Change: Added support for GPO Admin Templates
-  Change: Fix for non custom admin templates
-  Change: Added better credential management
-  Change: Added AzureAD module connection
-  Change: Added support for Conditional Access policies
-  Change: Added support for Proactive Remediations
-  Change: Added support for AAD Groups
   
 .EXAMPLE
 N/A
@@ -53,7 +40,7 @@ N/A
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
 $date = get-date -format yyyyMMddTHHmmssffff
-Start-Transcript -Path $env:TEMP\intune-$date.log
+Start-Transcript -Path $env:TEMP\intune-delete-$date.log
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
@@ -1287,258 +1274,6 @@ Function Get-DecryptedDeviceConfigurationPolicy(){
 
 }
 
-#################################################################################################
-function getpolicyjson() {
-        <#
-    .SYNOPSIS
-    This function is used to add a new device policy by copying an existing policy, manipulating the JSON and then adding via Graph
-    .DESCRIPTION
-    The function grabs an existing policy, decrypts if requires, renames, removes any GUIDs and then returns the JSON
-    .EXAMPLE
-    getpolicyjson -policy $policy -name $name
-    .NOTES
-    NAME: getpolicyjson
-    #>
-
-    param
-    (
-        $resource,
-        $policyid
-    )
-    write-host $resource
-    $graphApiVersion = "beta"
-    switch ($resource) {
-    "deviceManagement/deviceConfigurations" {
-     $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-     $policy = Get-DecryptedDeviceConfigurationPolicy -dcpid $id
-     $oldname = $policy.displayName
-     $newname = "Copy Of " + $oldname
-     $policy.displayName = $newname
-
-     ##Custom settings only for OMA-URI
-             ##Remove settings which break Custom OMA-URI
-        
-             $policyconvert = $policy.omaSettings
-             if ($policyconvert -ne "") {
-             $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
-             foreach ($pvalue in $policyconvert) {
-             $unencoded = $pvalue.value
-             $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
-                $pvalue.value = $EncodedText
-             }
-             $policy.omaSettings = $policyconvert
-
-            }
-         # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
-    if ($policy.supportsScopeTags) {
-        $policy.supportsScopeTags = $false
-    }
-
-
-
-        $policy.PSObject.Properties | Foreach-Object {
-            if ($null -ne $_.Value) {
-                if ($_.Value.GetType().Name -eq "DateTime") {
-                    $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
-                }
-                if ($_.Value.GetType().Name -eq "isEncrypted") {
-                    $_.Value = "false"
-                }
-            }
-        }
-
-
-    }
-
-    "deviceManagement/groupPolicyConfigurations" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-DeviceConfigurationPolicyGP -id $id
-        $oldname = $policy.DisplayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-            # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
-       if ($policy.supportsScopeTags) {
-           $policy.supportsScopeTags = $false
-       }
-   
-           $policy.PSObject.Properties | Foreach-Object {
-               if ($null -ne $_.Value) {
-                   if ($_.Value.GetType().Name -eq "DateTime") {
-                       $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
-                   }
-               }
-           }
-       }
-
-    "deviceManagement/devicehealthscripts" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-DeviceProactiveRemediations -id $id
-        $oldname = $policy.DisplayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-            # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
-       if ($policy.supportsScopeTags) {
-           $policy.supportsScopeTags = $false
-       }
-   
-           $policy.PSObject.Properties | Foreach-Object {
-               if ($null -ne $_.Value) {
-                   if ($_.Value.GetType().Name -eq "DateTime") {
-                       $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
-                   }
-               }
-           }
-       }
-    
-
-    "deviceManagement/configurationPolicies" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-DeviceConfigurationPolicysc -id $id
-        $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
-        #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
-        $settings = Invoke-RestMethod -headers $authToken -method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
-
-        if ($settings -isnot [System.Array]) {
-            $policy.Settings = @($settings)
-        } else {
-            $policy.Settings = $settings
-        }
-        
-        #
-        $oldname = $policy.Name
-        $newname = "Copy Of " + $oldname
-        $policy.Name = $newname
-
-    }
-    
-    "deviceManagement/deviceCompliancePolicies" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-DeviceCompliancePolicy -id $id
-        $oldname = $policy.DisplayName
-        $newname = "Copy Of " + $oldname
-        $policy.DisplayName = $newname
-        
-            $scheduledActionsForRule = @(
-                @{
-                    ruleName = "PasswordRequired"
-                    scheduledActionConfigurations = @(
-                        @{
-                            actionType = "block"
-                            gracePeriodHours = 0
-                            notificationTemplateId = ""
-                        }
-                    )
-                }
-            )
-            $policy | Add-Member -NotePropertyName scheduledActionsForRule -NotePropertyValue $scheduledActionsForRule
-            
-            
-    }
-    "deviceManagement/intents" {
-        $policy = Get-DeviceSecurityPolicy -id $id
-        $templateid = $policy.templateID
-        $uri = "https://graph.microsoft.com/beta/deviceManagement/templates/$templateId/createInstance"
-        $template = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -Headers $authToken -Method Get
-        $templateCategory = Invoke-RestMethod -Uri -Url "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Headers $authToken -Method Get | Get-MSGraphAllPages
-        $intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
-        $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy = @{
-            "displayName" = $newname
-            "description" = $policy.description
-            "settingsDelta" = $intentSettingsDelta
-            "roleScopeTagIds" = $policy.roleScopeTagIds
-        }
-        $policy | Add-Member -NotePropertyName displayName -NotePropertyValue $newname
-
-
-
-    }
-    "deviceManagement/windowsAutopilotDeploymentProfiles" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-AutoPilotProfile -id $id
-        $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-    }
-    "groups" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-GraphAADGroups -id $id
-        $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-        $policy = $policy | Select-Object description, DisplayName, groupTypes, mailEnabled, mailNickname, securityEnabled, isAssignabletoRole, membershiprule, MembershipRuleProcessingState
-    }
-    "deviceManagement/deviceEnrollmentConfigurations" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-        $policy = Get-AutoPilotESP -id $id
-        $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-    }
-    "deviceAppManagement/managedAppPoliciesandroid" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
-        $policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
-        $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-         # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
-         if ($policy.supportsScopeTags) {
-            $policy.supportsScopeTags = $false
-        }
-    
-            $policy.PSObject.Properties | Foreach-Object {
-                if ($null -ne $_.Value) {
-                    if ($_.Value.GetType().Name -eq "DateTime") {
-                        $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
-                    }
-                }
-            }
-
-
-    }
-    "deviceAppManagement/managedAppPoliciesios" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
-        $policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
-        $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
-         # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
-         if ($policy.supportsScopeTags) {
-            $policy.supportsScopeTags = $false
-        }
-    
-            $policy.PSObject.Properties | Foreach-Object {
-                if ($null -ne $_.Value) {
-                    if ($_.Value.GetType().Name -eq "DateTime") {
-                        $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
-                    }
-                }
-            }
-
-
-    }
-
-    "conditionalaccess" {
-        $uri = "conditionalaccess"
-        $policy = Get-ConditionalAccessPolicy -id $id
-    }
-    }
-
-    ##We don't want to convert CA policy to JSON
-    if ($resource -eq "conditionalaccess")  {
-        $policy = $policy
-    }
-    else {
-    # Remove any GUIDs or dates/times to allow Intune to regenerate
-    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource | ConvertTo-Json -Depth 100
-    }
-
-    return $policy, $uri
-
-}
-
-
 
 
 
@@ -1673,14 +1408,13 @@ $aad = Get-GraphAADGroups -id $id
 
 
 
-# Copy it
+# Delete it
 if ($null -ne $policy) {
     # Standard Device Configuratio Policy
 write-host "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($id,$resource))
 
 }
 if ($null -ne $gp) {
@@ -1688,16 +1422,14 @@ if ($null -ne $gp) {
 write-host "It's an Admin Template"
 $id = $gp.id
 $Resource = "deviceManagement/groupPolicyConfigurations"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($id,$resource))
 }
 if ($null -ne $catalog) {
     # Settings Catalog Policy
 write-host "It's a Settings Catalog"
 $id = $catalog.id
 $Resource = "deviceManagement/configurationPolicies"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($id,$resource))
 
 }
 if ($null -ne $compliance) {
@@ -1705,8 +1437,7 @@ if ($null -ne $compliance) {
 write-host "It's a Compliance Policy"
 $id = $compliance.id
 $Resource = "deviceManagement/deviceCompliancePolicies"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($id,$resource))
 
 }
 if ($null -ne $proac) {
@@ -1714,8 +1445,7 @@ if ($null -ne $proac) {
 write-host "It's a Proactive Remediation"
 $id = $proac.id
 $Resource = "deviceManagement/devicehealthscripts"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($id,$resource))
 
 }
 if ($null -ne $security) {
@@ -1723,8 +1453,7 @@ if ($null -ne $security) {
 write-host "It's a Security Policy"
 $id = $security.id
 $Resource = "deviceManagement/intents"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($id,$resource))
 
 }
 if ($null -ne $autopilot) {
@@ -1732,150 +1461,61 @@ if ($null -ne $autopilot) {
 write-host "It's an Autopilot Profile"
 $id = $autopilot.id
 $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
-
+$profiles+= ,(@($id,$resource))
 }
 if ($null -ne $esp) {
     # Autopilot ESP
 write-host "It's an AutoPilot ESP"
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurations"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
-
+$profiles+= ,(@($id,$resource))
 }
 if ($null -ne $android) {
     # Android App Protection
 write-host "It's an Android App Protection Policy"
 $id = $android.id
 $Resource = "deviceAppManagement/managedAppPoliciesandroid"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
-
+$profiles+= ,(@($id,$resource))
 }
 if ($null -ne $ios) {
     # iOS App Protection
 write-host "It's an iOS App Protection Policy"
 $id = $ios.id
 $Resource = "deviceAppManagement/managedAppPoliciesios"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
-
+$profiles+= ,(@($id,$resource))
 }
 if ($null -ne $aad) {
     # AAD Groups
 write-host "It's an AAD Group"
 $id = $aad.id
 $Resource = "groups"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
-
+$profiles+= ,(@($id,$resource))
 }
 if ($null -ne $ca) {
     # Conditional Access
 write-host "It's a Conditional Access Policy"
 $id = $ca.id
 $Resource = "ConditionalAccess"
-$copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
-
+$profiles+= ,(@($id,$resource))
 }
 }
-
-
-        ##Clear Tenant Connections
-Disconnect-AzureAD
-        if ($global:authToken)
-{
-    Clear-Variable -Name authToken -Scope Global
-}
-else{
-    Write-Host "The authtoken is null."
-}
-
-if ($global:authResult)
-{
-    Clear-Variable -Name authResult -Scope Global
-}
-else{
-    Write-Host "The authtoken is null."
-}
-        
-        ##Get new Tenant details
-        #$tenant2 = Read-Host -Prompt "Please specify your destination tenant email address"
-        $destcredential = Get-Credential -Message "Please enter your destination tenant credentials"
-        ##Connect and copy
-        $global:authToken = Get-AuthToken -user $destcredential.UserName
-        Connect-AzureAD -Credential $destcredential
-        Connect-MSGraph -Credential $destcredential
 
 
     ##Loop through array and create Profiles
         foreach ($toupload in $profiles) {
-            $policyuri =  $toupload[1]
-            $policyjson =  $toupload[0]
-            $policy = $policyjson
+            $id =  $toupload[0]
+            $resource =  $toupload[1]
             ##If policy is conditional access, we need special config
-            if ($policyuri -eq "conditionalaccess") {
-                write-host "Creating Conditional Access Policy"
-
-                $NewDisplayName = "Copy of " + $Policy.DisplayName
-                $Parameters = @{
-                    DisplayName     = $NewDisplayName
-                    State           = $policy.State
-                    Conditions      = $policy.Conditions
-                    GrantControls   = $policy.GrantControls
-                    SessionControls = $policy.SessionControls
-                }
-            
-               $null = New-AzureADMSConditionalAccessPolicy @Parameters
+            if ($resource -eq "conditionalaccess") {
+                write-host "Deleting Conditional Access Policy"
+                remove-azureadmsconditionalaccesspolicy -policyid $id
             }
             else {
-
-               # Add the policy
-            $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
-            $copypolicy = Invoke-RestMethod -Uri $policyuri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
-
-
-            ##If policy is an admin template, we need to loop through and add the settings
-            if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {
-                ##Now grab the JSON
-                $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
-                $OutDefjson = @()
-	                foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
-	                    {
-		                    $GroupPolicyConfigurationsDefinitionValue
-		                    $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		                    $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
-		                    $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
-		                    $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		                    $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		                    $OutDef = New-Object -TypeName PSCustomObject
-                            $OutDef | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
-                            $OutDef | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
-                                if ($DefinitionValuePresentationValues) {
-                                    $i = 0
-                                    $PresValues = @()
-                                    foreach ($Pres in $DefinitionValuePresentationValues) {
-                                        $P = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
-                                        $GPDPID = $groupPolicyDefinitionsPresentations[$i].id
-                                        $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')"
-                                        $PresValues += $P
-                                        $i++
-                                    }
-                                $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
-                                }
-		                    $OutDefjson += ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
-                            foreach ($json in $OutDefjson) {
-                                $graphApiVersion = "beta"
-                                $policyid = $copypolicy.id
-                                $DCP_resource = "deviceManagement/groupPolicyConfigurations/$($policyid)/definitionValues"
-                                $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-			                    Invoke-RestMethod -ErrorAction SilentlyContinue -Uri $uri -Headers $authToken -Method Post -Body $json -ContentType "application/json"
-                            }
-                        }
-            }
+                $uripart1 = "https://graph.microsoft.com/beta/"
+                $uri = $uripart1 + $resource + "/" + $id
+               # Delete the policy
+               Invoke-RestMethod -Uri $uri -Headers $authToken -Method Delete
+               write-host "Deleted"
 
         }
 
