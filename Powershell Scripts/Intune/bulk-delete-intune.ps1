@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 35fb7c4b-4114-42a0-a2dd-09a6085cb542
 .AUTHOR AndrewTaylor
 .DESCRIPTION Bulk Deletes Intune policies, Conditional Access, AAD Groups, Proactive Remediations and more
@@ -25,7 +25,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -741,6 +741,69 @@ Function Get-DeviceConfigurationPolicySC(){
                 }
             
 }
+
+####################################################
+    
+Function Get-MobileApps(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get applications from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any mobile applications
+    .EXAMPLE
+    Get-MobileApps
+    Returns any applications configured in Intune
+    .NOTES
+    NAME: Get-MobileApps
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceAppManagement/mobileApps"
+    
+        try {
+    
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+    
+            }
+    
+        }
+    
+        catch {
+    
+        $ex = $_.Exception
+        $errorResponse = $ex.Response.GetResponseStream()
+        $reader = New-Object System.IO.StreamReader($errorResponse)
+        $reader.BaseStream.Position = 0
+        $reader.DiscardBufferedData()
+        $responseBody = $reader.ReadToEnd();
+        Write-Host "Response content:`n$responseBody" -f Red
+        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+        write-host
+        
+    
+        }
+    
+}
+
+
             
 ################################################################################################
 
@@ -1374,6 +1437,9 @@ $configuration += Get-GraphAADGroups | Select-Object ID, DisplayName, Descriptio
 ##Get Autopilot ESP
 $configuration += Get-AutoPilotESP | Select-Object ID, DisplayName, Description, @{N='Type';E={"Autopilot ESP"}}
 
+##Get Mobile Apps
+$configuration += Get-MobileApps | Select-Object ID, DisplayName, Description, @{N='Type';E={$_.'@odata.type'}}
+
 ##Get App Protection Policies
 #Android
 $androidapp = Get-ManagedAppProtectionAndroid | Select-Object -expandproperty Value
@@ -1386,7 +1452,7 @@ $configuration += $iosapp | Select-Object ID, DisplayName, Description, @{N='Typ
 $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @{N='Type';E={"Conditional Access Policy"}}
 
 
-$configuration | Out-GridView -PassThru -Title "Select policies to copy" | ForEach-Object {
+$configuration | Out-GridView -PassThru -Title "What would you like to delete?" | ForEach-Object {
 
 ##Find out what it is
 $id = $_.ID
@@ -1403,6 +1469,7 @@ $gp = Get-DeviceConfigurationPolicyGP -id $id
 $ca = Get-ConditionalAccessPolicy -id $id
 $proac = Get-DeviceProactiveRemediations -id $id
 $aad = Get-GraphAADGroups -id $id
+$apps = Get-MobileApps -id $id
 
 
 
@@ -1489,6 +1556,13 @@ if ($null -ne $aad) {
 write-host "It's an AAD Group"
 $id = $aad.id
 $Resource = "groups"
+$profiles+= ,(@($id,$resource))
+}
+if ($null -ne $apps) {
+    # Application
+write-host "It's an application"
+$id = $apps.id
+$Resource = "deviceAppManagement/mobileApps"
 $profiles+= ,(@($id,$resource))
 }
 if ($null -ne $ca) {
