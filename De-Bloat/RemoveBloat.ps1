@@ -17,13 +17,14 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.1
+  Version:        2.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  03/07/2022
   Purpose/Change: Initial script development
   Change: 12/08/2022 - Added additional HP applications
+  Change 23/09/2022 - Added Clipchamp (new in W11 22H2)
   
 .EXAMPLE
 N/A
@@ -150,6 +151,7 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
         "*Dolby*"
         "*Office*"
         "*Disney*"
+        "clipchamp.clipchamp"
              
         #Optional: Typically not removed but you can if you need to for some reason
         #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
