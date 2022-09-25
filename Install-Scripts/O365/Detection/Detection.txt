@@ -1,0 +1,6 @@
+Detection
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Office\ClickToRun\
+
+LastScenarioResult
+
+Exists

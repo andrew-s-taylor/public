@@ -1,0 +1,1 @@
+setup.exe /configure uninstall.xml
