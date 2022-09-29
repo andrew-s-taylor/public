@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- (c) 2016 Microsoft Corporation -->
+<!-- See http://go.microsoft.com/fwlink/p/?LinkId=797547 for help with these OneDrive sync client policy settings -->
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <policyNamespaces>
+    <target prefix="OneDriveNGSC" namespace="Microsoft.Policies.OneDriveNGSC" />
+    <using prefix="windows" namespace="Microsoft.Policies.Windows" />
+  </policyNamespaces>
+  <resources minRequiredRevision="1.0" />
+  <categories>
+    <category name="OneDriveNGSC" displayName="$(string.OneDriveNGSCSettingCategory)"/>
+    <category name="NucleusListSync" displayName="$(string.NucleusSettingCategory)"/>
+    <category name="DriveMapping" displayName="$(string.DriveMapping)" /> 
+  </categories>
+  <policies>
+    <policy name="DisablePersonalSync" class="User" displayName="$(string.DisablePersonalSync)" explainText="$(string.DisablePersonalSync_help)" key="SOFTWARE\Policies\Microsoft\OneDrive" valueName="DisablePersonalSync">
+      <parentCategory ref="OneDriveNGSC" />
+      <supportedOn ref="windows:SUPPORTED_Windows7" />
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="1" />
+      </disabledValue>
+    </policy>
+        <policy name="Drive_D" class="User" displayName="$(string.Drive_D)" explainText="$(string.Drive_D_Help)" presentation="$(presentation.Drive_D)" key="TheAbyss\D"> 
+      <parentCategory ref="DriveMapping" /> 
+      <supportedOn ref="windows:SUPPORTED_Windows7" /> 
+      <enabledList>
+        <item key="Network\D" valueName="UserName">
+          <value>
+            <string></string>
+          </value>
+        </item>
+        <item key="Network\D" valueName="ProviderName">
+          <value>
+            <string>Just No</string>
+          </value>
+        </item>
+        <item key="Network\D" valueName="ProviderFlags">
+          <value>
+            <decimal value="1" />
+          </value>
+        </item>
+        <item key="Network\D" valueName="ProviderType">
+          <value>
+            <decimal value="8192" />
+          </value>
+        </item>
+        <item key="Network\D" valueName="ConnectionType">
+          <value>
+            <decimal value="1" />
+          </value>
+        </item>
+        <item key="Network\D" valueName="DeferFlags">
+          <value>
+            <decimal value="4" />
+          </value>
+        </item>
+      </enabledList>
+      <disabledList>
+	<item key="Network\D" valueName="ProviderName">
+          <value>
+            <string></string>
+          </value>
+        </item>
+        <item key="Network\D" valueName="ProviderFlags">
+          <value>
+            <decimal value="0" />
+          </value>
+        </item>
+        <item key="Network\D" valueName="ProviderType">
+          <value>
+            <decimal value="0" />
+          </value>
+        </item>
+        <item key="Network\D" valueName="ConnectionType">
+          <value>
+            <decimal value="0" />
+          </value>
+        </item>
+        <item key="Network\D" valueName="DeferFlags">
+          <value>
+            <decimal value="0" />
+          </value>
+        </item>
+      </disabledList>
+      <elements>
+        <text id="Drive_D_RemotePath" valueName="RemotePath" expandable="true" />
+      </elements>
+    </policy>
+    <policy name="SilentAccountConfig" class="Machine" displayName="$(string.SilentAccountConfig)" explainText="$(string.SilentAccountConfig_help)" key="SOFTWARE\Policies\Microsoft\OneDrive" valueName="SilentAccountConfig">
+      <parentCategory ref="OneDriveNGSC" />
+      <supportedOn ref="windows:SUPPORTED_Windows7" />
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="1" />
+      </disabledValue>
+    </policy>
+    <policy name="FilesOnDemandEnabled" class="Machine" displayName="$(string.FilesOnDemandEnabled)" explainText="$(string.FilesOnDemandEnabled_help)" key="SOFTWARE\Policies\Microsoft\OneDrive" valueName="FilesOnDemandEnabled">
+      <parentCategory ref="OneDriveNGSC" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0_RS3" />
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="1" />
+      </disabledValue>
+    </policy>
+    <policy name="KFMBlockOptOut" class="Machine" displayName="$(string.KFMBlockOptOut)" explainText="$(string.KFMBlockOptOut_help)" key="SOFTWARE\Policies\Microsoft\OneDrive" valueName="KFMBlockOptOut">
+      <parentCategory ref="OneDriveNGSC" />
+      <supportedOn ref="windows:SUPPORTED_Windows7" />
+       <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="1" />
+      </disabledValue>
+    </policy>
+  </policies>
+</policyDefinitions>
