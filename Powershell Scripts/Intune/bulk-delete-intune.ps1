@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.1.0
 .GUID 35fb7c4b-4114-42a0-a2dd-09a6085cb542
 .AUTHOR AndrewTaylor
 .DESCRIPTION Bulk Deletes Intune policies, Conditional Access, AAD Groups, Proactive Remediations and more
@@ -25,12 +25,14 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.2
+  Version:        1.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  16/09/2022
+  Amended Date:  06/10/2022
   Purpose/Change: Initial script development
+  Change: Added support for PowerShell script deletion
   
 .EXAMPLE
 N/A
@@ -1204,6 +1206,67 @@ Function Get-AutoPilotProfile(){
 
 #################################################################################################
 
+Function Get-PowerShellScripts(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get PowerShell Scripts from the Graph API REST interface 
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any PowerShell Scripts
+    .EXAMPLE
+    Get-PowerShellScripts
+    Returns any PowerShell Scripts configured in Intune
+    .NOTES
+    NAME: Get-PowerShellScripts
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/deviceManagementScripts"
+    
+        try {
+    
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+    
+            }
+    
+        }
+    
+        catch {
+    
+        $ex = $_.Exception
+        $errorResponse = $ex.Response.GetResponseStream()
+        $reader = New-Object System.IO.StreamReader($errorResponse)
+        $reader.BaseStream.Position = 0
+        $reader.DiscardBufferedData()
+        $responseBody = $reader.ReadToEnd();
+        Write-Host "Response content:`n$responseBody" -f Red
+        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+        write-host
+        
+    
+        }
+    
+}
+
+#################################################################################################
+
 Function Get-AutoPilotESP(){
     
                     <#
@@ -1415,6 +1478,9 @@ $configuration += Get-DeviceCompliancePolicy | Select-Object ID, DisplayName, De
 ##Get Proactive Remediations
 $configuration += Get-DeviceProactiveRemediations | Select-Object ID, DisplayName, Description, @{N='Type';E={"Proactive Remediation"}}
 
+##Get PowerShell Scripts
+$configuration += Get-PowerShellScripts | Select-Object ID, DisplayName, Description, @{N='Type';E={"PowerShell Script"}}
+
 ##Get Security Policies
 $configuration += Get-DeviceSecurityPolicy | Select-Object ID, DisplayName, Description, @{N='Type';E={"Security Policy"}}
 
@@ -1460,6 +1526,7 @@ $ca = Get-ConditionalAccessPolicy -id $id
 $proac = Get-DeviceProactiveRemediations -id $id
 $aad = Get-GraphAADGroups -id $id
 $apps = Get-MobileApps -id $id
+$psscripts = Get-PowerShellScripts -id $id
 
 
 
@@ -1502,6 +1569,14 @@ if ($null -ne $proac) {
 write-host "It's a Proactive Remediation"
 $id = $proac.id
 $Resource = "deviceManagement/devicehealthscripts"
+$profiles+= ,(@($id,$resource))
+
+}
+if ($null -ne $psscripts) {
+    # PowerShell Script
+write-host "It's a PowerShell Script"
+$id = $psscripts.id
+$Resource = "deviceManagement/deviceManagementScripts"
 $profiles+= ,(@($id,$resource))
 
 }
