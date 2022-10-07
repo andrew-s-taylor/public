@@ -1,3 +1,8 @@
+##WRAPPER for
+##https://gist.github.com/ztrhgf/82916840c02e7e369a6f7dff171fa3d2
+##Original script by Ondrej Sebela
+
+
 #Install AZ Module if not available
 if (Get-Module -ListAvailable -Name AzureADPreview) {
     Write-Host "AZ Ad Preview Module Already Installed"
