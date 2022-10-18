@@ -53,13 +53,15 @@ $cred = Get-Credential -Message "Enter your Intune Credentials"
 ###############################################################################################################
 Write-Host "Installing Intune modules if required (current user scope)"
 
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
+Write-Host "Installing Microsoft Graph Groups modules if required (current user scope)"
+
+#Install Graph Groups module if not available
+if (Get-Module -ListAvailable -Name microsoft.graph.groups) {
+    Write-Host "Microsoft Graph Groups Module Already Installed"
 } 
 else {
     try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+        Install-Module -Name microsoft.graph.groups -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
     }
     catch [Exception] {
         $_.message 
@@ -68,11 +70,7 @@ else {
 }
 
 ##Import Modules
-#Group creation needs preview module so we need to remove non-preview first
-# Unload the AzureAD module (or continue if it's already unloaded)
-Remove-Module AzureAD -force -ErrorAction SilentlyContinue
-# Load the AzureADPreview module
-Import-Module AzureADPreview
+Import-Module Microsoft.Graph.Groups
 
 ###############################################################################################################
 
@@ -2542,7 +2540,8 @@ function new-aadgroups  {
         }
     }
 
-    $grp = New-AzureADMSGroup -DisplayName $groupname -Description $groupdescription -MailEnabled $False -MailNickName $nickname -SecurityEnabled $True
+    #$grp = New-AzureADMSGroup -DisplayName $groupname -Description $groupdescription -MailEnabled $False -MailNickName $nickname -SecurityEnabled $True
+    $grp = New-MgGroup -DisplayName $groupname -Description $groupdescription -MailEnabled:$False -MailNickName $nickname -SecurityEnabled
 
     return $grp.id
 
@@ -2838,8 +2837,8 @@ return $appupload
 
 
 ##Get Credentials
-
-Connect-AzureAD -Credential $cred
+Connect-MgGraph
+#Connect-AzureAD -Credential $cred
 $user = $cred.UserName
 #Authenticate for MS Graph
 #region Authentication
