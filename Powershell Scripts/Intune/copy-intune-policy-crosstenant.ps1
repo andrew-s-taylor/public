@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 3.0.2
+.VERSION 3.0.3
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.2
+  Version:        3.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -44,6 +44,7 @@ Creates a log file in %Temp%
   Change: Added support for Conditional Access policies
   Change: Added support for Proactive Remediations
   Change: Added support for AAD Groups
+  Change: Fixed issue with multiple admin templates (passed ID in array variable)
   
 .EXAMPLE
 N/A
@@ -1680,7 +1681,7 @@ write-host "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $gp) {
@@ -1689,7 +1690,7 @@ write-host "It's an Admin Template"
 $id = $gp.id
 $Resource = "deviceManagement/groupPolicyConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 }
 if ($null -ne $catalog) {
     # Settings Catalog Policy
@@ -1697,7 +1698,7 @@ write-host "It's a Settings Catalog"
 $id = $catalog.id
 $Resource = "deviceManagement/configurationPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $compliance) {
@@ -1706,7 +1707,7 @@ write-host "It's a Compliance Policy"
 $id = $compliance.id
 $Resource = "deviceManagement/deviceCompliancePolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $proac) {
@@ -1715,7 +1716,7 @@ write-host "It's a Proactive Remediation"
 $id = $proac.id
 $Resource = "deviceManagement/devicehealthscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $security) {
@@ -1724,7 +1725,7 @@ write-host "It's a Security Policy"
 $id = $security.id
 $Resource = "deviceManagement/intents"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $autopilot) {
@@ -1733,7 +1734,7 @@ write-host "It's an Autopilot Profile"
 $id = $autopilot.id
 $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $esp) {
@@ -1742,7 +1743,7 @@ write-host "It's an AutoPilot ESP"
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $android) {
@@ -1751,7 +1752,7 @@ write-host "It's an Android App Protection Policy"
 $id = $android.id
 $Resource = "deviceAppManagement/managedAppPoliciesandroid"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $ios) {
@@ -1760,7 +1761,7 @@ write-host "It's an iOS App Protection Policy"
 $id = $ios.id
 $Resource = "deviceAppManagement/managedAppPoliciesios"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $aad) {
@@ -1769,7 +1770,7 @@ write-host "It's an AAD Group"
 $id = $aad.id
 $Resource = "groups"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 if ($null -ne $ca) {
@@ -1778,7 +1779,7 @@ write-host "It's a Conditional Access Policy"
 $id = $ca.id
 $Resource = "ConditionalAccess"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1]))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
 }
@@ -1815,6 +1816,7 @@ else{
         foreach ($toupload in $profiles) {
             $policyuri =  $toupload[1]
             $policyjson =  $toupload[0]
+            $id = $toupload[2]
             $policy = $policyjson
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
@@ -1837,6 +1839,11 @@ else{
             $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
             $copypolicy = Invoke-RestMethod -Uri $policyuri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
 
+
+            ##############################################################################################
+            #########TO-DO -------- ADD THE ID TO THE ARRAY, IT'S ONLY DOING WHATEVER ID IT HAS REMEMBERED
+            ######### ALSO LOOK AT AADCONNECT WITH CONDITIONAL ACCESS ERROR
+            ##############################################################################################
 
             ##If policy is an admin template, we need to loop through and add the settings
             if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {

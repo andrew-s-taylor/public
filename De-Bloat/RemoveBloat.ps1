@@ -68,6 +68,7 @@ Else {
 
 Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
 
+
 ############################################################################################################
 #                                        Remove AppX Packages                                              #
 #                                                                                                          #
