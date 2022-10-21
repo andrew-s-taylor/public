@@ -1841,8 +1841,7 @@ else{
 
 
             ##############################################################################################
-            #########TO-DO -------- ADD THE ID TO THE ARRAY, IT'S ONLY DOING WHATEVER ID IT HAS REMEMBERED
-            ######### ALSO LOOK AT AADCONNECT WITH CONDITIONAL ACCESS ERROR
+            #########TO-DO -------- LOOK AT AADCONNECT WITH CONDITIONAL ACCESS ERROR
             ##############################################################################################
 
             ##If policy is an admin template, we need to loop through and add the settings
