@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" revision="1.0" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
+  <displayName>FSLogix</displayName>
+  <description>FSLogix Configuration</description>
+  <resources>
+    <stringTable>
+      <string id="a93497f5d52d35e6414cc2fc17db2ec5">Enable search roaming</string>
+      <string id="20a62e519a6b27d13a70465a8f29de43">Enable search roaming. Note that you must also set either the 'Store search database in profile container' or the 'Store search database in Office 365 container' policy.</string>
+      <string id="c9b65b15b13c010a09576230571c6ade">Disabled</string>
+      <string id="ca912445211dafefc51c5ea9a8910f63">Single-user search</string>
+      <string id="a6723e7c3e59b78ed07f669f8ea4a305">Multi-user search</string>
+      <string id="2594ab6a0d5b818dbbc9ccba35b26929">FSLogix</string>
+      <string id="0cfb4e0b8f4f0a708a1b001eb3048750">FSLogix Office 365 Containers 2.8.4</string>
+      <string id="9f367579e4661509361ed8f5afba98fa">Enable logging</string>
+      <string id="f993f196f2e7f7c3f3e2bd8f7e8a8cd5">Enables logging of FSLogix software activity.</string>
+      <string id="14252a17868945a51018c2af84797b84">No logging</string>
+      <string id="757198515decfc884fe051a2738c1648">Only specifically enabled logs</string>
+      <string id="1aaeb118e07565f32494042cb773f288">All logs enabled</string>
+      <string id="18aba9a1585c1a6d76e6736fcb39d2b8">FSLogix Profiles 2.5</string>
+      <string id="d00efcc6a6f9ec2e32e3e2aa5556f054">Days to keep log files</string>
+      <string id="111dddcbdd5d488f8de54bee4eed869a">Specifies how many days worth of log files to keep before being cleaned up.</string>
+      <string id="14598791e90ac8541507c6085b1186e9">Path to logging files</string>
+      <string id="069f5339258498178ff4df8d398b6a5c">Specifies the location where log files should be stored. Local and UNC paths are accepted. Default is %ProgramData%\FSLogix\Logs.</string>
+      <string id="0fecfff35a50cda87b6eec7600423c7d">Enable logging: Profile configuration tool</string>
+      <string id="7556586bf0ae00f306267a9cfdade667">Enables logging by specific component.</string>
+      <string id="518167f2e105a6b850d66995cc0ad2a9">Enable logging: IE plugin</string>
+      <string id="0f8c21534ef4cb5296a754f8a15d208d">Enable logging: Rule editor</string>
+      <string id="7ca9e8a9e30ae20f3d4e649ec323ae1a">Enable logging: Java rule editor</string>
+      <string id="7341f5c7ef08ce5d245182b5fe759937">Enable logging: FSLogix agent service</string>
+      <string id="e9d1824f1b8ac70c6fcdd27f657d0517">Enable logging: Profiles</string>
+      <string id="f221919257dc19c0e0b1dde45a1b75d0">Enable logging: Java launcher</string>
+      <string id="b6145b1359eaa566a61c145a8c35cf56">Enable logging: Office 365 container</string>
+      <string id="33799f5ae4663c55cf63545b84c8c2f9">Enable logging: Rule compilation</string>
+      <string id="0d52ef38e81214a4a9f70880d9dc0896">Enable logging: Font visibility</string>
+      <string id="660815203001b91f7637569558e165f8">Enable logging: Network information</string>
+      <string id="1ea834df6431833f81bbcb2b61176a04">Enable logging: Printer visibility</string>
+      <string id="0dc30b23fdd895c64832116dcb16a44f">Enable logging: Active directory computer group processing</string>
+      <string id="0870485c0f5f8b99b3022085bbc47de2">Enable logging: Driver interface</string>
+      <string id="bf01a1b23c399c680fcdbe27cf30f246">Enable logging: Windows search roaming</string>
+      <string id="92b25b7ed3f3bd9858ac2db7250933a3">Enable logging: Windows search plugin</string>
+      <string id="06b0c168c0b2a341dd2850715ea9dd60">Enable logging: Process start monitor</string>
+      <string id="271e8c351ecdb7e90259dd1154fad898">Enabled</string>
+      <string id="b610cd18de4584c47c5e6275edf4dc81">Controls whether or not the Profiles feature is active.</string>
+      <string id="d7b8a9babaaedbc7b58034d8ef9da5da">Office 365 Containers</string>
+      <string id="65e68fdb5c72c08c04d825d434c43964">FSLogix Office 365 Containers 2.5</string>
+      <string id="7e38cb0238061de2af810505ab10b334">VHD location</string>
+      <string id="b8754431ecbf22448c6998fd912bbc0d">Specifies the network location where the VHD(X) files are stored. For example, \\servername\share\containers.</string>
+      <string id="9bbc48b1bce680ac24dbd1cf00394379">Include Office activation data in container</string>
+      <string id="820932e752fa1bbac31f1ec34b260e31">When Enabled is checked, the Office license activation data will be included in the Office 365 Container.</string>
+      <string id="953d5f7f7bebff5ce9f7ee5cfefb7cea">Include OneDrive data in container</string>
+      <string id="e0120f76396705ef6ee337526dea3b4f">When Enabled is checked, the OneDrive cache will be included in the Office 365 Container.</string>
+      <string id="d22fff2e36edb9ddd53c9d711bc73f9c">Include OneNote data in container</string>
+      <string id="95e62f92b9437021b67f2f779d617bb2">When Enabled is checked, the OneNote local notebook cache will be included in the Office 365 Container.</string>
+      <string id="f9ceb57248972df1c7b2f12710d5eac1">Include OneNote UWP notebook data in container</string>
+      <string id="cea5a5e8614e1ac0158b8ea726f26853">When Enabled is checked, the OneNote UWP notebook data will be included in the Office 365 Container.</string>
+      <string id="3816ffa4d099e0339765127f84774807">Include Outlook data in container</string>
+      <string id="fffad933b9a883135cf04b51b19bf360">When Enabled is checked, the Outlook data files will be included in the Office 365 Container.</string>
+      <string id="4a91824e999794e9b6b621419d3ccb88">Include Outlook personalization data in container</string>
+      <string id="07f6f4eb5f4bf0f1779eebc4fb70b7e3">When Enabled is checked, the Outlook personalization data will be included in the Office 365 Container.</string>
+      <string id="5faeb51c0b2f251b8066bd60ae1c2e04">Include Sharepoint data in container</string>
+      <string id="f66516cc77e76d250f9d48c0778997ea">When Enabled is checked, the Sharepoint data files will be included in the Office 365 Container.</string>
+      <string id="3dca476949a800045c2966f25819456e">Include Skype data in container</string>
+      <string id="404c62f4a4552e3ab7774ac2f293f9df">When Enabled is checked, the Skype for Business GAL data files will be included in the Office 365 Container.</string>
+      <string id="24e20d96c82ab525c2e2915d5ed58dd9">Include Teams data in container</string>
+      <string id="56b6e1e5111c5a65692f659ac5ed82f5">When Enabled is checked, the Teams data files will be included in the Office 365 Container.</string>
+      <string id="a63ede7c17dc230eb21e988953c4bdb2">Dynamic VHD(X) allocation</string>
+      <string id="f229daa123a5aa3b81501adcf847cb5e">If checked, VHD(X)s will be dynamically allocated (VHD(X) file size will grow as data is added to the VHD(X)). If not checked, VHD(X)s that are auto-created will be fully allocated. Defaults to Dynamic.</string>
+      <string id="4c34463973695e73aa0904e095ef1af5">Number of per-Session VHDs to persist</string>
+      <string id="2fb31f3599bfe99c2faaf0006fb4d412">This setting is used when VHDAccessMode is set to '3'. This controls the number of session VHDs that are persistent. For example, if this is set to '2' and the user creates a 3rd session, a new session VHD will be created and used, but it will be deleted when the 3rd session ends.</string>
+      <string id="4bc39502ea99463de4eaade21912a8c2">Outlook folder path</string>
+      <string id="7e9374818377bff8306b1f1e6d3928b9">Specifies the path to the user's Outlook data folder. Default is '%userprofile%\AppData\Local\Microsoft\Outlook'.</string>
+      <string id="8f4819998d2112131b0a7c4500f04784">Set Outlook cached mode on successful container attach</string>
+      <string id="4d822133fd06dd6f3a4e98ba0b11603d">When the Office 365 Container is successfully attached, set Outlook to work in cached mode for the user. The setting change will only be effective for the specific user and for the length of the user session.</string>
+      <string id="ac763ce70c76064b00b3ea926bd77f8c">Size in MBs</string>
+      <string id="f0131784be39132c1c0ad805dd4a3226">Specify the size for auto-created VHD(X) files. Default is 30,000 (30 GBs).</string>
+      <string id="1cc8e2215e5ed549ffd041d80e478568">Store search database in Office 365 container</string>
+      <string id="6f7e557298ab2f7779221311597704fe">Used to control the FSLogix Search Roaming feature and store search data in the Office 365 container.</string>
+      <string id="37b64760cd7801214af918f2e4be75fa">Disabled</string>
+      <string id="81f392dcfddf87c8de045f05cbd7c783">Single-user search</string>
+      <string id="0c37145916a5cbf3c742e858b7e0615e">Multi-user search</string>
+      <string id="4ecedd27c31e739073868527885292fe">Sync OST to VHD</string>
+      <string id="cdcd2b62ff92ea01357eb5e29de59628">Sync existing local OST file (if any) to VHD when new VHD is created.</string>
+      <string id="741775b7b0dffed52300365bcd0a5c83">Do not mirror OST to VHD</string>
+      <string id="48f6a6ee66f95a132066bb7fe9ff3422">Copy OST to VHD</string>
+      <string id="bfa22ee40abd7b835f509a5ba450c2fd">Move OST to VHD</string>
+      <string id="95b03470a498c4a320da188eb6d8e00a">VHD access type</string>
+      <string id="b3ac69a64c90629bfb913c84d774e97d">Controls whether the VHD/X file should be accessed directly or whether a difference disk should be used.</string>
+      <string id="f130fed77453d1242da80ea8dd707203">Direct access</string>
+      <string id="392f4f2c19803de11be2067f2eb3d172">Difference disk stored on network</string>
+      <string id="4a79fe814a41988d37b17f0b9e58d37f">Difference disk stored on local machine</string>
+      <string id="5ec45a0fdce21ccdfceefb0d7c741650">Unique disk per session</string>
+      <string id="25820c654cd1e82ec7d7b79fb81db6bb">Virtual disk type</string>
+      <string id="af94ab293575bd65b7ac8a96471f2ba6">Specifies the type of virtual disk to auto-create. Default is VHD.</string>
+      <string id="1cab26e425de107dab0d6ddb53985120">VHD</string>
+      <string id="620064eea3f84e09b2c0610756d52634">VHDX</string>
+      <string id="5b9df3a177f2b5a1d6fa8f36b6744edb">Cloud Cache Locations</string>
+      <string id="4f5dca198ffa01a938c0898eacf4564c">Specifies the configuration for Cloud cache locations, Each configuration needs at least a provider type and connection string. Multiple providers may be specified by semicolon delineation without spaces. For example type=smb,connectionString=\\servername1\share\containers;type=smb,connectionString=\\servername2\share\containers</string>
+      <string id="0df0aa016cc68438eff38e3f95ea511b">Cloud Cache</string>
+      <string id="8d89edaa317214eee0022894c0065c03">FSLogix Office 365 Containers 2.9</string>
+      <string id="5356c4ed83a5a1b137a5df21255a860a">Clear local cache on logoff</string>
+      <string id="e51113eb64124737882f092e8242c7ac">Specifies whether or not to keep a copy of the cache file on the local machine after the user has logged off.</string>
+      <string id="852a310f27feec4f442fa00c4db0f5df">Healthy Providers Required For Register</string>
+      <string id="6a0aa9f4715fb813719e236864b36d7a">Specifies the number of healthy Cloud Cache providers required to allow a disk to be registered (Log in registers a disk). This number must be less than or equal to the total number of providers being used.</string>
+      <string id="1012a2b91972a53a7888838a3a276834">FSLogix Release 2004</string>
+      <string id="d70ac2e474e2ba21dd9ed37d65e326b9">Healthy Providers Required For Unregister</string>
+      <string id="c3cebfd5c8b7cc31101916b74f0f4b46">Specifies the number of healthy Cloud Cache providers required to allow a disk to be unregistered (Logoff unregisters a disk). This number must be less than or equal to the total number of providers being used. WARNING: If this number is set to 0, then the user may experience data loss if the logoff is allowed to continue without flushing the data. It is not recommended to set this value to 0</string>
+      <string id="0a1eff84c1747306b55b1ad603bb06ae">Ccd Unregister Timeout</string>
+      <string id="477a79144dd929dc63e07a92c9029631">USE WITH CAUTION! Specifies the number of seconds that a user's sign-out will be delayed if the number of available providers is less than specified in HealthyProvidersRequiredForUnregister. Default = 0, meaning that the unregister will be held until the number of required providers are available. WARNING: If this value is set, there is a potential for data loss if the logoff is forced before the user data has been flushed. </string>
+      <string id="063ce13be83fe20d42ca6d23861eef23">Advanced</string>
+      <string id="92fa79c261d1f3ef2892d6ffb11ede39">Clear Cache On Forced Unregister</string>
+      <string id="bcf09b53bdda862c94fc44076b85401b">Specifies whether or not to keep a copy of the cache file on the local machine after the disk was forcibly unregistered. This should be set to 1 if the desired behavior is to clear the cache after a forced unregister. It WILL take precedence over the ClearCacheOnLogoff key. WARNING: This may lead to data loss if used with CcdUnregisterTimeout.</string>
+      <string id="5a14f9c861f0a19b6d859e284b4e4f78">Access network as computer</string>
+      <string id="a290cb8477e44dce1c60b3079b978c1d">Access VHD directories as computer instead of user.</string>
+      <string id="20aada25346cd8d3ba46b4cc90ec8c3d">Advanced</string>
+      <string id="c7f3aa3fd8be846efbb4ed0bcbe71af9">Locked VHD retry count</string>
+      <string id="5f9d761e0a33d06d2d3fed7823f477fb">Specifies the number of retries to perform when a VHD(X) file is locked (open by another process or computer).</string>
+      <string id="bfda3b27cd040de124cb7fc59fe60799">Locked VHD retry interval</string>
+      <string id="097133c9894d0011ac2b64756b8cd922">Specifies the number of seconds to wait between retries (set by LockedRetryCount above).</string>
+      <string id="5d99d86fdcec354c940672248a1d6da1">Number of milliseconds to wait for volume arrival</string>
+      <string id="e5a8c517c9067939b726aa3c554b6bcc">Specifies the number of milliseconds to wait for the volume to be attached by the system. Default is 20,000 (20 seconds).</string>
+      <string id="bfd89965eae1b523bf59a6af344a8b0a">Prevent login with failure</string>
+      <string id="cfab6ad67c8dd7eb1a347a7bfbd5c173">Prevent user login when a failure occurs while attaching an FSLogix container.</string>
+      <string id="159bac74058bb28d550f39264a44b473">Prevent login with temporary profile</string>
+      <string id="44276969f2bbad943786b00d723a300b">Prevent user login when a user receives a temporary Windows profile.</string>
+      <string id="58bd43fb26f5dc2fafb4e56239ef6802">Remove Orphaned OST Files On Logoff</string>
+      <string id="5cb9d11a18621556838e7f410eb9fe87">A value of '0' or lack of this setting results in no action. A value of '1' will cause duplicate OST files to be removed.</string>
+      <string id="e812c8099d279283d16a9dbcb31726e9">Set access control for attaching VHDs</string>
+      <string id="8e290d531edef6f9a2cea571f7a3a243">SDDL string representing the ACLs to use when attaching the VHD.</string>
+      <string id="010f9982dd41381631a0c55ad50bf77b">VHDX sector size</string>
+      <string id="97173ec0807634adbb7a8a4c33d5ec6a">This setting is only applicable if the virtual disk type is VHDX.</string>
+      <string id="9fd631a2ed1f81634256ac2ad4b6c5ad">512 bytes</string>
+      <string id="15ec0ec5b9fa8edf9771c42f1251b714">4 KB</string>
+      <string id="31f79b4313da521d2506184c75c6b0a0">Volume re-attach retry count</string>
+      <string id="a892496735927dcf3b14b1f1223ce957">When a VHD/X volume is detached unexpectedly, the FSLogix system will attempt to re-attach the volume. This value specifies how many times to retry.</string>
+      <string id="6bcfa6edaeaf09e8890050141e801cb3">Volume re-attach retry interval</string>
+      <string id="9b0f178af3b65cdea6dfc0f36997500e">When a VHD/X volume is detached unexpectedly, the FSLogix system will attempt to re-attach the volume. This value specifies the number of seconds to wait between retries.</string>
+      <string id="d232d6daddab6dd3ad5f31c3119650c0">Refresh User Policy</string>
+      <string id="1e888b69cd4ffc1208b9032ca08fc7bd">If a GPO is configured for an Office Product that is included in Office Container, there may be a conflict with a previous user setting. Standard behavior is for the GPO to be applied, but when the Office Container is read, the GPO will be over-written by the setting in Office Container. If the desire is for the GPO change to be universally applied, then this setting should be set to 1 prior to the GPO update being applied. When this setting is set to 1, then Office Container will overwrite the previous user setting with the GPO setting.
+
+NOTE: there is a performance implication to setting RefreshUserPolicy to 1. RefreshUserPolicy should not be set, or should be set to 0, unless there is a specific GPO event. After the GPO event, the setting should be reverted to default</string>
+      <string id="5be0b4c6ad5ab3c93bda1c0244f6d1cb">FSLogix Office 365 Containers 2004</string>
+      <string id="a23fa1af0601e1d9bd7b3ace2d431c6c">Diff Disk Parent Folder Path</string>
+      <string id="e6b8de3187e5e81b458394a273838370">Specifies the path where difference disks will be created (when ProfileType is configured to use them). Supported variables are %username%, %userdomain%, %sid%, %osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion%, %clientname%, and any environment variable.</string>
+      <string id="ab0dd337fef4d410935aeedbce6a66e6">Container and Directory Naming</string>
+      <string id="b6954e24603ac69ab0a5926310881e72">No containing folder</string>
+      <string id="5db45e32c9fd20fa4d2c4d1598a62ddf">When checked, the VHD(X) file is placed and used in the root VHDLocation rather than in a SID directory under VHDLocation.</string>
+      <string id="4f4fc9c5f9cc563593bcc3df596280d0">SID directory name matching string</string>
+      <string id="675bc9c351bccb1d864277ca3fedfa88">Specifies a string pattern used to match (find) the SID directory. Variable names are delimited with '%' characters. Supported variables are %username%, %sid%, %osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion%, %clientname%, and any environment variable.</string>
+      <string id="e65adb7b00e5b3493a394480d7f88a6c">SID directory name pattern string</string>
+      <string id="c35b4f83cfcb3a94ebde37008e18108b">Specifies a string pattern used when creating a SID container folder. Variable names are delimited with '%' characters. Supported variables are %username%, %sid%, %osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion% , %clientname%, and any environment variable.</string>
+      <string id="682198c90ec40d09c09a002563516d06">Swap directory name components</string>
+      <string id="78f6f7405e0ce1e43e595f0e9b3c6dbc">When set to '1' the SID folder is created as '%username%_%sid%' instead of the default '%sid%_%username%'. Note that using this setting has the same effect as setting SIDDirNamePattern = '%username%_%sid%' and SIDDirNameMatch = '%username%_%sid%'.</string>
+      <string id="6a0b4022f3fb5302d7535c6053c98986">Profile Containers</string>
+      <string id="223281f42e034e9c6b9693d455af2b46">Delete local profile when FSLogix Profile should apply</string>
+      <string id="c47bc3138453074b8c90e50283571ae5">Please use caution with this setting. When the FSLogix Profiles system determines that a user should have a FSLogix profile but a local profile exists, the local profile WILL BE REMOVED and the user logged on with the FSLogix profile.</string>
+      <string id="338c0728e7b1e1e6e7e2d036cc2b59d6">Profile type</string>
+      <string id="8e4ef82fa39aa9b531813d5d834fb05e">Controls whether the VHD/X file should be accessed directly, if a difference disk should be used, and if Read/Write or Read Only access should be used.</string>
+      <string id="5ca9fce39e8f9dcf6f2dfbc3b963b51a">Normal direct-access profile</string>
+      <string id="c8c8b74391b86738ff02afb6c249d36c">Read-write profile</string>
+      <string id="ee934c66842cb332b4f02f75afb4cfbc">Read-only profile</string>
+      <string id="4f2ea40aa9a1460a7e9c536326f3dd11">Try for read-write profile and fallback to read-only</string>
+      <string id="df6f20233858e992cf8e4f0108ebcf6a">Store search database in profile container</string>
+      <string id="ef390afceaf3938c5626238b893ece89">Used to control the FSLogix Search Roaming feature and store search data in the profile container.</string>
+      <string id="777e070c965a7923aebf31409e999499">Disabled</string>
+      <string id="00214cf48c5d8448dc14efb455c11f3d">Single-user search</string>
+      <string id="4aeed1ece1feaa9c58a03e4943787b38">Multi-user search</string>
+      <string id="1e07548adbc5c619c55b3d9dffe70e78">Cloud Cache</string>
+      <string id="564801452e7a36a014c203011eb4975d">FSLogix Profiles 2.9</string>
+      <string id="45019325e62c825e056911b5137887f7">Advanced</string>
+      <string id="66530266148a698477a6d33560717d5d">Advanced</string>
+      <string id="ceed899020c0146a0b2cf98cee88a2b8">Keep local folder after user logs out</string>
+      <string id="5bad8700e86c2dc6a5e35d5ec0396930">If set to '1' the 'local_%username%' folder will be left on the system after logoff and will also be used again if the same user logs on again.</string>
+      <string id="be82810bcb8be482bbdbb49cf1cee2f6">Specifies the number of seconds to wait between retries (see LockedRetryCount).</string>
+      <string id="5ca44cb444b9119959fe250302f1787e">Provide RedirXML file to customize redirections</string>
+      <string id="3cf5e2e6d8fc79b5f392d3ba336b3a4a">RedirXMLSourceFolder = &lt;path to File System e.g. '\\someserver\someshare'&gt;) If the folder contains a redirections.xml, it will be copied to the local profile and immediately used. Variable names are delimited with '%' characters. Supported variables are %username%, %userdomain%, %sid%, %osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion%, %clientname%, and any environment variable.</string>
+      <string id="71c729bf5481ae7d3d1863d714803767">Reboot computer when user logs off</string>
+      <string id="dc2982f14c63cadfda30e22be514cb56">Reboots the machine when a user logs off.</string>
+      <string id="77c4d5080dcf034871fb7d261bdfa499">Take no action</string>
+      <string id="ab5e890a028e794f9c611e3d723f8627">Reboot when any user logs off</string>
+      <string id="ac0a274d8ae1c313b0c54361867d5aec">Reboot when an FSLogix Profile user logs off</string>
+      <string id="abddb89c7aed80a20f14938b207d4930">Redirect temporary file folders to local computer</string>
+      <string id="a9c4f3b52ee684d4fff2bbf13d21b70e">Redirects the TEMP, TMP, and INetCache paths to the local drive.</string>
+      <string id="58aefe8dd37e37466b6a8110689d60e6">Take no action</string>
+      <string id="b8a6dd2abb846aa48a3ae982db0cf80c">Redirect TEMP and TMP to local drive</string>
+      <string id="649e28ca2f10e885e4c4a2b521c1aa5d">Redirect INetCache to local drive</string>
+      <string id="1ece06400b7acc786aa46fd90d8ca92e">Redirect TEMP, TMP and INetCache to local drive</string>
+      <string id="f0d7affe3c35c32d7ac46e4461526aac">Set access control for profile directory inside VHD</string>
+      <string id="d3e825f7e3083fe26b2116f340f65a79">SDDL string representing the ACLs to use when creating the profile directory (e.g. 'C:\Users\%username%). Variables may be used in this SDDL string. Variable names are delimited with '%' characters. Supported variables are %username%, %userdomain%, %sid%, %osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion%, %clientname%, and any environment variable.</string>
+      <string id="4163ca31a43afaf5e92b5502bd670afe">Set access control for user SID folder</string>
+      <string id="5b2d4b5364a6bd627a687c2727cd295a">SDDL string representing the ACLs to use when creating the SID container folder.</string>
+      <string id="98c7baa754fb05b91ecaf4cfed96e9e2">Shutdown computer when user logs off</string>
+      <string id="1dfa92cf8eac870843bd21001ec71532">Shuts down the machine when a user logs off.</string>
+      <string id="8f02ff4d00b488320924644cb7a7c5cf">Take no action</string>
+      <string id="adb4dfd2a8ab641b5b6bb4995510d122">Shutdown when any user logs off</string>
+      <string id="33c010ffc7ae9dee2190cec81ea5e99f">Shutdown when an FSLogix Profile user logs off</string>
+      <string id="3c1cac72e6e2bd667451630c624394e2">512 bytes</string>
+      <string id="6ef931b0ea9be231e1e04f7597764627">4 KB</string>
+      <string id="a885268a05693066a9ec2ba0c5ac3240">Container and Directory Naming</string>
+      <string id="8511390bdc24ded976f6538fa44d0b53">When checked causes new containing directories to be named with the user name first followed by the SID.</string>
+      <string id="0d50ce5504a954ccc87fc958cba56f83">VHD name matching string</string>
+      <string id="ebd968d87fd867719cc4aee85e238c48">Specifies a string pattern used to match (find) the profile VHD(X) file. Variable names are delimited with '%' characters. Supported variables are %username%, %userdomain%, %sid%,%osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion%, %clientname%, and any environment variable.</string>
+      <string id="3e6218032bda5dc96cd9ed71404a1240">VHD name pattern string</string>
+      <string id="6c3e7f1c883080b337d62e9b8d8d5f37">Specifies a string pattern used when creating a profile VHD(X) file. Variable names are delimited with '%' characters. Supported variables are %username%, %userdomain%, %sid%,%osmajor%, %osminor%, %osbuild%, %osservicepack%, %profileversion%, %clientname%, and any environment variable.</string>
+      <string id="1cfac29e698df2094e19248e8a12fe7a">VHD</string>
+      <string id="9707876bbbd2ed73aed29519308fbcfc">VHDX</string>
+      <string id="2d00b34b20f039e66100d9e0c168c0f4">CacheDirectory</string>
+      <string id="365cdf6452107a5678edf05d9395cfed">Specifies the location of the local cache location.</string>
+      <string id="b8f3d24eae9ad612a8c81be009950edf">Cloud Cache</string>
+      <string id="c58309e00747afb63483df80cdf843d3">FSLogix Apps 2.9</string>
+      <string id="135da57ead17211373006243047d8dcb">ProxyDirectory</string>
+      <string id="c48d429431b701109a272a494922cb50">Specifies the location of the proxy disk location. This location must not be on a network path.</string>
+      <string id="af6f16093b7c780879ab63950f6b1287">WriteCacheDirectory</string>
+      <string id="48a623d0c2a3393338b0f87ffb0a909b">Specifies the location of the write cache file location. This location must not be on a network path.</string>
+      <string id="2a6ef2f6dc30c6436deb209b6779266b">FSLogix Apps 2.9.5</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="1408ce246826df266446890a55b551dc">
+        <dropdownList refId="1408ce246826df266446890a55b551dc" />
+      </presentation>
+      <presentation id="095343fa0c8b70c9a94ece25c0982bc6">
+        <dropdownList refId="095343fa0c8b70c9a94ece25c0982bc6" />
+      </presentation>
+      <presentation id="97b6e6718ceee98f6407c49e21804ebe">
+        <decimalTextBox refId="97b6e6718ceee98f6407c49e21804ebe">Days to keep log files</decimalTextBox>
+      </presentation>
+      <presentation id="2d9083035a1b4ad02cbde7f0fd366a31">
+        <textBox refId="2d9083035a1b4ad02cbde7f0fd366a31">
+          <label>Path to logging files</label>
+        </textBox>
+      </presentation>
+      <presentation id="d5c9bb8ebca69ca9c44c0837bf8e5d01">
+        <checkBox refId="d5c9bb8ebca69ca9c44c0837bf8e5d01">Enable logging: Profile configuration tool</checkBox>
+      </presentation>
+      <presentation id="d10116902f1325660d8195750362ed94">
+        <checkBox refId="d10116902f1325660d8195750362ed94">Enable logging: IE plugin</checkBox>
+      </presentation>
+      <presentation id="c41e9fd3247effc71668b2edd6683897">
+        <checkBox refId="c41e9fd3247effc71668b2edd6683897">Enable logging: Rule editor</checkBox>
+      </presentation>
+      <presentation id="b9f0049a87cb091c218548a623df8699">
+        <checkBox refId="b9f0049a87cb091c218548a623df8699">Enable logging: Java rule editor</checkBox>
+      </presentation>
+      <presentation id="81eb8a3b63e6f8d2788c204b34cf4573">
+        <checkBox refId="81eb8a3b63e6f8d2788c204b34cf4573">Enable logging: FSLogix agent service</checkBox>
+      </presentation>
+      <presentation id="64454f83284b30d7b2cc9c031434daf2">
+        <checkBox refId="64454f83284b30d7b2cc9c031434daf2">Enable logging: Profiles</checkBox>
+      </presentation>
+      <presentation id="789ac1c420af4dee008b253208edb070">
+        <checkBox refId="789ac1c420af4dee008b253208edb070">Enable logging: Java launcher</checkBox>
+      </presentation>
+      <presentation id="19f4e2c7bb4bd8bdcba0487ee8d7b5dc">
+        <checkBox refId="19f4e2c7bb4bd8bdcba0487ee8d7b5dc">Enable logging: Office 365 container</checkBox>
+      </presentation>
+      <presentation id="1a6de4637a13e666fcd7fdc1360d4524">
+        <checkBox refId="1a6de4637a13e666fcd7fdc1360d4524">Enable logging: Rule compilation</checkBox>
+      </presentation>
+      <presentation id="2505ffad9dd11cb1fa7cef80db42a832">
+        <checkBox refId="2505ffad9dd11cb1fa7cef80db42a832">Enable logging: Font visibility</checkBox>
+      </presentation>
+      <presentation id="ae480fdf70ebb1dee5ad4574fbcde0a6">
+        <checkBox refId="ae480fdf70ebb1dee5ad4574fbcde0a6">Enable logging: Network information</checkBox>
+      </presentation>
+      <presentation id="3031078e6713cca426eb29f78802836b">
+        <checkBox refId="3031078e6713cca426eb29f78802836b">Enable logging: Printer visibility</checkBox>
+      </presentation>
+      <presentation id="3aa9f3e2b83a97e9fe7b6756674073d8">
+        <checkBox refId="3aa9f3e2b83a97e9fe7b6756674073d8">Enable logging: Active directory computer group processing</checkBox>
+      </presentation>
+      <presentation id="07deb3b72b67736cbfdbca4ae9dff583">
+        <checkBox refId="07deb3b72b67736cbfdbca4ae9dff583">Enable logging: Driver interface</checkBox>
+      </presentation>
+      <presentation id="642564301d9da4b8a2716cd1d8ce08f9">
+        <checkBox refId="642564301d9da4b8a2716cd1d8ce08f9">Enable logging: Windows search roaming</checkBox>
+      </presentation>
+      <presentation id="314d499239b0878b4701075ed4ddfdf5">
+        <checkBox refId="314d499239b0878b4701075ed4ddfdf5">Enable logging: Windows search plugin</checkBox>
+      </presentation>
+      <presentation id="5c3b2fc2abde9cf2484abbb7446ea16d">
+        <checkBox refId="5c3b2fc2abde9cf2484abbb7446ea16d">Enable logging: Process start monitor</checkBox>
+      </presentation>
+      <presentation id="3e8dbd1d3a320d148f1e7566638fb96c">
+        <checkBox refId="3e8dbd1d3a320d148f1e7566638fb96c">Enabled</checkBox>
+      </presentation>
+      <presentation id="0ceb51ebe4453fc710be22f8eb646d91">
+        <textBox refId="0ceb51ebe4453fc710be22f8eb646d91">
+          <label>VHD location</label>
+        </textBox>
+      </presentation>
+      <presentation id="0652b623ea7482a040c3effd834274cf">
+        <checkBox refId="0652b623ea7482a040c3effd834274cf">Include Office activation data in container</checkBox>
+      </presentation>
+      <presentation id="20bd12846158b59011a359b7cb38dc94">
+        <checkBox refId="20bd12846158b59011a359b7cb38dc94">Include OneDrive data in container</checkBox>
+      </presentation>
+      <presentation id="cdc4ebee6037a3cbb95cccff50832340">
+        <checkBox refId="cdc4ebee6037a3cbb95cccff50832340">Include OneNote data in container</checkBox>
+      </presentation>
+      <presentation id="9737511a02e71d547a925f4a20cd6235">
+        <checkBox refId="9737511a02e71d547a925f4a20cd6235">Include OneNote UWP notebook data in container</checkBox>
+      </presentation>
+      <presentation id="06ec18224280a28d70076257232a2825">
+        <checkBox refId="06ec18224280a28d70076257232a2825">Include Outlook data in container</checkBox>
+      </presentation>
+      <presentation id="602634dab682e2e124a715dfb69c4793">
+        <checkBox refId="602634dab682e2e124a715dfb69c4793">Include Outlook personalization data in container</checkBox>
+      </presentation>
+      <presentation id="3ac4cf76a1089b989aa6bef92b24bb5c">
+        <checkBox refId="3ac4cf76a1089b989aa6bef92b24bb5c">Include Sharepoint data in container</checkBox>
+      </presentation>
+      <presentation id="e7eb397594548dba8c4e97baf05881f0">
+        <checkBox refId="e7eb397594548dba8c4e97baf05881f0">Include Skype data in container</checkBox>
+      </presentation>
+      <presentation id="d38bd5fa570cc275d3fa6b8027c3a415">
+        <checkBox refId="d38bd5fa570cc275d3fa6b8027c3a415">Include Teams data in container</checkBox>
+      </presentation>
+      <presentation id="bc514a8d632d23dea6a24898035e4811">
+        <checkBox refId="bc514a8d632d23dea6a24898035e4811">Dynamic VHD(X) allocation</checkBox>
+      </presentation>
+      <presentation id="24702a43b9463ee0402194a8e69a61cd">
+        <decimalTextBox refId="24702a43b9463ee0402194a8e69a61cd">Number of per-Session VHDs to persist</decimalTextBox>
+      </presentation>
+      <presentation id="342123147c27d01d3be41169c72e72ae">
+        <textBox refId="342123147c27d01d3be41169c72e72ae">
+          <label>Outlook folder path</label>
+        </textBox>
+      </presentation>
+      <presentation id="ac9afb095e0a4b36bf13bb8a9d5ce98b">
+        <checkBox refId="ac9afb095e0a4b36bf13bb8a9d5ce98b">Set Outlook cached mode on successful container attach</checkBox>
+      </presentation>
+      <presentation id="06edc512dea075236dbdd85c19b75ec8">
+        <decimalTextBox refId="06edc512dea075236dbdd85c19b75ec8">Size in MBs</decimalTextBox>
+      </presentation>
+      <presentation id="7734958a2bea42b959a8d52c84afe889">
+        <dropdownList refId="7734958a2bea42b959a8d52c84afe889" />
+      </presentation>
+      <presentation id="0748503b25137cf6735ff2c877be3fd9">
+        <dropdownList refId="0748503b25137cf6735ff2c877be3fd9" />
+      </presentation>
+      <presentation id="40f65e30ebb8cc46e58f116a9e18e55f">
+        <dropdownList refId="40f65e30ebb8cc46e58f116a9e18e55f" />
+      </presentation>
+      <presentation id="39ee8245110fb24ed74f1e62637b6093">
+        <dropdownList refId="39ee8245110fb24ed74f1e62637b6093" />
+      </presentation>
+      <presentation id="4aa3e56009bb2b4246504d7bddaac159">
+        <textBox refId="4aa3e56009bb2b4246504d7bddaac159">
+          <label>Cloud Cache Locations</label>
+        </textBox>
+      </presentation>
+      <presentation id="f985ba5be45d779b65ef9bc0f84f5391">
+        <checkBox refId="f985ba5be45d779b65ef9bc0f84f5391">Clear local cache on logoff</checkBox>
+      </presentation>
+      <presentation id="d58f65a7197076e52cf151010c3e327a">
+        <decimalTextBox refId="d58f65a7197076e52cf151010c3e327a">Healthy Providers Required For Register</decimalTextBox>
+      </presentation>
+      <presentation id="d86ea5e2e5193c478228a022b8d2e429">
+        <decimalTextBox refId="d86ea5e2e5193c478228a022b8d2e429">Healthy Providers Required For Unregister</decimalTextBox>
+      </presentation>
+      <presentation id="115483cbfbd101f056efc59bccc82c03">
+        <decimalTextBox refId="115483cbfbd101f056efc59bccc82c03">Ccd Unregister Timeout</decimalTextBox>
+      </presentation>
+      <presentation id="089ac6e024fb9e0296260f39718c4d5c">
+        <checkBox refId="089ac6e024fb9e0296260f39718c4d5c">Clear Cache On Forced Unregister</checkBox>
+      </presentation>
+      <presentation id="944266be3eb268125de24d6ecaa5365d">
+        <checkBox refId="944266be3eb268125de24d6ecaa5365d">Access network as computer</checkBox>
+      </presentation>
+      <presentation id="869bc3d65df3e717ad2879b2ba5ff839">
+        <decimalTextBox refId="869bc3d65df3e717ad2879b2ba5ff839">Locked VHD retry count</decimalTextBox>
+      </presentation>
+      <presentation id="271025708cdcb5a345d97fcaf20ff8a6">
+        <decimalTextBox refId="271025708cdcb5a345d97fcaf20ff8a6">Locked VHD retry interval</decimalTextBox>
+      </presentation>
+      <presentation id="b9ea76485939c6ea6c598ed64a8d0f9c">
+        <decimalTextBox refId="b9ea76485939c6ea6c598ed64a8d0f9c">Number of milliseconds to wait for volume arrival</decimalTextBox>
+      </presentation>
+      <presentation id="7e8527e4fb7488a64c9d7adf6c9aa48c">
+        <checkBox refId="7e8527e4fb7488a64c9d7adf6c9aa48c">Prevent login with failure</checkBox>
+      </presentation>
+      <presentation id="0430377fca75e17e3a050a2d34e37d54">
+        <checkBox refId="0430377fca75e17e3a050a2d34e37d54">Prevent login with temporary profile</checkBox>
+      </presentation>
+      <presentation id="017540bd95786719aa8dc5dbbb11b6e0">
+        <checkBox refId="017540bd95786719aa8dc5dbbb11b6e0">Remove Orphaned OST Files On Logoff</checkBox>
+      </presentation>
+      <presentation id="729621bd6562233b2c6f8b018288e00b">
+        <textBox refId="729621bd6562233b2c6f8b018288e00b">
+          <label>Set access control for attaching VHDs</label>
+        </textBox>
+      </presentation>
+      <presentation id="865ed8d276805290463bffaa3a2e84c7">
+        <dropdownList refId="865ed8d276805290463bffaa3a2e84c7" />
+      </presentation>
+      <presentation id="23d3748c80f6c4ed024b31a732ed01c8">
+        <decimalTextBox refId="23d3748c80f6c4ed024b31a732ed01c8">Volume re-attach retry count</decimalTextBox>
+      </presentation>
+      <presentation id="69bc744e00e8356b77ce74822a34aefb">
+        <decimalTextBox refId="69bc744e00e8356b77ce74822a34aefb">Volume re-attach retry interval</decimalTextBox>
+      </presentation>
+      <presentation id="44e98ade86002db6191731741769f9fd">
+        <checkBox refId="44e98ade86002db6191731741769f9fd">Refresh User Policy</checkBox>
+      </presentation>
+      <presentation id="51ad665d6b005fc20b0e8732848e1151">
+        <textBox refId="51ad665d6b005fc20b0e8732848e1151">
+          <label>Diff Disk Parent Folder Path</label>
+        </textBox>
+      </presentation>
+      <presentation id="45b527d5b5de3bca6ca18c638bf8eb70">
+        <checkBox refId="45b527d5b5de3bca6ca18c638bf8eb70">No containing folder</checkBox>
+      </presentation>
+      <presentation id="19f5f1e2cfa3fdfb6c18eaae273176e4">
+        <textBox refId="19f5f1e2cfa3fdfb6c18eaae273176e4">
+          <label>SID directory name matching string</label>
+        </textBox>
+      </presentation>
+      <presentation id="c29061b3cfc33769f080942b9cee4e77">
+        <textBox refId="c29061b3cfc33769f080942b9cee4e77">
+          <label>SID directory name pattern string</label>
+        </textBox>
+      </presentation>
+      <presentation id="a9678d15344f894ff01885ae88a22fc6">
+        <checkBox refId="a9678d15344f894ff01885ae88a22fc6">Swap directory name components</checkBox>
+      </presentation>
+      <presentation id="6bf06db968eddea70ab86c1a5b03abce">
+        <checkBox refId="6bf06db968eddea70ab86c1a5b03abce">Enabled</checkBox>
+      </presentation>
+      <presentation id="7afe18ca9a4c1ba51f9fbc85c55b9f24">
+        <textBox refId="7afe18ca9a4c1ba51f9fbc85c55b9f24">
+          <label>VHD location</label>
+        </textBox>
+      </presentation>
+      <presentation id="c61fde662af161090e0173b841ec880e">
+        <checkBox refId="c61fde662af161090e0173b841ec880e">Delete local profile when FSLogix Profile should apply</checkBox>
+      </presentation>
+      <presentation id="7fda2f5a98dd35545ca0cf1e522a5d7d">
+        <checkBox refId="7fda2f5a98dd35545ca0cf1e522a5d7d">Dynamic VHD(X) allocation</checkBox>
+      </presentation>
+      <presentation id="03bc1aeec81e3beb20f31faa17b77e0f">
+        <dropdownList refId="03bc1aeec81e3beb20f31faa17b77e0f" />
+      </presentation>
+      <presentation id="3dc36f78b7c4edded82fc6b6411a36f6">
+        <checkBox refId="3dc36f78b7c4edded82fc6b6411a36f6">Set Outlook cached mode on successful container attach</checkBox>
+      </presentation>
+      <presentation id="dbab4f3dbd14a4ac225da477288e4451">
+        <decimalTextBox refId="dbab4f3dbd14a4ac225da477288e4451">Size in MBs</decimalTextBox>
+      </presentation>
+      <presentation id="1dcfac6231f2694d89b668fd498c0e2c">
+        <dropdownList refId="1dcfac6231f2694d89b668fd498c0e2c" />
+      </presentation>
+      <presentation id="aae8e1d2d05127f5d24f5e4f2b632dc5">
+        <textBox refId="aae8e1d2d05127f5d24f5e4f2b632dc5">
+          <label>Cloud Cache Locations</label>
+        </textBox>
+      </presentation>
+      <presentation id="6a50499c3e990b6fe11357d115592ba6">
+        <checkBox refId="6a50499c3e990b6fe11357d115592ba6">Clear local cache on logoff</checkBox>
+      </presentation>
+      <presentation id="30c6caba665e2db1ff5d2598c046372a">
+        <decimalTextBox refId="30c6caba665e2db1ff5d2598c046372a">Healthy Providers Required For Register</decimalTextBox>
+      </presentation>
+      <presentation id="cadf73b309ba0f4a680cc9a9b76e9dbc">
+        <decimalTextBox refId="cadf73b309ba0f4a680cc9a9b76e9dbc">Healthy Providers Required For Unregister</decimalTextBox>
+      </presentation>
+      <presentation id="67efe8ba19fb5ac464df746cbf28b3f3">
+        <decimalTextBox refId="67efe8ba19fb5ac464df746cbf28b3f3">Ccd Unregister Timeout</decimalTextBox>
+      </presentation>
+      <presentation id="7bf0c4077b77a472a6c672a0d992c8a5">
+        <checkBox refId="7bf0c4077b77a472a6c672a0d992c8a5">Clear Cache On Forced Unregister</checkBox>
+      </presentation>
+      <presentation id="edec32d467028f9fae92d95484d990f7">
+        <checkBox refId="edec32d467028f9fae92d95484d990f7">Access network as computer</checkBox>
+      </presentation>
+      <presentation id="d5d2df5ad6046e369d584cc78fab45f2">
+        <checkBox refId="d5d2df5ad6046e369d584cc78fab45f2">Keep local folder after user logs out</checkBox>
+      </presentation>
+      <presentation id="0725e8f4d3e86d5882d04629e610e3f5">
+        <decimalTextBox refId="0725e8f4d3e86d5882d04629e610e3f5">Locked VHD retry count</decimalTextBox>
+      </presentation>
+      <presentation id="4de637372fd58f3ecb988b8ed9197f42">
+        <decimalTextBox refId="4de637372fd58f3ecb988b8ed9197f42">Locked VHD retry interval</decimalTextBox>
+      </presentation>
+      <presentation id="d104a405b823ac8baed905994f554aa6">
+        <decimalTextBox refId="d104a405b823ac8baed905994f554aa6">Number of milliseconds to wait for volume arrival</decimalTextBox>
+      </presentation>
+      <presentation id="dea9d5fe0e39b02ed410a9ba50751be9">
+        <checkBox refId="dea9d5fe0e39b02ed410a9ba50751be9">Prevent login with failure</checkBox>
+      </presentation>
+      <presentation id="a8b1f74b18543adf46ea806a5ddfea02">
+        <checkBox refId="a8b1f74b18543adf46ea806a5ddfea02">Prevent login with temporary profile</checkBox>
+      </presentation>
+      <presentation id="456b108373d05e4aeed59b29c62e2acd">
+        <textBox refId="456b108373d05e4aeed59b29c62e2acd">
+          <label>Provide RedirXML file to customize redirections</label>
+        </textBox>
+      </presentation>
+      <presentation id="750bcf88b73c4ebb80925d01f6fcb121">
+        <dropdownList refId="750bcf88b73c4ebb80925d01f6fcb121" />
+      </presentation>
+      <presentation id="5cb6cce1cb2791260ebcdff0f6b05517">
+        <dropdownList refId="5cb6cce1cb2791260ebcdff0f6b05517" />
+      </presentation>
+      <presentation id="20475e62235f9b2e114bad3944d6ead7">
+        <checkBox refId="20475e62235f9b2e114bad3944d6ead7">Remove Orphaned OST Files On Logoff</checkBox>
+      </presentation>
+      <presentation id="7fadc55cb0853eaeae78cbb39dd75cda">
+        <textBox refId="7fadc55cb0853eaeae78cbb39dd75cda">
+          <label>Set access control for attaching VHDs</label>
+        </textBox>
+      </presentation>
+      <presentation id="a663a69c78f397da454a849f9c850991">
+        <textBox refId="a663a69c78f397da454a849f9c850991">
+          <label>Set access control for profile directory inside VHD</label>
+        </textBox>
+      </presentation>
+      <presentation id="4c2ae432256b58304413f30fdbc9b187">
+        <textBox refId="4c2ae432256b58304413f30fdbc9b187">
+          <label>Set access control for user SID folder</label>
+        </textBox>
+      </presentation>
+      <presentation id="ecae426988b9ee1fa9c6b6ea61ecc0e7">
+        <dropdownList refId="ecae426988b9ee1fa9c6b6ea61ecc0e7" />
+      </presentation>
+      <presentation id="52aca12a7a0e653760015aa6f63dbb85">
+        <dropdownList refId="52aca12a7a0e653760015aa6f63dbb85" />
+      </presentation>
+      <presentation id="8b984065e92ab51bf0fbff38b8901a18">
+        <decimalTextBox refId="8b984065e92ab51bf0fbff38b8901a18">Volume re-attach retry count</decimalTextBox>
+      </presentation>
+      <presentation id="08383795bf271f869f9d03b9b033e306">
+        <decimalTextBox refId="08383795bf271f869f9d03b9b033e306">Volume re-attach retry interval</decimalTextBox>
+      </presentation>
+      <presentation id="574c3400373e27faa3c7e58769bd671b">
+        <textBox refId="574c3400373e27faa3c7e58769bd671b">
+          <label>Diff Disk Parent Folder Path</label>
+        </textBox>
+      </presentation>
+      <presentation id="f42d47452c7caf78ab4a57032b6d55c2">
+        <checkBox refId="f42d47452c7caf78ab4a57032b6d55c2">No containing folder</checkBox>
+      </presentation>
+      <presentation id="5d6bc6bb40c85684400f65c171da8097">
+        <textBox refId="5d6bc6bb40c85684400f65c171da8097">
+          <label>SID directory name matching string</label>
+        </textBox>
+      </presentation>
+      <presentation id="aacecbd95c5d065f159473f1db912896">
+        <textBox refId="aacecbd95c5d065f159473f1db912896">
+          <label>SID directory name pattern string</label>
+        </textBox>
+      </presentation>
+      <presentation id="fc6ef30e1fb0b9ca421aaa56919eef24">
+        <checkBox refId="fc6ef30e1fb0b9ca421aaa56919eef24">Swap directory name components</checkBox>
+      </presentation>
+      <presentation id="14579f546d01177ca9f5b16ff5fb0db2">
+        <textBox refId="14579f546d01177ca9f5b16ff5fb0db2">
+          <label>VHD name matching string</label>
+        </textBox>
+      </presentation>
+      <presentation id="25fbf469206878ec1dc4d25865062524">
+        <textBox refId="25fbf469206878ec1dc4d25865062524">
+          <label>VHD name pattern string</label>
+        </textBox>
+      </presentation>
+      <presentation id="2569640d13155c8f7ba400191940a6d0">
+        <dropdownList refId="2569640d13155c8f7ba400191940a6d0" />
+      </presentation>
+      <presentation id="a98d2947370b8b7cc69bd68ad3b2b312">
+        <textBox refId="a98d2947370b8b7cc69bd68ad3b2b312">
+          <label>CacheDirectory</label>
+        </textBox>
+      </presentation>
+      <presentation id="e2a35b031731fca30d1f37f59b3a7354">
+        <textBox refId="e2a35b031731fca30d1f37f59b3a7354">
+          <label>ProxyDirectory</label>
+        </textBox>
+      </presentation>
+      <presentation id="9c1890907000d13850e01686be0d7b92">
+        <textBox refId="9c1890907000d13850e01686be0d7b92">
+          <label>WriteCacheDirectory</label>
+        </textBox>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>
