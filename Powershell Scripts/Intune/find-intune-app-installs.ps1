@@ -25,13 +25,16 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        2.0.0
+  Version:        2.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/07/2022
+  Last Change:    27/10/2022    
   Purpose/Change: Initial script development
   Change: Added CSV output
+  Change: Amended to only show Installed devices
+  Change: Added logic to bypass 1000 device limit
   
 .EXAMPLE
 N/A
@@ -292,11 +295,26 @@ function Get-AuthToken {
     
     ##Loop through devices
     $devicesuri = "https://graph.microsoft.com/beta/devicemanagement/manageddevices"
-    $devicelist = (Invoke-RestMethod -Uri $devicesuri -Headers $authToken -Method Get).value
+    $devicelist = (Invoke-RestMethod -Uri $devicesuri -Headers $authToken -Method Get)
+    $Results = @()
+    $Results += $devicelist.value
+
+    $Pages = $devicelist.'@odata.nextLink'
+    while($null -ne $Pages) {
+
+    Write-Warning "Checking Next page"
+    $Addtional = Invoke-RestMethod -Headers $authToken -Uri $Pages -Method Get
+
+    if ($Pages){
+    $Pages = $Addtional."@odata.nextLink"
+    }
+    $Results += $Addtional.value
+    }
     $appinstalls = @()
     $appinstallsgui = @()
     ##Foreach device
-    foreach ($device in $devicelist) {
+    $output = 0
+    foreach ($device in $Results) {
     ##Find Device ID
     $deviceid = $device.id
     $devicename = $device.devicename
@@ -308,24 +326,28 @@ function Get-AuthToken {
     $appstocheck = $fullapplist.mobileapplist
     foreach ($app in $appstocheck) {
         ##Query and add hostname to list if found (only if installed successfully)
-        if (($app.applicationid -eq $thisappid) -and ($app.installedstate -ne "failed")) {
+        if (($app.applicationid -eq $thisappid) -and ($app.installstate -eq "installed")) {
+
             ##Get Install Date/Time
             $troubleshootingguid = $deviceid+"_"+$thisappid
             $eventsuri = "https://graph.microsoft.com/beta/users('$primaryuser')/mobileAppTroubleshootingEvents('$troubleshootingguid')?`$select=history"
             $events = (Invoke-RestMethod -Uri $eventsuri -Headers $authToken -Method Get).history
-            
-            foreach ($event in $events) {
+            foreach ($event in $events) {                
             $actiontype = $event.actiontype
                 if ($actiontype -eq "installed") {
+write-host "YES"
                     $installdate = $event.occurrenceDateTime
                     $installdate2 = $installdate.Split(".")[0]
+                    $output++
                 }
             }
+            if ($output -gt 0) {
             $appinstallsgui += $devicename + " - " + $installdate2
             $appinstalls += New-Object PsObject -property @{
             "Device" = $devicename
             "Install Date" = $installdate2
             }
+        }
         }
     
     }
