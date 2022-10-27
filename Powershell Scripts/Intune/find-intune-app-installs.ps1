@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.0
+.VERSION 2.1.0
 .GUID 71d4d716-70bb-468a-9322-a0441468919b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists Intune apps and shows which machines have it installed
