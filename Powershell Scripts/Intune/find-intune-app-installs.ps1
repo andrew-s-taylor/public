@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.1.0
+.VERSION 2.2.0
 .GUID 71d4d716-70bb-468a-9322-a0441468919b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists Intune apps and shows which machines have it installed
@@ -25,12 +25,12 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        2.1.0
+  Version:        2.2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/07/2022
-  Last Change:    27/10/2022    
+  Last Change:    28/10/2022    
   Purpose/Change: Initial script development
   Change: Added CSV output
   Change: Amended to only show Installed devices
@@ -334,12 +334,20 @@ function Get-AuthToken {
             $events = (Invoke-RestMethod -Uri $eventsuri -Headers $authToken -Method Get).history
             foreach ($event in $events) {                
             $actiontype = $event.actiontype
+            $datatype = $event.'@odata.type'
                 if ($actiontype -eq "installed") {
-write-host "YES"
                     $installdate = $event.occurrenceDateTime
                     $installdate2 = $installdate.Split(".")[0]
                     $output++
                 }
+                else {  
+                    if ($datatype -eq "#microsoft.graph.mobileAppTroubleshootingAppUpdateHistory") { 
+                    $installdate = $event.occurrenceDateTime
+                    $installdate2 = $installdate.Split(".")[0]
+                    $output++
+                     
+                }
+            }
             }
             if ($output -gt 0) {
             $appinstallsgui += $devicename + " - " + $installdate2
