@@ -592,11 +592,11 @@ $UninstallPrograms = @(
 )
 
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {$_.Name -in $UninstallPrograms}
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")}
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {$_.Name -in $UninstallPrograms} #-or ($_.DisplayName -match "^$HPidentifier")}
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")}
 
-$InstalledPrograms = Get-Package | Where-Object {$_.Name -in $UninstallPrograms}
+$InstalledPrograms = Get-Package | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")}
 
 # Remove provisioned packages first
 ForEach ($ProvPackage in $ProvisionedPackages) {
