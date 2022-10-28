@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.2
+  Version:        2.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -25,6 +25,7 @@ C:\ProgramData\Debloat\Debloat.log
   Purpose/Change: Initial script development
   Change: 12/08/2022 - Added additional HP applications
   Change 23/09/2022 - Added Clipchamp (new in W11 22H2)
+  Change 28/10/2022 - Fixed issue with Dell apps
   
 .EXAMPLE
 N/A
@@ -590,11 +591,12 @@ $UninstallPrograms = @(
     "Dell Optimizer Service"
 )
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {($UninstallPackages -contains $_.Name)} #-or ($_.Name -match "^$HPidentifier")}
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {($UninstallPackages -contains $_.DisplayName)} #-or ($_.DisplayName -match "^$HPidentifier")}
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {$_.Name -in $UninstallPrograms}
 
-$InstalledPrograms = Get-Package | Where-Object {$UninstallPrograms -contains $_.Name}
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {$_.Name -in $UninstallPrograms} #-or ($_.DisplayName -match "^$HPidentifier")}
+
+$InstalledPrograms = Get-Package | Where-Object {$_.Name -in $UninstallPrograms}
 
 # Remove provisioned packages first
 ForEach ($ProvPackage in $ProvisionedPackages) {
