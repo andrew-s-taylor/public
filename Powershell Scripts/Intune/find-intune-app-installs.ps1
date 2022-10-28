@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.2.0
+.VERSION 3.0.0
 .GUID 71d4d716-70bb-468a-9322-a0441468919b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists Intune apps and shows which machines have it installed
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        2.2.0
+  Version:        3.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -35,6 +35,7 @@ GridView
   Change: Added CSV output
   Change: Amended to only show Installed devices
   Change: Added logic to bypass 1000 device limit
+  Change: Switched authentication to MG Graph
   
 .EXAMPLE
 N/A
@@ -42,134 +43,25 @@ N/A
 
 ####################################################
 
-function Get-AuthToken {
+##Install Module
 
-    <#
-    .SYNOPSIS
-    This function is used to authenticate with the Graph API REST interface
-    .DESCRIPTION
-    The function authenticate with the Graph API Interface with the tenant name
-    .EXAMPLE
-    Get-AuthToken
-    Authenticates you with the Graph API interface
-    .NOTES
-    NAME: Get-AuthToken
-    #>
-    
-    [cmdletbinding()]
-    
-    param
-    (
-        [Parameter(Mandatory=$true)]
-        $User
-    )
-    
-    $userUpn = New-Object "System.Net.Mail.MailAddress" -ArgumentList $User
-    
-    $tenant = $userUpn.Host
-    
-    Write-Host "Checking for AzureAD module..."
-    
-        $AadModule = Get-Module -Name "AzureAD" -ListAvailable
-    
-        if ($AadModule -eq $null) {
-    
-            install-module AzureAD -Scope CurrentUser -AllowClobber -Force
-    
-        }
-    
-    
-    # Getting path to ActiveDirectory Assemblies
-    # If the module count is greater than 1 find the latest version
-    
-        if($AadModule.count -gt 1){
-    
-            $Latest_Version = ($AadModule | select version | Sort-Object)[-1]
-    
-            $aadModule = $AadModule | ? { $_.version -eq $Latest_Version.version }
-    
-                # Checking if there are multiple versions of the same module found
-    
-                if($AadModule.count -gt 1){
-    
-                $aadModule = $AadModule | select -Unique
-    
-                }
-    
-            $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-            $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-    
-        }
-    
-        else {
-    
-            $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-            $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-    
-        }
-    
-    [System.Reflection.Assembly]::LoadFrom($adal) | Out-Null
-    
-    [System.Reflection.Assembly]::LoadFrom($adalforms) | Out-Null
-    
-    $clientId = "d1ddf0e4-d672-4dae-b554-9d5bdfd93547"
-    
-    $redirectUri = "urn:ietf:wg:oauth:2.0:oob"
-    
-    $resourceAppIdURI = "https://graph.microsoft.com"
-    
-    $authority = "https://login.microsoftonline.com/$Tenant"
-    
-        try {
-    
-        $authContext = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
-    
-        # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
-        # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
-    
-        $platformParameters = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList "Auto"
-    
-        $userId = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($User, "OptionalDisplayableId")
-    
-        $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
-    
-            # If the accesstoken is valid then create the authentication header
-    
-            if($authResult.AccessToken){
-    
-            # Creating header for Authorization token
-    
-            $authHeader = @{
-                'Content-Type'='application/json'
-                'Authorization'="Bearer " + $authResult.AccessToken
-                'ExpiresOn'=$authResult.ExpiresOn
-                }
-    
-            return $authHeader
-    
-            }
-    
-            else {
-    
-            Write-Host
-            Write-Host "Authorization Access Token is null, please re-run authentication..." -ForegroundColor Red
-            Write-Host
-            break
-    
-            }
-    
-        }
-    
-        catch {
-    
-        write-host $_.Exception.Message -f Red
-        write-host $_.Exception.ItemName -f Red
-        write-host
-        break
-    
-        }
-    
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+##Authenticate
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
     
     ####################################################
     
@@ -202,14 +94,14 @@ function Get-AuthToken {
             if($Name){
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value | Where-Object { ($_.'displayName').contains("$Name") -and (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp")) }
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { ($_.'displayName').contains("$Name") -and (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp")) }
     
             }
     
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value | Where-Object { (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp")) }
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp")) }
     
             }
     
@@ -235,57 +127,7 @@ function Get-AuthToken {
     
     
     ####################################################
-    
-    #region Authentication
-    
-    write-host
-    
-    # Checking if authToken exists before running authentication
-    if($global:authToken){
-    
-        # Setting DateTime to Universal time to work in all timezones
-        $DateTime = (Get-Date).ToUniversalTime()
-    
-        # If the authToken exists checking when it expires
-        $TokenExpires = ($authToken.ExpiresOn.datetime - $DateTime).Minutes
-    
-            if($TokenExpires -le 0){
-    
-            write-host "Authentication Token expired" $TokenExpires "minutes ago" -ForegroundColor Yellow
-            write-host
-    
-                # Defining User Principal Name if not present
-    
-                if($User -eq $null -or $User -eq ""){
-    
-                $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-                Write-Host
-    
-                }
-    
-            $global:authToken = Get-AuthToken -User $User
-    
-            }
-    }
-    
-    # Authentication doesn't exist, calling Get-AuthToken function
-    
-    else {
-    
-        if($User -eq $null -or $User -eq ""){
-    
-        $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-        Write-Host
-    
-        }
-    
-    # Getting the authorization token
-    $global:authToken = Get-AuthToken -User $User
-    
-    }
-    
-    #endregion
-    
+
     ####################################################
     
     $Intune_Apps = Get-IntuneApplication | Select-Object displayName,id | Out-GridView -Title "Intune Applications" -passthru | ForEach-Object {
@@ -295,7 +137,7 @@ function Get-AuthToken {
     
     ##Loop through devices
     $devicesuri = "https://graph.microsoft.com/beta/devicemanagement/manageddevices"
-    $devicelist = (Invoke-RestMethod -Uri $devicesuri -Headers $authToken -Method Get)
+    $devicelist = (Invoke-MgGraphRequest -Uri $devicesuri -Method Get -OutputType PSObject)
     $Results = @()
     $Results += $devicelist.value
 
@@ -303,7 +145,7 @@ function Get-AuthToken {
     while($null -ne $Pages) {
 
     Write-Warning "Checking Next page"
-    $Addtional = Invoke-RestMethod -Headers $authToken -Uri $Pages -Method Get
+    $Addtional = Invoke-MgGraphRequest -Uri $Pages -Method Get
 
     if ($Pages){
     $Pages = $Addtional."@odata.nextLink"
@@ -322,7 +164,7 @@ function Get-AuthToken {
     $primaryuser = $device.userid
     ##Find installed apps
     $appsuri = "https://graph.microsoft.com/beta/users('$primaryuser')/mobileAppIntentAndStates('$deviceid')"
-    $fullapplist = Invoke-RestMethod -Uri $appsuri -Headers $authToken -Method Get
+    $fullapplist = Invoke-MgGraphRequest -Uri $appsuri -Method Get -OutputType PSObject
     $appstocheck = $fullapplist.mobileapplist
     foreach ($app in $appstocheck) {
         ##Query and add hostname to list if found (only if installed successfully)
@@ -331,29 +173,27 @@ function Get-AuthToken {
             ##Get Install Date/Time
             $troubleshootingguid = $deviceid+"_"+$thisappid
             $eventsuri = "https://graph.microsoft.com/beta/users('$primaryuser')/mobileAppTroubleshootingEvents('$troubleshootingguid')?`$select=history"
-            $events = (Invoke-RestMethod -Uri $eventsuri -Headers $authToken -Method Get).history
+            $events = (Invoke-MgGraphRequest -Uri $eventsuri -Method Get -OutputType PSObject).history
             foreach ($event in $events) {                
             $actiontype = $event.actiontype
             $datatype = $event.'@odata.type'
                 if ($actiontype -eq "installed") {
                     $installdate = $event.occurrenceDateTime
-                    $installdate2 = $installdate.Split(".")[0]
                     $output++
                 }
                 else {  
                     if ($datatype -eq "#microsoft.graph.mobileAppTroubleshootingAppUpdateHistory") { 
                     $installdate = $event.occurrenceDateTime
-                    $installdate2 = $installdate.Split(".")[0]
                     $output++
                      
                 }
             }
             }
             if ($output -gt 0) {
-            $appinstallsgui += $devicename + " - " + $installdate2
+            $appinstallsgui += $devicename + " - " + $installdate
             $appinstalls += New-Object PsObject -property @{
             "Device" = $devicename
-            "Install Date" = $installdate2
+            "Install Date" = $installdate
             }
         }
         }
