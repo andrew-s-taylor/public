@@ -36,35 +36,52 @@ Within Azure
 N/A
 #>
 
-Write-Host "Installing AzureAD Preview modules if required (current user scope)"
+Write-Host "Installing Graph modules if required (current user scope)"
 
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
+#Install Graph Groups module if not available
+if (Get-Module -ListAvailable -Name microsoft.graph.groups) {
+  Write-Host "Microsoft Graph Groups Module Already Installed"
 } 
 else {
-    try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+  try {
+      Install-Module -Name microsoft.graph.groups -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+  }
+  catch [Exception] {
+      $_.message 
+      exit
+  }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+  Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+  try {
+      Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+  }
+  catch [Exception] {
+      $_.message 
+      exit
+  }
 }
 
 
 
 
-write-host "Importing Modules"
-#Import AzureAD Preview Module
-import-module -Name AzureADPreview
 
-#Connectaz
+write-host "Importing Modules"
+
+import-module -Name microsoft.graph
+import-module -name microsoft.graph.groups
+
+
 
 #Get Creds and connect
-write-host "Connect to Azure"
-Connect-AzureAD
+write-host "Connect to Graph"
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access
 
 
-#Create Group
-New-AzureADMSGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
+#AutoPilot Group using MG.Graph
+New-MgGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled:$False -MailNickName "autopilotdevices" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "$aprule" -MembershipRuleProcessingState "On"
