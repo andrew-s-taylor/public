@@ -504,7 +504,7 @@ write-host "Detecting Manufacturer"
 $details = Get-CimInstance -ClassName Win32_ComputerSystem
 $manufacturer = $details.Manufacturer
 
-if ($manufacturer -ccontains "HP") {
+if ($manufacturer -like "*HP*") {
     Write-Host "HP detected"
     #Remove HP bloat
 
@@ -576,7 +576,7 @@ Write-Host "Removed HP bloat"
 }
 
 
-if ($manufacturer -ccontains "Dell") {
+if ($manufacturer -like "*Dell*") {
     Write-Host "Dell detected"
     #Remove Dell bloat
 
