@@ -1,10 +1,12 @@
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+    Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -12,17 +14,23 @@ else {
     }
 }
 
-#Group creation needs preview module so we need to remove non-preview first
-# Unload the AzureAD module (or continue if it's already unloaded)
-Remove-Module AzureAD -ErrorAction SilentlyContinue
-# Load the AzureADPreview module
-Import-Module AzureADPreview
 
-#Connect to Azure AD
-Connect-AzureAD
+# Load the Graph module
+Import-Module microsoft.graph
+
+####################################################################### END INSTALL MODULES #######################################################################
+
+
+####################################################################### CREATE AAD OBJECTS #######################################################################
+#Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes PrivilegedAccess.ReadWrite.AzureAD, PrivilegedAccess.ReadWrite.AzureADGroup, PrivilegedAccess.ReadWrite.AzureResources, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+
 
 #Get PIM role
-$PIMrole =Get-AzureADMSPrivilegedRoleDefinition -ProviderId aadRoles -ResourceId $tenantid | where-object DisplayName -eq "Azure AD Joined Device Local Administrator"
+$uri = "https://graph.microsoft.com/v1.0/directoryRoles"
+$roles = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+$PIMrole = $roles | where-object DisplayName -eq "Azure AD Joined Device Local Administrator"
 
 
 ## Create Conditional Access Policy
@@ -51,7 +59,7 @@ $name = "Conditional Access - Block NonCompliant Devices"
 ##Disable initially just in case
 $state = "Disabled"
  
-New-AzureADMSConditionalAccessPolicy `
+New-MgIdentityConditionalAccessPolicy `
     -DisplayName $name `
     -State $state `
     -Conditions $conditions `

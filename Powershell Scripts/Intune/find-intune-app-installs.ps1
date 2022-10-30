@@ -58,7 +58,7 @@ else {
         exit
     }
 }
-
+import-module microsoft.graph
 ##Authenticate
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access

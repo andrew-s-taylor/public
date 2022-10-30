@@ -72,7 +72,6 @@ else {
 
 write-host "Importing Modules"
 
-import-module -Name microsoft.graph
 import-module -name microsoft.graph.groups
 
 

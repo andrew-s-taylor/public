@@ -80,52 +80,35 @@ Start-Transcript -Path $env:TEMP\intuneproactive-$date.log
 ###############################################################################################################
 ######                                         Install Modules                                           ######
 ###############################################################################################################
-Write-Host "Installing Intune modules if required (current user scope)"
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
         exit
     }
 }
-
-
-Write-Host "Installing AzureAD modules if required (current user scope)"
-
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureAD) {
-    Write-Host "AZ Ad Module Already Installed"
-} 
-else {
-    try {
-        Install-Module -Name AzureAD -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
-}
-
 
 
 
 
 
 #Importing Modules
-write-host "Importing AzureAD Module"
-Import-Module AzureAD
-write-host "Importing Microsoft Graph Module"
-Import-Module Microsoft.Graph.Intune
+write-host "Importing Graph Module"
+Import-Module Microsoft.Graph.intune
 ##Connect to Graph
 write-host "Connecting to Graph"
-Connect-MSGraph
+#Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes  	RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+
 
 
 
@@ -136,7 +119,7 @@ $Resource = "deviceManagement/deviceHealthScripts"
 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 
 try {
-    $proactive = Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $params
+    $proactive = Invoke-MGGraphRequest -Url $uri -Method Post -Content $params
 }
 catch {
     Write-Error $_.Exception 
@@ -147,12 +130,9 @@ write-host "Proactive Remediation Created"
 
 ##Assign It
 write-host "Assigning Proactive Remediation"
-##Connect to Azure AD to find Group ID
-write-host "Connecting to AzureAD to Query Group"
-Connect-AzureAD
 
 ##Get Group ID
-$AADGroupID = (get-azureadgroup | where-object DisplayName -eq $AADGroupName).ObjectID
+$AADGroupID = (get-mggroup | where-object DisplayName -eq $AADGroupName).ObjectID
 write-host "Group ID discovered: $AADGroupID"
 ##Set the JSON
 if ($ScheduleType -eq "Hourly") {
@@ -202,7 +182,7 @@ $Resource = "deviceManagement/deviceHealthScripts"
 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource/$remediationID/assign"
 
 try {
-    $proactive = Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $params
+    $proactive = Invoke-MGGraphRequest -Url $uri -Method Post -Content $params
 }
 catch {
     Write-Error $_.Exception 

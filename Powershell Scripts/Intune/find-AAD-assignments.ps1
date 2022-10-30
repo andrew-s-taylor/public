@@ -3,13 +3,15 @@
 ##Original script by Ondrej Sebela
 
 
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+    Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -17,12 +19,9 @@ else {
     }
 }
 
-##Import Modules
-#Group creation needs preview module so we need to remove non-preview first
-# Unload the AzureAD module (or continue if it's already unloaded)
-Remove-Module AzureAD -force -ErrorAction SilentlyContinue
-# Load the AzureADPreview module
-Import-Module AzureADPreview
+
+# Load the Graph module
+Import-Module microsoft.graph
 
 
 # TODO resit filtry u assignmetu??
@@ -404,7 +403,7 @@ function Get-IntuneAssignment {
 }
 Connect-AzureAD
 $fullpolicies = @()
-Get-AzureADMSGroup -All $true | Select-object ID, DisplayName, Description | Out-GridView -PassThru -Title "Select Azure AD Groups" | ForEach-Object {
+Get-MgGroup -All $true | Select-object ID, DisplayName, Description | Out-GridView -PassThru -Title "Select Azure AD Groups" | ForEach-Object {
     $ID = $_.id
     write-host $ID
     $assignments = Get-IntuneAssignment -accountId $ID

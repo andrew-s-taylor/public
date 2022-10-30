@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0
+.VERSION 2.0
 .GUID 9cb596f8-e4f4-4fbb-bf0b-8d5c227af59c
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Intune groups via command line or GUI
@@ -9,7 +9,7 @@
 .LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
 .PROJECTURI https://github.com/andrew-s-taylor/public
 .ICONURI 
-.EXTERNALMODULEDEPENDENCIES azureAD
+.EXTERNALMODULEDEPENDENCIES microsoft.graph
 .REQUIREDSCRIPTS 
 .EXTERNALSCRIPTDEPENDENCIES
 .RELEASENOTES
@@ -34,12 +34,14 @@ Deployment
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0
+  Version:        2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  26/02/2022
+  Modified Date:  30/10/2022
   Purpose/Change: Initial script development
+  Change:   Switched from AAD to Graph Module
   
 .EXAMPLE
 N/A
@@ -56,33 +58,37 @@ param (
 ### Install Modules ###
 
 
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+    Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
         exit
     }
 }
+
+
+
 ## END INSTALL MODULES ###
 
 ## IMPORT MODULES ###
 
-#Group creation needs preview module so we need to remove non-preview first
-# Unload the AzureAD module (or continue if it's already unloaded)
-Remove-Module AzureAD -ErrorAction SilentlyContinue
-# Load the AzureADPreview module
-Import-Module AzureADPreview
+# Load the Graph module
+Import-Module microsoft.graph
 
 ## END IMPORT MODULES ###
 
-### Connect to Azure AD ###
-Connect-AzureAD
+#Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes  	RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+
 
 ####################################### Create Form ################################################
 
@@ -227,7 +233,7 @@ $IntuneAzureADGroups.controls.AddRange(@($Label1,$Autopilot,$project,$Visio,$Off
 ##Autopilot Group Clicked
 $Autopilot.Add_Click({ 
     #AutoPilot Group
-    $autopilotgrp = New-AzureADMSGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
+    $autopilotgrp = New-MgGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled:$false -MailNickName "autopilotdevices" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
     Add-Type -AssemblyName PresentationCore,PresentationFramework
     $msgBody = "Group Autopilot-Devices created successfully"
     [System.Windows.MessageBox]::Show($msgBody)   
@@ -237,11 +243,11 @@ $Autopilot.Add_Click({
 ##Deployment Rings Button Clicked
 $rings.Add_Click({ 
     #Pilot Group
-    $pilotgrp = New-AzureADMSGroup -DisplayName "Intune-Pilot-Users" -Description "Assigned group for Pilot Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+    $pilotgrp = New-MgGroup -DisplayName "Intune-Pilot-Users" -Description "Assigned group for Pilot Users" -MailEnabled:$False -MailNickName "intunepilotusers" -SecurityEnabled
     #Preview Group
-    $previewgrp = New-AzureADMSGroup -DisplayName "Intune-Preview-Users" -Description "Assigned group for Preview Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+    $previewgrp = New-MgGroup -DisplayName "Intune-Preview-Users" -Description "Assigned group for Preview Users" -MailEnabled:$False -MailNickName "intunepreviewusers" -SecurityEnabled
     #VIP Group
-    $vipgrp = New-AzureADMSGroup -DisplayName "Intune-VIP-Users" -Description "Assigned group for VIP Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+    $vipgrp = New-MgGroup -DisplayName "Intune-VIP-Users" -Description "Assigned group for VIP Users" -MailEnabled:$False -MailNickName "intunevipusers" -SecurityEnabled
     Add-Type -AssemblyName PresentationCore,PresentationFramework
     $msgBody = "Groups Intune-Pilot-Users, Intune-Preview-Users, Intune-VIP-Users created successfully"
     [System.Windows.MessageBox]::Show($msgBody)   
@@ -251,9 +257,9 @@ $rings.Add_Click({
 ##Office Button Clicked
 $Office.Add_Click({  
     #Create Office Install Group
-    $officeinstall = New-AzureADMSGroup -DisplayName "Office-Install" -Description "Dynamic group for users with an Office 365 Enterprise Apps License" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""43de0ff5-c92c-492b-9116-175376d08c38"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
+    $officeinstall = New-MgGroup -DisplayName "Office-Install" -Description "Dynamic group for users with an Office 365 Enterprise Apps License" -MailEnabled:$False -MailNickName "officeusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""43de0ff5-c92c-492b-9116-175376d08c38"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
     #Create Office Uninstall Group
-    $officeuninstall = New-AzureADMSGroup -DisplayName "Office-Uninstall" -Description "Dynamic group for users without an Office 365 Enterprise Apps License" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""43de0ff5-c92c-492b-9116-175376d08c38""))" -MembershipRuleProcessingState "On"
+    $officeuninstall = New-MgGroup -DisplayName "Office-Uninstall" -Description "Dynamic group for users without an Office 365 Enterprise Apps License" -MailEnabled:$False -MailNickName "nonofficeusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""43de0ff5-c92c-492b-9116-175376d08c38""))" -MembershipRuleProcessingState "On"
     Add-Type -AssemblyName PresentationCore,PresentationFramework
     $msgBody = "Groups Office-Install, Office-Uninstall created successfully"
     [System.Windows.MessageBox]::Show($msgBody)   
@@ -265,9 +271,9 @@ $Office.Add_Click({
 $Visio.Add_Click({ 
     #Create Visio Install Group
     write-host "hello"
-    $visioinstall = New-AzureADMSGroup -DisplayName "Visio-Install" -Description "Dynamic group for Licensed Visio Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
+    $visioinstall = New-MgGroup -DisplayName "Visio-Install" -Description "Dynamic group for Licensed Visio Users" -MailEnabled:$False -MailNickName "visiousers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
     #Create Visio Uninstall Group
-    $visiouninstall = New-AzureADMSGroup -DisplayName "Visio-Uninstall" -Description "Dynamic group for users without Visio license" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
+    $visiouninstall = New-MgGroup -DisplayName "Visio-Uninstall" -Description "Dynamic group for users without Visio license" -MailEnabled:$False -MailNickName "nonvisiousers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
     Add-Type -AssemblyName PresentationCore,PresentationFramework
     $msgBody = "Groups Visio-Install, Visio-Uninstall created successfully"
     [System.Windows.MessageBox]::Show($msgBody)   
@@ -279,9 +285,9 @@ $Visio.Add_Click({
  ##Project Button Clicked
 $project.Add_Click({  
     #Create Project Install Group
-    $projectinstall = New-AzureADMSGroup -DisplayName "Project-Install" -Description "Dynamic group for Licensed Project Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
+    $projectinstall = New-MgGroup -DisplayName "Project-Install" -Description "Dynamic group for Licensed Project Users" -MailEnabled:$False -MailNickName "projectusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
     #Create Project Uninstall Group
-    $projectuninstall = New-AzureADMSGroup -DisplayName "Project-Uninstall" -Description "Dynamic group for users without Project license" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
+    $projectuninstall = New-MgGroup -DisplayName "Project-Uninstall" -Description "Dynamic group for users without Project license" -MailEnabled:$False -MailNickName "nonprojectusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
     Add-Type -AssemblyName PresentationCore,PresentationFramework
     $msgBody = "Groups Project-Install, Project-Uninstall created successfully"
     [System.Windows.MessageBox]::Show($msgBody)   
@@ -296,42 +302,42 @@ $project.Add_Click({
 switch ($groupname) {
     "Autopilot"{
         #AutoPilot Group
-        $autopilotgrp = New-AzureADMSGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
+        $autopilotgrp = New-MgGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled:$false -MailNickName "autopilotdevices" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
         write-host "Group Autopilot-Devices created successfully"
     break
     }
     "Visio"{
         #Create Visio Install Group
-        $visioinstall = New-AzureADMSGroup -DisplayName "Visio-Install" -Description "Dynamic group for Licensed Visio Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
+        $visioinstall = New-MgGroup -DisplayName "Visio-Install" -Description "Dynamic group for Licensed Visio Users" -MailEnabled:$False -MailNickName "visiousers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
         #Create Visio Uninstall Group
-        $visiouninstall = New-AzureADMSGroup -DisplayName "Visio-Uninstall" -Description "Dynamic group for users without Visio license" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
-        write-host "Groups Visio-Install, Visio-Uninstall created successfully"
+        $visiouninstall = New-MgGroup -DisplayName "Visio-Uninstall" -Description "Dynamic group for users without Visio license" -MailEnabled:$False -MailNickName "nonvisiousers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""663a804f-1c30-4ff0-9915-9db84f0d1cea"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
+            write-host "Groups Visio-Install, Visio-Uninstall created successfully"
     break
     }
     "Project"{
-        #Create Project Install Group
-        $projectinstall = New-AzureADMSGroup -DisplayName "Project-Install" -Description "Dynamic group for Licensed Project Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
-        #Create Project Uninstall Group
-        $projectuninstall = New-AzureADMSGroup -DisplayName "Project-Uninstall" -Description "Dynamic group for users without Project license" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
+    #Create Project Install Group
+    $projectinstall = New-MgGroup -DisplayName "Project-Install" -Description "Dynamic group for Licensed Project Users" -MailEnabled:$False -MailNickName "projectusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
+    #Create Project Uninstall Group
+    $projectuninstall = New-MgGroup -DisplayName "Project-Uninstall" -Description "Dynamic group for users without Project license" -MailEnabled:$False -MailNickName "nonprojectusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""fafd7243-e5c1-4a3a-9e40-495efcb1d3c3"" -and assignedPlan.capabilityStatus -ne ""Enabled""))" -MembershipRuleProcessingState "On"
         write-host "Groups Project-Install, Project-Uninstall created successfully"
     break
     }
     "Office" {
         #Create Office Install Group
-        $officeinstall = New-AzureADMSGroup -DisplayName "Office-Install" -Description "Dynamic group for users with an Office 365 Enterprise Apps License" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""43de0ff5-c92c-492b-9116-175376d08c38"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
+        $officeinstall = New-MgGroup -DisplayName "Office-Install" -Description "Dynamic group for users with an Office 365 Enterprise Apps License" -MailEnabled:$False -MailNickName "officeusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -any (assignedPlan.servicePlanId -eq ""43de0ff5-c92c-492b-9116-175376d08c38"" -and assignedPlan.capabilityStatus -eq ""Enabled""))" -MembershipRuleProcessingState "On"
         #Create Office Uninstall Group
-        $officeuninstall = New-AzureADMSGroup -DisplayName "Office-Uninstall" -Description "Dynamic group for users without an Office 365 Enterprise Apps License" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""43de0ff5-c92c-492b-9116-175376d08c38""))" -MembershipRuleProcessingState "On"
-        write-host "Groups Office-Install, Office-Uninstall created successfully"
+        $officeuninstall = New-MgGroup -DisplayName "Office-Uninstall" -Description "Dynamic group for users without an Office 365 Enterprise Apps License" -MailEnabled:$False -MailNickName "nonofficeusers" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(user.assignedPlans -all (assignedPlan.servicePlanId -ne ""43de0ff5-c92c-492b-9116-175376d08c38""))" -MembershipRuleProcessingState "On"
+            write-host "Groups Office-Install, Office-Uninstall created successfully"
     break
     }
     "Deployment" {
         #Pilot Group
-        $pilotgrp = New-AzureADMSGroup -DisplayName "Intune-Pilot-Users" -Description "Assigned group for Pilot Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+        $pilotgrp = New-MgGroup -DisplayName "Intune-Pilot-Users" -Description "Assigned group for Pilot Users" -MailEnabled:$False -MailNickName "intunepilotusers" -SecurityEnabled
         #Preview Group
-        $previewgrp = New-AzureADMSGroup -DisplayName "Intune-Preview-Users" -Description "Assigned group for Preview Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+        $previewgrp = New-MgGroup -DisplayName "Intune-Preview-Users" -Description "Assigned group for Preview Users" -MailEnabled:$False -MailNickName "intunepreviewusers" -SecurityEnabled
         #VIP Group
-        $vipgrp = New-AzureADMSGroup -DisplayName "Intune-VIP-Users" -Description "Assigned group for VIP Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
-        write-host "Groups Intune-Pilot-Users, Intune-Preview-Users, Intune-VIP-Users created successfully"
+        $vipgrp = New-MgGroup -DisplayName "Intune-VIP-Users" -Description "Assigned group for VIP Users" -MailEnabled:$False -MailNickName "intunevipusers" -SecurityEnabled
+            write-host "Groups Intune-Pilot-Users, Intune-Preview-Users, Intune-VIP-Users created successfully"
     break
     }
     default {
