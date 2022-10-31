@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 2.0.0
 .GUID 43e38b3f-984a-456c-aff0-129d869514a3
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates an app registration for Graph, AzureAD and Conditional Access and outputs details to CSV
@@ -25,13 +25,15 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        1.0.1
+  Version:        2.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  05/06/2022
+  Modified Date:  31/10/2022
   Purpose/Change: Initial script development
   Added logic to check Powershell version and warn if not at least 6.1
+  Change:         Switched from AAD module to Microsoft Graph module
   
 .EXAMPLE
 N/A
@@ -45,16 +47,15 @@ if ($PSVersion -lt 6.1) {
     Throw "You need to be running Powershell 6.1 or above for this to complete, please upgrade"
 }
 
-##Install Modules
-Write-Host "Installing AzureAD Preview modules if required (current user scope)"
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+    Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -63,19 +64,15 @@ else {
 }
 
 
-write-host "Importing Modules"
+# Load the Graph module
+Import-Module microsoft.graph
 
-##Import Modules
-# Unload the AzureAD module (or continue if it's already unloaded)
-Remove-Module AzureAD -ErrorAction SilentlyContinue
-# Load the AzureADPreview module
-Import-Module AzureADPreview
-write-host "Modules Imported"
-##Connect to Azure
-write-host "Connecting to Azure"
-Connect-AzureAD
+#Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes  	RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
-write-host "Connected to Azure"
+
+
 
 
 
@@ -107,10 +104,14 @@ function New-RandomPassword {
 write-host "Getting Azure Tenant Details"
 ##Get Tenant Details
 ##Grab Tenant ID
-$tenantdetails = Get-AzureADTenantDetail
-$domain = $tenantdetails.VerifiedDomains | select-object Name -First 1
+##Get Tenant Details
+##Grab Tenant ID
+$domain = get-mgdomain | where-object IsDefault -eq $true
 
-$suffix = $domain.Name
+$suffix = $domain.Id
+$uri = "https://graph.microsoft.com/beta/organization"
+$tenantdetails = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+$tenantid = $tenantdetails.id
 write-host "Tenant Domain: $suffix"
 $tenantid = $tenantdetails.ObjectID
 write-host "Tenant ID: $tenantid"
@@ -118,12 +119,12 @@ write-host "Tenant ID: $tenantid"
 #Create Application
 write-host "Creating Application"
 $AppDisplayName = "Intune App Registration"
-$aadApplication = New-AzureADApplication -DisplayName $AppDisplayName -HomePage "http://$suffix"
+$aadApplication = New-MgApplication -DisplayName $AppDisplayName
 write-host "Application Created"
 ##MS Graph Permissions
 	
 #Get Service Principal of Microsoft Graph Resource API 
-$graphSP =  Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Microsoft Graph"}
+$graphSP =  Get-MgServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Microsoft Graph"}
  
 #Initialize RequiredResourceAccess for Microsoft Graph Resource API 
 $requiredGraphAccess = New-Object Microsoft.Open.AzureAD.Model.RequiredResourceAccess
@@ -184,33 +185,46 @@ $requiredResourcesAccess.Add($requiredGraphAccess)
  
 #Set permissions in existing Azure AD App
 $appObjectId=$aadApplication.ObjectId
-Set-AzureADApplication -ObjectId $appObjectId -RequiredResourceAccess $requiredResourcesAccess
+Update-MgApplication -ApplicationId $appObjectId -RequiredResourceAccess $requiredResourcesAccess
 
 write-host "Application Permissions Set"
 
 ##Create the Secret
 write-host "Creating Secret"
 $appObjectId=$aadApplication.ObjectId
-$appPassword = New-AzureADApplicationPasswordCredential -ObjectId $appObjectId -CustomKeyIdentifier "AppAccessKey" -EndDate (Get-Date).AddYears(2)
+$passwordCred = @{
+    displayName = 'AppAccessKey'
+    endDateTime = (Get-Date).AddYears(2)
+ }
+ 
+$appPassword = Add-MgApplicationPassword -ApplicationId $appObjectId -PasswordCredential $passwordCred
 $appsecret = $appPassword.Value #Display app secret key
 write-host "Secret Created"
 
 ##Create Enterprise App
 write-host "Creating Enterprise App"
 $appId=$aadApplication.AppId
-$servicePrincipal = New-AzureADServicePrincipal -AppId $appId -Tags @("WindowsAzureActiveDirectoryIntegratedApp")
+$servicePrincipal = New-MgServicePrincipal -AppId $appId -Tags @("WindowsAzureActiveDirectoryIntegratedApp")
 write-host "Enterprise App Created"
 
 ##Grant App Permissions
 write-host "Granting App Permissions"
 ForEach ($resourceAppAccess in $requiredResourcesAccess)
 {
-$resourceApp = Get-AzureADServicePrincipal -All $true | Where-Object {$_.AppId -eq $resourceAppAccess.ResourceAppId}
+$resourceApp = Get-MgServicePrincipal -All $true | Where-Object {$_.AppId -eq $resourceAppAccess.ResourceAppId}
 ForEach ($permission in $resourceAppAccess.ResourceAccess)
 {
 if ($permission.Type -eq "Role")
 {
-New-AzureADServiceAppRoleAssignment -ObjectId $servicePrincipal.ObjectId -PrincipalId $servicePrincipal.ObjectId -ResourceId $resourceApp.ObjectId -Id $permission.Id
+    $servicePrincipalId = $servicePrincipal.ObjectId
+    $resourceID = $resourceApp.ObjectId
+    $approleid = $permission.Id
+    $params = @{
+        PrincipalId = $servicePrincipalId
+        ResourceId = $resourceID
+        AppRoleId = $approleid
+    }
+    New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $servicePrincipalId -BodyParameter $params
 }
 }
 }
@@ -219,12 +233,6 @@ write-host "App Permissions Granted"
 
 ##Grant Delegated Permissions
 write-host "Granting Delegated Permissions"
-# Set ADAL (Microsoft.IdentityModel.Clients.ActiveDirectory.dll) assembly path from Azure AD module location
-$AADModule = Import-Module -Name AzureAD -ErrorAction Stop -PassThru
-$adalPath = Join-Path $AADModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-$adalformPath = Join-Path $AADModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-[System.Reflection.Assembly]::LoadFrom($adalPath) | Out-Null
-[System.Reflection.Assembly]::LoadFrom($adalformPath) | Out-Null 
       
 # Azure AD PowerShell client id. 
 $ClientId = "1950a258-227b-4e31-a9cf-717495945fc2"
@@ -247,7 +255,7 @@ $principalId = $null
 #Grant consent for the required user alone
 $consentType = "Principal"
 #Get or provide object id for the required Azure AD user
-$principalId = (Get-AzureADUser -SearchString "user@contoso.com").ObjectId
+$principalId = (Get-MgUser -SearchString "user@contoso.com").ObjectId
 #$principalId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
  
@@ -255,7 +263,7 @@ ForEach ($resourceAppAccess in $requiredResourcesAccess)
 {
 $delegatedPermissions = @()
 #$resourceApp - get servicePrincipal of Resource API App(ex: Microsoft Graph, Office 365 SharePoint Online)
-$resourceApp = Get-AzureADServicePrincipal -All $true | Where-Object {$_.AppId -eq $resourceAppAccess.ResourceAppId}
+$resourceApp = Get-MgServicePrincipal -All $true | Where-Object {$_.AppId -eq $resourceAppAccess.ResourceAppId}
 ForEach ($permission in $resourceAppAccess.ResourceAccess)
 {
 if ($permission.Type -eq "Scope")
@@ -268,7 +276,7 @@ $delegatedPermissions += $permissionObj.Value
 if($delegatedPermissions)
 {
 #Get existing grant entry
-$existingGrant = Get-AzureADOAuth2PermissionGrant -All $true | Where { $_.ClientId -eq $servicePrincipal.ObjectId -and $_.ResourceId -eq $resourceApp.ObjectId -and  $_.PrincipalId -eq $principalId}
+$existingGrant = Get-MgOauth2PermissionGrant -All $true | Where-Object { $_.ClientId -eq $servicePrincipal.ObjectId -and $_.ResourceId -eq $resourceApp.ObjectId -and  $_.PrincipalId -eq $principalId}
  
 if(!$existingGrant){
 #Create new grant entry
@@ -283,7 +291,7 @@ scope       = $delegatedPermissions -Join " "
 $requestBody = $postContent | ConvertTo-Json
 Write-Host "Grant consent for $delegatedPermissions ($($resourceApp.DisplayName))" -ForegroundColor Green
 $headers = @{Authorization = "Bearer $accessToken"}
-$response = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Body $requestBody -Method POST -Headers $headers -ContentType "application/json"
+$response = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" -Body $requestBody -Method POST -ContentType "application/json"
  
 } else {
 #Update existing grant entry
@@ -296,7 +304,7 @@ scope       = $delegatedPermissions -Join " "
 $requestBody = $patchContent | ConvertTo-Json
 Write-Host "Update consent for $delegatedPermissions ($($resourceApp.DisplayName))" -ForegroundColor Green
 $headers = @{Authorization = "Bearer $accessToken"}
-$response = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/oauth2PermissionGrants/$($existingGrant.ObjectId)" -Body $requestBody -Method PATCH -Headers $headers -ContentType "application/json"
+$response = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/oauth2PermissionGrants/$($existingGrant.ObjectId)" -Body $requestBody -Method PATCH -ContentType "application/json"
  
 }
 }
@@ -345,25 +353,34 @@ write-host "Certificate Loaded"
 ##Create App
 write-host "Creating Azure AD Application"
 $AADDisplay = "AzureADApp"
-$application = New-AzureADApplication -DisplayName $AADDisplay -IdentifierUris $suffix
-New-AzureADApplicationKeyCredential -ObjectId $application.ObjectId -CustomKeyIdentifier $AADDisplay -Type AsymmetricX509Cert -Usage Verify -Value $keyValue -StartDate $cert.Certificate.NotBefore -EndDate $cert.Certificate.NotAfter
+$application = New-MgApplication -DisplayName $AADDisplay -IdentifierUris $suffix
+$params = @{
+	KeyCredential = @{
+		Type = "AsymmetricX509Cert"
+		Usage = "Verify"
+		Key = $keyValue
+	}
+	PasswordCredential = $null
+}
+Add-MgApplicationKey -ApplicationId $applicationId -BodyParameter $params
+#Add-MgApplicationKey -ApplicationId $application.ObjectId -CustomKeyIdentifier $AADDisplay -Type AsymmetricX509Cert -Usage Verify -Value $keyValue -StartDate $cert.Certificate.NotBefore -EndDate $cert.Certificate.NotAfter
 write-host "Successfully created Azure AD Application"
 
 ##Create Service Principal
 write-host "Creating Azure AD Service Principal"
-$sp=New-AzureADServicePrincipal -AppId $application.AppId
+$sp=New-MgServicePrincipal -AppId $application.AppId
 write-host "Successfully created Azure AD Service Principal"
 
 ##Assign Roles
 write-host "Assigning Roles"
 write-host "Assigning User Administrator"
-New-AzureADMSRoleAssignment -DirectoryScopeId "/" -RoleDefinitionID (Get-AzureADMSRoleDefinition | where-object {$_.DisplayName -eq "User Administrator"}).Id -PrincipalID $sp.ObjectId
+New-MgRoleManagementDirectoryRoleAssignment -DirectoryScopeId "/" -RoleDefinitionID (Get-MgRoleManagementDirectoryRoleDefinition | where-object {$_.DisplayName -eq "User Administrator"}).Id -PrincipalID $sp.ObjectId
 write-host "Successfully assigned User Administrator"
 write-host "Assigning Privileged Role Administrator"
-New-AzureADMSRoleAssignment -DirectoryScopeId "/" -RoleDefinitionID (Get-AzureADMSRoleDefinition | where-object {$_.DisplayName -eq "Privileged role administrator"}).Id -PrincipalID $sp.ObjectId
+New-MgRoleManagementDirectoryRoleAssignment -DirectoryScopeId "/" -RoleDefinitionID (Get-MgRoleManagementDirectoryRoleDefinition | where-object {$_.DisplayName -eq "Privileged role administrator"}).Id -PrincipalID $sp.ObjectId
 write-host "Successfully assigned Privileged Role Administrator"
 write-host "Assigning Conditional Access Administrator"
-New-AzureADMSRoleAssignment -DirectoryScopeId "/" -RoleDefinitionID (Get-AzureADMSRoleDefinition | where-object {$_.DisplayName -eq "Conditional Access administrator"}).Id -PrincipalID $sp.ObjectId
+New-MgRoleManagementDirectoryRoleAssignment -DirectoryScopeId "/" -RoleDefinitionID (Get-MgRoleManagementDirectoryRoleDefinition | where-object {$_.DisplayName -eq "Conditional Access administrator"}).Id -PrincipalID $sp.ObjectId
 write-host "Successfully assigned Conditional Access Administrator"
 write-host "Roles assigned"
 

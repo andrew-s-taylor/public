@@ -1,6 +1,6 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 1.2.1
+.VERSION 2.0.0
 .GUID 0238c6f7-5628-4e82-be48-381741b79a75
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy
@@ -26,13 +26,15 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.2.1
+  Version:        2.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  03/03/2022
+  Modified Date:  31/10/2022
   Purpose/Change: Initial script development
   Update: Added support for Admin Templates
+  Update: Changed to Microsoft Graph API from AAD
 
   
 .EXAMPLE
@@ -40,12 +42,36 @@ N/A
 #>
 
 
-$version = "1.1.0"
+$version = "2.0.0"
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
 $date = get-date -format ddMMyyyy
 Start-Transcript -Path $env:TEMP\intune-$date.log
 
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
+# Load the Graph module
+Import-Module microsoft.graph.authentication
+
+
+#Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes  	RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
 
 
@@ -56,143 +82,7 @@ Start-Transcript -Path $env:TEMP\intune-$date.log
 
 
 
-function Get-AuthToken {
 
-    <#
-    .SYNOPSIS
-    This function is used to authenticate with the Graph API REST interface
-    .DESCRIPTION
-    The function authenticate with the Graph API Interface with the tenant name
-    .EXAMPLE
-    Get-AuthToken
-    Authenticates you with the Graph API interface
-    .NOTES
-    NAME: Get-AuthToken
-    #>
-    
-    [cmdletbinding()]
-    
-    param
-    (
-        [Parameter(Mandatory=$true)]
-        $User
-    )
-    
-    $userUpn = New-Object "System.Net.Mail.MailAddress" -ArgumentList $User
-    
-    $tenant = $userUpn.Host
-    
-    Write-Host "Checking for AzureAD module..."
-    
-        $AadModule = Get-Module -Name "AzureAD" -ListAvailable
-    
-        if ($AadModule -eq $null) {
-    
-            Write-Host "AzureAD PowerShell module not found, looking for AzureADPreview"
-            $AadModule = Get-Module -Name "AzureADPreview" -ListAvailable
-    
-        }
-    
-        if ($AadModule -eq $null) {
-            write-host
-            write-host "AzureAD Powershell module not installed..." -f Red
-            write-host "Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-            write-host "Script can't continue..." -f Red
-            write-host
-            exit
-        }
-    
-    # Getting path to ActiveDirectory Assemblies
-    # If the module count is greater than 1 find the latest version
-    
-        if($AadModule.count -gt 1){
-    
-            $Latest_Version = ($AadModule | select version | Sort-Object)[-1]
-    
-            $aadModule = $AadModule | ? { $_.version -eq $Latest_Version.version }
-    
-                # Checking if there are multiple versions of the same module found
-    
-                if($AadModule.count -gt 1){
-    
-                $aadModule = $AadModule | select -Unique
-    
-                }
-    
-            $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-            $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-    
-        }
-    
-        else {
-    
-            $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-            $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-    
-        }
-    
-    [System.Reflection.Assembly]::LoadFrom($adal) | Out-Null
-    
-    [System.Reflection.Assembly]::LoadFrom($adalforms) | Out-Null
-    
-    $clientId = "d1ddf0e4-d672-4dae-b554-9d5bdfd93547"
-    
-    $redirectUri = "urn:ietf:wg:oauth:2.0:oob"
-    
-    $resourceAppIdURI = "https://graph.microsoft.com"
-    
-    $authority = "https://login.microsoftonline.com/$Tenant"
-    
-        try {
-    
-        $authContext = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
-    
-        # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
-        # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
-    
-        $platformParameters = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList "Auto"
-    
-        $userId = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($User, "OptionalDisplayableId")
-    
-        $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
-    
-            # If the accesstoken is valid then create the authentication header
-    
-            if($authResult.AccessToken){
-    
-            # Creating header for Authorization token
-    
-            $authHeader = @{
-                'Content-Type'='application/json'
-                'Authorization'="Bearer " + $authResult.AccessToken
-                'ExpiresOn'=$authResult.ExpiresOn
-                }
-    
-            return $authHeader
-    
-            }
-    
-            else {
-    
-            Write-Host
-            Write-Host "Authorization Access Token is null, please re-run authentication..." -ForegroundColor Red
-            Write-Host
-            break
-    
-            }
-    
-        }
-    
-        catch {
-    
-        write-host $_.Exception.Message -f Red
-        write-host $_.Exception.ItemName -f Red
-        write-host
-        break
-    
-        }
-    
-    }
     
 ###############################################################################################################
 
@@ -289,14 +179,14 @@ Function Get-DeviceConfigurationPolicy(){
             if($id){
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
     
             }
     
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
     
             }
     
@@ -352,14 +242,14 @@ Function Get-DeviceConfigurationPolicyGP(){
             if($id){
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
     
             }
     
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
     
             }
     
@@ -415,7 +305,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValues()
 	{
 		
 		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-		(Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+		(Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
 		
 	}
 	
@@ -469,7 +359,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues()
 	{
 		
 		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-		(Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+		(Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
 		
 	}
 	
@@ -522,7 +412,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesdefinition ()
 		
 		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
 		
-		$responseBody = Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get
+		$responseBody = Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject
 		
 		
 	}
@@ -577,7 +467,7 @@ Function Get-GroupPolicyDefinitionsPresentations ()
 		
 		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
 		
-		(Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value.presentation
+		(Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value.presentation
 		
 		
 	}
@@ -636,14 +526,14 @@ Function Get-DeviceConfigurationPolicySC(){
                     if($id){
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
             
                     }
             
                     else {
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
             
                     }
             
@@ -699,14 +589,14 @@ Function Get-DeviceCompliancePolicy(){
                     if($id){
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
             
                     }
             
                     else {
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
             
                     }
             
@@ -759,14 +649,14 @@ Function Get-DeviceSecurityPolicy(){
                     if($id){
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
             
                     }
             
                     else {
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
             
                     }
             
@@ -816,14 +706,14 @@ Function Get-ManagedAppProtectionAndroid(){
             if($id){
             
                 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource('$id')"
-                (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get)
+                (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
         
                 }
         
                 else {
         
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-                    Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get  
+                    Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject  
         
                 }
                 
@@ -868,14 +758,14 @@ Function Get-ManagedAppProtectionIOS(){
                 if($id){
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource('$id')"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get)
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
             
                     }
             
                     else {
             
                         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
-                        Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get  
+                        Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject 
             
                     }
         
@@ -922,14 +812,14 @@ Function Get-AutoPilotProfile(){
                         if($id){
                 
                         $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
                 
                         }
                 
                         else {
                 
                         $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
                 
                         }
                 
@@ -983,14 +873,14 @@ Function Get-AutoPilotESP(){
                             if($id){
                     
                             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
                     
                             }
                     
                             else {
                     
                             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
                     
                             }
                     
@@ -1047,7 +937,7 @@ Function Get-DecryptedDeviceConfigurationPolicy(){
                     if ($omaSetting.isEncrypted -eq $true) {
                         $DCP_resource_function = "$($DCP_resource)/$($dcp.id)/getOmaSettingPlainTextValue(secretReferenceValueId='$($omaSetting.secretReferenceValueId)')"
                         $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource_function)"
-                        $value = ((Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value)
+                        $value = ((Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value)
 
                         #Remove any unnecessary properties
                         $omaSetting.PsObject.Properties.Remove("isEncrypted")
@@ -1182,9 +1072,9 @@ function addpolicy() {
         $policy = Get-DeviceSecurityPolicy -id $id
         $templateid = $policy.templateID
         $uri = "https://graph.microsoft.com/beta/deviceManagement/templates/$templateId/createInstance"
-        $template = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -Headers $authToken -Method Get
-        $templateCategory = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Headers $authToken -Method Get | Get-MSGraphAllPages
-        $intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
+        $template = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -Method Get -OutputType PSObject
+        $templateCategory = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Method Get -OutputType PSObject | Get-MSGraphAllPages
+        $intentSettingsDelta = (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Method Get -OutputType PSObject).value
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy = @{
@@ -1214,7 +1104,7 @@ function addpolicy() {
     }
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
-        $policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
+        $policy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Method Get -OutputType PSObject
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy.displayName = $newname
@@ -1235,7 +1125,7 @@ function addpolicy() {
     }
     "deviceAppManagement/managedAppPoliciesios" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
-        $policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
+        $policy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Method Get -OutputType PSObject
         $oldname = $policy.displayName
         $newname = "Copy Of " + $oldname
         $policy.displayName = $newname
@@ -1266,7 +1156,7 @@ function addpolicy() {
    try {
        # Add the policy
        $body = ([System.Text.Encoding]::UTF8.GetBytes($policy.tostring()))
-    Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
+    Invoke-MgGraphRequest -Uri $uri -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
     #invoke-MSGraphRequest -Url $uri -HttpMethod POST -Content $body
     }
     catch {
@@ -1276,66 +1166,6 @@ function addpolicy() {
 
 }
 
-
-
-
-
-###############################################################################################################
-######                                          MS Graph Implementations                                 ######
-###############################################################################################################
-
-
-
-#Authenticate for MS Graph
-#region Authentication
-
-write-host
-
-# Checking if authToken exists before running authentication
-if($global:authToken){
-
-    # Setting DateTime to Universal time to work in all timezones
-    $DateTime = (Get-Date).ToUniversalTime()
-
-    # If the authToken exists checking when it expires
-    $TokenExpires = ($authToken.ExpiresOn.datetime - $DateTime).Minutes
-
-        if($TokenExpires -le 0){
-
-        write-host "Authentication Token expired" $TokenExpires "minutes ago" -ForegroundColor Yellow
-        write-host
-
-            # Defining User Principal Name if not present
-
-            if($User -eq $null -or $User -eq ""){
-
-            $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-            Write-Host
-
-            }
-
-        $global:authToken = Get-AuthToken -User $User
-
-        }
-}
-
-# Authentication doesn't exist, calling Get-AuthToken function
-
-else {
-
-    if($User -eq $null -or $User -eq ""){
-
-    $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
-
-# Getting the authorization token
-$global:authToken = Get-AuthToken -User $User
-
-}
-
-#endregion
 
 
 
@@ -1442,7 +1272,7 @@ $OutDefjson = @()
             $DCP_resource = "deviceManagement/groupPolicyConfigurations/$($policyid)/definitionValues"
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
             $ProgressPreference = 'SilentlyContinue' 
-			$apply = Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $json -ContentType "application/json"
+			$apply = Invoke-MgGraphRequest -Uri $uri -Method Post -Body $json -ContentType "application/json"
             $ProgressPreference = 'Continue'  
 
         }

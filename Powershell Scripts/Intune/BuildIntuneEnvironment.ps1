@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.2
+.VERSION 3.0.0
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Builds an Intune environment using intunebackupandrestore
@@ -25,14 +25,15 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.2
+  Version:        3.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  21/08/2021
+  Modified Date:  31/10/2022
   Purpose/Change: Initial script development
-  Updated: 28/04/2022
   Reason: Fixed issue with Update ring assignments
+  Change: Switched to Graph SDK
   
 .EXAMPLE
 N/A
@@ -45,12 +46,12 @@ $version = "2.1"
 Write-Host "Installing Intune modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -73,37 +74,12 @@ else {
     }
 }
 
-Write-Host "Installing AzureAD Preview modules if required (current user scope)"
-
-#Install AZ Module if not available
-if (Get-Module -ListAvailable -Name AzureADPreview) {
-    Write-Host "AZ Ad Preview Module Already Installed"
-} 
-else {
-    try {
-        Install-Module -Name AzureADPreview -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
-}
-
-
-
-
-
-
 
 #Importing Modules
 Import-Module IntuneBackupAndRestore
 Import-Module Microsoft.Graph.Intune
-
-#Group creation needs preview module so we need to remove non-preview first
-# Unload the AzureAD module (or continue if it's already unloaded)
-Remove-Module AzureAD -ErrorAction SilentlyContinue
-# Load the AzureADPreview module
-Import-Module AzureADPreview
+import-module microsoft.graph.authentication
+import-module microsoft.graph.groups
 
 
 
@@ -115,143 +91,6 @@ Import-Module AzureADPreview
 
 
 
-function Get-AuthToken {
-
-    <#
-    .SYNOPSIS
-    This function is used to authenticate with the Graph API REST interface
-    .DESCRIPTION
-    The function authenticate with the Graph API Interface with the tenant name
-    .EXAMPLE
-    Get-AuthToken
-    Authenticates you with the Graph API interface
-    .NOTES
-    NAME: Get-AuthToken
-    #>
-    
-    [cmdletbinding()]
-    
-    param
-    (
-        [Parameter(Mandatory=$true)]
-        $User
-    )
-    
-    $userUpn = New-Object "System.Net.Mail.MailAddress" -ArgumentList $User
-    
-    $tenant = $userUpn.Host
-    
-    Write-Host "Checking for AzureAD module..."
-    
-        $AadModule = Get-Module -Name "AzureAD" -ListAvailable
-    
-        if ($AadModule -eq $null) {
-    
-            Write-Host "AzureAD PowerShell module not found, looking for AzureADPreview"
-            $AadModule = Get-Module -Name "AzureADPreview" -ListAvailable
-    
-        }
-    
-        if ($AadModule -eq $null) {
-            write-host
-            write-host "AzureAD Powershell module not installed..." -f Red
-            write-host "Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-            write-host "Script can't continue..." -f Red
-            write-host
-            exit
-        }
-    
-    # Getting path to ActiveDirectory Assemblies
-    # If the module count is greater than 1 find the latest version
-    
-        if($AadModule.count -gt 1){
-    
-            $Latest_Version = ($AadModule | select version | Sort-Object)[-1]
-    
-            $aadModule = $AadModule | ? { $_.version -eq $Latest_Version.version }
-    
-                # Checking if there are multiple versions of the same module found
-    
-                if($AadModule.count -gt 1){
-    
-                $aadModule = $AadModule | select -Unique
-    
-                }
-    
-            $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-            $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-    
-        }
-    
-        else {
-    
-            $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
-            $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
-    
-        }
-    
-    [System.Reflection.Assembly]::LoadFrom($adal) | Out-Null
-    
-    [System.Reflection.Assembly]::LoadFrom($adalforms) | Out-Null
-    
-    $clientId = "d1ddf0e4-d672-4dae-b554-9d5bdfd93547"
-    
-    $redirectUri = "urn:ietf:wg:oauth:2.0:oob"
-    
-    $resourceAppIdURI = "https://graph.microsoft.com"
-    
-    $authority = "https://login.microsoftonline.com/$Tenant"
-    
-        try {
-    
-        $authContext = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
-    
-        # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
-        # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
-    
-        $platformParameters = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList "Auto"
-    
-        $userId = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($User, "OptionalDisplayableId")
-    
-        $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
-    
-            # If the accesstoken is valid then create the authentication header
-    
-            if($authResult.AccessToken){
-    
-            # Creating header for Authorization token
-    
-            $authHeader = @{
-                'Content-Type'='application/json'
-                'Authorization'="Bearer " + $authResult.AccessToken
-                'ExpiresOn'=$authResult.ExpiresOn
-                }
-    
-            return $authHeader
-    
-            }
-    
-            else {
-    
-            Write-Host
-            Write-Host "Authorization Access Token is null, please re-run authentication..." -ForegroundColor Red
-            Write-Host
-            break
-    
-            }
-    
-        }
-    
-        catch {
-    
-        write-host $_.Exception.Message -f Red
-        write-host $_.Exception.ItemName -f Red
-        write-host
-        break
-    
-        }
-    
-    }
     
     ####################################################
     
@@ -284,14 +123,14 @@ function Get-AuthToken {
             if($Name){
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=displayName eq '$name'"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
     
             }
     
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
     
             }
     
@@ -348,14 +187,14 @@ function Get-AuthToken {
                     if($Name){
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=name eq '$name'"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
             
                     }
             
                     else {
             
                     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
             
                     }
             
@@ -411,14 +250,14 @@ function Get-AuthToken {
                         if($Name){
                 
                         $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=displayName eq '$name'"
-                        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
+                        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
                 
                         }
                 
                         else {
                 
                         $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+                        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
                 
                         }
                 
@@ -470,7 +309,7 @@ function Get-AuthToken {
         try {
     
         $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/groupAssignments"
-        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
     
         }
     
@@ -519,7 +358,7 @@ function Get-AuthToken {
             try {
         
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/Assignments"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
         
             }
         
@@ -571,7 +410,7 @@ function Get-AuthToken {
             try {
         
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/Assignments"
-            (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
         
             }
         
@@ -747,7 +586,7 @@ function Get-AuthToken {
     
         # POST to Graph Service
         $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-        Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $JSON -ContentType "application/json"
+        Invoke-MgGraphRequest -Uri $uri -Method POST -Body $JSON -ContentType "application/json"
     
         }
         
@@ -923,7 +762,7 @@ function Get-AuthToken {
         
             # POST to Graph Service
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $JSON -ContentType "application/json"
+            Invoke-MgGraphRequest -Uri $uri -Method POST -Body $JSON -ContentType "application/json"
         
             }
             
@@ -1104,7 +943,7 @@ function Get-AuthToken {
         
             # POST to Graph Service
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $JSON -ContentType "application/json"
+            Invoke-MgGraphRequest -Uri $uri -Method POST -Body $JSON -ContentType "application/json"
         
             }
             
@@ -1262,22 +1101,21 @@ $build.Add_Click({
 ###############################################################################################################
 ######                                          Group Creation                                           ######
 ###############################################################################################################
-#Connect to Azure AD
-Connect-AzureAD
+
 
 #Create Azure AD Groups
 
 #AutoPilot Group
-$autopilotgrp = New-AzureADMSGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
+$autopilotgrp = New-MgGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled:$False -MailNickName "autopilotdevices" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
 
 #Pilot Group
-$pilotgrp = New-AzureADMSGroup -DisplayName "Intune-Pilot-Users" -Description "Assigned group for Pilot Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+$pilotgrp = New-MgGroup -DisplayName "Intune-Pilot-Users" -Description "Assigned group for Pilot Users" -MailEnabled:$False -MailNickName "pilotusers" -SecurityEnabled
 
 #Preview Group
-$previewgrp = New-AzureADMSGroup -DisplayName "Intune-Preview-Users" -Description "Assigned group for Preview Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+$previewgrp = New-MgGroup -DisplayName "Intune-Preview-Users" -Description "Assigned group for Preview Users" -MailEnabled:$False -MailNickName "previewusers" -SecurityEnabled
 
 #VIP Group
-$vipgrp = New-AzureADMSGroup -DisplayName "Intune-VIP-Users" -Description "Assigned group for VIP Users" -MailEnabled $False -MailNickName "group" -SecurityEnabled $True
+$vipgrp = New-MgGroup -DisplayName "Intune-VIP-Users" -Description "Assigned group for VIP Users" -MailEnabled:$False -MailNickName "vipusers" -SecurityEnabled
 
 
 #Notify complete
@@ -1392,65 +1230,6 @@ $userscript = $path + "\Intune-Config-main\Device Management Scripts\Script Cont
 ##Restore
 Start-IntuneRestoreConfig -Path $pathaz
 
-###############################################################################################################
-######                                          MS Graph Implementations                                 ######
-###############################################################################################################
-
-
-#Assign Policies to Groups
-
-
-#Authenticate for MS Graph
-#region Authentication
-
-write-host
-
-# Checking if authToken exists before running authentication
-if($global:authToken){
-
-    # Setting DateTime to Universal time to work in all timezones
-    $DateTime = (Get-Date).ToUniversalTime()
-
-    # If the authToken exists checking when it expires
-    $TokenExpires = ($authToken.ExpiresOn.datetime - $DateTime).Minutes
-
-        if($TokenExpires -le 0){
-
-        write-host "Authentication Token expired" $TokenExpires "minutes ago" -ForegroundColor Yellow
-        write-host
-
-            # Defining User Principal Name if not present
-
-            if($User -eq $null -or $User -eq ""){
-
-            $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-            Write-Host
-
-            }
-
-        $global:authToken = Get-AuthToken -User $User
-
-        }
-}
-
-# Authentication doesn't exist, calling Get-AuthToken function
-
-else {
-
-    if($User -eq $null -or $User -eq ""){
-
-    $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
-
-# Getting the authorization token
-$global:authToken = Get-AuthToken -User $User
-
-}
-
-#endregion
-
 
 ###############################################################################################################
 ######                                          Create Autpilot Profile                                  ######
@@ -1495,7 +1274,7 @@ $json = @"
     Write-Verbose "POST $uri`n$json"
 
     try {
-        Invoke-MSGraphRequest -Url $uri -HttpMethod POST -Content $json
+        Invoke-MgGraphRequest -Uri $uri -Method POST -Body $json -ContentType "application/json"
     }
     catch {
         Write-Error $_.Exception 
@@ -1532,7 +1311,8 @@ $json = @"
 Write-Verbose "POST $uri`n$json"
 
 try {
-    $enrollment = Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $json
+    $enrollment = Invoke-MgGraphRequest -Uri $uri -Method POST -Body $json -ContentType "application/json"
+
 }
 catch {
     Write-Error $_.Exception 
@@ -1574,7 +1354,7 @@ $json = @"
         Write-Verbose "POST $uri`n$json"
 
         try {
-            Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $json
+            Invoke-MgGraphRequest -Uri $uri -Method POST -Body $json -ContentType "application/json"
         }
         catch {
             Write-Error $_.Exception 
@@ -1615,7 +1395,7 @@ $json = @"
         Write-Verbose "POST $uri`n$json"
 
         try {
-            Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $json
+            Invoke-MgGraphRequest -Uri $uri -Method POST -Body $json -ContentType "application/json"
         }
         catch {
             Write-Error $_.Exception 
@@ -1850,7 +1630,7 @@ $JSON =@"
         
             # POST to Graph Service
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            Invoke-RestMethod -Uri $uri -Headers $authToken -Method Post -Body $JSON -ContentType "application/json"
+            Invoke-MgGraphRequest -Uri $uri -Method POST -Body $JSON -ContentType "application/json"
     Write-Host "Assigned all exclusion groups to $($DCP.displayName)/$($DCP.id)" -ForegroundColor Green
     Write-Host
 
@@ -1874,7 +1654,7 @@ $msgBody = "Environment Built"
  })
 
 
-
+Disconnect-MgGraph
 
 
 [void]$CreateIntuneEnv.ShowDialog()
