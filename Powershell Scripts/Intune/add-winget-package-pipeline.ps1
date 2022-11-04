@@ -48,6 +48,28 @@ param (
     $yamlFile
 )
 
+###############################################################################################################
+######                                          Download Apps                                            ######
+###############################################################################################################
+
+##Set Download Directory
+
+$directory = $env:TEMP
+#Create Temp location
+$random = Get-Random -Maximum 1000 
+$random = $random.ToString()
+$date =get-date -format yyMMddmmss
+$date = $date.ToString()
+$path2 = $random + "-"  + $date
+$path = $directory + "\" + $path2 + "\"
+new-item -ItemType Directory -Path $path
+
+
+##IntuneWinAppUtil
+$intuneapputilurl = "https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool/raw/master/IntuneWinAppUtil.exe"
+$intuneapputiloutput = $path + "IntuneWinAppUtil.exe"
+Invoke-WebRequest -Uri $intuneapputilurl -OutFile $intuneapputiloutput
+
 
 ###############################################################################################################
 ######                                         Install Modules                                           ######
@@ -2354,24 +2376,15 @@ function new-win32app {
 $uri = "https://graph.microsoft.com/beta/organization"
 $tenantdetails = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
 $tenantid = $tenantdetails.id
-Connect-MSIntuneGraph -TenantID $tenantId
 
-##Set Download Directory
 
-$directory = $env:TEMP
-#Create Temp location
-$random = Get-Random -Maximum 1000 
-$random = $random.ToString()
-$date =get-date -format yyMMddmmss
-$date = $date.ToString()
-$path2 = $random + "-"  + $date
-$path = $directory + "\" + $path2 + "\"
-new-item -ItemType Directory -Path $path
 
 $filename = $yamlFile.Substring($yamlFile.LastIndexOf("/") + 1)
 
 ##File Name
 $templateFilePath = $path + $filename
+
+
 
 ###############################################################################################################
 ######                                          Download YAML                                            ######
