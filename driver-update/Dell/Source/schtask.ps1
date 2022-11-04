@@ -38,7 +38,12 @@ $taskname = "Intune Driver Updates"
 $taskdescription = "Weekly driver update Friday at 13:00"
 
 #Require AC Power
-$settings= New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries = $false -DontStopIfGoingOnBatteries = $false
+$Settings = @{
+    AllowStartIfOnBatteries = $false
+    DontStopIfGoingOnBatteries = $false
+}
+$settings= New-ScheduledTaskSettingsSet @settings
+
 
 
 #Register the Task
