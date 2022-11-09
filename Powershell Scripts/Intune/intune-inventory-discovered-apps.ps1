@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 7b1c483b-b109-4d45-8abc-84760c84d9d9
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists all discovered apps with drill-down
@@ -25,7 +25,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -49,12 +49,12 @@ Start-Transcript -Path $env:TEMP\intune-$date.log
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph.authentication) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.authentication -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
