@@ -23,13 +23,13 @@ N/A
 #Configure Scheduled Task for driver updates
 
 #Set the action
-$action = New-ScheduledTaskAction -Execute “C:\Program Files\Dell\CommandUpdate\dcu-cli.exe” -Argument “/applyUpdates -silent -reboot=disable -outputlog=c:\driversupd\log.log”
+$action = New-ScheduledTaskAction -Execute "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -Argument "/applyUpdates -silent -reboot=disable -outputlog=c:\driversupd\log.log"
 
 #Set a trigger
 $trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 2 -DaysOfWeek Friday -At 1pm 
 
 #Set to run as system
-$principal= New-ScheduledTaskPrincipal -UserID “NT AUTHORITY\SYSTEM” -LogonType “ServiceAccount” -RunLevel “Highest”
+$principal= New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType "ServiceAccount" -RunLevel "Highest"
 
 #Set a Name
 $taskname = "Intune Driver Updates"
