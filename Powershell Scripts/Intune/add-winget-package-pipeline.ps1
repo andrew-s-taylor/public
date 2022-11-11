@@ -110,18 +110,76 @@ else {
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
         exit
     }
 }
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.DevicesApps.DeviceAppManagement ) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.DevicesApps.DeviceAppManagement  -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
 
 ###############################################################################################################
 ######                                     Graph Connection                                              ######
@@ -144,7 +202,11 @@ $accessToken
 
 #Importing Modules
 Import-Module powershell-yaml
-Import-Module microsoft.graph
+Import-Module microsoft.graph.groups
+import-module microsoft.graph.intune
+import-module microsoft.graph.devicemanagement
+import-module microsoft.graph.authentication
+import-module Microsoft.Graph.DevicesApps.DeviceAppManagement 
 
 #Get Creds and connect
 #Connect to Graph

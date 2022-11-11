@@ -55,13 +55,15 @@ Start-Transcript -Path $env:TEMP\intune-$date.log
 ###############################################################################################################
 Write-Host "Installing Intune modules if required (current user scope)"
 
-#Install Graph Module if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
-    Write-Host "Graph Module Already Installed"
+Write-Host "Installing Intune modules if required (current user scope)"
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name powershell-yaml) {
+    Write-Host "PowerShell YAML Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force -AllowClobber 
+        Install-Module -Name powershell-yaml -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -69,10 +71,87 @@ else {
     }
 }
 
-##Import Modules
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
-# Load the AzureADPreview module
-Import-Module Microsoft.Graph
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.DevicesApps.DeviceAppManagement ) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.DevicesApps.DeviceAppManagement  -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
+#Importing Modules
+Import-Module powershell-yaml
+Import-Module microsoft.graph.groups
+import-module microsoft.graph.intune
+import-module microsoft.graph.devicemanagement
+import-module microsoft.graph.authentication
+import-module Microsoft.Graph.DevicesApps.DeviceAppManagement 
+
 
 ###############################################################################################################
 
