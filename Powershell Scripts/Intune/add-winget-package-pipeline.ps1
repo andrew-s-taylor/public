@@ -45,7 +45,10 @@ N/A
 param (
     [Parameter()]
     [String]
-    $repo,
+    $reponame,
+    [Parameter()]
+    [String]
+    $ownername,
     [Parameter()]
     [String]
     $tenant,
@@ -2395,15 +2398,23 @@ $filename = $yamlFile.Substring($yamlFile.LastIndexOf("/") + 1)
 
 ##File Name
 $templateFilePath = $path + $filename
+###############################################################################################################
+######                                          Get YAML                                                 ######
+###############################################################################################################
 
-
+$uri = "https://api.github.com/repos/$ownername/$reponame/commits"
+$events = (Invoke-RestMethod -Uri $uri -Method Get).commit | select -First 1
+$eventsuri = $events.url
+$commitid = Split-Path $eventsuri -Leaf
+$commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
+$commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get).Files).raw_url
 
 ###############################################################################################################
 ######                                          Download YAML                                            ######
 ###############################################################################################################
 
 Invoke-WebRequest `
-   -Uri $yamlFile `
+   -Uri $commitfilename `
    -OutFile $templateFilePath `
    -UseBasicParsing `
    -Headers @{"Cache-Control"="no-cache"}
