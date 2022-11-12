@@ -63,10 +63,6 @@ param (
     $clientsecret
 )
 
-###############################################################################################################
-######                                         Get YAML File                                             ######
-###############################################################################################################
-
 
 ###############################################################################################################
 ######                                          Download Apps                                            ######
@@ -157,7 +153,7 @@ else {
 ###############################################################################################################
 ######                                     Graph Connection                                              ######
 ###############################################################################################################
-
+##Connect using Secret
 $tenantId = $tenant
  
 $body = @{
@@ -2437,9 +2433,15 @@ write-host "Tenant ID is $tenantid"
 ###############################################################################################################
 ######                                          Get YAML                                                 ######
 ###############################################################################################################
+
+##Grab GitHub Commits
 write-host "Finding Latest YAML Commit from Repo $reponame in $ownername GitHub"
 $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
 $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
+
+##Loop through until we hit a YAML file
+##We don't want to grab anything else in the repo
+##When we find a YAML, break the loop
 foreach ($event in $events) {
 $eventsuri = $event.url
 $commitid = Split-Path $eventsuri -Leaf
