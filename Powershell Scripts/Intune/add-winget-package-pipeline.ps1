@@ -57,6 +57,9 @@ param (
     $clientid,
     [Parameter()]
     [String]
+    $token,
+    [Parameter()]
+    [String]
     $clientsecret
 )
 
@@ -98,86 +101,56 @@ if (Get-Module -ListAvailable -Name powershell-yaml) {
     Write-Host "PowerShell YAML Already Installed"
 } 
 else {
-    try {
         Install-Module -Name powershell-yaml -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Write-Host "PowerShell YAML Installed"
 }
 
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
-    Write-Host "Microsoft Graph Already Installed"
+    Write-Host "Microsoft Graph Groups Already Installed "
 } 
 else {
-    try {
         Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Write-Host "Microsoft Graph Groups Installed"
 }
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
-    Write-Host "Microsoft Graph Already Installed"
+    Write-Host "Microsoft Graph DeviceManagement Already Installed"
 } 
 else {
-    try {
         Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Write-Host "Microsoft Graph DeviceManagement Installed"
 }
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
-    Write-Host "Microsoft Graph Already Installed"
+    Write-Host "Microsoft Graph Intune Already Installed"
 } 
 else {
-    try {
         Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Write-Host "Microsoft Graph Intune Installed"
 }
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
-    Write-Host "Microsoft Graph Already Installed"
+    Write-Host "Microsoft Graph Authentication Already Installed"
 } 
 else {
-    try {
         Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Write-Host "Microsoft Graph Authentication Installed"
 }
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph.DevicesApps.DeviceAppManagement ) {
-    Write-Host "Microsoft Graph Already Installed"
+if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
+    Write-Host "Microsoft Graph Corporate Management Already Installed"
 } 
 else {
-    try {
-        Install-Module -Name Microsoft.Graph.DevicesApps.DeviceAppManagement  -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force 
+        Write-Host "Microsoft Graph Corporate Management Installed"
     }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
-}
 
 
 
@@ -199,19 +172,23 @@ $accessToken = $response.access_token
  
 $accessToken
 
-
+write-host "Importing Modules"
 #Importing Modules
 Import-Module powershell-yaml
 Import-Module microsoft.graph.groups
 import-module microsoft.graph.intune
 import-module microsoft.graph.devicemanagement
 import-module microsoft.graph.authentication
-import-module Microsoft.Graph.DevicesApps.DeviceAppManagement 
+import-module microsoft.graph.devices.corporatemanagement
+write-host "Modules Imported"
 
 #Get Creds and connect
 #Connect to Graph
+write-host "Connecting to Graph"
+write-host $body
 Select-MgProfile -Name Beta
-Connect-MgGraph  -AccessToken $accessToken -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-MgGraph  -AccessToken $accessToken 
+write-host "Graph Connection Established"
 
 
 ###############################################################################################################
@@ -249,7 +226,7 @@ function Add-MDMApplication() {
         
         Test-JSON -JSON $JSON
 
-        New-MgDeviceAppManagementMobileApp -BodyParameter $JSON        
+        New-MgDeviceAppMgtMobileApp -BodyParameter $JSON        
     }
         
     catch {
@@ -332,7 +309,7 @@ Function Add-ApplicationAssignment() {
             ]
         }
 "@
-        New-MgDeviceAppManagementMobileAppAssignment -BodyParameter $JSON
+        New-MgDeviceAppMgtMobileAppAssignment -BodyParameter $JSON
         
     }
             
@@ -1101,7 +1078,7 @@ function Invoke-UploadWin32Lob() {
         }
         
         Write-Verbose "Creating application in Intune..."
-        $mobileApp = New-MgDeviceAppManagementMobileApp -BodyParameter ($mobileAppBody | ConvertTo-Json)
+        $mobileApp = New-MgDeviceAppMgtMobileApp -BodyParameter ($mobileAppBody | ConvertTo-Json)
         
         # Get the content version for the new app (this will always be 1 until the new app is committed).
         Write-Verbose "Creating Content Version in the service for the application..."
@@ -1201,7 +1178,7 @@ Function Get-IntuneApplication() {
         #>            
     try {
 
-        return Get-MgDeviceAppManagementMobileApp -All | Where-Object { (!($_.AdditionalProperties['@odata.type']).Contains("managed")) }
+        return Get-MgDeviceAppMgtMobileApp -All | Where-Object { (!($_.AdditionalProperties['@odata.type']).Contains("managed")) }
         
     }
             
@@ -2374,7 +2351,8 @@ function grant-win32app {
         $installgroup,
         $uninstallgroup
     )
-    $Application = Get-IntuneApplication | where-object { $_.displayName -eq "$appname" -and $_.description -like "*Winget*" }
+    $Application = Get-IntuneApplication | where-object { $_.displayName -eq "$appname" }
+
     #Install
     $ApplicationId = $Application.id
     $TargetGroupId1 = $installgroup
@@ -2448,39 +2426,50 @@ function new-win32app {
 ######                          END FUNCTIONS SECTION                                               ########
 ############################################################################################################
 
-
+write-host "Grabbing Tenant ID"
 #Get Tenant ID
 $uri = "https://graph.microsoft.com/beta/organization"
 $tenantdetails = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
 $tenantid = $tenantdetails.id
+write-host "Tenant ID is $tenantid"
 
 
-
-$filename = $yamlFile.Substring($yamlFile.LastIndexOf("/") + 1)
-
-##File Name
-$templateFilePath = $path + $filename
 ###############################################################################################################
 ######                                          Get YAML                                                 ######
 ###############################################################################################################
-
+write-host "Finding Latest YAML Commit from Repo $reponame in $ownername GitHub"
 $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
-$events = (Invoke-RestMethod -Uri $uri -Method Get).commit | select -First 1
-$eventsuri = $events.url
+$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
+foreach ($event in $events) {
+$eventsuri = $event.url
 $commitid = Split-Path $eventsuri -Leaf
 $commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
-$commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get).Files).raw_url
+$commitfilename2 = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Authorization'='token '+$token; 'Accept'='application/json'}).Files).raw_url
+$commitfileext = split-path $commitfilename2 -Leaf
+$commitext = [System.IO.Path]::GetExtension($commitfileext)
+write-host $commitext
+if ($commitext -eq ".yaml") {
+$commitfilename = $commitfilename2
+break;
+}
+}
+write-host "$commitfilename Found"
 
+$filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
+
+##File Name
+$templateFilePath = $path + $filename
+write-host "Output to $templatefilepath"
 ###############################################################################################################
 ######                                          Download YAML                                            ######
 ###############################################################################################################
-
+write-host "Downloading YAML"
 Invoke-WebRequest `
    -Uri $commitfilename `
    -OutFile $templateFilePath `
    -UseBasicParsing `
    -Headers @{"Cache-Control"="no-cache"}
-
+write-host "Investigating YAML"
 [string[]]$fileContent = Get-Content $templateFilePath
 $content = ''
 foreach ($line in $fileContent) { $content = $content + "`n" + $line }
@@ -2511,6 +2500,7 @@ $icondownload = $path + $iconname
 
 
 ##Download Icon
+write-host "Downloading Icon"
 Invoke-WebRequest `
    -Uri $iconpath `
    -OutFile $icondownload `
@@ -2538,15 +2528,20 @@ $infourl = $obj.PackageUrl
 
 $groupname1 = $name + "-INSTALL"
 #Create Install Group
+write-host "Creating Install Group"
 $installgroup = New-MgGroup -DisplayName $adgroupinstall -Description "Install group for $name" -SecurityEnabled -MailEnabled:$false -MailNickName "group" 
+write-host "Install Group Created"
 
 $groupname2 = $name + "-UNINSTALL"
 #Create Uninstall Group
+write-host "Creating Uninstall Group"
 $uninstallgroup = New-MgGroup -DisplayName $adgroupuninstall -Description "Uninstall group for $name" -SecurityEnabled -MailEnabled:$false -MailNickName "group" 
+write-host "Uninstall Group Created"
 
 $setupfile = "$path$name-Install.ps1"
 $setupfilename = "$name-Install.ps1"
 ##Create Install File
+write-host "Creating Install File"
 Set-Content $setupfile @'
 
 $filename2 = 
@@ -2563,43 +2558,67 @@ $filename = $filename2.Substring($filename2.LastIndexOf("/") + 1)
    Start-Process -NoNewWindow -FilePath $winget -ArgumentList "install --silent  --manifest $filename"
 
 '@
-
+write-host "Install File Created"
 $path4 = $detectionrule
 $fname = $path4.Substring($path4.LastIndexOf("\") + 1)
 $fpath = Split-Path -Path $path4
 
     # Package as .intunewin file
+    write-host "Creating .intunewin File"
     $SourceFolder = $path
     $OutputFolder = $path
-    New-IntuneWin32AppPackage -SourceFolder $SourceFolder -SetupFile $setupfilename -OutputFolder $OutputFolder -Verbose
+    $appid = New-Guid
+    $intunewinpath = $apppath + "\install$name.intunewin"
+    new-intunewinfile -appid $appid -appname $name -apppath $OutputFolder -setupfilename $setupfilename
+    Write-Host "Intunewin $intunewinpath Created"
+    $sleep = 10
+    foreach ($i in 0..$sleep) {
+        Write-Progress -Activity "Sleeping for $($sleep-$i) seconds" -PercentComplete ($i / $sleep * 100) -SecondsRemaining ($sleep - $i)
+        Start-Sleep -s 1
+    }
+    write-host ".intunewin File Created"
 
     $IntuneWinFile = Get-ChildItem -Path  $path | Where-Object Name -Like "*.intunewin"
     $IntuneWinFile.Name
-
+    $intunewincreated = $path + "\" + $intunewinfile.Name
     # Create custom display name like 'Name' and 'Version'
+    write-host "Creating Custom Display Name"
     $DisplayName = $name
 
     # Create detection rule
-    $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -Path "$fpath" -FileOrFolder $fname -Check32BitOn64System $false -DetectionType "exists"
+    write-host "Creating Detection Rule"
+    # Defining Intunewin32 detectionRules
+$FileRule = New-DetectionRule -File -Path "$fpath" `
+-FileOrFolderName "$fname" -FileDetectionType exists -check32BitOn64System False
+
+# Creating Array for detection Rule
+$DetectionRule = @($FileRule)
+
+$ReturnCodes = Get-DefaultReturnCodes
 
     # Add new EXE Win32 app
+    write-host "Adding EXE Win32 App"
     $InstallationScriptFile = Get-ChildItem -Path $path | Where-Object Name -Like "*-Install.ps1"
     $InstallCommandLine = "powershell.exe -ExecutionPolicy Bypass -File .\$($InstallationScriptFile.Name)"
     $UninstallCommandLine = $uninstallcommand
     $ImageFile = $icondownload
-    $Icon = New-IntuneWin32AppIcon -FilePath $ImageFile
-    Add-IntuneWin32App -FilePath $IntuneWinFile.FullName -DisplayName $DisplayName -Description $description -Publisher $publisher -AppVersion $appversion -InformationURL $infourl -Icon $Icon -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -InstallCommandLine $InstallCommandLine -UninstallCommandLine $UninstallCommandLine -Verbose
+    #$Icon = New-IntuneWin32AppIcon -FilePath $ImageFile
+    Invoke-UploadWin32Lob -SourceFile "$intunewincreated" -DisplayName "$DisplayName" -publisher "$publisher" `
+-description "$description" -detectionRules $DetectionRule -returnCodes $ReturnCodes `
+-installCmdLine "$installcommandline" `
+-uninstallCmdLine "$uninstallcommandline"
 
 
     ##Assignments
-    $Win32App = Get-IntuneWin32App -DisplayName $DisplayName -Verbose
+    write-host "Creating Assignments"
+    $win32app = Get-IntuneApplication | Where-Object { $_.displayName -eq "$DisplayName" }
 
     #Install
 $installid = $installgroup.Id
-Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $installid -Intent "available" -Notification "showAll" -Verbose
-
-
-#Uninstall
 $uninstallid = $uninstallgroup.Id
-Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $uninstallid -Intent "uninstall" -Notification "showAll" -Verbose
+write-host "Assigning $DisplayName version $appversion"
+grant-win32app -appname $DisplayName -installgroup $installid -uninstallgroup $uninstallid
+Write-Host "Assigned $installgroup as Required Install to $appname"
+Write-Host "Assigned $uninstallgroup as Required Uninstall to $appname"
+
     

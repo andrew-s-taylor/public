@@ -130,12 +130,12 @@ else {
 }
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph.DevicesApps.DeviceAppManagement ) {
+if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph.DevicesApps.DeviceAppManagement  -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -150,7 +150,7 @@ Import-Module microsoft.graph.groups
 import-module microsoft.graph.intune
 import-module microsoft.graph.devicemanagement
 import-module microsoft.graph.authentication
-import-module Microsoft.Graph.DevicesApps.DeviceAppManagement 
+import-module microsoft.graph.devices.corporatemanagement 
 
 
 ###############################################################################################################
@@ -250,7 +250,7 @@ function Add-MDMApplication() {
         
         Test-JSON -JSON $JSON
 
-        New-MgDeviceAppManagementMobileApp -BodyParameter $JSON        
+        New-MgDeviceAppMgtMobileApp -BodyParameter $JSON        
     }
         
     catch {
@@ -333,7 +333,7 @@ Function Add-ApplicationAssignment() {
             ]
         }
 "@
-        New-MgDeviceAppManagementMobileAppAssignment -BodyParameter $JSON
+        New-MgDeviceAppMgtMobileAppAssignment -BodyParameter $JSON
         
     }
             
@@ -1102,7 +1102,7 @@ function Invoke-UploadWin32Lob() {
         }
         
         Write-Verbose "Creating application in Intune..."
-        $mobileApp = New-MgDeviceAppManagementMobileApp -BodyParameter ($mobileAppBody | ConvertTo-Json)
+        $mobileApp = New-MgDeviceAppMgtMobileApp -BodyParameter ($mobileAppBody | ConvertTo-Json)
         
         # Get the content version for the new app (this will always be 1 until the new app is committed).
         Write-Verbose "Creating Content Version in the service for the application..."
@@ -1202,7 +1202,7 @@ Function Get-IntuneApplication() {
         #>            
     try {
 
-        return Get-MgDeviceAppManagementMobileApp -All | Where-Object { (!($_.AdditionalProperties['@odata.type']).Contains("managed")) }
+        return Get-MgDeviceAppMgtMobileApp -All | Where-Object { (!($_.AdditionalProperties['@odata.type']).Contains("managed")) }
         
     }
             
