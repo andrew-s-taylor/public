@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+    <policyNamespaces>
+        <target prefix="intune" namespace="fasboot.e2e2f3e1-9587-4f09-9ff7-37dc9089025d"/>
+        <using prefix="windows" namespace="Microsoft.Policies.Windows" />
+    </policyNamespaces>
+    <resources minRequiredRevision="1.0" />
+      <categories>
+        <category name="CtFastBootDisable" displayName="$(string.CtmyCompFastBootDisable)">
+        </category>
+      </categories>
+      <policies>
+    <policy name="FastBoot" class="Machine" displayName="$(string.FastBootDisable)" explainText="$(string.FastBootDisable_Help)" key="SYSTEM\CurrentControlSet\Control\Session Manager\Power" valueName="HiberbootEnabled">
+    <parentCategory ref="CtFastBootDisable" />
+    <supportedOn ref="windows:SUPPORTED_WindowsVista" />
+    <enabledValue>
+        <decimal value="1" />
+    </enabledValue>
+    <disabledValue>
+        <decimal value="0" />
+    </disabledValue>
+</policy>
+</policies>
+</policyDefinitions>
