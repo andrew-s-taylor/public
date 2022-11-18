@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.0
+.VERSION 2.0.1
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,14 +30,15 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.0
+  Version:        2.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  28/10/2022
+  Last Modified:  18/11/2022
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
+  Update: Fixed 2 functions with the same name
 .EXAMPLE
 N/A
 #>
