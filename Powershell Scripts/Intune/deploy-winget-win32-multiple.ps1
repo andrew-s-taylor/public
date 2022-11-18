@@ -2307,7 +2307,7 @@ function new-intunewinfile {
 
 }
 
-function new-detectionscript {
+function new-detectionscriptinstall {
     param
     (
         $appid,
@@ -2504,7 +2504,7 @@ $packs | out-gridview -PassThru -Title "Available Applications" | ForEach-Object
 
     ##Create Detection Script
     Write-Verbose "Creating Detection Script for $appname"
-    $detectionscript = new-detectionscript -appid $appid -appname $appname
+    $detectionscript = new-detectionscriptinstall -appid $appid -appname $appname
     $detectionscriptfile = $apppath + "\detection$appid.ps1"
     $detectionscript | Out-File $detectionscriptfile
     Write-Host "Script created at $detectionscriptfile"
