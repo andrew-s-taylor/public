@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--  (c) 2013 Microsoft Corporation  -->
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName></displayName>
+  <description></description>
+  <resources>
+    <stringTable>
+        <string id="CtmyCompFastBootDisable">Disable Windows FastBoot</string>
+        <string id="FastBootDisable">Disable this setting to disable FastBoot</string>
+        <string id="FastBootDisable_Help">Enable sets HiberbootEnabled to DWORD of 1 (enabled), Disable sets to 0 (disabled)</string>
+    </stringTable>
+         
+<presentationTable>     
+      <presentation id="LogonMessageBoxTitle">
+        <textBox refId="LogonMessageBoxTitle">
+          <label>Message Box Title:</label>
+        </textBox>
+     </presentation>    
+</presentationTable>
+</resources>
+</policyDefinitionResources>
