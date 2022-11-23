@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.3
+  Version:        2.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -26,6 +26,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change: 12/08/2022 - Added additional HP applications
   Change 23/09/2022 - Added Clipchamp (new in W11 22H2)
   Change 28/10/2022 - Fixed issue with Dell apps
+  Change 23/11/2022 - Added Teams Machine wide to exceptions
   
 .EXAMPLE
 N/A
@@ -84,7 +85,7 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
     Microsoft.BioEnrollment|Microsoft.CredDialogHost|Microsoft.ECApp|Microsoft.LockApp|Microsoft.MicrosoftEdgeDevToolsClient|Microsoft.MicrosoftEdge|Microsoft.PPIProjection|Microsoft.Win32WebViewHost|Microsoft.Windows.Apprep.ChxApp|`
     Microsoft.Windows.AssignedAccessLockApp|Microsoft.Windows.CapturePicker|Microsoft.Windows.CloudExperienceHost|Microsoft.Windows.ContentDeliveryManager|Microsoft.Windows.Cortana|Microsoft.Windows.NarratorQuickStart|`
     Microsoft.Windows.ParentalControls|Microsoft.Windows.PeopleExperienceHost|Microsoft.Windows.PinningConfirmationDialog|Microsoft.Windows.SecHealthUI|Microsoft.Windows.SecureAssessmentBrowser|Microsoft.Windows.ShellExperienceHost|`
-    Microsoft.Windows.XGpuEjectDialog|Microsoft.XboxGameCallableUI|Windows.CBSPreview|windows.immersivecontrolpanel|Windows.PrintDialog|Microsoft.VCLibs.140.00|Microsoft.Services.Store.Engagement|Microsoft.UI.Xaml.2.0|*Nvidia*'
+    Microsoft.Windows.XGpuEjectDialog|Microsoft.XboxGameCallableUI|Windows.CBSPreview|windows.immersivecontrolpanel|Windows.PrintDialog|Microsoft.XboxGameCallableUI|Microsoft.VCLibs.140.00|Microsoft.Services.Store.Engagement|Microsoft.UI.Xaml.2.0|*Nvidia*'
     Get-AppxPackage -AllUsers | Where-Object {$_.Name -NotMatch $WhitelistedApps -and $_.Name -NotMatch $NonRemovable} | Remove-AppxPackage
     Get-AppxPackage -allusers | Where-Object {$_.Name -NotMatch $WhitelistedApps -and $_.Name -NotMatch $NonRemovable} | Remove-AppxPackage
     Get-AppxProvisionedPackage -Online | Where-Object {$_.PackageName -NotMatch $WhitelistedApps -and $_.PackageName -NotMatch $NonRemovable} | Remove-AppxProvisionedPackage -Online
@@ -221,6 +222,9 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
     #Disables Windows Feedback Experience
     Write-Host "Disabling Windows Feedback Experience program"
     $Advertising = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
+    If (!(Test-Path $Advertising)) {
+        New-Item $Advertising
+    }
     If (Test-Path $Advertising) {
         Set-ItemProperty $Advertising Enabled -Value 0 
     }
@@ -228,6 +232,9 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
     #Stops Cortana from being used as part of your Windows Search Function
     Write-Host "Stopping Cortana from being used as part of your Windows Search Function"
     $Search = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+    If (!(Test-Path $Search)) {
+        New-Item $Search
+    }
     If (Test-Path $Search) {
         Set-ItemProperty $Search AllowCortana -Value 0 
     }
@@ -713,6 +720,8 @@ $whitelistapps = @(
     "Microsoft Edge Update"
     "Microsoft Edge WebView2 Runtime"
     "Google Chrome"
+    "Microsoft Teams"
+    "Teams Machine-Wide Installer"
 )
 
 $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
