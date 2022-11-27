@@ -1,26 +1,17 @@
-#[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
-<#PSScriptInfo
-.VERSION 1.0.0
-.GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
-.AUTHOR AndrewTaylor
-.DESCRIPTION Backs up Intune and AAD policies to Github then restores from any Commit.  Flat file backups
-.COMPANYNAME 
-.COPYRIGHT GPL
-.TAGS intune endpoint MEM environment
-.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
-.PROJECTURI https://github.com/andrew-s-taylor/public
-.ICONURI 
-.EXTERNALMODULEDEPENDENCIES
-.REQUIREDSCRIPTS 
-.EXTERNALSCRIPTDEPENDENCIES 
-.RELEASENOTES
-#>
+
 <#
 .SYNOPSIS
   Backs up Intune and AAD policies to Github then restores from any Commit.  Flat file backups
 .DESCRIPTION
 Backs up Intune and AAD policies to Github then restores from any Commit.  Flat file backups.  Displays a GUI to select what to backup and which restore point to use
-
+.PARAMETER Path
+    The path to the .
+.PARAMETER LiteralPath
+    Specifies a path to one or more locations. Unlike Path, the value of 
+    LiteralPath is used exactly as it is typed. No characters are interpreted 
+    as wildcards. If the path includes escape characters, enclose it in single
+    quotation marks. Single quotation marks tell Windows PowerShell not to 
+    interpret any characters as escape sequences.
 .INPUTS
 None
 .OUTPUTS
@@ -37,6 +28,22 @@ Creates a log file in %Temp%
 N/A
 #>
 
+<#PSScriptInfo
+.VERSION 1.0.0
+.GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
+.AUTHOR AndrewTaylor
+.DESCRIPTION Backs up Intune and AAD policies to Github then restores from any Commit.  Flat file backups
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS intune endpoint MEM environment
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES 
+.RELEASENOTES
+#>
 
 ##################################################################################################################################
 #################                                                  PARAMS                                        #################
@@ -46,23 +53,17 @@ N/A
     
 param
 (
-    $type,
-    $selected
+    [string]$type #Type can be "backup" or "restore"
+    ,  
+    [string]$selected #Selected can be "all" or literally anything else
+    ,  
+    [string]$reponame #Reponame is the github repo
+    , 
+    [string]$ownername #Ownername is the github account
+    , 
+    [string]$token #Token is the github token
 )
 
-
-##################################################################################################################################
-#################                                                  VARIABLES                                     #################
-##################################################################################################################################
-
-##GitHub Repo for Storing Backups
-$reponame = "backup-restore"
-
-##Github Account Name
-$ownername = "andrew-s-taylor"
-
-##Github Access Token
-$token = "TOKEN_HERE"
 
 ##################################################################################################################################
 #################                                                  INITIALIZATION                                #################
@@ -904,7 +905,7 @@ function getpolicyjson() {
      $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
      $policy = Get-DecryptedDeviceConfigurationPolicy -dcpid $id
      $oldname = $policy.displayName
-     $newname = "CRestored " + $oldname
+     $newname = "Restored " + $oldname
      $policy.displayName = $newname
 
      ##Custom settings only for OMA-URI
@@ -1205,9 +1206,14 @@ $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @
 ##Get Win32 Apps
 #$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, @{N='Type';E={"Win32 Application"}}
 
+if ($selected -eq "all") {
+    $configuration2 = $configuration
+    }
+else {
+    $configuration2 = $configuration | Out-GridView -PassThru -Title "Select policies to copy"
 
-$configuration | Out-GridView -PassThru -Title "Select policies to copy" | ForEach-Object {
-
+}
+$configuration2 | foreach-object {
 
 ##Find out what it is
 $id = $_.ID
@@ -1237,7 +1243,7 @@ write-host "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 
 }
 if ($null -ne $gp) {
@@ -1246,7 +1252,7 @@ write-host "It's an Admin Template"
 $id = $gp.id
 $Resource = "deviceManagement/groupPolicyConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $catalog) {
     # Settings Catalog Policy
@@ -1254,7 +1260,7 @@ write-host "It's a Settings Catalog"
 $id = $catalog.id
 $Resource = "deviceManagement/configurationPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 
 }
 if ($null -ne $compliance) {
@@ -1263,7 +1269,7 @@ write-host "It's a Compliance Policy"
 $id = $compliance.id
 $Resource = "deviceManagement/deviceCompliancePolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $proac) {
     # Proactive Remediations
@@ -1271,7 +1277,7 @@ write-host "It's a Proactive Remediation"
 $id = $proac.id
 $Resource = "deviceManagement/devicehealthscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $security) {
     # Security Policy
@@ -1279,7 +1285,7 @@ write-host "It's a Security Policy"
 $id = $security.id
 $Resource = "deviceManagement/intents"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $autopilot) {
     # Autopilot Profile
@@ -1287,7 +1293,7 @@ write-host "It's an Autopilot Profile"
 $id = $autopilot.id
 $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $esp) {
     # Autopilot ESP
@@ -1295,7 +1301,7 @@ write-host "It's an AutoPilot ESP"
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $android) {
     # Android App Protection
@@ -1303,7 +1309,7 @@ write-host "It's an Android App Protection Policy"
 $id = $android.id
 $Resource = "deviceAppManagement/managedAppPoliciesandroid"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $ios) {
     # iOS App Protection
@@ -1311,7 +1317,7 @@ write-host "It's an iOS App Protection Policy"
 $id = $ios.id
 $Resource = "deviceAppManagement/managedAppPoliciesios"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $aad) {
     # AAD Groups
@@ -1319,7 +1325,7 @@ write-host "It's an AAD Group"
 $id = $aad.id
 $Resource = "groups"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 if ($null -ne $ca) {
     # Conditional Access
@@ -1327,7 +1333,7 @@ write-host "It's a Conditional Access Policy"
 $id = $ca.id
 $Resource = "ConditionalAccess"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[3], $id))
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 #if ($null -ne $win32app) {
     # Win32 App
@@ -1406,35 +1412,22 @@ $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBa
 ###############################################################################################################
 
 
-$temp = $RptServers | ForEach-Object { $_ | Select-Object -Property 'Name','Type' } | Out-GridView -Title "Select Report Server(s)" -PassThru
-$selectedSSRS = $RptServers | Where-Object { $_.Name -in $temp.Name }
-$selectedSSRS
-
-
-
 $profilelist2 = $decodedbackup | ConvertFrom-Json
-$profilelist2 | select-object value | Out-GridView
+$profilelist3 = $profilelist2.SyncRoot | select-object Value
+
 $profilelist = @()
-foreach ($profiletemp in $profilelist2) {
-    #$profilelist += $profiletemp.DisplayName
-    $value1 =  ($profiletemp.value)[0] | convertfrom-json
-    $profilelist += $value1.DisplayName
-}
-$temp = $profilelist | Out-GridView -Title "Select Object to Restore" -PassThru
-
-
-
-foreach ($profile in $profilelist) {
-    $profilevalue = $profile[0].value
-    write-host $profilevalue[2]
-    write-host "NEW LINE"
+foreach ($profiletemp in $profilelist3) {
+    $value1 =  ($profiletemp.value)[2]
+    $profilelist += $value1
 }
 
+if ($selected -eq "all") {
+    $temp = $profilelist
+    }
+else {
+    $temp = $profilelist | Out-GridView -Title "Select Object to Restore" -PassThru
 
-###############################################################################################################
-######                                          Get Profiles within Backup                               ######
-###############################################################################################################
-
+}
 
 
 
@@ -1444,11 +1437,13 @@ foreach ($profile in $profilelist) {
 
 
     ##Loop through array and create Profiles
-        foreach ($toupload in $profiles) {
-            $policyuri =  $toupload[1]
-            $policyjson =  $toupload[0]
-            $id = $toupload[2]
-            write-host $policyuri
+        foreach ($toupload in $profilelist3) {
+            $profilevalue = $toupload.value
+            if ($temp -eq $profilevalue[2]) {
+            $policyuri =  $toupload.value[1]
+            $policyjson =  $toupload.value[0]
+            $id = $toupload.value[3]
+            write-host $toupload.value[1]
             $policy = $policyjson
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
@@ -1518,13 +1513,13 @@ foreach ($profile in $profilelist) {
             }
 
         }
-
+    
             }
 
 
         }
 
-
+    }
 #######################################################################################################################################
 #########                                                   END RESTORE                        ########################################
 #######################################################################################################################################
