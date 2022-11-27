@@ -1206,10 +1206,15 @@ $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @
 ##Get Win32 Apps
 #$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, @{N='Type';E={"Win32 Application"}}
 
+
+##Check if we are backing up everything or we want to pick
+
 if ($selected -eq "all") {
+    ##Back up everything
     $configuration2 = $configuration
     }
 else {
+    ##Give a choice of what to backup
     $configuration2 = $configuration | Out-GridView -PassThru -Title "Select policies to copy"
 
 }
@@ -1236,7 +1241,7 @@ $aad = Get-GraphAADGroups -id $id
 
 
 
-# Copy it
+# Copy it to variable
 if ($null -ne $policy) {
     # Standard Device Configuratio Policy
 write-host "It's a policy"
@@ -1353,11 +1358,15 @@ $profilesencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($prof
 
 
 ##Upload to GitHub
+##Get Date for filename
 $date =get-date -format yyMMddmmss
 $date = $date.ToString()
+##Get Date for Commit Message
 $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
+##Set Filename
 $filename = "intunebackup-"+$date+".json"
 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
+##Set Commit Message
 $message = "New backup on $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
 $upload = (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
@@ -1383,11 +1392,15 @@ if ($type -eq "restore") {
 ###############################################################################################################
 ######                                          Get Commits                                              ######
 ###############################################################################################################
+
+##Grab commits from the repo
 write-host "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
 $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
 $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
-$events | Select-object message, url| Out-GridView -PassThru -Title "Select Backup to View" | ForEach-Object {
 
+##Output commits in gridview for selection
+$events | Select-object message, url| Out-GridView -PassThru -Title "Select Backup to View" | ForEach-Object {
+##Get the full commit URL for the selected backup
 $eventsuri = $_.url
 $commitid = Split-Path $eventsuri -Leaf
 $commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
@@ -1395,11 +1408,14 @@ $commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Au
 }
 write-host "$commitfilename Found"
 
+##Now find the filename
 $filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
 
+
+##Add it to the repo path
 $commitfilename2 = " https://api.github.com/repos/$ownername/$reponame/contents/$filename"
 
-
+##Grab the file contents (currently base64 encoded)
 $encodedbackup = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json.raw';'Cache-Control'='no-cache'}).Content
 
 ##Decode backup from base64
@@ -1411,19 +1427,26 @@ $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBa
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################
 
-
+##Convert from backup from JSON
 $profilelist2 = $decodedbackup | ConvertFrom-Json
+##We only want the values
 $profilelist3 = $profilelist2.SyncRoot | select-object Value
 
+##Now as it's a nested array, we don't want all of the crap cluttering up the gridview
+##Create an empty array
 $profilelist = @()
+##Loop through the array and grab the policy name we passed earlier
 foreach ($profiletemp in $profilelist3) {
     $value1 =  ($profiletemp.value)[2]
+    ##Add it to our new array
     $profilelist += $value1
 }
 
+##If we are restoring everything, we don't care how it looks, just raw dump
 if ($selected -eq "all") {
     $temp = $profilelist
     }
+##If we want to pick, we just display the names from the new array into GridView
 else {
     $temp = $profilelist | Out-GridView -Title "Select Object to Restore" -PassThru
 
@@ -1439,6 +1462,7 @@ else {
     ##Loop through array and create Profiles
         foreach ($toupload in $profilelist3) {
             $profilevalue = $toupload.value
+            ##Check the profile name matches what we selected earlier
             if ($temp -eq $profilevalue[2]) {
             $policyuri =  $toupload.value[1]
             $policyjson =  $toupload.value[0]
