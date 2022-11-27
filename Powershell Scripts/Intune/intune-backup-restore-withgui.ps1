@@ -62,7 +62,7 @@ $reponame = "backup-restore"
 $ownername = "andrew-s-taylor"
 
 ##Github Access Token
-$token = "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"
+$token = "TOKEN_HERE"
 
 ##################################################################################################################################
 #################                                                  INITIALIZATION                                #################
@@ -1404,6 +1404,13 @@ $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBa
 ###############################################################################################################
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################
+
+
+$temp = $RptServers | ForEach-Object { $_ | Select-Object -Property 'Name','Type' } | Out-GridView -Title "Select Report Server(s)" -PassThru
+$selectedSSRS = $RptServers | Where-Object { $_.Name -in $temp.Name }
+$selectedSSRS
+
+
 
 $profilelist2 = $decodedbackup | ConvertFrom-Json
 $profilelist2 | select-object value | Out-GridView
