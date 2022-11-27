@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.4
+  Version:        2.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -27,6 +27,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 23/09/2022 - Added Clipchamp (new in W11 22H2)
   Change 28/10/2022 - Fixed issue with Dell apps
   Change 23/11/2022 - Added Teams Machine wide to exceptions
+  Change 27/11/2022 - Added Dell apps
   
 .EXAMPLE
 N/A
@@ -596,6 +597,9 @@ $UninstallPrograms = @(
     "Dell SupportAssist OS Recovery"
     "Dell SupportAssist"
     "Dell Optimizer Service"
+    "DellInc.PartnerPromo"
+    "DellInc.DellOptimizer"
+    "DellInc.DellCommandUpdate"
 )
 
 
