@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.2
+  Version:        1.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -93,6 +93,8 @@ $clientid = "YOUR_AAD_REG_ID"
 $clientsecret = "YOUR_CLIENT_SECRET"
 
 $tenant = "TENANT_ID"
+
+$type = "backup"
 
 ##################################################################################################################################
 #################                                             END  VARIABLES                                     #################
