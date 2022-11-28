@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 3.0.4
+.VERSION 3.0.5
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,12 +26,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.4
+  Version:        3.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 03/11/2022
+  Updated: 28/11/2022
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -47,6 +47,7 @@ Creates a log file in %Temp%
   Change: Fixed issue with multiple admin templates (passed ID in array variable)
   Change: Switched to Graph Authentication API
   Change: Removed error text when looping through policies to inspect
+  Change: Fixed Syntax on omaSettings
 
   .WIP: Attempting to copy Application, work in progress
   
@@ -897,7 +898,7 @@ function getpolicyjson() {
              ##Remove settings which break Custom OMA-URI
         
              $policyconvert = $policy.omaSettings
-             if ($policyconvert -ne "") {
+             if ($null -ne $policyconvert) {
              $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
              foreach ($pvalue in $policyconvert) {
              $unencoded = $pvalue.value
