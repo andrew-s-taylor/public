@@ -1,4 +1,3 @@
-
 <#
 .SYNOPSIS
   Backs up Intune and AAD policies to Github then restores from any Commit.  Flat file backups
@@ -62,8 +61,44 @@ param
     [string]$ownername #Ownername is the github account
     , 
     [string]$token #Token is the github token
-)
+    )
 
+####### First check if running automated and bypass parameters to set variables below
+
+
+############################################################
+############################################################
+############# CHANGE THIS TO USE IN AUTOMATION #############
+############################################################
+############################################################
+$automated = "no"
+############################################################
+
+
+
+if ($automated -eq "yes") {
+##################################################################################################################################
+#################                                                  VARIABLES                                     #################
+##################################################################################################################################
+
+$selected = "all"
+
+$reponame = "YOUR_REPONAME_HERE"
+
+$ownername = "YOUR_OWNER_NAME_FOR_REPO"
+
+$token = "YOUR_GITHUB_TOKEN"
+
+$clientid = "YOUR_AAD_REG_ID"
+
+$clientsecret = "YOUR_CLIENT_SECRET"
+
+$tenant = "TENANT_ID"
+
+##################################################################################################################################
+#################                                             END  VARIABLES                                     #################
+##################################################################################################################################
+}
 
 ##################################################################################################################################
 #################                                                  INITIALIZATION                                #################
@@ -79,29 +114,81 @@ Start-Transcript -Path $env:TEMP\intune-$date.log
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
-    Write-Host "Microsoft Graph Already Installed"
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Authentication Already Installed"
 } 
 else {
-    try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
+        Write-Host "Microsoft Graph Authentication Installed"
 }
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
+    Write-Host "Microsoft Graph Corporate Management Already Installed"
+} 
+else {
+        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force 
+        Write-Host "Microsoft Graph Corporate Management Installed"
+    }
+
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
+        Write-Host "Microsoft Graph Groups Already Installed "
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
+            Write-Host "Microsoft Graph Groups Installed"
+    }
+    
+    #Install MS Graph if not available
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
+        Write-Host "Microsoft Graph DeviceManagement Already Installed"
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
+            Write-Host "Microsoft Graph DeviceManagement Installed"
+    }
+
+    #Install MS Graph if not available
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.identity.signins) {
+        Write-Host "Microsoft Graph Identity SignIns Already Installed"
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Repository PSGallery -Force 
+            Write-Host "Microsoft Graph Identity SignIns Installed"
+    }
 
 
 # Load the Graph module
 Import-Module microsoft.graph.authentication
 import-module Microsoft.Graph.Identity.SignIns
+import-module Microsoft.Graph.DeviceManagement
+import-module microsoft.Graph.Groups
+import-module microsoft.graph.devices.corporatemanagement
 
+if ($automated -eq "yes") {
+ 
+    $body = @{
+        grant_type="client_credentials";
+        client_id=$clientId;
+        client_secret=$clientSecret;
+        scope="https://graph.microsoft.com/.default";
+    }
+     
+    $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token -Body $body
+    $accessToken = $response.access_token
+     
+    $accessToken
 
+    Select-MgProfile -Name Beta
+Connect-MgGraph  -AccessToken $accessToken 
+write-host "Graph Connection Established"
+}
+else {
 ##Connect to Graph
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
-
+}
 
 ###############################################################################################################
 ######                                          Add Functions                                            ######
@@ -911,8 +998,9 @@ function getpolicyjson() {
      ##Custom settings only for OMA-URI
              ##Remove settings which break Custom OMA-URI
         
-             $policyconvert = $policy.omaSettings
-             if ($policyconvert -ne "") {
+             
+             if ($null -ne $policy.omaSettings) {
+                $policyconvert = $policy.omaSettings
              $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
              foreach ($pvalue in $policyconvert) {
              $unencoded = $pvalue.value
@@ -1142,7 +1230,7 @@ $blob = (Invoke-MgGraphRequest -Uri $uri3 -Method GET -OutputType PSObject).azur
     }
     else {
     # Remove any GUIDs or dates/times to allow Intune to regenerate
-    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource | ConvertTo-Json -Depth 100
+    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource, odata.count | ConvertTo-Json -Depth 100
     }
 
     return $policy, $uri, $oldname
@@ -1206,15 +1294,10 @@ $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @
 ##Get Win32 Apps
 #$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, @{N='Type';E={"Win32 Application"}}
 
-
-##Check if we are backing up everything or we want to pick
-
 if ($selected -eq "all") {
-    ##Back up everything
     $configuration2 = $configuration
     }
 else {
-    ##Give a choice of what to backup
     $configuration2 = $configuration | Out-GridView -PassThru -Title "Select policies to copy"
 
 }
@@ -1241,7 +1324,7 @@ $aad = Get-GraphAADGroups -id $id
 
 
 
-# Copy it to variable
+# Copy it
 if ($null -ne $policy) {
     # Standard Device Configuratio Policy
 write-host "It's a policy"
@@ -1358,15 +1441,11 @@ $profilesencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($prof
 
 
 ##Upload to GitHub
-##Get Date for filename
 $date =get-date -format yyMMddmmss
 $date = $date.ToString()
-##Get Date for Commit Message
 $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
-##Set Filename
 $filename = "intunebackup-"+$date+".json"
 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
-##Set Commit Message
 $message = "New backup on $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
 $upload = (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
@@ -1392,15 +1471,11 @@ if ($type -eq "restore") {
 ###############################################################################################################
 ######                                          Get Commits                                              ######
 ###############################################################################################################
-
-##Grab commits from the repo
 write-host "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
 $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
 $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
-
-##Output commits in gridview for selection
 $events | Select-object message, url| Out-GridView -PassThru -Title "Select Backup to View" | ForEach-Object {
-##Get the full commit URL for the selected backup
+
 $eventsuri = $_.url
 $commitid = Split-Path $eventsuri -Leaf
 $commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
@@ -1408,14 +1483,11 @@ $commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Au
 }
 write-host "$commitfilename Found"
 
-##Now find the filename
 $filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
 
-
-##Add it to the repo path
 $commitfilename2 = " https://api.github.com/repos/$ownername/$reponame/contents/$filename"
 
-##Grab the file contents (currently base64 encoded)
+
 $encodedbackup = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json.raw';'Cache-Control'='no-cache'}).Content
 
 ##Decode backup from base64
@@ -1427,26 +1499,19 @@ $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBa
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################
 
-##Convert from backup from JSON
+
 $profilelist2 = $decodedbackup | ConvertFrom-Json
-##We only want the values
 $profilelist3 = $profilelist2.SyncRoot | select-object Value
 
-##Now as it's a nested array, we don't want all of the crap cluttering up the gridview
-##Create an empty array
 $profilelist = @()
-##Loop through the array and grab the policy name we passed earlier
 foreach ($profiletemp in $profilelist3) {
     $value1 =  ($profiletemp.value)[2]
-    ##Add it to our new array
     $profilelist += $value1
 }
 
-##If we are restoring everything, we don't care how it looks, just raw dump
 if ($selected -eq "all") {
     $temp = $profilelist
     }
-##If we want to pick, we just display the names from the new array into GridView
 else {
     $temp = $profilelist | Out-GridView -Title "Select Object to Restore" -PassThru
 
@@ -1462,8 +1527,8 @@ else {
     ##Loop through array and create Profiles
         foreach ($toupload in $profilelist3) {
             $profilevalue = $toupload.value
-            ##Check the profile name matches what we selected earlier
-            if ($temp -eq $profilevalue[2]) {
+            foreach ($tname in $temp) {
+            if ($tname -eq $profilevalue[2]) {
             $policyuri =  $toupload.value[1]
             $policyjson =  $toupload.value[0]
             $id = $toupload.value[3]
@@ -1488,8 +1553,12 @@ else {
 
                # Add the policy
             $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
-            #$copypolicy = Invoke-RestMethod -Uri $policyuri -Headers $authToken -Method Post -Body $body  -ContentType "application/json; charset=utf-8"  
+            try {
             $copypolicy = Invoke-MgGraphRequest -Uri $policyuri -Method Post -Body $body  -ContentType "application/json; charset=utf-8"
+            }
+            catch {
+
+            }
 
 
 
@@ -1541,6 +1610,7 @@ else {
             }
 
 
+        }
         }
 
     }
