@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,10 +28,9 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
-.DESCRIPTION Backs up Intune and AAD policies to Github then restores from any Commit.  Flat file backups
 .COMPANYNAME 
 .COPYRIGHT GPL
 .TAGS intune endpoint MEM environment
@@ -1298,7 +1297,7 @@ if ($selected -eq "all") {
     $configuration2 = $configuration
     }
 else {
-    $configuration2 = $configuration | Out-GridView -PassThru -Title "Select policies to copy"
+    $configuration2 = $configuration | Out-GridView -PassThru -Title "Select policies to backup"
 
 }
 $configuration2 | foreach-object {
