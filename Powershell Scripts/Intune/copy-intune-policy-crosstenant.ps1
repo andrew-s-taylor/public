@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 3.0.7
+.VERSION 3.0.8
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.7
+  Version:        3.0.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -212,17 +212,23 @@ Function Get-ConditionalAccessPolicy(){
     )
     
 
-    try {
+    $graphApiVersion = "beta"
+    $DCP_resource = "identity/conditionalAccess/policies"
     
+    try {
             if($id){
-                Get-MgIdentityConditionalAccessPolicy -ConditionalaccessPolicyId $id 2>$null
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
             }
     
             else {
     
-                Get-MgIdentityConditionalAccessPolicy
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
             }
-
         }
         catch {}
     
@@ -977,7 +983,8 @@ function getpolicyjson() {
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
         $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
-
+        $settings = $settings.value
+        $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
         if ($settings -isnot [System.Array]) {
             $policy.Settings = @($settings)
         } else {
@@ -1128,7 +1135,7 @@ $blob = (Invoke-MgGraphRequest -Uri $uri3 -Method GET -OutputType PSObject).azur
     }
     else {
     # Remove any GUIDs or dates/times to allow Intune to regenerate
-    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource, odata.count | ConvertTo-Json -Depth 100
+    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource, '@odata.count' | ConvertTo-Json -Depth 100
     }
 
     return $policy, $uri
@@ -1357,17 +1364,17 @@ Connect-MgGraph -Scopes Policy.Read.All, DeviceManagementServiceConfig.ReadWrite
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
                 write-host "Creating Conditional Access Policy"
-
+                $uri = "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies"
                 $NewDisplayName = "Copy of " + $Policy.DisplayName
                 $Parameters = @{
-                    DisplayName     = $NewDisplayName
-                    State           = $policy.State
-                    Conditions      = $policy.Conditions
-                    GrantControls   = $policy.GrantControls
-                    SessionControls = $policy.SessionControls
+                    displayName     = $NewDisplayName
+                    state           = $policy.State
+                    conditions      = $policy.Conditions
+                    grantControls   = $policy.GrantControls
+                    sessionControls = $policy.SessionControls
                 }
-            
-               $null = New-MgIdentityConditionalAccessPolicy @Parameters
+                $body = $Parameters | ConvertTo-Json -depth 50
+               $null = Invoke-MgGraphRequest -Method POST -uri $uri -Body $body -ContentType "application/json"
             }
             else {
 

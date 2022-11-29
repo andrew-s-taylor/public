@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.3
+  Version:        1.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.3
+.VERSION 1.0.4
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -313,17 +313,23 @@ Function Get-ConditionalAccessPolicy(){
     )
     
 
-    try {
+    $graphApiVersion = "beta"
+    $DCP_resource = "identity/conditionalAccess/policies"
     
+    try {
             if($id){
-                Get-MgIdentityConditionalAccessPolicy -ConditionalaccessPolicyId $id 2>$null
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
             }
     
             else {
     
-                Get-MgIdentityConditionalAccessPolicy
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
             }
-
         }
         catch {}
     
@@ -1073,13 +1079,14 @@ function getpolicyjson() {
        }
     
 
-    "deviceManagement/configurationPolicies" {
+       "deviceManagement/configurationPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceConfigurationPolicysc -id $id
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
         $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
-
+        $settings = $settings.value
+        $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
         if ($settings -isnot [System.Array]) {
             $policy.Settings = @($settings)
         } else {
@@ -1088,7 +1095,7 @@ function getpolicyjson() {
         
         #
         $oldname = $policy.Name
-        $newname = "Restored " + $oldname
+        $newname = "Copy Of " + $oldname
         $policy.Name = $newname
 
     }
@@ -1538,17 +1545,17 @@ else {
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
                 write-host "Creating Conditional Access Policy"
-
+                $uri = "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies"
                 $NewDisplayName = "Copy of " + $Policy.DisplayName
                 $Parameters = @{
-                    DisplayName     = $NewDisplayName
-                    State           = $policy.State
-                    Conditions      = $policy.Conditions
-                    GrantControls   = $policy.GrantControls
-                    SessionControls = $policy.SessionControls
+                    displayName     = $NewDisplayName
+                    state           = $policy.State
+                    conditions      = $policy.Conditions
+                    grantControls   = $policy.GrantControls
+                    sessionControls = $policy.SessionControls
                 }
-            
-               $null = New-MgIdentityConditionalAccessPolicy @Parameters
+                $body = $Parameters | ConvertTo-Json -depth 50
+               $null = Invoke-MgGraphRequest -Method POST -uri $uri -Body $body -ContentType "application/json"
             }
             else {
 
