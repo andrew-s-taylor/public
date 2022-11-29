@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 3.0.5
+.VERSION 3.0.6
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,12 +26,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.5
+  Version:        3.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 28/11/2022
+  Updated: 29/11/2022
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -48,6 +48,7 @@ Creates a log file in %Temp%
   Change: Switched to Graph Authentication API
   Change: Removed error text when looping through policies to inspect
   Change: Fixed Syntax on omaSettings
+  Change: Added scope for CA policies
 
   .WIP: Attempting to copy Application, work in progress
   
@@ -1127,7 +1128,7 @@ $blob = (Invoke-MgGraphRequest -Uri $uri3 -Method GET -OutputType PSObject).azur
     }
     else {
     # Remove any GUIDs or dates/times to allow Intune to regenerate
-    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource | ConvertTo-Json -Depth 100
+    $policy = $policy | Select-Object * -ExcludeProperty id, createdDateTime, LastmodifieddateTime, version, creationSource, odata.count | ConvertTo-Json -Depth 100
     }
 
     return $policy, $uri
@@ -1142,7 +1143,7 @@ $blob = (Invoke-MgGraphRequest -Uri $uri3 -Method GET -OutputType PSObject).azur
 ######                                          MS Graph Implementations                                 ######
 ###############################################################################################################
 Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-MgGraph -Scopes Policy.ReadWrite.All,DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
 
 
@@ -1343,7 +1344,7 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
         ##Get new Tenant details
         write-host "Connecting to destination tenant"
 Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-MgGraph -Scopes Policy.ReadWrite.All,DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
         
 
 
