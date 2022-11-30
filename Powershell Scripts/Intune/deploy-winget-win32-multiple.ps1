@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.4
+.VERSION 2.0.5
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,7 +30,7 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.4
+  Version:        2.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -2231,9 +2231,9 @@ function new-proac {
         $groupid
     )
     $detectscriptcontent = new-detectionscript -appid $appid -appname $appname
-    $detect = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($detectscriptcontent))
+    $detect = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($detectscriptcontent))
     $remediatecriptcontent = new-remediationscript -appid $appid -appname $appname
-    $remediate = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($remediatecriptcontent))
+    $remediate = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($remediatecriptcontent))
 
     $DisplayName = $appname + " Upgrade"
     $Description = "Upgrade $appname application"
@@ -2501,7 +2501,7 @@ $packs | out-gridview -PassThru -Title "Available Applications" | ForEach-Object
     $installscript = new-installscript -appid $appid -appname $appname
     $installfilename = "install$appid.ps1"
     $installscriptfile = $apppath + "\" + $installfilename
-    $installscript | Out-File $installscriptfile
+    $installscript | Out-File $installscriptfile -Encoding utf8
     Write-Host "Script created at $installscriptfile"
 
     ##Create Uninstall Script
@@ -2509,7 +2509,7 @@ $packs | out-gridview -PassThru -Title "Available Applications" | ForEach-Object
     $uninstallscript = new-uninstallscript -appid $appid -appname $appname
     $uninstallfilename = "uninstall$appid.ps1"
     $uninstallscriptfile = $apppath + "\" + $uninstallfilename
-    $uninstallscript | Out-File $uninstallscriptfile
+    $uninstallscript | Out-File $uninstallscriptfile -Encoding utf8
     Write-Host "Script created at $uninstallscriptfile"
 
     ##Create Detection Script
