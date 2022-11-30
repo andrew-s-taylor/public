@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.3
+.VERSION 2.0.4
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,7 +30,7 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.3
+  Version:        2.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -41,6 +41,7 @@ In-Line Outputs
   Update: Fixed 2 functions with the same name
   Update: Fixed issue with app detection script (missing exit code)
   Update: Fixed install script error
+  Update: Fixed encoding for detection script
 .EXAMPLE
 N/A
 #>
@@ -2321,6 +2322,7 @@ function new-detectionscriptinstall {
         if (`$ResolveWingetPath){
                `$WingetPath = `$ResolveWingetPath[-1].Path
         }
+    start-sleep -seconds 10
     
     `$Winget = `$WingetPath + "\winget.exe"
     `$wingettest = &`$winget list --id $appid
@@ -2351,7 +2353,7 @@ function new-installscript {
         }
     
     `$Winget = `$WingetPath + "\winget.exe"
-    &`$winget install --id $appid --silent --force --accept-package-agreements --accept-source-agreements --scope machine --exact
+    &`$winget install --id $appid --silent --force --accept-package-agreements --accept-source-agreements --scope machine --exact | out-null
 "@
     return $install
 
@@ -2514,7 +2516,7 @@ $packs | out-gridview -PassThru -Title "Available Applications" | ForEach-Object
     Write-Verbose "Creating Detection Script for $appname"
     $detectionscript = new-detectionscriptinstall -appid $appid -appname $appname
     $detectionscriptfile = $apppath + "\detection$appid.ps1"
-    $detectionscript | Out-File $detectionscriptfile
+    $detectionscript | Out-File $detectionscriptfile -Encoding utf8
     Write-Host "Script created at $detectionscriptfile"
 
 
