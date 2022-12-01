@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.5
+.VERSION 2.0.7
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,7 +30,7 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.5
+  Version:        2.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -2188,7 +2188,7 @@ $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.Deskto
     }
 $Winget = $WingetPath + "\winget.exe"
 $upgrades = &$winget upgrade
-if ($upgrades -match SETAPPID) {
+if ($upgrades -match "SETAPPID") {
     Write-Host "Upgrade available for: SETAPPNAME"
     exit 1
 }
@@ -2216,7 +2216,7 @@ $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.Deskto
     }
         
     $Winget = $WingetPath + "\winget.exe"
-    &$winget upgrade --id SETAPPID --silent --force --accept-package-agreements --accept-source-agreements
+    &$winget upgrade --id "SETAPPID" --silent --force --accept-package-agreements --accept-source-agreements
 '@
     $remediate2 = $remediate -replace "SETAPPID", $appid
     return $remediate2
