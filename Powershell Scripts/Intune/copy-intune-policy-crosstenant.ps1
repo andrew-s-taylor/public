@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 3.0.8
+.VERSION 3.1.0
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,12 +26,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.8
+  Version:        3.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 29/11/2022
+  Updated: 02/12/2022
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -49,8 +49,7 @@ Creates a log file in %Temp%
   Change: Removed error text when looping through policies to inspect
   Change: Fixed Syntax on omaSettings
   Change: Added scope for CA policies
-
-  .WIP: Attempting to copy Application, work in progress
+  Change: Added support for Winget Store Apps
   
 .EXAMPLE
 N/A
@@ -130,7 +129,7 @@ Function Get-IntuneApplication(){
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { ($_.'@odata.type').Contains("#microsoft.graph.win32LobApp") }
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { ($_.'@odata.type').Contains("#microsoft.graph.winGetApp") }
     
             }
     
@@ -1115,22 +1114,18 @@ function getpolicyjson() {
         $uri = "conditionalaccess"
         $policy = Get-ConditionalAccessPolicy -id $id
     }
-    "win32app" {
-        $uri = "win32app"
+    "deviceAppManagement/mobileApps" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/mobileApps"
         $policy = Get-IntuneApplication -id $id
-        $uri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$id/microsoft.graph.win32LobApp/contentVersions"
-$appversion = ((Invoke-MgGraphRequest -Uri $uri -Method GET -OutputType PSObject).value | Select-Object -Last 1 -Property ID).id
-
-$uri2 = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$id/microsoft.graph.win32LobApp/contentVersions/$appversion/files"
-$filevalue = ((Invoke-MgGraphRequest -Uri $uri2 -Method GET -OutputType PSObject).value | Select-Object -Last 1 -Property ID).id
-
-$uri3 = $uri2 = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$id/microsoft.graph.win32LobApp/contentVersions/$appversion/files/$filevalue"
-$blob = (Invoke-MgGraphRequest -Uri $uri3 -Method GET -OutputType PSObject).azurestorageuri
+        $oldname = $policy.displayName
+        $newname = "Restored " + $oldname
+        $policy.displayName = $newname
+        $policy = $policy | Select-Object * -ExcludeProperty uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount
     }
     }
 
     ##We don't want to convert CA policy to JSON
-    if (($resource -eq "conditionalaccess") -or ($resource -eq "win32app")) {
+    if (($resource -eq "conditionalaccess")) {
         $policy = $policy
     }
     else {
@@ -1198,9 +1193,8 @@ $configuration += $iosapp | Select-Object ID, DisplayName, Description, @{N='Typ
 ##Get Conditional Access Policies
 $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @{N='Type';E={"Conditional Access Policy"}}
 
-##### WORK IN PROGRESS, TRYING TO GRAB THE INTUNEWIN DIRECTLY FROM BLOB STORAGE
-##Get Win32 Apps
-#$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, @{N='Type';E={"Win32 Application"}}
+##Get Winget Apps
+$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, Description, @{N='Type';E={"Winget Application"}}
 
 
 $configuration | Out-GridView -PassThru -Title "Select policies to copy" | ForEach-Object {
@@ -1220,7 +1214,7 @@ $gp = Get-DeviceConfigurationPolicyGP -id $id
 $ca = Get-ConditionalAccessPolicy -id $id
 $proac = Get-DeviceProactiveRemediations -id $id
 $aad = Get-GraphAADGroups -id $id
-#$win32app = Get-IntuneApplication -id $id
+$wingetapp = Get-IntuneApplication -id $id
 
 
 
@@ -1334,14 +1328,14 @@ $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
 }
-#if ($null -ne $win32app) {
-    # Win32 App
-#write-host "It's a Windows Application"
-#$id = $ca.id
-#$Resource = "win32app"
-#$copypolicy = getpolicyjson -resource $Resource -policyid $id
-#$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
-#}
+if ($null -ne $wingetapp) {
+    # Winget App
+write-host "It's a Windows Application"
+$id = $wingetapp.id
+$Resource = "deviceAppManagement/mobileApps"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
+}
 }
 
 

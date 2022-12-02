@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.4
+  Version:        1.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.4
+.VERSION 1.0.5
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -231,7 +231,7 @@ Function Get-IntuneApplication(){
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { ($_.'@odata.type').Contains("#microsoft.graph.win32LobApp") }
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { ($_.'@odata.type').Contains("#microsoft.graph.winGetApp") }
     
             }
     
@@ -1218,22 +1218,18 @@ function getpolicyjson() {
         $policy = Get-ConditionalAccessPolicy -id $id
         $oldname = $policy.displayName
     }
-    "win32app" {
-        $uri = "win32app"
+    "deviceAppManagement/mobileApps" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/mobileApps"
         $policy = Get-IntuneApplication -id $id
-        $uri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$id/microsoft.graph.win32LobApp/contentVersions"
-$appversion = ((Invoke-MgGraphRequest -Uri $uri -Method GET -OutputType PSObject).value | Select-Object -Last 1 -Property ID).id
-
-$uri2 = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$id/microsoft.graph.win32LobApp/contentVersions/$appversion/files"
-$filevalue = ((Invoke-MgGraphRequest -Uri $uri2 -Method GET -OutputType PSObject).value | Select-Object -Last 1 -Property ID).id
-
-$uri3 = $uri2 = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$id/microsoft.graph.win32LobApp/contentVersions/$appversion/files/$filevalue"
-$blob = (Invoke-MgGraphRequest -Uri $uri3 -Method GET -OutputType PSObject).azurestorageuri
+        $oldname = $policy.displayName
+        $newname = "Restored " + $oldname
+        $policy.displayName = $newname
+        $policy = $policy | Select-Object * -ExcludeProperty uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount
     }
     }
 
     ##We don't want to convert CA policy to JSON
-    if (($resource -eq "conditionalaccess") -or ($resource -eq "win32app")) {
+    if (($resource -eq "conditionalaccess")) {
         $policy = $policy
     }
     else {
@@ -1298,9 +1294,8 @@ $configuration += $iosapp | Select-Object ID, DisplayName, Description, @{N='Typ
 ##Get Conditional Access Policies
 $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @{N='Type';E={"Conditional Access Policy"}}
 
-##### WORK IN PROGRESS, TRYING TO GRAB THE INTUNEWIN DIRECTLY FROM BLOB STORAGE
-##Get Win32 Apps
-#$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, @{N='Type';E={"Win32 Application"}}
+##Get Winget Apps
+$configuration += Get-IntuneApplication | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Winget Application"}}
 
 if ($selected -eq "all") {
     $configuration2 = $configuration
@@ -1326,7 +1321,7 @@ $gp = Get-DeviceConfigurationPolicyGP -id $id
 $ca = Get-ConditionalAccessPolicy -id $id
 $proac = Get-DeviceProactiveRemediations -id $id
 $aad = Get-GraphAADGroups -id $id
-#$win32app = Get-IntuneApplication -id $id
+$wingetapp = Get-IntuneApplication -id $id
 
 
 
@@ -1431,14 +1426,14 @@ $Resource = "ConditionalAccess"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
-#if ($null -ne $win32app) {
-    # Win32 App
-#write-host "It's a Windows Application"
-#$id = $ca.id
-#$Resource = "win32app"
-#$copypolicy = getpolicyjson -resource $Resource -policyid $id
-#$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
-#}
+if ($null -ne $wingetapp) {
+    # Winget App
+write-host "It's a Windows Application"
+$id = $wingetapp.id
+$Resource = "deviceAppManagement/mobileApps"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+}
 }
 
 ##Convert profiles to JSON
