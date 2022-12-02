@@ -168,6 +168,7 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
         #"*Microsoft.WindowsStore*"
     )
     foreach ($Bloat in $Bloatware) {
+        
         Get-AppxPackage -allusers -Name $Bloat| Remove-AppxPackage
         Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
         Write-Host "Trying to remove $Bloat."
