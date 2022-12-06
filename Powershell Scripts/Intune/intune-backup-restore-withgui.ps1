@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.5
+  Version:        1.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.5
+.VERSION 1.0.6
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -999,7 +999,8 @@ function getpolicyjson() {
      $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
      $policy = Get-DecryptedDeviceConfigurationPolicy -dcpid $id
      $oldname = $policy.displayName
-     $newname = "Restored " + $oldname
+     $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+     $newname = $oldname + "-restore-" + $restoredate
      $policy.displayName = $newname
 
      ##Custom settings only for OMA-URI
@@ -1042,7 +1043,8 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceConfigurationPolicyGP -id $id
         $oldname = $policy.DisplayName
-        $newname = "Restored " + $oldname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
         $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
@@ -1062,7 +1064,8 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceProactiveRemediations -id $id
         $oldname = $policy.DisplayName
-        $newname = "Restored " + $oldname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
         $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
@@ -1095,7 +1098,8 @@ function getpolicyjson() {
         
         #
         $oldname = $policy.Name
-        $newname = "Copy Of " + $oldname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
         $policy.Name = $newname
 
     }
@@ -1104,8 +1108,9 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceCompliancePolicy -id $id
         $oldname = $policy.DisplayName
-        $newname = "Restored " + $oldname
-        $policy.DisplayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+        $policy.displayName = $newname
         
             $scheduledActionsForRule = @(
                 @{
@@ -1134,8 +1139,9 @@ function getpolicyjson() {
         #$intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
         $intentSettingsDelta = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -OutputType PSObject).value
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy = @{
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy = @{
             "displayName" = $newname
             "description" = $policy.description
             "settingsDelta" = $intentSettingsDelta
@@ -1150,31 +1156,35 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AutoPilotProfile -id $id
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy.displayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy.displayName = $newname
     }
     "groups" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-GraphAADGroups -id $id
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy.displayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy.displayName = $newname
         $policy = $policy | Select-Object description, DisplayName, groupTypes, mailEnabled, mailNickname, securityEnabled, isAssignabletoRole, membershiprule, MembershipRuleProcessingState
     }
     "deviceManagement/deviceEnrollmentConfigurations" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AutoPilotESP -id $id
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy.displayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy.displayName = $newname
     }
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
         #$policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
         $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -OutputType PSObject
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy.displayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy.displayName = $newname
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
          if ($policy.supportsScopeTags) {
             $policy.supportsScopeTags = $false
@@ -1195,8 +1205,9 @@ function getpolicyjson() {
         #$policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
         $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -OutputType PSObject
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy.displayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy.displayName = $newname
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
          if ($policy.supportsScopeTags) {
             $policy.supportsScopeTags = $false
@@ -1222,8 +1233,9 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/mobileApps"
         $policy = Get-IntuneApplication -id $id
         $oldname = $policy.displayName
-        $newname = "Restored " + $oldname
-        $policy.displayName = $newname
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+           $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount
     }
     }
@@ -1504,13 +1516,28 @@ $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBa
 
 
 $profilelist2 = $decodedbackup | ConvertFrom-Json
+$oneormore = $profilelist2.SyncRoot
+if ($null -ne $oneormore) {
+$fullist = $profilelist2.SyncRoot
 $profilelist3 = $profilelist2.SyncRoot | select-object Value
-
+$looplist = $profilelist3
 $profilelist = @()
-foreach ($profiletemp in $profilelist3) {
+foreach ($profiletemp in $fullist) {
     $value1 =  ($profiletemp.value)[2]
     $profilelist += $value1
 }
+}
+else {
+$fulllist = $profilelist2.value
+$profilelist3 = $fulllist
+$looplist = $profilelist3 | Select-Object -First 1
+$profilelist = @()
+    $value1 =  ($profilelist3)[2]
+    $profilelist += $value1
+}
+
+
+
 
 if ($selected -eq "all") {
     $temp = $profilelist
@@ -1528,20 +1555,32 @@ else {
 
 
     ##Loop through array and create Profiles
-        foreach ($toupload in $profilelist3) {
+        foreach ($toupload in $looplist) {
+        ##Count items in new array
+        $tocheck = $toupload.value
+        ##Multi Item
+        if ($null -ne $tocheck) {
             $profilevalue = $toupload.value
+            }
+            else {
+            #Single Item, just grab the whole thing
+            $profilevalue = $profilelist3
+            }
+
             foreach ($tname in $temp) {
             if ($tname -eq $profilevalue[2]) {
-            $policyuri =  $toupload.value[1]
-            $policyjson =  $toupload.value[0]
-            $id = $toupload.value[3]
-            write-host $toupload.value[1]
+            $policyuri =  $profilevalue[1]
+            $policyjson =  $profilevalue[0]
+            $id = $profilevalue[3]
+            write-host $profilevalue[1]
             $policy = $policyjson
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
                 write-host "Creating Conditional Access Policy"
                 $uri = "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies"
-                $NewDisplayName = "Copy of " + $Policy.DisplayName
+                $oldname = $Policy.DisplayName
+                $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+                $NewDisplayName = $oldname + "-restore-" + $restoredate        
                 $Parameters = @{
                     displayName     = $NewDisplayName
                     state           = $policy.State
