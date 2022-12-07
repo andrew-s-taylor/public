@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.8
+  Version:        1.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.8
+.VERSION 1.0.9
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1309,7 +1309,7 @@ $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @
 ##Get Winget Apps
 $configuration += Get-IntuneApplication | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Winget Application"}}
 
-if ($selected -eq "all") {
+if ($automated -eq "yes") {
     $configuration2 = $configuration
     }
 else {
