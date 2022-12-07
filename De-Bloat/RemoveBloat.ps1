@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.6
+  Version:        2.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,6 +28,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 28/10/2022 - Fixed issue with Dell apps
   Change 23/11/2022 - Added Teams Machine wide to exceptions
   Change 27/11/2022 - Added Dell apps
+  Change 07/12/2022 - Whitelisted Dell Audio and Firmware
   
 .EXAMPLE
 N/A
@@ -603,12 +604,17 @@ $UninstallPrograms = @(
     "DellInc.DellCommandUpdate"
 )
 
+$WhitelistedApps = @(
+    "WavesAudio.MaxxAudioProforDell2019"
+    "Dell - Extension*"
+    "Dell, Inc. - Firmware*"
+)
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")}
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*") -and ($_.Name -NotMatch $WhitelistedApps)}
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")}
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*") -and ($_.Name -NotMatch $WhitelistedApps)}
 
-$InstalledPrograms = Get-Package | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")}
+$InstalledPrograms = Get-Package | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*") -and ($_.Name -NotMatch $WhitelistedApps)}
 
 # Remove provisioned packages first
 ForEach ($ProvPackage in $ProvisionedPackages) {
