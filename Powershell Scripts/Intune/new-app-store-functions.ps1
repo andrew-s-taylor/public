@@ -26,6 +26,7 @@ Function Add-MSStoreApp(){
     This function adds Microsoft Store Apps using Winget
     .DESCRIPTION
     The function connects to the Graph API Interface and creates a Microsoft Store App using the new experience
+    Thanks for Sander Rozemuller for this one: https://www.rozemuller.com/add-mirosoft-store-app-with-icon-into-intune-automated/
     .EXAMPLE
     Add-MSStoreApp -name "WhatsApp"
     .NOTES
