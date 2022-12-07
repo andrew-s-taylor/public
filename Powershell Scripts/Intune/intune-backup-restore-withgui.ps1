@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.6
+  Version:        1.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.6
+.VERSION 1.0.7
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1454,6 +1454,13 @@ $profilesjson = $profiles | convertto-json -Depth 50
 ##Encode profiles to base64
 $profilesencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($profilesjson))
 
+##Prompt for Message
+[void][Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+
+$title = 'Reason'
+$msg   = 'Enter your backup reason:'
+
+$backupreason = [Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
 
 ##Upload to GitHub
 $date =get-date -format yyMMddmmss
@@ -1461,7 +1468,7 @@ $date = $date.ToString()
 $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
 $filename = "intunebackup-"+$date+".json"
 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
-$message = "New backup on $readabledate"
+$message = "$backupreason - $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
 $upload = (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
 
