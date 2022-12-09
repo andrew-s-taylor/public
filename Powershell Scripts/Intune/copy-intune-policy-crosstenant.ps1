@@ -1026,6 +1026,7 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/beta/deviceManagement/templates/$templateId/createInstance"
         #$template = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -Headers $authToken -Method Get
         $template = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -OutputType PSObject
+        $template = $template
         #$templateCategory = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Headers $authToken -Method Get
         $templateCategory = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -OutputType PSObject
         #$intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
@@ -1390,6 +1391,7 @@ Connect-MgGraph -Scopes Policy.Read.All, DeviceManagementServiceConfig.ReadWrite
 		                    $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		                    $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
 		                    $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
+                            $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinitionDisplayName
 		                    $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		                    $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		                    $OutDef = New-Object -TypeName PSCustomObject

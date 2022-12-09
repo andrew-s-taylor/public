@@ -1134,6 +1134,7 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/beta/deviceManagement/templates/$templateId/createInstance"
         #$template = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -Headers $authToken -Method Get
         $template = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -OutputType PSObject
+        $template = $template
         #$templateCategory = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Headers $authToken -Method Get
         $templateCategory = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -OutputType PSObject
         #$intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
@@ -1475,7 +1476,7 @@ $filename = "intunebackup-"+$date+".json"
 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
 $message = "$backupreason - $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
-$upload = (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
+(Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
 
 
 
@@ -1507,8 +1508,9 @@ $eventsuri = $_.url
 $commitid = Split-Path $eventsuri -Leaf
 $commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
 $commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Authorization'='token '+$token; 'Accept'='application/json'}).Files).raw_url
-}
 write-host "$commitfilename Found"
+}
+
 
 $filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
 
@@ -1627,6 +1629,7 @@ else {
 		                    $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		                    $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
 		                    $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
+                            $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinitionDisplayName
 		                    $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		                    $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		                    $OutDef = New-Object -TypeName PSCustomObject
