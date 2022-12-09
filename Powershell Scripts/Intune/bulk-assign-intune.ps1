@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.2
+.VERSION 2.0.3
 .GUID 29d19c3c-8a33-4ada-a7a7-f39bfb439c1b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Assigns everything within Intune with options to select.  Batch assignment to selected group of all policies, scripts and apps
@@ -25,7 +25,7 @@ GUI to select AAD group and what to assign
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.0.2
+  Version:        2.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -3442,7 +3442,7 @@ $Submit.Add_Click({
 
         ###############################################################################################################
 
-        $aasignmenttype = $comboBox1.SelectedItem
+        $assignmenttype = $comboBox1.SelectedItem
  
 
         ##Anything to Ignore, Add here
