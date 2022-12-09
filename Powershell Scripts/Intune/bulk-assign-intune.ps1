@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.0
+.VERSION 2.0.1
 .GUID 29d19c3c-8a33-4ada-a7a7-f39bfb439c1b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Assigns everything within Intune with options to select.  Batch assignment to selected group of all policies, scripts and apps
@@ -25,7 +25,7 @@ GUI to select AAD group and what to assign
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.0.0
+  Version:        2.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -75,7 +75,7 @@ Import-Module microsoft.graph.authentication
 ######                                          Add Functions                                            ######
 ###############################################################################################################
 
- ####################################################
+####################################################
 
 Function Get-DeviceConfigurationPolicy() { 
     <#
@@ -3262,7 +3262,7 @@ $aad.height = 20
 $aad.location = New-Object System.Drawing.Point(170, 69)
 $aadgroups = get-mggroup | select-object DisplayName
 ForEach ($aadgroup in $aadgroups) {
-$aad.Items.Add($aadgroup.DisplayName) 
+    $aad.Items.Add($aadgroup.DisplayName) 
 }
 $aad.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
@@ -3424,8 +3424,8 @@ $Submit.Add_Click({
         ##Get Group ID
 
 
-        $aadgroup = $aad.text
-        $intunegrp = get-mggroup -Search $aadgroup
+        $aadgroup2 = $aad.SelectedItem
+        $intunegrp = Get-MgGroup -Filter "DisplayName eq '$aadgroup2'" | Select-Object Id, DisplayName
  
 
         ###############################################################################################################
@@ -3442,7 +3442,7 @@ $Submit.Add_Click({
 
         ###############################################################################################################
 
-        $aasignmenttype = $comboBox1.text
+        $aasignmenttype = $comboBox1.SelectedItem
  
 
         ##Anything to Ignore, Add here
@@ -3477,7 +3477,7 @@ $Submit.Add_Click({
 
  
 
-                    Add-DeviceConfigurationPolicyAssignment -ConfigurationPolicyId $policy.id -TargetGroupId $intunegrp.objectid -AssignmentType Included
+                    Add-DeviceConfigurationPolicyAssignment -ConfigurationPolicyId $policy.id -TargetGroupId $intunegrp.Id -AssignmentType Included
 
                 }
 
@@ -3515,7 +3515,7 @@ $Submit.Add_Click({
 
  
 
-                    Add-DeviceConfigurationPolicyAssignmentSC -ConfigurationPolicyId $policy.id -TargetGroupId $intunegrp.objectid -AssignmentType Included
+                    Add-DeviceConfigurationPolicyAssignmentSC -ConfigurationPolicyId $policy.id -TargetGroupId $intunegrp.Id -AssignmentType Included
   
                 }
 
@@ -3550,7 +3550,7 @@ $Submit.Add_Click({
 
                     Write-Host "Assigned $($intunegrp.DisplayName) to $($policy.displayName)/$($policy.id)" -ForegroundColor Green
 
-                    Add-DeviceCompliancePolicyAssignment -CompliancePolicyId $policy.id -TargetGroupId $intunegrp.objectid
+                    Add-DeviceCompliancePolicyAssignment -CompliancePolicyId $policy.id -TargetGroupId $intunegrp.Id
 
                 }
 
@@ -3584,7 +3584,7 @@ $Submit.Add_Click({
 
                     Write-Host "Assigned $($intunegrp.DisplayName) to $($policy.displayName)/$($policy.id)" -ForegroundColor Green
 
-                    Add-DeviceSecurityPolicyAssignment -Id $policy.id -TargetGroupId $intunegrp.objectid
+                    Add-DeviceSecurityPolicyAssignment -Id $policy.id -TargetGroupId $intunegrp.Id
   
                 }
 
@@ -3619,7 +3619,7 @@ $Submit.Add_Click({
 
                     Write-Host "Assigned $($intunegrp.DisplayName) to $($script.displayName)/$($script.id)" -ForegroundColor Green
 
-                    Add-DeviceManagementScriptAssignment -ScriptId $script.id -TargetGroupId $intunegrp.objectid
+                    Add-DeviceManagementScriptAssignment -ScriptId $script.id -TargetGroupId $intunegrp.Id
   
                 }
 
@@ -3639,7 +3639,7 @@ $Submit.Add_Click({
             $approfiles = Get-AutoPilotProfile
 
             foreach ($approfile in $approfiles) {
-                Add-AutoPilotProfileAssignment -Id $approfile.id -TargetGroupId $intunegrp.objectid
+                Add-AutoPilotProfileAssignment -Id $approfile.id -TargetGroupId $intunegrp.Id
                 Write-Host "Assigned $($intunegrp.DisplayName) to $($approfile.displayName)/$($approfile.id)" -ForegroundColor Green
  
             }
@@ -3656,7 +3656,7 @@ $Submit.Add_Click({
             $espprofiles = Get-ESPConfiguration
 
             foreach ($espprofile in $espprofiles) {
-                Add-ESPAssignment -Id $espprofile.Id -TargetGroupId $intunegrp.objectid
+                Add-ESPAssignment -Id $espprofile.Id -TargetGroupId $intunegrp.Id
                 Write-Host "Assigned $($intunegrp.DisplayName) to $($espprofile.displayName)/$($espprofile.id)" -ForegroundColor Green
             }
             Add-Type -AssemblyName PresentationCore, PresentationFramework
@@ -3754,7 +3754,7 @@ $Submit.Add_Click({
             ##Assign Windows apps
 
             foreach ($windowsapp in $windowsapps) {
-                Add-ApplicationAssignment -ApplicationId $windowsapp.id -TargetGroupId $intunegrp.objectid -InstallIntent $assignmenttype
+                Add-ApplicationAssignment -ApplicationId $windowsapp.id -TargetGroupId $intunegrp.Id -InstallIntent $assignmenttype
                 Write-Host "Assigned $($intunegrp.DisplayName) to $($windowsapp.displayName)/$($windowsapp.id)" -ForegroundColor Green
             }
             Add-Type -AssemblyName PresentationCore, PresentationFramework
@@ -3767,7 +3767,7 @@ $Submit.Add_Click({
             ##Assign MAC apps
 
             foreach ($macosapp in $macosapps) {
-                Add-ApplicationAssignment -ApplicationId $macosapp.id -TargetGroupId $intunegrp.objectid -InstallIntent "Required"
+                Add-ApplicationAssignment -ApplicationId $macosapp.id -TargetGroupId $intunegrp.Id -InstallIntent "Required"
                 Write-Host "Assigned $($intunegrp.DisplayName) to $($macosapp.displayName)/$($macosapp.id)" -ForegroundColor Green
 
             }
@@ -3781,7 +3781,7 @@ $Submit.Add_Click({
             ##Assign Android apps
 
             foreach ($androidapp in $androidapps) {
-                Add-ApplicationAssignment -ApplicationId $androidapp.id -TargetGroupId $intunegrp.objectid -InstallIntent $assignmenttype
+                Add-ApplicationAssignment -ApplicationId $androidapp.id -TargetGroupId $intunegrp.Id -InstallIntent $assignmenttype
                 Write-Host "Assigned $($intunegrp.DisplayName) to $($androidapp.displayName)/$($androidapp.id)" -ForegroundColor Green
 
             }
@@ -3794,7 +3794,7 @@ $Submit.Add_Click({
             ##Assign iOS apps
 
             foreach ($iosapp in $iosapps) {
-                Add-ApplicationAssignment -ApplicationId $iosapp.id -TargetGroupId $intunegrp.objectid -InstallIntent $assignmenttype
+                Add-ApplicationAssignment -ApplicationId $iosapp.id -TargetGroupId $intunegrp.Id -InstallIntent $assignmenttype
                 Write-Host "Assigned $($intunegrp.DisplayName) to $($iosapp.displayName)/$($iosapp.id)" -ForegroundColor Green
 
             }
