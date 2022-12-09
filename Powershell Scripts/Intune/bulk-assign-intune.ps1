@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.1
+.VERSION 2.0.2
 .GUID 29d19c3c-8a33-4ada-a7a7-f39bfb439c1b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Assigns everything within Intune with options to select.  Batch assignment to selected group of all policies, scripts and apps
@@ -25,7 +25,7 @@ GUI to select AAD group and what to assign
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.0.1
+  Version:        2.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -3260,7 +3260,7 @@ $aad.text = "AADGroup"
 $aad.width = 201
 $aad.height = 20
 $aad.location = New-Object System.Drawing.Point(170, 69)
-$aadgroups = get-mggroup | select-object DisplayName
+$aadgroups = get-mggroup -All | select-object DisplayName
 ForEach ($aadgroup in $aadgroups) {
     $aad.Items.Add($aadgroup.DisplayName) 
 }
