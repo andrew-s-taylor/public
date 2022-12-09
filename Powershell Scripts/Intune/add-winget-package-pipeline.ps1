@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0
+.VERSION 1.1
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates an Intune application from a Winget Manifest
 .GUID 26a6c9e7-d51f-42f6-bd52-555d654b414c
@@ -27,12 +27,13 @@ Winget YAML URL
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0
+  Version:        1.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  31/10/2022
   Purpose/Change: Initial script development
+  Change: 09/12/2022 - Grabbed file contents directly from API rather than commit URI
   
 .EXAMPLE
 N/A
@@ -2459,6 +2460,11 @@ write-host "$commitfilename Found"
 
 $filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
 
+
+$commitfilename2 = " https://api.github.com/repos/$ownername/$reponame/contents/$filename"
+
+
+
 ##File Name
 $templateFilePath = $path + $filename
 write-host "Output to $templatefilepath"
@@ -2466,11 +2472,18 @@ write-host "Output to $templatefilepath"
 ######                                          Download YAML                                            ######
 ###############################################################################################################
 write-host "Downloading YAML"
-Invoke-WebRequest `
-   -Uri $commitfilename `
-   -OutFile $templateFilePath `
-   -UseBasicParsing `
-   -Headers @{"Cache-Control"="no-cache"}
+
+$encodedbackup = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json.raw';'Cache-Control'='no-cache'}).Content
+
+##Decode backup from base64
+$decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($encodedbackup)) | out-file $templateFilePath
+
+
+#Invoke-WebRequest `
+#   -Uri $commitfilename `
+#   -OutFile $templateFilePath `
+#   -UseBasicParsing `
+#   -Headers @{"Cache-Control"="no-cache"}
 write-host "Investigating YAML"
 [string[]]$fileContent = Get-Content $templateFilePath
 $content = ''
