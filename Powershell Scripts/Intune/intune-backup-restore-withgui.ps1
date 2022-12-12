@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.9
+  Version:        1.0.10
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.9
+.VERSION 1.0.10
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -672,44 +672,44 @@ Function Get-DeviceCompliancePolicy(){
 #################################################################################################
 Function Get-DeviceSecurityPolicy(){
     
-            <#
-            .SYNOPSIS
-            This function is used to get device security policies from the Graph API REST interface
-            .DESCRIPTION
-            The function connects to the Graph API Interface and gets any device security policies
-            .EXAMPLE
-            Get-DeviceSecurityPolicy
-            Returns any device compliance policies configured in Intune
-            .NOTES
-            NAME: Get-DeviceSecurityPolicy
-            #>
-            
-            [cmdletbinding()]
-            
-            param
-            (
-                $id
-            )
-            
-            $graphApiVersion = "beta"
-            $DCP_resource = "deviceManagement/intents"
-            try {
-                    if($id){
-            
-                    $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
-            
-                    }
-            
-                    else {
-            
-                    $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-            
-                    }
-                }
-                catch {}
-           
+    <#
+    .SYNOPSIS
+    This function is used to get device security policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device security policies
+    .EXAMPLE
+    Get-DeviceSecurityPolicy
+    Returns any device compliance policies configured in Intune
+    .NOTES
+    NAME: Get-DeviceSecurityPolicy
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/intents"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+   
 }
 
 #################################################################################################  
@@ -1136,9 +1136,14 @@ function getpolicyjson() {
         $template = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid" -OutputType PSObject
         $template = $template
         #$templateCategory = Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -Headers $authToken -Method Get
-        $templateCategory = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -OutputType PSObject
+        $templateCategories = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/templates/$templateid/categories" -OutputType PSObject).Value
         #$intentSettingsDelta = (Invoke-RestMethod -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -Headers $authToken -Method Get).value
-        $intentSettingsDelta = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$id/categories/$($templateCategory.id)/settings" -OutputType PSObject).value
+        $intentSettingsDelta = @()
+        foreach ($templateCategory in $templateCategories) {
+            # Get all configured values for the template categories
+            Write-Verbose "Requesting Intent Setting Values"
+            $intentSettingsDelta += (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$($policy.id)/categories/$($templateCategory.id)/settings").value
+        }
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
         $newname = $oldname + "-restore-" + $restoredate
