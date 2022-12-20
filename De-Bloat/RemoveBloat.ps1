@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.8
+  Version:        2.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -30,6 +30,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 27/11/2022 - Added Dell apps
   Change 07/12/2022 - Whitelisted Dell Audio and Firmware
   Change 19/12/2022 - Added Windows 11 start menu support
+  Change 20/12/2022 - Removed Gaming Menu from Settings
   
 .EXAMPLE
 N/A
@@ -158,7 +159,7 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
         "*Office*"
         "*Disney*"
         "clipchamp.clipchamp"
-             
+        "*gaming*"
         #Optional: Typically not removed but you can if you need to for some reason
         #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
         #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
@@ -168,10 +169,11 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
         #"*Microsoft.Windows.Photos*"
         #"*Microsoft.WindowsCalculator*"
         #"*Microsoft.WindowsStore*"
+
     )
     foreach ($Bloat in $Bloatware) {
         
-        Get-AppxPackage -allusers -Name $Bloat| Remove-AppxPackage
+        Get-AppxPackage -allusers -Name $Bloat| Remove-AppxPackage -AllUsers
         Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
         Write-Host "Trying to remove $Bloat."
     }
@@ -524,8 +526,24 @@ $blankjson | Out-File "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\La
 }
 
 
+############################################################################################################
+#                                              Remove Xbox Gaming                                          #
+#                                                                                                          #
+############################################################################################################
 
-
+New-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\xbgm" -Name "Start" -PropertyType DWORD -Value 4 -Force
+Set-Service -Name XblAuthManager -StartupType Disabled
+Set-Service -Name XblGameSave -StartupType Disabled
+Set-Service -Name XboxGipSvc -StartupType Disabled
+Set-Service -Name XboxNetApiSvc -StartupType Disabled
+$task = Get-ScheduledTask -TaskName "Microsoft\XblGameSave\XblGameSaveTask"
+Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
+Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
+Set-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe" -AclObject (Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe").SetAccessRuleProtection($true, $true) -InheritanceFlags "None" -AddAccessRule (New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators","FullControl","Allow"))
+Stop-Process -Name "GameBarPresenceWriter.exe" -Force
+Remove-Item "$env:WinDir\System32\GameBarPresenceWriter.exe" -Force -Confirm:$false
+New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name "AllowgameDVR" -PropertyType DWORD -Value 0 -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "SettingsPageVisibility" -PropertyType String -Value "hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-xboxnetworking" -Force
 
 ############################################################################################################
 #                                        Disable Edge Surf Game                                            #
