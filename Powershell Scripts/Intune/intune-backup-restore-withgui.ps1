@@ -16,19 +16,22 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.1.0
+  Version:        1.2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
+  Updated: 22/12/2022
   Purpose/Change: Initial script development
+  Change: Added support for W365 Provisioning Policies
+  Change: Added support for W365 User Settings Policies
  
 .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.1.0
+.VERSION 1.2.0
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1017,6 +1020,92 @@ Function Get-DeviceManagementScripts(){
     
    
 }
+
+Function Get-Win365UserSettings(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Windows 365 User Settings Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device scriptsWindows 365 User Settings Policies
+    .EXAMPLE
+    Get-Win365UserSettings
+    Returns any Windows 365 User Settings Policies configured in Intune
+    .NOTES
+    NAME: Get-Win365UserSettings
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/virtualEndpoint/userSettings"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
+
+Function Get-Win365ProvisioningPolicies(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Windows 365 Provisioning Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device scriptsWindows 365 Provisioning Policies
+    .EXAMPLE
+    Get-Win365ProvisioningPolicies
+    Returns any Windows 365 Provisioning Policies configured in Intune
+    .NOTES
+    NAME: Get-Win365ProvisioningPolicies
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/virtualEndpoint/provisioningPolicies"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
     
 ################################################################################################
 
@@ -1040,6 +1129,7 @@ function getpolicyjson() {
         $policyid
     )
     write-host $resource
+    $id = $policyid
     $graphApiVersion = "beta"
     switch ($resource) {
     "deviceManagement/deviceConfigurations" {
@@ -1251,6 +1341,22 @@ function getpolicyjson() {
         $newname = $oldname + "-restore-" + $restoredate
            $policy.displayName = $newname
     }
+    "deviceManagement/virtualEndpoint/userSettings" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-Win365UserSettings -id $id
+        $oldname = $policy.displayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+        $policy.displayName = $newname
+    }
+    "deviceManagement/virtualEndpoint/provisioningPolicies" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-Win365ProvisioningPolicies -id $id
+        $oldname = $policy.displayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $newname = $oldname + "-restore-" + $restoredate
+        $policy.displayName = $newname
+    }
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
         #$policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
@@ -1386,6 +1492,13 @@ $configuration += Get-ConditionalAccessPolicy | Select-Object ID, DisplayName, @
 ##Get Winget Apps
 $configuration += Get-IntuneApplication | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Winget Application"}}
 
+##Get Win365 User Settings
+$configuration += Get-Win365UserSettings | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Win365 User Settings"}}
+
+##Get Win365 Provisioning Policies
+$configuration += Get-Win365ProvisioningPolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Win365 Provisioning Policy"}}
+
+
 if ($automated -eq "yes") {
     $configuration2 = $configuration
     }
@@ -1412,6 +1525,8 @@ $proac = Get-DeviceProactiveRemediations -id $id
 $aad = Get-GraphAADGroups -id $id
 $wingetapp = Get-IntuneApplication -id $id
 $scripts = Get-DeviceManagementScripts -id $id
+$win365usersettings = Get-Win365UserSettings -id $id
+$win365provisioning = Get-Win365ProvisioningPolicies -id $id
 
 
 
@@ -1533,6 +1648,22 @@ $id = $wingetapp.id
 $Resource = "deviceAppManagement/mobileApps"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+}
+if ($null -ne $win365usersettings) {
+    # W365 User Settings
+write-host "It's a W365 User Setting"
+$id = $win365usersettings.id
+$Resource = "deviceManagement/virtualEndpoint/userSettings"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
+}
+if ($null -ne $win365provisioning) {
+    # W365 Provisioning Policy
+write-host "It's a W365 Provisioning Policy"
+$id = $win365provisioning.id
+$Resource = "deviceManagement/virtualEndpoint/provisioningPolicies"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 }
 }
 
