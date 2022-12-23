@@ -31,7 +31,7 @@ Creates a log file in %Temp%
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 16/12/2022
+  Updated: 22/12/2022
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation

@@ -1,3 +1,139 @@
+<#
+.SYNOPSIS
+  Documents Intune environment into a Word document
+.DESCRIPTION
+Documents Intune environment into a Word document
+Can be automated by setting $automated to "yes" and setting the variables below
+Automated uploads documentation to github
+.PARAMETER Path
+    The path to the .
+.PARAMETER LiteralPath
+    Specifies a path to one or more locations. Unlike Path, the value of 
+    LiteralPath is used exactly as it is typed. No characters are interpreted 
+    as wildcards. If the path includes escape characters, enclose it in single
+    quotation marks. Single quotation marks tell Windows PowerShell not to 
+    interpret any characters as escape sequences.
+.INPUTS
+None
+.OUTPUTS
+Creates a log file in %Temp%
+.NOTES
+  Version:        1.0.0
+  Author:         Andrew Taylor
+  WWW:            andrewstaylor.com
+  Creation Date:  22/12/2022
+  Purpose/Change: Initial script development
+ 
+.EXAMPLE
+N/A
+#>
+
+<#PSScriptInfo
+.VERSION 1.0.0
+.GUID 4a4e0dc0-98d4-45f3-a82c-547a8ae618c2
+.AUTHOR AndrewTaylor
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS intune endpoint MEM environment
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES 
+.RELEASENOTES
+#>
+
+##################################################################################################################################
+#################                                                  PARAMS                                        #################
+##################################################################################################################################
+
+[cmdletbinding()]
+    
+param
+(
+    [string]$github #Set Github to Yes to upload output to a repo
+    ,  
+    [string]$reponame #Reponame is the github repo
+    , 
+    [string]$ownername #Ownername is the github account
+    , 
+    [string]$token #Token is the github token
+    )
+
+
+##################################################################################################################################
+#################                                                  INITIALIZATION                                #################
+##################################################################################################################################
+$ErrorActionPreference = "Continue"
+##Start Logging to %TEMP%\intune-documentation.log
+$date = get-date -format yyyyMMddTHHmmssffff
+Start-Transcript -Path $env:TEMP\intune-documentation-$date.log
+
+#Install MS Graph if not available
+
+
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+
+#Install MS Graph if not available
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Authentication Already Installed"
+} 
+else {
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
+        Write-Host "Microsoft Graph Authentication Installed"
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
+    Write-Host "Microsoft Graph Corporate Management Already Installed"
+} 
+else {
+        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force 
+        Write-Host "Microsoft Graph Corporate Management Installed"
+    }
+
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
+        Write-Host "Microsoft Graph Groups Already Installed "
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
+            Write-Host "Microsoft Graph Groups Installed"
+    }
+    
+    #Install MS Graph if not available
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
+        Write-Host "Microsoft Graph DeviceManagement Already Installed"
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
+            Write-Host "Microsoft Graph DeviceManagement Installed"
+    }
+
+    #Install MS Graph if not available
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.identity.signins) {
+        Write-Host "Microsoft Graph Identity SignIns Already Installed"
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Repository PSGallery -Force 
+            Write-Host "Microsoft Graph Identity SignIns Installed"
+    }
+
+
+# Load the Graph module
+Import-Module microsoft.graph.authentication
+import-module Microsoft.Graph.Identity.SignIns
+import-module Microsoft.Graph.DeviceManagement
+import-module microsoft.Graph.Groups
+import-module microsoft.graph.devices.corporatemanagement
+
+
+##Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph-Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+
+
 ###############################################################################################################
 ######                                          Add Functions                                            ######
 ###############################################################################################################
@@ -91,6 +227,44 @@ Function New-WordTable {
 
 }
 
+Function New-WordText {
+    Param (
+        [string]$Text,
+        [int]$Size = 11,
+        [string]$Style = 'Normal',
+        [Microsoft.Office.Interop.Word.WdColor]$ForegroundColor = "wdColorAutomatic",
+        [switch]$Bold,
+        [switch]$Italic,
+        [switch]$NoNewLine
+    )  
+    Try {
+        $Selection.Style = $Style
+    } Catch {
+        Write-Warning "Style: `"$Style`" doesn't exist! Try another name."
+        Break
+    }
+ 
+    If ($Style -notmatch 'Title|^Heading'){
+        $Selection.Font.Size = $Size  
+        If ($PSBoundParameters.ContainsKey('Bold')) {
+            $Selection.Font.Bold = 1
+        } Else {
+            $Selection.Font.Bold = 0
+        }
+        If ($PSBoundParameters.ContainsKey('Italic')) {
+            $Selection.Font.Italic = 1
+        } Else {
+            $Selection.Font.Italic = 0
+        }          
+        $Selection.Font.Color = $ForegroundColor
+    }
+ 
+    $Selection.TypeText($Text)
+ 
+    If (-NOT $PSBoundParameters.ContainsKey('NoNewLine')) {
+        $Selection.TypeParagraph()
+    }
+}
 
 Function Get-IntuneApplication(){
     
@@ -455,7 +629,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues()
 	)
 	$graphApiVersion = "Beta"
 	
-	$DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/presentationValues"
+	$DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/presentationValues?`$expand=presentation"
 	try {
 		$uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
 		(Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
@@ -1509,6 +1683,74 @@ Function Get-Win365ProvisioningPoliciesAssignments(){
     
     }
 
+Function Get-SettingsCatalogPolicySettings(){
+
+<#
+.SYNOPSIS
+This function is used to get Settings Catalog policy Settings from the Graph API REST interface
+.DESCRIPTION
+The function connects to the Graph API Interface and gets any Settings Catalog policy Settings
+.EXAMPLE
+Get-SettingsCatalogPolicySettings -policyid policyid
+Returns any Settings Catalog policy Settings configured in Intune
+.NOTES
+NAME: Get-SettingsCatalogPolicySettings
+#>
+
+[cmdletbinding()]
+
+param
+(
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+    $policyid
+)
+
+$graphApiVersion = "beta"
+$Resource = "deviceManagement/configurationPolicies('$policyid')/settings?`$expand=settingDefinitions"
+
+    try {
+
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
+
+        $Response = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+
+        $AllResponses = $Response.value
+     
+        $ResponseNextLink = $Response."@odata.nextLink"
+
+        while ($ResponseNextLink -ne $null){
+
+            $Response = (Invoke-MgGraphRequest -Uri $ResponseNextLink -Method Get -OutputType PSObject)
+            $ResponseNextLink = $Response."@odata.nextLink"
+            $AllResponses += $Response.value
+
+        }
+
+        return $AllResponses
+
+    }
+
+    catch {
+
+    $ex = $_.Exception
+    $errorResponse = $ex.Response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($errorResponse)
+    $reader.BaseStream.Position = 0
+    $reader.DiscardBufferedData()
+    $responseBody = $reader.ReadToEnd();
+    Write-Host "Response content:`n$responseBody" -f Red
+    Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+    write-host
+    break
+
+    }
+
+}
+
+####################################################
+
+
 #################################################################################################
 function getpolicyjson() {
         <#
@@ -1566,7 +1808,7 @@ function getpolicyjson() {
         $policy = Get-DeviceConfigurationPolicysc -id $id
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
-        $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
+        $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings?`$expand=settingDefinitions&top=1000" -OutputType PSObject
         $settings = $settings.value
         $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
         if ($settings -isnot [System.Array]) {
@@ -1575,6 +1817,7 @@ function getpolicyjson() {
             $policy.Settings = $settings
         }
         
+
         $assignment = get-deviceconfigurationpolicyscassignments -id $id
         $type = "Settings Catalog"
 
@@ -1683,7 +1926,7 @@ function getpolicyjson() {
         }
     }
 
-
+    $policy = $policy | Select-Object * -ExcludeProperty roleScopeTagIds
     return $policy, $type, $assignment
 
 }
@@ -1776,13 +2019,23 @@ $Word.Visible = $True
 $Document = $Word.Documents.Add()
 $Selection = $Word.Selection
 
+
+$domain = get-mgdomain | where-object IsDefault -eq $true
+$domainname = $domain.id
+
 #### ADD TITLE PAGE
+New-WordText -Text ("Intune Documentation for " + $domainname) -Style 'Title'
+New-WordText -Text "Documentation compiled at $(Get-Date)."
+$Selection.InsertBreak()
 #### ADD TABLE OF CONTENTS
-#### SET TO HIDDEN AND SAVE
+$range = $Selection.Range
+$toc = $Document.TablesOfContents.Add($range)
+$Selection.TypeParagraph()
+$Selection.InsertBreak()
 
 # Copy it
 if ($null -ne $policy) {
-    # Standard Device Configuratio Policy
+    # Standard Device Configuration Policy
 write-host "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
@@ -1792,25 +2045,28 @@ $policytype = $copypolicy[1]
 $policyassignments = ($copypolicy[2]).value
 $policyname = $policycode.displayName
 
+######################################################################################
+#####                              CREATE CONTENT                               ######
+######################################################################################
+
 ##Table Heading
-$selection.Style='Heading 1' 
-$selection.TypeText($policytype + " --> " + $policyname) 
-$Selection.TypeParagraph()
-$Selection.TypeParagraph()
-##Table One
+New-WordText -Text ($policytype + " --> " + $policyname) -Style 'Heading 1'
+##Table One - Policy Code
 New-WordTable -WordObject $word -Object $policycode -Columns 2 -Rows ($policycode.PSObject.Properties | Measure-Object).Count -AsList
 ##Assignments
 $allassignments = $policyassignments.target
+##Move to the bottom of the table
 $selection.EndKey(6,0)
+##Add a gap
 $Selection.TypeParagraph()
 $Selection.TypeParagraph()
 
-##Table Two
-$selection.Style='Heading 2'
-$selection.TypeText($policytype + " --> " + $policyname + " -- Assignments")  
-$Selection.TypeParagraph()
+##Assignments Heading
+New-WordText -Text ("Assignments") -Style 'Heading 2'
+##Create arrays for the groups to loop through later
 $includedgroups = @()
 $excludedgroups = @()
+## Add to new array depending if included or excluded
 foreach ($assignment in $allassignments) {
 $assignmenttype = $assignment.'@odata.type'
 $assignmentgroupid = $assignment.groupId
@@ -1827,45 +2083,36 @@ $excludedgroups += $groupname + " - " + $assignmentgroupid
 }
 
 }
-
+##Count the groups so we don't add headers with no content
 $includedcount = $includedgroups.Count
 $excludedcount = $excludedgroups.Count
 
+##Add included groups
 if ($includedcount -ge 1) {
-$selection.Style='Heading 3'
-$selection.TypeText($policytype + " --> " + $policyname + " --> Included Assignments") 
+New-WordText -Text ("Included") -Style 'Heading 3'
 foreach ($group in $includedgroups) {
-$Selection.TypeParagraph()
-$selection.Style='Normal'
-
-$selection.TypeText($group) 
-$selection.Style='Normal'
-$Selection.TypeParagraph()
+New-WordText -Text $group
 }
 
 }
 
-
+##Add excluded groups
 if ($excludedcount -ge 1) {
-$selection.Style='Heading 3'
-$selection.TypeText($policytype + " --> " + $policyname + " --> Excluded Assignments") 
+New-WordText -Text ("Excluded") -Style 'Heading 3'
 foreach ($group in $excludedgroups) {
-$Selection.TypeParagraph()
-$selection.Style='Normal'
-
-$selection.TypeText($group) 
-$selection.Style='Normal'
-$Selection.TypeParagraph()
+New-WordText -Text $group
 }
 
 }
-
-
-
-
+##Throw a page
+$Selection.InsertBreak()
+######################################################################################
+#####                          END CREATE CONTENT                               ######
+######################################################################################
 
 
 }
+
 if ($null -ne $gp) {
     # Standard Device Configuration Policy
 write-host "It's an Admin Template"
@@ -1875,6 +2122,124 @@ $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $policycode = $copypolicy[0]
 $policytype = $copypolicy[1]
 $policyassignments = $copypolicy[2]
+
+##Admin Templates are tricky so we need to grab the actual values
+                $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
+                $OutDefjson = @()
+	                foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
+	                    {
+		                    $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		                    $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
+		                    $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
+		                    $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		                    $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		                    $OutDef = New-Object -TypeName PSCustomObject
+                            $OutDef | Add-Member -MemberType NoteProperty -Name "Setting Name" -Value $DefinitionValuedefinitionDisplayName
+                            $OutDef | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
+                                if ($DefinitionValuePresentationValues) {
+                                    $i = 0
+                                    $PresValues = @()
+                                    foreach ($Pres in $DefinitionValuePresentationValues) {
+                                        $P2 = ($pres | Select-Object -Property *).presentation
+                                        $P3 = ($pres | Select-Object -Property *).values
+                                        $P = $p2 | Select-Object label
+                                        $Pa = $p3 | Select-Object name
+                                        $Pb = ($pres | Select-Object value)
+                                        $PresValues += $P
+                                        $PresValues += $Pa
+                                        $PresValues += $Pb
+                                        $i++
+                                    }
+                                $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
+                                }
+		                    $OutDefjson += ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
+                        }
+
+##It's a nested array so now grab the settings into a new array to inject into our main policycode
+$extratablecontent = $OutDefjson | convertfrom-json
+$adminarraycontent = @()
+foreach ($content in $extratablecontent) {
+$adminarraycontent += $content.'Setting Name'
+$adminarraycontent +=  $content.enabled
+$adminarraycontent +=  ($content.presentationValues).label
+$adminarraycontent +=  ($content.presentationValues).value
+$adminarraycontent +=  ($content.presentationValues).name
+
+}
+
+##Convert to a string
+$contenttoadd = $adminarraycontent | out-string
+
+##Add to the array
+$policycode | Add-Member -Name "SettingsExpanded" -Type NoteProperty -Value $contenttoadd -Force
+
+######################################################################################
+#####                              CREATE CONTENT                               ######
+######################################################################################
+$policyname = $policycode.displayName
+
+##Table Heading
+New-WordText -Text ($policytype + " --> " + $policyname) -Style 'Heading 1'
+##Table One - Policy Code
+New-WordTable -WordObject $word -Object $policycode -Columns 2 -Rows ($policycode.PSObject.Properties | Measure-Object).Count -AsList
+##Assignments
+$allassignments = ($policyassignments.value).target
+##Move to the bottom of the table
+$selection.EndKey(6,0)
+##Add a gap
+$Selection.TypeParagraph()
+$Selection.TypeParagraph()
+
+##Assignments Heading
+New-WordText -Text ("Assignments") -Style 'Heading 2'
+##Create arrays for the groups to loop through later
+$includedgroups = @()
+$excludedgroups = @()
+## Add to new array depending if included or excluded
+foreach ($assignment in $allassignments) {
+$assignmenttype = $assignment.'@odata.type'
+$assignmentgroupid = $assignment.groupId
+$groupname = (Get-GraphAADGroups -id $assignmentgroupid).displayName
+if ($assignmenttype -eq "#microsoft.graph.groupAssignmentTarget") {
+
+##Included
+$includedgroups += $groupname + " - " + $assignmentgroupid
+}
+
+if ($assignmenttype -eq "#microsoft.graph.exclusionGroupAssignmentTarget") {
+##Excluded
+$excludedgroups += $groupname + " - " + $assignmentgroupid
+}
+
+}
+##Count the groups so we don't add headers with no content
+$includedcount = $includedgroups.Count
+$excludedcount = $excludedgroups.Count
+
+##Add included groups
+if ($includedcount -ge 1) {
+New-WordText -Text ("Included") -Style 'Heading 3'
+foreach ($group in $includedgroups) {
+New-WordText -Text $group
+}
+
+}
+
+##Add excluded groups
+if ($excludedcount -ge 1) {
+New-WordText -Text ("Excluded") -Style 'Heading 3'
+foreach ($group in $excludedgroups) {
+New-WordText -Text $group
+}
+
+}
+##Throw a page
+$Selection.InsertBreak()
+######################################################################################
+#####                          END CREATE CONTENT                               ######
+######################################################################################
+
+
 }
 if ($null -ne $catalog) {
     # Settings Catalog Policy
@@ -1885,6 +2250,147 @@ $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $policycode = $copypolicy[0]
 $policytype = $copypolicy[1]
 $policyassignments = $copypolicy[2]
+$displayname = @()
+$outvalue = @()
+$settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings?`$expand=settingDefinitions&top=1000" -OutputType PSObject
+foreach ($setting in $settings) {
+$settingsvalues = $setting.value
+$Settingname = $setting.settingDefinitions.description
+foreach ($settingvalue in $settingsvalues) {
+$settingInstance = $settingvalue.settingInstance
+$settingdefinition = $settingvalue.settingDefinitions
+foreach ($definition in $settingdefinition) {
+$displayname += ($definition.displayName).ToString()
+
+
+$datatype = $settingInstance.'@odata.type'
+write-host $datatype
+if ($datatype -eq '#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance'){
+# Drop down and select one value
+    $value = $settingInstance.choiceSettingValue.value
+    $enabledcheck = $value.endswith('_1')
+    if ($enabledcheck -eq $True) {
+    $outvalue += "Enabled"
+    }
+    else {
+    $outvalue += "Disabled"
+    }
+        if ($null -ne ($settingInstance.choiceSettingValue.children.simpleSettingValue.value)) {
+    $outvalue += ($settingInstance.choiceSettingValue.children.simpleSettingValue.value).ToString()
+    }
+}
+if ($datatype -eq '#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance'){
+write-host "ME"
+# String
+    if ($null -ne ($settingInstance.simpleSettingValue.value)) {
+    $outvalue += ($settingInstance.simpleSettingValue.value).ToString()    
+    }
+    
+    if ($null -ne ($settingInstance.choiceSettingValue.children.simpleSettingValue.value)) {
+    $outvalue += ($settingInstance.choiceSettingValue.children.simpleSettingValue.value).ToString()
+    }
+    if ($null -ne ($settingInstance.choiceSettingValue.children.simplesettingcollectionvalue)) {
+    foreach ($childvalue in ($settingInstance.choiceSettingValue.children.simplesettingcollectionvalue)) {
+    write-host "HERE"
+    $outvalue += $childvalue.value.ToString()
+    }
+    }
+
+}
+if ($datatype -eq '#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance'){
+# Multiple Choice Drop-Down
+    write-host "Multi Drop-down"
+}
+if ($datatype -eq '#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance'){
+# Multi Settings
+    write-host "Multiple Settings"
+}
+if ($datatype -eq '#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance'){
+# Group of Values
+    write-host "Group of Values"
+}
+if ($datatype -eq '#microsoft.graph.deviceManagementConfigurationGroupSettingInstance') {
+# Group Instance
+    write-host "Group Instance"
+}
+}
+}
+}
+
+$settingtable = 0..($displayname.Length-1) | Select-Object @{n="Setting Name";e={$displayname[$_]}}, @{n="Value";e={$outvalue[$_]}}
+
+$settingoutputtext = $settingtable | fl | Out-String
+
+##Add to the array
+$policycode | Add-Member -Name "SettingsExpanded" -Type NoteProperty -Value $settingoutputtext -Force
+
+
+######################################################################################
+#####                              CREATE CONTENT                               ######
+######################################################################################
+$policyname = $policycode.name
+
+##Table Heading
+New-WordText -Text ($policytype + " --> " + $policyname) -Style 'Heading 1'
+##Table One - Policy Code
+New-WordTable -WordObject $word -Object $policycode -Columns 2 -Rows ($policycode.PSObject.Properties | Measure-Object).Count -AsList
+
+##Assignments
+$allassignments = ($policyassignments.value).target
+##Move to the bottom of the table
+$selection.EndKey(6,0)
+##Add a gap
+$Selection.TypeParagraph()
+$Selection.TypeParagraph()
+
+##Assignments Heading
+New-WordText -Text ("Assignments") -Style 'Heading 2'
+##Create arrays for the groups to loop through later
+$includedgroups = @()
+$excludedgroups = @()
+## Add to new array depending if included or excluded
+foreach ($assignment in $allassignments) {
+$assignmenttype = $assignment.'@odata.type'
+$assignmentgroupid = $assignment.groupId
+$groupname = (Get-GraphAADGroups -id $assignmentgroupid).displayName
+if ($assignmenttype -eq "#microsoft.graph.groupAssignmentTarget") {
+
+##Included
+$includedgroups += $groupname + " - " + $assignmentgroupid
+}
+
+if ($assignmenttype -eq "#microsoft.graph.exclusionGroupAssignmentTarget") {
+##Excluded
+$excludedgroups += $groupname + " - " + $assignmentgroupid
+}
+
+}
+##Count the groups so we don't add headers with no content
+$includedcount = $includedgroups.Count
+$excludedcount = $excludedgroups.Count
+
+##Add included groups
+if ($includedcount -ge 1) {
+New-WordText -Text ("Included") -Style 'Heading 3'
+foreach ($group in $includedgroups) {
+New-WordText -Text $group
+}
+
+}
+
+##Add excluded groups
+if ($excludedcount -ge 1) {
+New-WordText -Text ("Excluded") -Style 'Heading 3'
+foreach ($group in $excludedgroups) {
+New-WordText -Text $group
+}
+
+}
+##Throw a page
+$Selection.InsertBreak()
+######################################################################################
+#####                          END CREATE CONTENT                               ######
+######################################################################################
 
 }
 if ($null -ne $compliance) {
@@ -2019,3 +2525,15 @@ $policytype = $copypolicy[1]
 $policyassignments = $copypolicy[2]
 }
 }
+
+$toc.Update()
+
+##Save Word Document
+
+##Output to PDF
+
+##Upload to GitHub (if selected)
+
+##Open folder
+
+Stop-Transcript
