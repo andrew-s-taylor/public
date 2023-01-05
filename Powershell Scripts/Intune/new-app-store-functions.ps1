@@ -132,13 +132,13 @@ Function Add-StoreAppAssignment(){
     )
     
     $graphApiVersion = "Beta"
-    $Resource = "deviceManagement/deviceAppManagement/mobileApps/$storeAppID/assign"
+    $Resource = "deviceAppManagement/mobileApps/$storeAppID/assign"
         
         try {
     
             if(!$StoreAppID){
     
-            write-host "No Compliance Policy Id specified, specify a valid Compliance Policy Id" -f Red
+            write-host "No App Id specified, specify a valid App Id" -f Red
             break
     
             }
