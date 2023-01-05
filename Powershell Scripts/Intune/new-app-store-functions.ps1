@@ -150,24 +150,25 @@ Function Add-StoreAppAssignment(){
     
             }
     
-    $JSON = @"
-    {
-        "mobileAppAssignments":  [
-                                     {
-                                         "settings":  {
-                                                          "installTimeSettings":  null,
-                                                          "notifications":  "showAll",
-                                                          "restartSettings":  null,
-                                                          "@odata.type":  "#microsoft.graph.winGetAppAssignmentSettings"
-                                                      },
-                                         "intent":  "Required",
-                                         "target":  {
-                                            "groupId": "$TargetGroupId"
-                                                    },
-                                         "@odata.type":  "#microsoft.graph.mobileAppAssignment"
-                                     }
-                                 ]
-    }
+            $JSON = @"
+            {
+                "mobileAppAssignments": [
+                    {
+                        "@odata.type": "#microsoft.graph.mobileAppAssignment",
+                        "intent": "Required",
+                        "settings": {
+                            "@odata.type": "#microsoft.graph.winGetAppAssignmentSettings",
+                            "installTimeSettings": null,
+                            "notifications": "showAll",
+                            "restartSettings": null
+                        },
+                        "target": {
+                            "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                            "groupId": "$targetgroupid"
+                        }
+                    }
+                ]
+            }
 "@
     
         $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
