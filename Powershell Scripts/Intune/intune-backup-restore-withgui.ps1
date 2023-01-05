@@ -84,7 +84,18 @@ param
 $automated = "no"
 ############################################################
 
+############################################################
+#############           AUTOMATION NOTES       #############
+############################################################
 
+## You need to add these modules to your Automation Account if using Azure Automation
+## Don't use the V2 preview versions
+## https://www.powershellgallery.com/packages/PackageManagement/1.4.8.1
+## https://www.powershellgallery.com/packages/Microsoft.Graph.Authentication/1.19.0
+## https://www.powershellgallery.com/packages/Microsoft.Graph.Devices.CorporateManagement/1.19.0
+## https://www.powershellgallery.com/packages/Microsoft.Graph.Groups/1.19.0
+## https://www.powershellgallery.com/packages/Microsoft.Graph.DeviceManagement/1.19.0
+## https://www.powershellgallery.com/packages/Microsoft.Graph.Identity.SignIns/1.19.0
 
 if ($automated -eq "yes") {
 ##################################################################################################################################
@@ -131,7 +142,7 @@ if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
     Write-Host "Microsoft Graph Authentication Already Installed"
 } 
 else {
-        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0 
         Write-Host "Microsoft Graph Authentication Installed"
 }
 
@@ -140,7 +151,7 @@ if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement 
     Write-Host "Microsoft Graph Corporate Management Already Installed"
 } 
 else {
-        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
         Write-Host "Microsoft Graph Corporate Management Installed"
     }
 
@@ -148,7 +159,7 @@ else {
         Write-Host "Microsoft Graph Groups Already Installed "
     } 
     else {
-            Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
+            Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
             Write-Host "Microsoft Graph Groups Installed"
     }
     
@@ -157,7 +168,7 @@ else {
         Write-Host "Microsoft Graph DeviceManagement Already Installed"
     } 
     else {
-            Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
+            Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
             Write-Host "Microsoft Graph DeviceManagement Installed"
     }
 
@@ -166,7 +177,7 @@ else {
         Write-Host "Microsoft Graph Identity SignIns Already Installed"
     } 
     else {
-            Install-Module -Name Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Repository PSGallery -Force 
+            Install-Module -Name Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
             Write-Host "Microsoft Graph Identity SignIns Installed"
     }
 
