@@ -119,7 +119,7 @@ $Resource = "deviceManagement/deviceHealthScripts"
 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 
 try {
-    $proactive = Invoke-MGGraphRequest -Url $uri -Method Post -Content $params
+    $proactive = Invoke-MGGraphRequest -Uri $uri -Method Post -Body $params -ContentType "application/json" 
 }
 catch {
     Write-Error $_.Exception 
@@ -182,7 +182,7 @@ $Resource = "deviceManagement/deviceHealthScripts"
 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource/$remediationID/assign"
 
 try {
-    $proactive = Invoke-MGGraphRequest -Url $uri -Method Post -Content $params
+    $proactive = Invoke-MGGraphRequest -Uri $uri -Method Post -Body $params -ContentType "application/json" 
 }
 catch {
     Write-Error $_.Exception 
