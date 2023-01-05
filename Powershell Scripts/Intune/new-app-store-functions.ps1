@@ -26,7 +26,6 @@ Function Add-MSStoreApp(){
     This function adds Microsoft Store Apps using Winget
     .DESCRIPTION
     The function connects to the Graph API Interface and creates a Microsoft Store App using the new experience
-    Thanks for Sander Rozemuller for this one: https://www.rozemuller.com/add-mirosoft-store-app-with-icon-into-intune-automated/
     .EXAMPLE
     Add-MSStoreApp -name "WhatsApp"
     .NOTES
@@ -63,30 +62,50 @@ $wc = New-Object System.Net.WebClient
 $wc.DownloadFile($image.IconUrl, "./temp.jpg")
 $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes('./temp.jpg'))
 
+    $appdescription = ($appInfo.Shortdescription).ToString()
+    $appdescription2 = $appdescription.replace("`n"," ").replace("`r"," ").replace("\n"," ").replace("\\n"," ")
+    $appdeveloper = $appInfo.Publisher
+    $appdisplayName = $appInfo.packageName
+    $appinformationUrl = $appInfo.PublisherSupportUrl
+    $apprunAsAccount = ($appInstaller.scope | select-object -First 1)
+    $appisFeatured = $false
+    $apppackageIdentifier = $appId
+    $appprivacyInformationUrl = $appInfo.PrivacyUrl
+    $apppublisher = $appInfo.publisher
+
 
 $deployUrl = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps"
-$appBody = @{
-    '@odata.type'         = "#microsoft.graph.winGetApp"
-    description           = $appInfo.ShortDescription
-    developer             = $appInfo.Publisher
-    displayName           = $appInfo.packageName
-    informationUrl        = $appInfo.PublisherSupportUrl
-    largeIcon             = @{
-        "@odata.type"= "#microsoft.graph.mimeContent"
-        "type" ="String"
-        "value" = $base64string 
-    }
-    installExperience     = @{
-        runAsAccount = $appInstaller.scope
-    }
-    isFeatured            = $false
-    packageIdentifier     = $appId
-    privacyInformationUrl = $appInfo.PrivacyUrl
-    publisher             = $appInfo.publisher
-    repositoryType        = "microsoftStore"
-    roleScopeTagIds       = @()
-} | ConvertTo-Json 
-$appDeploy = Invoke-MgGraphRequest -uri $deployUrl -method POST -body $appBody
+$json = @"
+{
+	"@odata.type": "#microsoft.graph.winGetApp",
+	"categories": [],
+	"description": "$appdescription2",
+	"developer": "$appdeveloper",
+	"displayName": "$appdisplayName",
+	"informationUrl": "$appinformationUrl",
+	"installExperience": {
+		"runAsAccount": "$apprunAsAccount"
+	},
+	"isFeatured": false,
+	"largeIcon": {
+        "@odata.type": "#microsoft.graph.mimeContent",
+        "type": "string",
+        "value": "$base64string"
+    	},
+	"notes": "",
+	"owner": "",
+	"packageIdentifier": "$apppackageIdentifier",
+	"privacyInformationUrl": "$appprivacyInformationUrl",
+	"publisher": "$apppublisher",
+	"repositoryType": "microsoftStore",
+	"roleScopeTagIds": []
+}
+"@
+
+$appDeploy = Invoke-mggraphrequest -uri $deployUrl -Method POST -Body $json -ContentType "application/JSON"
+
+
+
 return $appDeploy
 }
 
