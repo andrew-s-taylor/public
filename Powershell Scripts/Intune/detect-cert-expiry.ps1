@@ -46,17 +46,25 @@ $MailSender = "<YOUR FROM ADDRESS>"
 
 
 #Connect to GRAPH API
-$tokenBody = @{
-    Grant_Type    = "client_credentials"
-    Scope         = "https://graph.microsoft.com/.default"
-    Client_Id     = $clientId
-    Client_Secret = $clientSecret
+$body = @{
+    grant_type    = "client_credentials";
+    client_id     = $clientId;
+    client_secret = $clientSecret;
+    scope         = "https://graph.microsoft.com/.default";
 }
-$tokenResponse = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$tenantID/oauth2/v2.0/token" -Method POST -Body $tokenBody
-$headers = @{
-    "Authorization" = "Bearer $($tokenResponse.access_token)"
-    "Content-type"  = "application/json"
-}
+ 
+$response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token -Body $body
+$accessToken = $response.access_token
+ 
+$accessToken
+
+#Get Creds and connect
+#Connect to Graph
+write-host "Connecting to Graph"
+write-host $body
+Select-MgProfile -Name Beta
+Connect-MgGraph  -AccessToken $accessToken
+write-host "Graph Connection Established"
 
 #MDM Push
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
@@ -181,7 +189,7 @@ $BodyJsonsend = @"
                       }
 "@
 
-Invoke-RestMethod -Method POST -Uri $URLsend -Headers $headers -Body $BodyJsonsend
+Invoke-MgGraphRequest -Method POST -Uri $URLsend -Body $BodyJsonsend
 }
 else {
 write-host "All fine" -ForegroundColor Green
