@@ -303,16 +303,7 @@ Function Get-DeviceConfigurationPolicy(){
     
         catch {
     
-        $ex = $_.Exception
-        $errorResponse = $ex.Response.GetResponseStream()
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $reader.BaseStream.Position = 0
-        $reader.DiscardBufferedData()
-        $responseBody = $reader.ReadToEnd();
-        Write-Host "Response content:`n$responseBody" -f Red
-        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        
+ 
     
         }
     
@@ -359,16 +350,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValues()
 	catch
 	{
 		
-		$ex = $_.Exception
-		$errorResponse = $ex.Response.GetResponseStream()
-		$reader = New-Object System.IO.StreamReader($errorResponse)
-		$reader.BaseStream.Position = 0
-		$reader.DiscardBufferedData()
-		$responseBody = $reader.ReadToEnd();
-		Write-Host "Response content:`n$responseBody" -f Red
-		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-		write-host
-		break
+
 		
 	}
 	
@@ -413,16 +395,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues()
 	catch
 	{
 		
-		$ex = $_.Exception
-		$errorResponse = $ex.Response.GetResponseStream()
-		$reader = New-Object System.IO.StreamReader($errorResponse)
-		$reader.BaseStream.Position = 0
-		$reader.DiscardBufferedData()
-		$responseBody = $reader.ReadToEnd();
-		Write-Host "Response content:`n$responseBody" -f Red
-		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-		write-host
-		break
+
 		
 	}
 	
@@ -467,16 +440,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesdefinition ()
 	catch
 	{
 		
-		$ex = $_.Exception
-		$errorResponse = $ex.Response.GetResponseStream()
-		$reader = New-Object System.IO.StreamReader($errorResponse)
-		$reader.BaseStream.Position = 0
-		$reader.DiscardBufferedData()
-		$responseBody = $reader.ReadToEnd();
-		Write-Host "Response content:`n$responseBody" -f Red
-		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-		write-host
-		break
+
 		
 	}
 	$responseBody
@@ -522,16 +486,7 @@ Function Get-GroupPolicyDefinitionsPresentations ()
 	catch
 	{
 		
-		$ex = $_.Exception
-		$errorResponse = $ex.Response.GetResponseStream()
-		$reader = New-Object System.IO.StreamReader($errorResponse)
-		$reader.BaseStream.Position = 0
-		$reader.DiscardBufferedData()
-		$responseBody = $reader.ReadToEnd();
-		Write-Host "Response content:`n$responseBody" -f Red
-		Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-		write-host
-		break
+
 		
 	}
 	
@@ -584,16 +539,7 @@ Function Get-DeviceConfigurationPolicySC(){
             
                 catch {
             
-                $ex = $_.Exception
-                $errorResponse = $ex.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($errorResponse)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
-                Write-Host "Response content:`n$responseBody" -f Red
-                Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-                write-host
-                
+
             
                 }
             
@@ -701,15 +647,7 @@ Function Get-DeviceProactiveRemediations(){
     
         catch {
     
-        $ex = $_.Exception
-        $errorResponse = $ex.Response.GetResponseStream()
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $reader.BaseStream.Position = 0
-        $reader.DiscardBufferedData()
-        $responseBody = $reader.ReadToEnd();
-        #Write-Host "Response content:`n$responseBody" -f Red
-        #Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        #write-host
+ 
         
     
         }
@@ -762,15 +700,7 @@ Function Get-DeviceCompliancePolicy(){
             
                 catch {
             
-                $ex = $_.Exception
-                $errorResponse = $ex.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($errorResponse)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
-                Write-Host "Response content:`n$responseBody" -f Red
-                Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-                write-host
+ 
                 
             
                 }
@@ -822,15 +752,7 @@ Function Get-DeviceSecurityPolicy(){
             
                 catch {
             
-                $ex = $_.Exception
-                $errorResponse = $ex.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($errorResponse)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
-                Write-Host "Response content:`n$responseBody" -f Red
-                Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-                write-host
+
                 
             
                 }
@@ -983,16 +905,7 @@ Function Get-GraphAADGroups(){
     
         catch {
     
-        $ex = $_.Exception
-        $errorResponse = $ex.Response.GetResponseStream()
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $reader.BaseStream.Position = 0
-        $reader.DiscardBufferedData()
-        $responseBody = $reader.ReadToEnd();
-        #Write-Host "Response content:`n$responseBody" -f Red
-        #Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        #write-host
-        
+
     
         }
     
@@ -1044,16 +957,7 @@ Function Get-AutoPilotProfile(){
                 
                     catch {
                 
-                    $ex = $_.Exception
-                    $errorResponse = $ex.Response.GetResponseStream()
-                    $reader = New-Object System.IO.StreamReader($errorResponse)
-                    $reader.BaseStream.Position = 0
-                    $reader.DiscardBufferedData()
-                    $responseBody = $reader.ReadToEnd();
-                    Write-Host "Response content:`n$responseBody" -f Red
-                    Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-                    write-host
-                    
+
                 
                     }
                 
@@ -1156,15 +1060,7 @@ Function Get-AutoPilotESP(){
                     
                         catch {
                     
-                        $ex = $_.Exception
-                        $errorResponse = $ex.Response.GetResponseStream()
-                        $reader = New-Object System.IO.StreamReader($errorResponse)
-                        $reader.BaseStream.Position = 0
-                        $reader.DiscardBufferedData()
-                        $responseBody = $reader.ReadToEnd();
-                        Write-Host "Response content:`n$responseBody" -f Red
-                        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-                        write-host
+          
                         
                     
                         }
@@ -1216,16 +1112,7 @@ Function Get-DecryptedDeviceConfigurationPolicy(){
                 }            
                 catch {
             
-                    $ex = $_.Exception
-                    $errorResponse = $ex.Response.GetResponseStream()
-                    $reader = New-Object System.IO.StreamReader($errorResponse)
-                    $reader.BaseStream.Position = 0
-                    $reader.DiscardBufferedData()
-                    $responseBody = $reader.ReadToEnd();
-                    Write-Host "Response content:`n$responseBody" -f Red
-                    Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-                    write-host
-                    break
+
                 
                 }
             }
