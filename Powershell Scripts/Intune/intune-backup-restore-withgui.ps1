@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.0
+  Version:        2.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 23/12/2022
+  Updated: 15/01/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -33,13 +33,14 @@ Creates a log file in %Temp%
   Change: Added support for Admin Approvals
   Change: Added support for Intune Terms
   Change: Added support for custom roles
+  Change: Added fix for large Settings Catalog Policies (thanks Jordan in the blog comments)
  
 .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.0
+.VERSION 2.0.1
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1657,6 +1658,15 @@ function getpolicyjson() {
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
         $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
         $settings = $settings.value
+        $policynextlink = $settings."@odata.nextlink"
+
+        while ($null -ne $policynextlink)
+        {
+            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
+            $policynextlink = $nextsettings."@odata.nextLink"
+            $settings += $nextsettings
+        }
+
         $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
         if ($settings -isnot [System.Array]) {
             $policy.Settings = @($settings)

@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 4.0.0
+.VERSION 4.0.1
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,12 +26,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        4.0.0
+  Version:        4.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 23/12/2022
+  Updated: 15/01/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -62,6 +62,8 @@ Creates a log file in %Temp%
   Change: Added support for Admin Approvals
   Change: Added support for Intune Terms
   Change: Added support for custom roles
+  Change: Added fix for large Settings Catalog Policies (thanks Jordan in the blog comments)
+
   
 .EXAMPLE
 N/A
@@ -1543,6 +1545,15 @@ function getpolicyjson() {
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
         $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
         $settings = $settings.value
+        $policynextlink = $settings."@odata.nextlink"
+
+        while ($null -ne $policynextlink)
+        {
+            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
+            $policynextlink = $nextsettings."@odata.nextLink"
+            $settings += $nextsettings
+        }
+
         $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
         if ($settings -isnot [System.Array]) {
             $policy.Settings = @($settings)
