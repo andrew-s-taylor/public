@@ -60,7 +60,8 @@ Connect-MSGraph -ClientSecret $ClientSecret -Quiet
 $date = get-date -format "dd_MM_yyy"
 
 ##Create temp folder
-$tempFolder = New-Item -Type Directory -Force -Path "$env:TEMP\IntuneBackup$date"
+$dir = $env:temp + "\IntuneBackup" + $date
+$tempFolder = New-Item -Type Directory -Force -Path $dir
 
 ##Backup Locally
 Start-IntuneBackup `
