@@ -251,7 +251,7 @@ Function Add-DeviceFeatureUpdateAssignment() {
                 Write-Host "Group with Id '$TargetGroupId' already assigned to Policy..." -ForegroundColor Red
             }
             # Looping through previously configured assignements
-            $DCPA | foreach {
+            $DCPA | ForEach-Object {
                 $TargetGroup = New-Object -TypeName psobject
                 if ($_.excludeGroup -eq $true) {
                     $TargetGroup | Add-Member -MemberType NoteProperty -Name '@odata.type' -Value '#microsoft.graph.exclusionGroupAssignmentTarget'
@@ -343,14 +343,21 @@ $win10groupexist = get-mggroup -filter "displayName eq '$w10groupname'"
 if ($null -ne $win11groupexist) {
 ##It exists, add members
 foreach ($compliantdevice in $compliantdevices) {
+    ##Check if already in the group
+    $groupmember = get-mggroupmember -GroupId $win11groupexist.id -MemberId $compliantdevice.id
+    if ($null -eq $groupmember) {
     add-mggroupmember -GroupId $win11groupexist.id -MemberId $compliantdevice.id
+    }
 }
 }
 else {
 ##Does not, create it first
 $win11group = new-mggroup -DisplayName $w11groupname -Description "Devices Compliant with Windows 11" -MailEnabled $false -SecurityEnabled $true
 foreach ($compliantdevice in $compliantdevices) {
+    $groupmember = get-mggroupmember -GroupId $win11group.id -MemberId $compliantdevice.id
+    if ($null -eq $groupmember) {
     add-mggroupmember -GroupId $win11group.id -MemberId $compliantdevice.id
+    }
 }
 }
 
@@ -360,14 +367,20 @@ foreach ($compliantdevice in $compliantdevices) {
 if ($null -ne $win10groupexist) {
     ##It exists, add members
     foreach ($noncompliantdevice in $noncompliantdevices) {
-        add-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
+        $groupmember = get-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
+        if ($null -eq $groupmember) {
+            add-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
+        }
     }
     }
     else {
     ##Does not, create it first
     $win10group = new-mggroup -DisplayName $w10groupname -Description "Devices Not Compliant with Windows 10" -MailEnabled $false -SecurityEnabled $true
     foreach ($noncompliantdevice in $noncompliantdevices) {
-        add-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
+        $groupmember = get-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
+        if ($null -eq $groupmember) {
+            add-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
+        }
     }
     }
 
@@ -377,6 +390,17 @@ if ($null -ne $win10groupexist) {
 $currentrings = (Get-DeviceFeatureUpdates).value
 
 ##Add exclusion for both groups to each
+
+$finalw10group = get-mggroup -filter "displayName eq '$w10groupname'"
+$finalw11group = get-mggroup -filter "displayName eq '$w11groupname'"
+
+
+foreach ($updatering in $currentrings) {
+    $policyid = $updatering.id
+    Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $policyid -TargetGroupId $finalw10group -AssignmentType Excluded
+    Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $policyid -TargetGroupId $finalw11group -AssignmentType Excluded
+
+}
 
 ##Create new Feature Update Rings
 
@@ -392,8 +416,10 @@ $json = @"
 }
 "@
 $win11ring = (invoke-mggraphrequest -uri $uri -method POST -body $json -ContentType "application/json").id
-
+$newwin11id = $win11ring.id
 ##Add Win11 Group and Exclude Win10
+Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin11id -TargetGroupId $finalw10group -AssignmentType Excluded
+Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin11id -TargetGroupId $finalw11group -AssignmentType Included
 
 
 
@@ -411,5 +437,8 @@ $json = @"
 "@
 $win10ring = (invoke-mggraphrequest -uri $uri -method POST -body $json -ContentType "application/json").id
 
+$newwin10id = $win10ring.id
 
 ##Add Win10 Group and Exclude Win11
+Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin10id -TargetGroupId $finalw10group -AssignmentType Included
+Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin10id -TargetGroupId $finalw11group -AssignmentType Excluded
