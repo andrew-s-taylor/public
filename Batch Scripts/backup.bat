@@ -63,6 +63,18 @@ XCopy "%Bstartu%\*" "%Onedrive%\Backup\StartMenuU" /E /Y /C /Z /D >> "%Onedrive%
 if not exist "%OneDriveCommercial%\Backup\StartMenuU" mkdir "%OneDriveCommercial%\Backup\StartMenuU"
 XCopy "%Bstartp%\*" "%OneDriveCommercial%\Backup\StartMenuU" /E /Y /C /Z /D >> "%OneDriveCommercial%\backup\log.txt"
 
+::GET User Taskbar Items
+echo CopyingUserTaskbar >> "%Onedrive%\backup\log.txt"
+echo CopyingUserTaskbar >> "%OneDriveCommercial%\backup\log.txt"
+SET BTasku=%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar
+SET RTasku="%Onedrive%\Backup\TaskBar"
+if not exist "%Onedrive%\Backup\TaskBar" mkdir "%Onedrive%\Backup\TaskBar"
+XCopy "%BTasku%\*" "%Onedrive%\Backup\TaskBar" /E /Y /C /Z /D >> "%Onedrive%\backup\log.txt"
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" "%Onedrive%\Backup\TaskBar\task.reg" /y >> "%OneDriveCommercial%\backup\log.txt"
+if not exist "%OneDriveCommercial%\Backup\TaskBar" mkdir "%OneDriveCommercial%\Backup\TaskBar" >> "%OneDriveCommercial%\backup\log.txt"
+XCopy "%BTasku%\*" "%OneDriveCommercial%\Backup\TaskBar" /E /Y /C /Z /D >> "%OneDriveCommercial%\backup\log.txt"
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" "C:\Temp\My_Registry_Key.reg" /y >> "%OneDriveCommercial%\backup\log.txt"
+
 ::GET SIGNATURES
 echo CopyingSignatures >> "%Onedrive%\backup\log.txt"
 echo CopyingSignatures >> "%OneDriveCommercial%\backup\log.txt"
