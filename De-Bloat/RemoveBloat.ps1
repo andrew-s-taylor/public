@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.9
+  Version:        2.91
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -31,6 +31,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 07/12/2022 - Whitelisted Dell Audio and Firmware
   Change 19/12/2022 - Added Windows 11 start menu support
   Change 20/12/2022 - Removed Gaming Menu from Settings
+  Change 18/01/2023 - Fixed Scheduled task error and cleared up $null posistioning
   
 .EXAMPLE
 N/A
@@ -385,27 +386,27 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
     #Disables scheduled tasks that are considered unnecessary 
     Write-Host "Disabling scheduled tasks"
     $task1 = Get-ScheduledTask -TaskName XblGameSaveTaskLogon -ErrorAction SilentlyContinue
-    if ($task1 -ne $null) {
+    if ($null -ne $task1) {
     Get-ScheduledTask  XblGameSaveTaskLogon | Disable-ScheduledTask -ErrorAction SilentlyContinue
     }
     $task2 = Get-ScheduledTask -TaskName XblGameSaveTask -ErrorAction SilentlyContinue
-    if ($task2 -ne $null) {
+    if ($null -ne $task2) {
     Get-ScheduledTask  XblGameSaveTask | Disable-ScheduledTask -ErrorAction SilentlyContinue
     }
     $task3 = Get-ScheduledTask -TaskName Consolidator -ErrorAction SilentlyContinue
-    if ($task3 -ne $null) {
+    if ($null -ne $task3) {
     Get-ScheduledTask  Consolidator | Disable-ScheduledTask -ErrorAction SilentlyContinue
     }
     $task4 = Get-ScheduledTask -TaskName UsbCeip -ErrorAction SilentlyContinue
-    if ($task4 -ne $null) {
+    if ($null -ne $task4) {
     Get-ScheduledTask  UsbCeip | Disable-ScheduledTask -ErrorAction SilentlyContinue
     }
     $task5 = Get-ScheduledTask -TaskName DmClient -ErrorAction SilentlyContinue
-    if ($task5 -ne $null) {
+    if ($null -ne $task5) {
     Get-ScheduledTask  DmClient | Disable-ScheduledTask -ErrorAction SilentlyContinue
     }
     $task6 = Get-ScheduledTask -TaskName DmClientOnScenarioDownload -ErrorAction SilentlyContinue
-    if ($task6 -ne $null) {
+    if ($null -ne $task6) {
     Get-ScheduledTask  DmClientOnScenarioDownload | Disable-ScheduledTask -ErrorAction SilentlyContinue
     }
 
@@ -471,7 +472,7 @@ write-host "Clearing Start Menu"
 #Delete layout file if it already exists
 
 ##Check windows version
-$version = Get-WMIObject win32_operatingsystem | select Caption
+$version = Get-WMIObject win32_operatingsystem | Select-Object Caption
 if ($version.Caption -like "*Windows 10*") {
     write-host "Windows 10 Detected"
     write-host "Removing Current Layout"
@@ -804,7 +805,7 @@ $whitelistapps = @(
 $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
 foreach($obj in $InstalledSoftware){
      $name = $obj.GetValue('DisplayName')
-     if (($name -notcontains $whitelistapps) -and ($obj.GetValue('UninstallString') -ne $null)) {
+     if (($name -notcontains $whitelistapps) -and ($null -ne $obj.GetValue('UninstallString'))) {
         $uninstallcommand = $obj.GetValue('UninstallString')
         write-host "Uninstalling $name"
         if ($uninstallcommand -like "*msiexec*") {
@@ -827,7 +828,7 @@ foreach($obj in $InstalledSoftware){
 $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall"
 foreach($obj32 in $InstalledSoftware32){
      $name32 = $obj32.GetValue('DisplayName')
-     if (($name32 -notcontains $whitelistapps) -and ($obj32.GetValue('UninstallString') -ne $null)) {
+     if (($name32 -notcontains $whitelistapps) -and ($null -ne $obj32.GetValue('UninstallString'))) {
         $uninstallcommand32 = $obj.GetValue('UninstallString')
         write-host "Uninstalling $name"
                 if ($uninstallcommand32 -like "*msiexec*") {
@@ -848,7 +849,7 @@ foreach($obj32 in $InstalledSoftware32){
 ##Remove Chrome
 $chrome32path = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome"
 
-if ($chrome32path -ne $null) {
+if ($null -ne $chrome32path) {
 
 $versions = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome').version
 ForEach ($version in $versions) {
@@ -862,7 +863,7 @@ Start-Process "$directory\Google\Chrome\Application\$version\Installer\setup.exe
 
 $chromepath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome"
 
-if ($chromepath -ne $null) {
+if ($null -ne $chromepath) {
 
 $versions = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome').version
 ForEach ($version in $versions) {
