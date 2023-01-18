@@ -536,8 +536,10 @@ Set-Service -Name XblAuthManager -StartupType Disabled
 Set-Service -Name XblGameSave -StartupType Disabled
 Set-Service -Name XboxGipSvc -StartupType Disabled
 Set-Service -Name XboxNetApiSvc -StartupType Disabled
-$task = Get-ScheduledTask -TaskName "Microsoft\XblGameSave\XblGameSaveTask"
+$task = Get-ScheduledTask -TaskName "Microsoft\XblGameSave\XblGameSaveTask" -ErrorAction SilentlyContinue
+if ($null -ne $task) {
 Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
+}
 Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
 Set-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe" -AclObject (Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe").SetAccessRuleProtection($true, $true) -InheritanceFlags "None" -AddAccessRule (New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators","FullControl","Allow"))
 Stop-Process -Name "GameBarPresenceWriter.exe" -Force
