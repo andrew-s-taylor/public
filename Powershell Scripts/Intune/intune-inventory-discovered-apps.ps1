@@ -73,6 +73,39 @@ Connect-MgGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConf
 
 
 
+Function Get-ScriptVersion(){
+    
+  <#
+  .SYNOPSIS
+  This function is used to check if the running script is the latest version
+  .DESCRIPTION
+  This function checks GitHub and compares the 'live' version with the one running
+  .EXAMPLE
+  Get-ScriptVersion
+  Returns a warning and URL if outdated
+  .NOTES
+  NAME: Get-ScriptVersion
+  #>
+  
+  [cmdletbinding()]
+  
+  param
+  (
+      $liveuri
+  )
+$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
+$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
+$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
+$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
+if ($liveversion -ne $currentversion) {
+write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
+}
+}
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/intune-inventory-discovered-apps.ps1"
+
+
+
+
 ##Grab all devices
 $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices"
 $alldevices = (Invoke-MgGraphRequest -uri $uri -Method GET -OutputType PSObject).value

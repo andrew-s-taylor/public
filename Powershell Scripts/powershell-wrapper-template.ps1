@@ -46,7 +46,7 @@ $contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
 $liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
 $currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
 if ($liveversion -ne $currentversion) {
-write-warning "Script has been updated, please download the latest version from $liveuri"
+write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
 }
 }
 Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/powershell-wrapper-template.ps1"

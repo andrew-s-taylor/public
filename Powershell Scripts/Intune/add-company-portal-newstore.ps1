@@ -41,6 +41,39 @@ Write-Host "Module Imported"
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes Domain.Read.All, Directory.Read.All, DeviceManagementApps.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
+
+
+Function Get-ScriptVersion(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to check if the running script is the latest version
+    .DESCRIPTION
+    This function checks GitHub and compares the 'live' version with the one running
+    .EXAMPLE
+    Get-ScriptVersion
+    Returns a warning and URL if outdated
+    .NOTES
+    NAME: Get-ScriptVersion
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $liveuri
+    )
+$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
+$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
+$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
+$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
+if ($liveversion -ne $currentversion) {
+write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
+}
+}
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/add-company-portal-newstore.ps1"
+
+
 $uri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/"
 
 write-host "Adding Company Portal to Intune"
