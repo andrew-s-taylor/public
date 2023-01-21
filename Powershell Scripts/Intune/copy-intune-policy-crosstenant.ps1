@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 4.0.1
+.VERSION 4.0.2
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,12 +26,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        4.0.1
+  Version:        4.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 15/01/2023
+  Updated: 21/01/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -63,6 +63,7 @@ Creates a log file in %Temp%
   Change: Added support for Intune Terms
   Change: Added support for custom roles
   Change: Added fix for large Settings Catalog Policies (thanks Jordan in the blog comments)
+  Change: Added support for pagination when grabbing Settings Catalog policies (thanks to randomsunrize on GitHub)
 
   
 .EXAMPLE
@@ -103,6 +104,37 @@ import-module Microsoft.Graph.Identity.SignIns
 
 ##Disconnect just in case anything is lingering
 Disconnect-MgGraph
+
+Function Get-ScriptVersion(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to check if the running script is the latest version
+    .DESCRIPTION
+    This function checks GitHub and compares the 'live' version with the one running
+    .EXAMPLE
+    Get-ScriptVersion
+    Returns a warning and URL if outdated
+    .NOTES
+    NAME: Get-ScriptVersion
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $liveuri
+    )
+$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
+$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
+$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
+$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
+if ($liveversion -ne $currentversion) {
+write-warning "Script has been updated, please download the latest version from $liveuri"
+}
+}
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/copy-intune-policy-crosstenant.ps1"
+
 ###############################################################################################################
 ######                                          Add Functions                                            ######
 ###############################################################################################################
@@ -478,11 +510,22 @@ Function Get-DeviceConfigurationPolicySC(){
                     }
             
                     else {
-            
-                    $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-            
-                    }
+
+                        $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+                        $allconfigurationsettingscatalogpages = @()
+                        $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
+                        $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
+                        do {
+                            $configurationsettingscatalog = (Invoke-MgGraphRequest -Uri $configurationsettingscatalog.'@odata.nextLink' -Method Get)
+                            $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
+                        } until (
+                            !$configurationsettingscatalog.'@odata.nextLink'
+                        )
+                
+                        $configurationsettingscatalog = $allconfigurationsettingscatalogpages
+                        $configurationsettingscatalog
+                
+                        }
                 }
                 catch {}
             

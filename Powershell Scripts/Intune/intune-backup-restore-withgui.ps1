@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.1
+  Version:        2.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -34,13 +34,14 @@ Creates a log file in %Temp%
   Change: Added support for Intune Terms
   Change: Added support for custom roles
   Change: Added fix for large Settings Catalog Policies (thanks Jordan in the blog comments)
- 
-.EXAMPLE
+  Change: Added support for pagination when grabbing Settings Catalog policies (thanks to randomsunrize on GitHub)
+  
+  .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.1
+.VERSION 2.0.2
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -213,6 +214,39 @@ else {
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 }
+
+##################################################################################################################################
+#################                                           Check for Script Updates                             #################
+##################################################################################################################################
+Function Get-ScriptVersion(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to check if the running script is the latest version
+    .DESCRIPTION
+    This function checks GitHub and compares the 'live' version with the one running
+    .EXAMPLE
+    Get-ScriptVersion
+    Returns a warning and URL if outdated
+    .NOTES
+    NAME: Get-ScriptVersion
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $liveuri
+    )
+$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
+$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
+$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
+$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
+if ($liveversion -ne $currentversion) {
+write-warning "Script has been updated, please download the latest version from $liveuri"
+}
+}
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/intune-backup-restore-withgui.ps1"
 
 ###############################################################################################################
 ######                                          Add Functions                                            ######
@@ -589,11 +623,22 @@ Function Get-DeviceConfigurationPolicySC(){
                     }
             
                     else {
-            
-                    $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-            
-                    }
+
+                        $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+                        $allconfigurationsettingscatalogpages = @()
+                        $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
+                        $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
+                        do {
+                            $configurationsettingscatalog = (Invoke-MgGraphRequest -Uri $configurationsettingscatalog.'@odata.nextLink' -Method Get)
+                            $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
+                        } until (
+                            !$configurationsettingscatalog.'@odata.nextLink'
+                        )
+                
+                        $configurationsettingscatalog = $allconfigurationsettingscatalogpages
+                        $configurationsettingscatalog
+                
+                        }
                 }
                 catch {}
             
