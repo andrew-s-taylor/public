@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.91
+  Version:        2.92
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -32,6 +32,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 19/12/2022 - Added Windows 11 start menu support
   Change 20/12/2022 - Removed Gaming Menu from Settings
   Change 18/01/2023 - Fixed Scheduled task error and cleared up $null posistioning
+  Change 22/01/2023 - Re-enabled Telemetry for Endpoint Analytics
   
 .EXAMPLE
 N/A
@@ -346,19 +347,20 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
     Set-ItemProperty $Live  NoTileApplicationNotification -Value 1 
         
     #Turns off Data Collection via the AllowTelemtry key by changing it to 0
-    Write-Host "Turning off Data Collection"
-    $DataCollection1 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
-    $DataCollection2 = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
-    $DataCollection3 = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection"    
-    If (Test-Path $DataCollection1) {
-        Set-ItemProperty $DataCollection1  AllowTelemetry -Value 0 
-    }
-    If (Test-Path $DataCollection2) {
-        Set-ItemProperty $DataCollection2  AllowTelemetry -Value 0 
-    }
-    If (Test-Path $DataCollection3) {
-        Set-ItemProperty $DataCollection3  AllowTelemetry -Value 0 
-    }
+    # This is needed for Intune reporting to work, uncomment if using via other method
+    #Write-Host "Turning off Data Collection"
+    #$DataCollection1 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+    #$DataCollection2 = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
+    #$DataCollection3 = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection"    
+    #If (Test-Path $DataCollection1) {
+    #    Set-ItemProperty $DataCollection1  AllowTelemetry -Value 0 
+    #}
+    #If (Test-Path $DataCollection2) {
+    #    Set-ItemProperty $DataCollection2  AllowTelemetry -Value 0 
+    #}
+    #If (Test-Path $DataCollection3) {
+    #    Set-ItemProperty $DataCollection3  AllowTelemetry -Value 0 
+    #}
     
     #Disabling Location Tracking
     Write-Host "Disabling Location Tracking"
