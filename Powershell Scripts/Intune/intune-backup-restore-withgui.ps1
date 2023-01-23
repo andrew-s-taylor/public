@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.2
+  Version:        2.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 15/01/2023
+  Updated: 23/01/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -35,6 +35,7 @@ Creates a log file in %Temp%
   Change: Added support for custom roles
   Change: Added fix for large Settings Catalog Policies (thanks Jordan in the blog comments)
   Change: Added support for pagination when grabbing Settings Catalog policies (thanks to randomsunrize on GitHub)
+  Change: Switched do-until for while loop for pagination
   
   .EXAMPLE
 N/A
@@ -628,15 +629,18 @@ Function Get-DeviceConfigurationPolicySC(){
                         $allconfigurationsettingscatalogpages = @()
                         $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
                         $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
-                        do {
-                            $configurationsettingscatalog = (Invoke-MgGraphRequest -Uri $configurationsettingscatalog.'@odata.nextLink' -Method Get)
-                            $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
-                        } until (
-                            !$configurationsettingscatalog.'@odata.nextLink'
-                        )
+                                $policynextlink = $settings."@odata.nextlink"
+
+            while ($null -ne $policynextlink) {
+                $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
+                $policynextlink = $nextsettings."@odata.nextLink"
+                $allconfigurationsettingscatalogpages += $nextsettings
+            }
+
+
                 
                         $configurationsettingscatalog = $allconfigurationsettingscatalogpages
-                        $configurationsettingscatalog
+                        $configurationsettingscatalog  
                 
                         }
                 }
@@ -2004,7 +2008,7 @@ $configuration += Get-DeviceConfigurationPolicyGP | Select-Object ID, DisplayNam
 
 
 ##Get Settings Catalog Policies
-$configuration += Get-DeviceConfigurationPolicySC | Select-Object ID, @{N='DisplayName';E={$_.Name}}, Description , @{N='Type';E={"Settings Catalog"}}
+$configuration += Get-DeviceConfigurationPolicySC | Select-Object @{N='ID';E={$_.id}}, @{N='DisplayName';E={$_.Name}}, @{N='Description';E={$_.Description}} , @{N='Type';E={"Settings Catalog"}}
 
 ##Get Compliance Policies
 $configuration += Get-DeviceCompliancePolicy | Select-Object ID, DisplayName, Description, @{N='Type';E={"Compliance Policy"}}
