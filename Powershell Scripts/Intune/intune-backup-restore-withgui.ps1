@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.4
+  Version:        2.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -37,13 +37,14 @@ Creates a log file in %Temp%
   Change: Added support for pagination when grabbing Settings Catalog policies (thanks to randomsunrize on GitHub)
   Change: Switched do-until for while loop for pagination
   Change: Added Tenant ID as an optional parameter for when using as automated backup, but multi-tenant to reduce the number of scripts required
+  Change: Added option to not rename policies when restoring
   
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.4
+.VERSION 2.0.5
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -79,8 +80,16 @@ param
     [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
     )
 
-####### First check if running automated and bypass parameters to set variables below
+############################################################
+############################################################
+#############         POLICY NAME CHANGES      #############
+############################################################
+############################################################
 
+## Change the below to "yes" if you want to change the name of the policies when restoring to Name - restore - date
+$changename = "yes"
+
+####### First check if running automated and bypass parameters to set variables below
 
 ############################################################
 ############################################################
@@ -1603,7 +1612,12 @@ function getpolicyjson() {
      $policy = Get-DecryptedDeviceConfigurationPolicy -dcpid $id
      $oldname = $policy.displayName
      $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-     $newname = $oldname + "-restore-" + $restoredate
+     if ($changename -eq "yes") {
+        $newname = $oldname + "-restore-" + $restoredate
+    }
+    else {
+        $newname = $oldname
+    }
      $policy.displayName = $newname
 
      ##Custom settings only for OMA-URI
@@ -1647,8 +1661,12 @@ function getpolicyjson() {
         $policy = Get-DeviceConfigurationPolicyGP -id $id
         $oldname = $policy.DisplayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -1668,8 +1686,12 @@ function getpolicyjson() {
         $policy = Get-DeviceProactiveRemediations -id $id
         $oldname = $policy.DisplayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -1689,8 +1711,12 @@ function getpolicyjson() {
         $policy = Get-DeviceManagementScripts -id $id
         $oldname = $policy.DisplayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -1732,8 +1758,12 @@ function getpolicyjson() {
         #
         $oldname = $policy.Name
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.Name = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.Name = $newname
 
     }
     
@@ -1742,8 +1772,12 @@ function getpolicyjson() {
         $policy = Get-DeviceCompliancePolicy -id $id
         $oldname = $policy.DisplayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
         
             $scheduledActionsForRule = @(
                 @{
@@ -1779,8 +1813,12 @@ function getpolicyjson() {
         }
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy = @{
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy = @{
             "displayName" = $newname
             "description" = $policy.description
             "settingsDelta" = $intentSettingsDelta
@@ -1796,16 +1834,24 @@ function getpolicyjson() {
         $policy = Get-AutoPilotProfile -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy.displayName = $newname
     }
     "groups" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-GraphAADGroups -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy.displayName = $newname
         $policy = $policy | Select-Object description, DisplayName, groupTypes, mailEnabled, mailNickname, securityEnabled, isAssignabletoRole, membershiprule, MembershipRuleProcessingState
     }
     "deviceManagement/deviceEnrollmentConfigurations" {
@@ -1813,24 +1859,36 @@ function getpolicyjson() {
         $policy = Get-AutoPilotESP -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy.displayName = $newname
     }
     "deviceManagement/virtualEndpoint/userSettings" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-Win365UserSettings -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     "deviceManagement/virtualEndpoint/provisioningPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-Win365ProvisioningPolicies -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
@@ -1838,8 +1896,12 @@ function getpolicyjson() {
         $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -OutputType PSObject
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy.displayName = $newname
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
          if ($policy.supportsScopeTags) {
             $policy.supportsScopeTags = $false
@@ -1861,8 +1923,12 @@ function getpolicyjson() {
         $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -OutputType PSObject
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy.displayName = $newname
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
          if ($policy.supportsScopeTags) {
             $policy.supportsScopeTags = $false
@@ -1889,8 +1955,12 @@ function getpolicyjson() {
         $policy = Get-IntuneApplication -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-           $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }           $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount
     }
     "deviceAppManagement/policySets" {
@@ -1898,8 +1968,12 @@ function getpolicyjson() {
         $policy = Get-IntunePolicySets -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
         $policyitems = $policy.items | select-object * -ExcludeProperty createdDateTime, lastModifiedDateTime, id, itemType, displayName, status, errorcode, priority, targetedAppManagementLevels
         $policy.items = $policyitems
         $policy = $policy | Select-Object * -ExcludeProperty '@odata.context', status, errorcode, 'items@odata.context'
@@ -1909,24 +1983,36 @@ function getpolicyjson() {
         $policy = Get-EnrollmentConfigurations -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     "deviceManagement/deviceCategories" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceCategories -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     "deviceManagement/assignmentFilters" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceFilters -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty Payloads
     }
     "deviceManagement/intuneBrandingProfiles" {
@@ -1934,32 +2020,48 @@ function getpolicyjson() {
         $policy = Get-BrandingProfiles -id $id
         $oldname = $policy.profileName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.profileName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.profileName = $newname
     }
     "deviceManagement/operationApprovalPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AdminApprovals -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     "deviceManagement/organizationalMessageDetails" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-OrgMessages -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     "deviceManagement/termsAndConditions" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-IntuneTerms -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty modifiedDateTime
     }
     "deviceManagement/roleDefinitions" {
@@ -1967,8 +2069,12 @@ function getpolicyjson() {
         $policy = Get-IntuneRoles -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-        $newname = $oldname + "-restore-" + $restoredate
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
     }
     }
 
