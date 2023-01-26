@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.3
+  Version:        2.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 23/01/2023
+  Updated: 26/01/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -36,13 +36,14 @@ Creates a log file in %Temp%
   Change: Added fix for large Settings Catalog Policies (thanks Jordan in the blog comments)
   Change: Added support for pagination when grabbing Settings Catalog policies (thanks to randomsunrize on GitHub)
   Change: Switched do-until for while loop for pagination
+  Change: Added Tenant ID as an optional parameter for when using as automated backup, but multi-tenant to reduce the number of scripts required
   
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.3
+.VERSION 2.0.4
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -74,6 +75,8 @@ param
     [string]$ownername #Ownername is the github account
     , 
     [string]$token #Token is the github token
+    , 
+    [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
     )
 
 ####### First check if running automated and bypass parameters to set variables below
@@ -117,7 +120,10 @@ $clientid = "YOUR_AAD_REG_ID"
 
 $clientsecret = "YOUR_CLIENT_SECRET"
 
+##Only use if not set in script parameters
+if ($null -eq $tenant) {
 $tenant = "TENANT_ID"
+}
 
 $type = "backup"
 
