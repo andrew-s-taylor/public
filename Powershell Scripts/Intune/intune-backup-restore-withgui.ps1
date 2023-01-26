@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.6
+  Version:        2.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -38,13 +38,14 @@ Creates a log file in %Temp%
   Change: Switched do-until for while loop for pagination
   Change: Added Tenant ID as an optional parameter for when using as automated backup, but multi-tenant to reduce the number of scripts required
   Change: Added option to not rename policies when restoring
+  Change: Added Tenant ID to start of filename for multi-tenant use
   
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.6
+.VERSION 2.0.7
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -119,8 +120,6 @@ if ($automated -eq "yes") {
 
 $selected = "all"
 
-##If you want to use this multi-tenant, set reponame to:
-##    $reponame = "YOUR_REPO_NAME_HERE" + "\" + $tenant
 $reponame = "YOUR_REPONAME_HERE"
 
 $ownername = "YOUR_OWNER_NAME_FOR_REPO"
@@ -2468,7 +2467,7 @@ $backupreason = [Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
 $date =get-date -format yyMMddmmss
 $date = $date.ToString()
 $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
-$filename = "intunebackup-"+$date+".json"
+$filename = $tenant+"-intunebackup-"+$date+".json"
 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
 $message = "$backupreason - $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
