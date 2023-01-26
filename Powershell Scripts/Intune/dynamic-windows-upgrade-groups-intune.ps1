@@ -41,10 +41,10 @@ N/A
 ###############################################################################################################
 
 ##Group Name for Windows 10 Devices
-$w10groupname = "W10Devices"
+$w10groupname = "W11NonCompliantDevices"
 
 ##Group Name for Windows 11 Devices
-$w11groupname = "W11Devices"
+$w11groupname = "W11CompliantDevices"
 
 
 
