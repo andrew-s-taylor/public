@@ -1,19 +1,61 @@
+<#
+.SYNOPSIS
+  Creates semi-dynamic AAD groups for Win11 and Win10 devices
+.DESCRIPTION
+  Checks for Device Compliance with Windows 11
+  Creates Win11 group for compliant device
+  Creates Win10 group for non-compliant
+  Creates update rings for each
+  Excludes groups from existing update rings
+.INPUTS
+None
+.OUTPUTS
+None
+.NOTES
+  Version:        1.0.0
+  Author:         Andrew Taylor
+  WWW:            andrewstaylor.com
+  Creation Date:  26/01/2023
+  Purpose/Change: Initial script development
+ 
+.EXAMPLE
+N/A
+#>
+
+<#PSScriptInfo
+.VERSION 1.0.0
+.GUID f6c74e33-2f3a-4187-9980-d29ee8abcceb
+.AUTHOR AndrewTaylor
+.COMPANYNAME 
+.COPYRIGHT GPL
+.TAGS intune endpoint MEM environment enrollment
+.LICENSEURI https://github.com/andrew-s-taylor/public/blob/main/LICENSE
+.PROJECTURI https://github.com/andrew-s-taylor/public
+.ICONURI 
+.EXTERNALMODULEDEPENDENCIES
+.REQUIREDSCRIPTS 
+.EXTERNALSCRIPTDEPENDENCIES 
+.RELEASENOTES
+#>
+
+
 ###############################################################################################################
 ######                                              Set Variables                                        ######
 ###############################################################################################################
 
-##Mutli-tenant app reg secret
+##App reg secret
 $clientsecret = ""
 
-##Multi-tenant app reg ID
+##App reg ID
 $clientid = ""
 
-##Github Account Name
+##Group Name for Windows 10 Devices
 $w10groupname = ""
 
-##Github Repo Name for CSV Checks
+##Group Name for Windows 11 Devices
 $w11groupname = ""
 
+##Tenant ID for Connection
 $tenantId = ""
 
 
@@ -358,35 +400,63 @@ Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/pu
 ###############################################################################################################
 
 ##Get Devices compliant/not compliant with windows 11
-$reporturi = "https://graph.microsoft.com/beta/$metadata#deviceManagement/userExperienceAnalyticsWorkFromAnywhereMetrics('allDevices')/metricDevices(id,deviceName,managedBy,manufacturer,model,osDescription,osVersion,upgradeEligibility,azureAdJoinType,ramCheckFailed,storageCheckFailed,processorCoreCountCheckFailed,processorSpeedCheckFailed,tpmCheckFailed,secureBootCheckFailed,processorFamilyCheckFailed,processor64BitCheckFailed,osCheckFailed)"
+write-host "Inspecting devices for Windows 11 compliance"
+$reporturi = "https://graph.microsoft.com/beta/deviceManagement/userExperienceAnalyticsWorkFromAnywhereMetrics('allDevices')/metricDevices?`$select=id,deviceName,managedBy,manufacturer,model,osDescription,osVersion,upgradeEligibility,azureAdJoinType,upgradeEligibility,ramCheckFailed,storageCheckFailed,processorCoreCountCheckFailed,processorSpeedCheckFailed,tpmCheckFailed,secureBootCheckFailed,processorFamilyCheckFailed,processor64BitCheckFailed,osCheckFailed&dtFilter=all&`$orderBy=osVersion asc"
 
 $reportdata = (invoke-mggraphrequest -uri $reporturi -method GET).value
 
-$compliantdevices = ""
-$noncompliantdevices = ""
+$compliantdevices = @()
+$noncompliantdevices = @()
+write-host "Checking Machines for Compatibility"
+$counter = 0
 
+foreach ($machine in $reportdata) {
+    $counter++
+    $deviceid = $machine.id
+    Write-Progress -Activity 'Processing Devices' -CurrentOperation $deviceid -PercentComplete (($counter / $reportdata.count) * 100)
+
+    $w11compliance = $machine.upgradeEligibility
+    if ($w11compliance -eq "Capable") {
+        $compliantdevices += $machine.id
+    }
+    else {
+        $noncompliantdevices += $machine.id
+    }
+}
+
+write-host "Creating AAD Groups"
 ##Create AAD Groups
+write-host "Creating Windows 11 Group"
 $win11groupexist = get-mggroup -filter "displayName eq '$w11groupname'"
+write-host "Creating Windows 10 Group"
 $win10groupexist = get-mggroup -filter "displayName eq '$w10groupname'"
 
 ##Windows 11
 ##Check if group exists
+write-host "Checking if Windows 11 Group Exists"
 if ($null -ne $win11groupexist) {
 ##It exists, add members
+write-host "Windows 11 Group Exists, adding members"
 foreach ($compliantdevice in $compliantdevices) {
     ##Check if already in the group
+    write-host "Checking if $compliantdevice is already in the group"
     $groupmember = get-mggroupmember -GroupId $win11groupexist.id -MemberId $compliantdevice.id
     if ($null -eq $groupmember) {
+    write-host "Adding $compliantdevice to the group"
     add-mggroupmember -GroupId $win11groupexist.id -MemberId $compliantdevice.id
     }
 }
 }
 else {
 ##Does not, create it first
+write-host "Windows 11 Group does not exist, creating it"
 $win11group = new-mggroup -DisplayName $w11groupname -Description "Devices Compliant with Windows 11" -MailEnabled $false -SecurityEnabled $true
 foreach ($compliantdevice in $compliantdevices) {
+    ##Check if already in the group
+    write-host "Checking if $compliantdevice is already in the group"
     $groupmember = get-mggroupmember -GroupId $win11group.id -MemberId $compliantdevice.id
     if ($null -eq $groupmember) {
+        write-host "Adding $compliantdevice to the group"
     add-mggroupmember -GroupId $win11group.id -MemberId $compliantdevice.id
     }
 }
@@ -395,21 +465,29 @@ foreach ($compliantdevice in $compliantdevices) {
 
 ##Windows 10
 ##Check if group exists
+write-host "Checking if Windows 10 Group Exists"
 if ($null -ne $win10groupexist) {
     ##It exists, add members
+    write-host "Windows 10 Group Exists, adding members"
     foreach ($noncompliantdevice in $noncompliantdevices) {
+        ##Check if already in the group
+        write-host "Checking if $noncompliantdevice is already in the group"
         $groupmember = get-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
         if ($null -eq $groupmember) {
+            write-host "Adding $noncompliantdevice to the group"
             add-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
         }
     }
     }
     else {
     ##Does not, create it first
+    write-host "Windows 10 Group does not exist, creating it"
     $win10group = new-mggroup -DisplayName $w10groupname -Description "Devices Not Compliant with Windows 10" -MailEnabled $false -SecurityEnabled $true
     foreach ($noncompliantdevice in $noncompliantdevices) {
+        ##Check if already in the group
         $groupmember = get-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
         if ($null -eq $groupmember) {
+            write-host "Adding $noncompliantdevice to the group"
             add-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
         }
     }
@@ -418,24 +496,44 @@ if ($null -ne $win10groupexist) {
 
 
 ##Get Current Feature Update Rings
+write-host "Getting Current Feature Update Rings"
 $currentrings = (Get-DeviceFeatureUpdates).value
 
 ##Add exclusion for both groups to each
 
-$finalw10group = get-mggroup -filter "displayName eq '$w10groupname'"
-$finalw11group = get-mggroup -filter "displayName eq '$w11groupname'"
+$finalw10group = (get-mggroup -filter "displayName eq '$w10groupname'").id
+$finalw11group = (get-mggroup -filter "displayName eq '$w11groupname'").id
 
-
+write-host "Looping Through Rings"
 foreach ($updatering in $currentrings) {
+    if (($updatering.displayName -eq "Win11-Upgrade") -or ($updatering.displayName -eq "Win10-Upgrade")) {
+        write-host "Not excluding from upgrade rings"
+    }
+    else {
     $policyid = $updatering.id
-    Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $policyid -TargetGroupId $finalw10group -AssignmentType Excluded
-    Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $policyid -TargetGroupId $finalw11group -AssignmentType Excluded
+    $policycheck = Get-DeviceFeatureUpdateAssignments -id $policyid
+    $policycheckassignments = $policycheck.target.groupid
+    if (($policycheckassignments.contains($finalw10group) -or ($policycheck.contains($finalw11group)))) {
+        write-host "Groups already excluded"
+    }
+    else {
+        write-host "Adding group exclusions"
+        Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $policyid -TargetGroupId $finalw10group -AssignmentType Excluded
+        Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $policyid -TargetGroupId $finalw11group -AssignmentType Excluded
+    
+    }
+    }
 
 }
 
 ##Create new Feature Update Rings
-
+##Check if it exists first
+if ($currentrings.contains("Win11-Upgrade")) {
+write-host "Win11-Upgrade already exists"
+}
+else {
 ##Windows 11
+write-host "Creating Win11-Upgrade Ring"
 $uri = "https://graph.microsoft.com/beta/windowsFeatureUpdateProfiles"
 $json = @"
 {
@@ -449,13 +547,19 @@ $json = @"
 $win11ring = (invoke-mggraphrequest -uri $uri -method POST -body $json -ContentType "application/json").id
 $newwin11id = $win11ring.id
 ##Add Win11 Group and Exclude Win10
+write-host "Adding Win11 Group and Excluding Win10"
 Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin11id -TargetGroupId $finalw10group -AssignmentType Excluded
 Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin11id -TargetGroupId $finalw11group -AssignmentType Included
 
-
+}
 
 ##Windows 10
-
+##Check if it exists first
+if ($currentrings.contains("Win10-22H2")) {
+    write-host "Win10-22H2 already exists"
+    }
+    else {
+write-host "Creating Win10-22H2 Ring"
 $uri = "https://graph.microsoft.com/beta/windowsFeatureUpdateProfiles"
 $json = @"
 {
@@ -471,5 +575,7 @@ $win10ring = (invoke-mggraphrequest -uri $uri -method POST -body $json -ContentT
 $newwin10id = $win10ring.id
 
 ##Add Win10 Group and Exclude Win11
+write-host "Adding Win10 Group and Excluding Win11"
 Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin10id -TargetGroupId $finalw10group -AssignmentType Included
 Add-DeviceFeatureUpdateAssignment -ConfigurationPolicyId $newwin10id -TargetGroupId $finalw11group -AssignmentType Excluded
+    }
