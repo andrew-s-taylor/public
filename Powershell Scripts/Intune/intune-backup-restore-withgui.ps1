@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.5
+  Version:        2.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -44,7 +44,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.5
+.VERSION 2.0.6
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -119,6 +119,8 @@ if ($automated -eq "yes") {
 
 $selected = "all"
 
+##If you want to use this multi-tenant, set reponame to:
+##    $reponame = "YOUR_REPO_NAME_HERE" + "\" + $tenant
 $reponame = "YOUR_REPONAME_HERE"
 
 $ownername = "YOUR_OWNER_NAME_FOR_REPO"
