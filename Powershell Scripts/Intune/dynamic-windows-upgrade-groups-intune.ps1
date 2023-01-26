@@ -36,6 +36,18 @@ N/A
 .RELEASENOTES
 #>
 
+###############################################################################################################
+######                                              Set Variables                                        ######
+###############################################################################################################
+
+##Group Name for Windows 10 Devices
+$w10groupname = "W10Devices"
+
+##Group Name for Windows 11 Devices
+$w11groupname = "W11Devices"
+
+
+
 
 Function Get-ScriptVersion(){
     
@@ -65,7 +77,7 @@ if ($liveversion -ne $currentversion) {
 write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
 }
 }
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/automate-w10-w11-devicegroups.ps1"
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/dynamic-windows-upgrade-groups-intune.ps1"
 
 
 ##Connect to Graph
@@ -92,19 +104,19 @@ foreach ($machine in $reportdata) {
 
     $w11compliance = $machine.upgradeEligibility
     if ($w11compliance -eq "Capable") {
-        $compliantdevices += $machine.id
+        $compliantdevices += $machine.deviceName
     }
     else {
-        $noncompliantdevices += $machine.id
+        $noncompliantdevices += $machine.deviceName
     }
 }
 
 write-host "Creating AAD Groups"
 ##Create AAD Groups
 write-host "Creating Windows 11 Group"
-$win11groupexist = get-mggroup -filter "displayName eq '$w11groupname'"
+$win11groupexist = (get-mggroup -filter "displayName eq '$w11groupname'").id
 write-host "Creating Windows 10 Group"
-$win10groupexist = get-mggroup -filter "displayName eq '$w10groupname'"
+$win10groupexist = (get-mggroup -filter "displayName eq '$w10groupname'").id
 
 ##Windows 11
 ##Check if group exists
@@ -113,26 +125,30 @@ if ($null -ne $win11groupexist) {
 ##It exists, add members
 write-host "Windows 11 Group Exists, adding members"
 foreach ($compliantdevice in $compliantdevices) {
+    $compliantdeviceid = (Get-MgDevice -Filter "displayName eq '$compliantdevice'").id
     ##Check if already in the group
     write-host "Checking if $compliantdevice is already in the group"
-    $groupmember = get-mggroupmember -GroupId $win11groupexist.id -MemberId $compliantdevice.id
+    $groupmember = (get-mggroupmember -GroupId $win11groupexist) | where-object ID -eq $compliantdeviceid
     if ($null -eq $groupmember) {
     write-host "Adding $compliantdevice to the group"
-    add-mggroupmember -GroupId $win11groupexist.id -MemberId $compliantdevice.id
+   new-mggroupmember -GroupId $win11groupexist -DirectoryObjectId  $compliantdeviceid
     }
 }
 }
 else {
 ##Does not, create it first
 write-host "Windows 11 Group does not exist, creating it"
-$win11group = new-mggroup -DisplayName $w11groupname -Description "Devices Compliant with Windows 11" -MailEnabled $false -SecurityEnabled $true
+$win11group = new-mggroup -DisplayName $w11groupname -Description "Devices Compliant with Windows 11" -SecurityEnabled -mailEnabled:$false -MailNickname $w11groupname
+$win11groupid = $win11group.id
 foreach ($compliantdevice in $compliantdevices) {
+    $compliantdeviceid = (Get-MgDevice -Filter "displayName eq '$compliantdevice'").id
+
     ##Check if already in the group
     write-host "Checking if $compliantdevice is already in the group"
-    $groupmember = get-mggroupmember -GroupId $win11group.id -MemberId $compliantdevice.id
+    $groupmember = (get-mggroupmember -GroupId $win11groupid) | where-object ID -eq $compliantdeviceid
     if ($null -eq $groupmember) {
         write-host "Adding $compliantdevice to the group"
-    add-mggroupmember -GroupId $win11group.id -MemberId $compliantdevice.id
+    new-mggroupmember -GroupId $win11groupid -DirectoryObjectId  $compliantdeviceid
     }
 }
 }
@@ -145,25 +161,29 @@ if ($null -ne $win10groupexist) {
     ##It exists, add members
     write-host "Windows 10 Group Exists, adding members"
     foreach ($noncompliantdevice in $noncompliantdevices) {
+        $noncompliantdeviceid = (Get-MgDevice -Filter "displayName eq '$noncompliantdevice'").id
         ##Check if already in the group
         write-host "Checking if $noncompliantdevice is already in the group"
-        $groupmember = get-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
+        $groupmember = (get-mggroupmember -GroupId $win10groupexist) | where-object ID -eq $noncompliantdeviceid
         if ($null -eq $groupmember) {
             write-host "Adding $noncompliantdevice to the group"
-            add-mggroupmember -GroupId $win10groupexist.id -MemberId $noncompliantdevice.id
+            new-mggroupmember -GroupId $win10groupexist -DirectoryObjectId $noncompliantdeviceid
         }
     }
     }
     else {
     ##Does not, create it first
     write-host "Windows 10 Group does not exist, creating it"
-    $win10group = new-mggroup -DisplayName $w10groupname -Description "Devices Not Compliant with Windows 10" -MailEnabled $false -SecurityEnabled $true
+    $win10group = new-mggroup -DisplayName $w10groupname -Description "Devices Not Compliant with Windows 10" -SecurityEnabled -MailEnabled:$false -MailNickname $w10groupname
+    $win10groupid = $win10group.id
     foreach ($noncompliantdevice in $noncompliantdevices) {
+        $noncompliantdeviceid = (Get-MgDevice -Filter "displayName eq '$noncompliantdevice'").id
+
         ##Check if already in the group
-        $groupmember = get-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
+        $groupmember = (get-mggroupmember -GroupId $win10groupid) | where-object ID -eq $noncompliantdeviceid
         if ($null -eq $groupmember) {
             write-host "Adding $noncompliantdevice to the group"
-            add-mggroupmember -GroupId $win10group.id -MemberId $noncompliantdevice.id
+            new-mggroupmember -GroupId $win10groupid -DirectoryObjectId  $noncompliantdeviceid
         }
     }
     }
