@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-Searches Intune for ANYTHING by name and returns the ID and URI
+Searches Intune for ANYTHING by name and returns the ID, Type and URI
 .DESCRIPTION
-Searches Intune for ANYTHING by name and returns the ID and URI
+Searches Intune for ANYTHING by name and returns the ID, Type and URI
 .PARAMETER Path
     The path to the .
 .PARAMETER LiteralPath
@@ -14,9 +14,9 @@ Searches Intune for ANYTHING by name and returns the ID and URI
 .INPUTS
 None
 .OUTPUTS
-Outputs name, ID and URI
+Outputs name, ID, Type and URI
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -148,13 +148,16 @@ Function Get-IntuneApplicationbyName(){
         $myid = $app.id
         if ($null -ne $myid) {
         $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+        $type = "Winget Application"
         }
         else {
             $fulluri = ""
+            $type = ""
         }
-        $output = "" | Select-Object -Property id,fulluri    
+        $output = "" | Select-Object -Property id,fulluri, type    
         $output.id = $myid
         $output.fulluri = $fulluri
+        $output.type = $type
         return $output
     }
 
@@ -193,15 +196,18 @@ Function Get-DeviceConfigurationPolicyGPbyName(){
         $myid = $GP.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Group Policy Configuration"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
 }
 
 
@@ -243,15 +249,18 @@ Function Get-ConditionalAccessPolicybyName(){
         $myid = $CA.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Conditional Access"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
      
 }
 
@@ -292,15 +301,18 @@ Function Get-DeviceConfigurationPolicybyName(){
         $myid = $DC.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Configuration Policy"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-        $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-}
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    }
     
     
 Function Get-DeviceConfigurationPolicySCbyName(){
@@ -337,15 +349,18 @@ Function Get-DeviceConfigurationPolicySCbyName(){
                 $myid = $SC.id
                 if ($null -ne $myid) {
                     $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                    $type = "Settings Catalog"
                     }
                     else {
                         $fulluri = ""
+                        $type = ""
                     }
-                            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-                    
+                    $output = "" | Select-Object -Property id,fulluri, type    
+                    $output.id = $myid
+                    $output.fulluri = $fulluri
+                    $output.type = $type
+                    return $output
+                                
 }
             
 ################################################################################################
@@ -387,15 +402,18 @@ Function Get-DeviceProactiveRemediationsbyName(){
         $myid = $PR.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Proactive Remediation"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
 }
     
 ################################################################################################
@@ -434,15 +452,18 @@ Function Get-DeviceCompliancePolicybyName(){
                 $myid = $CP.id
                 if ($null -ne $myid) {
                     $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                    $type = "Compliance Policy"
                     }
                     else {
                         $fulluri = ""
+                        $type = ""
                     }
-                            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-                    
+                    $output = "" | Select-Object -Property id,fulluri, type    
+                    $output.id = $myid
+                    $output.fulluri = $fulluri
+                    $output.type = $type
+                    return $output
+                                
 }
             
 #################################################################################################
@@ -480,15 +501,18 @@ Function Get-DeviceSecurityPolicybyName(){
         $myid = $SP.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Security Policy"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
 }
 
 #################################################################################################  
@@ -523,15 +547,18 @@ Function Get-ManagedAppProtectionAndroidbyName(){
                 $myid = $AAP.id
                 if ($null -ne $myid) {
                     $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                    $type = "Android App Protection Policy"
                     }
                     else {
                         $fulluri = ""
+                        $type = ""
                     }
-                            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-            
+                    $output = "" | Select-Object -Property id,fulluri, type    
+                    $output.id = $myid
+                    $output.fulluri = $fulluri
+                    $output.type = $type
+                    return $output
+                        
 }
 
 #################################################################################################  
@@ -567,15 +594,18 @@ Function Get-ManagedAppProtectionIOSbyName(){
                     $myid = $IAP.id
                     if ($null -ne $myid) {
                         $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                        $type = "iOS App Protection Policy"
                         }
                         else {
                             $fulluri = ""
+                            $type = ""
                         }
-                                    $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    }
+                        $output = "" | Select-Object -Property id,fulluri, type    
+                        $output.id = $myid
+                        $output.fulluri = $fulluri
+                        $output.type = $type
+                        return $output
+                    }
     
 Function Get-AutoPilotProfilebyName(){
     
@@ -611,15 +641,18 @@ Function Get-AutoPilotProfilebyName(){
                     $myid = $AP.id
                     if ($null -ne $myid) {
                         $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                        $type = "Autopilot Profile"
                         }
                         else {
                             $fulluri = ""
+                            $type = ""
                         }
-                                    $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-                
+                        $output = "" | Select-Object -Property id,fulluri, type    
+                        $output.id = $myid
+                        $output.fulluri = $fulluri
+                        $output.type = $type
+                        return $output
+                                
 }
 
 #################################################################################################
@@ -658,15 +691,18 @@ Function Get-AutoPilotESPbyName(){
                         $myid = $ESP.id
                         if ($null -ne $myid) {
                             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                            $type = "Autopilot ESP"
                             }
                             else {
                                 $fulluri = ""
+                                $type = ""
                             }
-                                            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    }
+                            $output = "" | Select-Object -Property id,fulluri, type    
+                            $output.id = $myid
+                            $output.fulluri = $fulluri
+                            $output.type = $type
+                            return $output
+                        }
                 
 #################################################################################################    
 
@@ -705,15 +741,18 @@ Function Get-DeviceManagementScriptsbyName(){
         $myid = $Script.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "PowerShell Script"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
    
 }
 
@@ -751,15 +790,18 @@ Function Get-Win365UserSettingsbyName(){
         $myid = $W365User.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Win365 User Settings"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
    
 }
 
@@ -797,15 +839,18 @@ Function Get-Win365ProvisioningPoliciesbyName(){
         $myid = $W365Prov.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "W365 Provisioning Policy"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-   
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+       
 }
 
 Function Get-IntunePolicySetsbyName(){
@@ -842,15 +887,18 @@ Function Get-IntunePolicySetsbyName(){
         $myid = $Policyset.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Policy Set"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-   
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+       
 }
 
 Function Get-EnrollmentConfigurationsbyName(){
@@ -887,15 +935,18 @@ Function Get-EnrollmentConfigurationsbyName(){
         $myid = $EC.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Enrollment Configuration"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-      
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+          
 }
     
 
@@ -933,15 +984,18 @@ Function Get-DeviceCategoriesbyName(){
         $myid = $DC.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Device Category"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-}
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    }
 
 
 Function Get-DeviceFiltersbyName(){
@@ -978,15 +1032,18 @@ Function Get-DeviceFiltersbyName(){
         $myid = $DF.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Device Filter"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-}
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    }
 
 
 Function Get-BrandingProfilesbyName(){
@@ -1023,15 +1080,18 @@ Function Get-BrandingProfilesbyName(){
         $myid = $BP.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Branding Profile"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
    
 }
 
@@ -1070,15 +1130,18 @@ Function Get-AdminApprovalsbyName(){
         $myid = $AdminAp.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Admin Approval"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-   
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+       
 }
 
 Function Get-OrgMessagesbyName(){
@@ -1115,15 +1178,18 @@ Function Get-OrgMessagesbyName(){
         $myid = $OM.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Organization Message"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-   
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+       
 }
 
 
@@ -1161,15 +1227,18 @@ Function Get-IntuneTermsbyName(){
         $myid = $Terms.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Terms and Conditions"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
    
 }
 
@@ -1207,15 +1276,18 @@ Function Get-IntuneRolesbyName(){
         $myid = $Roles.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Custom Role"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
    
 }
 ################################################################################################
@@ -1253,17 +1325,19 @@ Function Get-GraphAADGroupsbyName(){
         catch {}
         $myid = $AAD.id
         if ($null -ne $myid) {
-            write-host "I see you baby"
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "AAD Group"
             }
             else {
                 $fulluri = ""
+                $type = ""
             }
-            $output = "" | Select-Object -Property id,fulluri    
-        $output.id = $myid
-        $output.fulluri = $fulluri
-        return $output
-    
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
 }
 
 #################################################################################################  
@@ -1293,132 +1367,154 @@ $check = Get-DeviceConfigurationPolicybyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceConfigurationPolicyscbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceCompliancePolicybyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceSecurityPolicybyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-AutoPilotProfilebyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-AutoPilotESPbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-ManagedAppProtectionAndroidbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-ManagedAppProtectioniosbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceConfigurationPolicyGPbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-ConditionalAccessPolicybyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceProactiveRemediationsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-GraphAADGroupsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-IntuneApplicationbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceManagementScriptsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-Win365UserSettingsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-Win365ProvisioningPoliciesbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-IntunePolicySetsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-EnrollmentConfigurationsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceCategoriesbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-DeviceFiltersbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-BrandingProfilesbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-AdminApprovalsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 #$orgmessages = Get-OrgMessages -id $id
@@ -1426,18 +1522,21 @@ $check = Get-IntuneTermsbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
 $check = Get-IntuneRolesbyName -name $name
 if ($null -ne $check) {
     $id = $check.id
     $uri = $check.fulluri
+    $type = $check.type
     break
 }
     }
-    $output = "" | Select-Object -Property id,uri    
+    $output = "" | Select-Object -Property id,uri, type    
         $output.id = $id
         $output.uri = $uri
+        $output.type = $type
         return $output
 }
 
@@ -1450,7 +1549,9 @@ if ($null -ne $check) {
 $details = Get-DetailsbyName -name $name
 $foundid = $details.id
 $founduri = $details.uri
+$foundtype = $details.type
 
 write-host "Policy Name: $name"
 write-host "Policy ID: $foundid"
 write-host "Policy URI: $founduri"
+write-host "Policy Type: $foundtype"
