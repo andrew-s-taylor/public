@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Outputs name, ID and URI
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -52,6 +52,58 @@ param
 
     )
 
+############################################################
+############################################################
+############# CHANGE THIS TO USE IN AUTOMATION #############
+############################################################
+############################################################
+$automated = "no"
+############################################################
+
+##################################################################################################################################
+#################                                                  INITIALIZATION                                #################
+##################################################################################################################################
+$ErrorActionPreference = "Continue"
+##Start Logging to %TEMP%\intune.log
+$date = get-date -format yyyyMMddTHHmmssffff
+Start-Transcript -Path $env:TEMP\intune-$date.log
+
+#Install MS Graph if not available
+
+
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Authentication Already Installed"
+} 
+else {
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0 
+        Write-Host "Microsoft Graph Authentication Installed"
+}
+Import-Module microsoft.graph.authentication
+if ($automated -eq "yes") {
+ 
+    $body = @{
+        grant_type="client_credentials";
+        client_id=$clientId;
+        client_secret=$clientSecret;
+        scope="https://graph.microsoft.com/.default";
+    }
+     
+    $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenant/oauth2/v2.0/token -Body $body
+    $accessToken = $response.access_token
+     
+    $accessToken
+
+    Select-MgProfile -Name Beta
+Connect-MgGraph  -AccessToken $accessToken 
+write-host "Graph Connection Established"
+}
+else {
+##Connect to Graph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+}
 
 
 ###############################################################################################################
@@ -1388,6 +1440,12 @@ if ($null -ne $check) {
         $output.uri = $uri
         return $output
 }
+
+##################################################################################################################################
+#################                                                  Execution                                     #################
+##################################################################################################################################
+
+
 
 $details = Get-DetailsbyName -name $name
 $foundid = $details.id
