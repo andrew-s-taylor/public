@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0
+.VERSION 3.0
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Synchronises All Intune managed devices
@@ -25,14 +25,15 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.0
+  Version:        3.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2021
-  Modified Date:  30/10/2022
+  Modified Date:  27/01/2023
   Purpose/Change: Initial script development
   Change:   Switched to MSGraph Auth
+  Change:   Added pagination support for larger estates
   
 .EXAMPLE
 N/A
@@ -122,8 +123,19 @@ $graphApiVersion = "beta"
 $Resource = "deviceManagement/managedDevices"
 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 
-$devices = (Invoke-MSGraphRequest -Url $uri -HttpMethod Get).Value
-foreach ($device in $devices) {
+$devices = (Invoke-MSGraphRequest -Url $uri -HttpMethod Get)
+$alldevices = @()
+$alldevices += $devices.value
+        $policynextlink = $devices."@odata.nextlink"
+
+while ($null -ne $policynextlink) {
+$nextdevices = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
+$policynextlink = $nextdevices."@odata.nextLink"
+$alldevices += $nextsettings
+}
+
+
+foreach ($device in $alldevices) {
     SyncDevice -Deviceid $device.id
     $devicename = $device.deviceName
     write-host "Sync sent to $devicename"
