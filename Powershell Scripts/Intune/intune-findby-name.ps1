@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Outputs name, ID, Type and URI
 .NOTES
-  Version:        1.0.3
+  Version:        1.0.4
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.3
+.VERSION 1.0.4
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1397,154 +1397,154 @@ function Get-DetailsbyName () {
     $id = ""
     while ($id -eq "") {
 $check = Get-DeviceConfigurationPolicybyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
-$check = Get-DeviceConfigurationPolicyscbyName -name $name
-if ($null -ne $check) {
+$check = Get-DeviceConfigurationPolicySCbyName -name $name
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceCompliancePolicybyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceSecurityPolicybyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-AutoPilotProfilebyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-AutoPilotESPbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-ManagedAppProtectionAndroidbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-ManagedAppProtectioniosbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceConfigurationPolicyGPbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-ConditionalAccessPolicybyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceProactiveRemediationsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-GraphAADGroupsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-IntuneApplicationbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceManagementScriptsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-Win365UserSettingsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-Win365ProvisioningPoliciesbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-IntunePolicySetsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-EnrollmentConfigurationsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceCategoriesbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-DeviceFiltersbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-BrandingProfilesbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-AdminApprovalsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
@@ -1552,14 +1552,14 @@ if ($null -ne $check) {
 }
 #$orgmessages = Get-OrgMessages -id $id
 $check = Get-IntuneTermsbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type
     break
 }
 $check = Get-IntuneRolesbyName -name $name
-if ($null -ne $check) {
+if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
     $type = $check.type

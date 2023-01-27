@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.7
+  Version:        2.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 26/01/2023
+  Updated: 27/01/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -39,13 +39,14 @@ Creates a log file in %Temp%
   Change: Added Tenant ID as an optional parameter for when using as automated backup, but multi-tenant to reduce the number of scripts required
   Change: Added option to not rename policies when restoring
   Change: Added Tenant ID to start of filename for multi-tenant use
-  
+  Change: Added better control over tenant parameter
+  Change: Bug fixes on Settings Catalog pagination
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.7
+.VERSION 2.0.9
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -131,7 +132,8 @@ $clientid = "YOUR_AAD_REG_ID"
 $clientsecret = "YOUR_CLIENT_SECRET"
 
 ##Only use if not set in script parameters
-if ($null -eq $tenant) {
+$tenantcheck = $PSBoundParameters.ContainsKey('tenant')
+if ($tenantcheck -ne $true) {
 $tenant = "TENANT_ID"
 }
 
@@ -645,9 +647,10 @@ Function Get-DeviceConfigurationPolicySC(){
                         $allconfigurationsettingscatalogpages = @()
                         $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
                         $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
-                                $policynextlink = $settings."@odata.nextlink"
+                                $policynextlink = $configurationsettingscatalog."@odata.nextlink"
 
-            while ($null -ne $policynextlink) {
+                                while (-not($policynextlink))
+                                {
                 $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
                 $policynextlink = $nextsettings."@odata.nextLink"
                 $allconfigurationsettingscatalogpages += $nextsettings
@@ -1742,7 +1745,7 @@ function getpolicyjson() {
         $settings = $settings.value
         $policynextlink = $settings."@odata.nextlink"
 
-        while ($null -ne $policynextlink)
+        while (-not($policynextlink))
         {
             $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
             $policynextlink = $nextsettings."@odata.nextLink"
