@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Outputs name, ID, Type and URI
 .NOTES
-  Version:        1.0.2
+  Version:        1.0.3
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -104,6 +104,39 @@ else {
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 }
+##################################################################################################################################
+#################                                           Check for Script Updates                             #################
+##################################################################################################################################
+Function Get-ScriptVersion(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to check if the running script is the latest version
+    .DESCRIPTION
+    This function checks GitHub and compares the 'live' version with the one running
+    .EXAMPLE
+    Get-ScriptVersion
+    Returns a warning and URL if outdated
+    .NOTES
+    NAME: Get-ScriptVersion
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $liveuri
+    )
+$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
+$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
+$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
+$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
+if ($liveversion -ne $currentversion) {
+write-warning "Script has been updated, please download the latest version from $liveuri"
+}
+}
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/intune-findby-name.ps1"
+
 
 
 ###############################################################################################################
