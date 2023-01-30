@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.92
+  Version:        2.93
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -33,6 +33,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 20/12/2022 - Removed Gaming Menu from Settings
   Change 18/01/2023 - Fixed Scheduled task error and cleared up $null posistioning
   Change 22/01/2023 - Re-enabled Telemetry for Endpoint Analytics
+  Change 30/01/2023 - Added Microsoft Family to removal list
   
 .EXAMPLE
 N/A
@@ -195,6 +196,7 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
         "*Disney*"
         "clipchamp.clipchamp"
         "*gaming*"
+        "MicrosoftCorporationII.MicrosoftFamily"
         #Optional: Typically not removed but you can if you need to for some reason
         #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
         #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
