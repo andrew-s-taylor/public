@@ -843,7 +843,7 @@ $whitelistapps = @(
 $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
 foreach($obj in $InstalledSoftware){
      $name = $obj.GetValue('DisplayName')
-     if (($name -notcontains $whitelistapps) -and ($null -ne $obj.GetValue('UninstallString'))) {
+     if (($whitelistapps -notcontains $name) -and ($null -ne $obj.GetValue('UninstallString'))) {
         $uninstallcommand = $obj.GetValue('UninstallString')
         write-host "Uninstalling $name"
         if ($uninstallcommand -like "*msiexec*") {
@@ -866,7 +866,7 @@ foreach($obj in $InstalledSoftware){
 $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall"
 foreach($obj32 in $InstalledSoftware32){
      $name32 = $obj32.GetValue('DisplayName')
-     if (($name32 -notcontains $whitelistapps) -and ($null -ne $obj32.GetValue('UninstallString'))) {
+     if (($whitelistapps -notcontains $name32) -and ($null -ne $obj32.GetValue('UninstallString'))) {
         $uninstallcommand32 = $obj.GetValue('UninstallString')
         write-host "Uninstalling $name"
                 if ($uninstallcommand32 -like "*msiexec*") {
