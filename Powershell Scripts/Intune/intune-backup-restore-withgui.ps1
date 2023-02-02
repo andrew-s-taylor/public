@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.9
+  Version:        2.0.10
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 27/01/2023
+  Updated: 02/02/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -41,6 +41,7 @@ Creates a log file in %Temp%
   Change: Added Tenant ID to start of filename for multi-tenant use
   Change: Added better control over tenant parameter
   Change: Bug fixes on Settings Catalog pagination
+  Change: Fixed pagination
   .EXAMPLE
 N/A
 #>
@@ -1745,7 +1746,7 @@ function getpolicyjson() {
         $settings = $settings.value
         $policynextlink = $settings."@odata.nextlink"
 
-        while (-not($policynextlink))
+        while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
             $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
             $policynextlink = $nextsettings."@odata.nextLink"
