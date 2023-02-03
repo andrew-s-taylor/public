@@ -640,9 +640,9 @@ Function Get-DeviceConfigurationPolicySC(){
 
                                 while (($policynextlink -ne "") -and ($null -ne $policynextlink))
                                 {
-                $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
+                $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
                 $policynextlink = $nextsettings."@odata.nextLink"
-                $allconfigurationsettingscatalogpages += $nextsettings
+                $allconfigurationsettingscatalogpages += $nextsettings.value
             }
 
                 
@@ -3147,9 +3147,9 @@ function getpolicyjson() {
 
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
-            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Gconneet -OutputType PSObject).value
+            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Gconneet -OutputType PSObject)
             $policynextlink = $nextsettings."@odata.nextLink"
-            $settings += $nextsettings
+            $settings += $nextsettings.value
         }
 
         $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
