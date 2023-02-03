@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 5.0.2
+.VERSION 5.0.4
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.3
+  Version:        5.0.4
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
@@ -638,7 +638,7 @@ Function Get-DeviceConfigurationPolicySC(){
                         $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
                                 $policynextlink = $configurationsettingscatalog."@odata.nextlink"
 
-                                while (-not($policynextlink))
+                                while (($policynextlink -ne "") -and ($null -ne $policynextlink))
                                 {
                 $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
                 $policynextlink = $nextsettings."@odata.nextLink"
@@ -3147,7 +3147,6 @@ function getpolicyjson() {
 
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
-            write-host $policynextlink +  "jjj"
             $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Gconneet -OutputType PSObject).value
             $policynextlink = $nextsettings."@odata.nextLink"
             $settings += $nextsettings

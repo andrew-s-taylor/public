@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.12
+  Version:        2.0.13
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -49,7 +49,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.12
+.VERSION 2.0.13
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -652,7 +652,7 @@ Function Get-DeviceConfigurationPolicySC(){
                         $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
                                 $policynextlink = $configurationsettingscatalog."@odata.nextlink"
 
-                                while (-not($policynextlink))
+                                while (($policynextlink -ne "") -and ($null -ne $policynextlink))
                                 {
                 $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
                 $policynextlink = $nextsettings."@odata.nextLink"
