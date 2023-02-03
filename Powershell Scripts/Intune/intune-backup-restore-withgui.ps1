@@ -47,7 +47,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.9
+.VERSION 2.0.10
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
