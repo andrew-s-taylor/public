@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 5.0.1
+.VERSION 5.0.2
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.1
+  Version:        5.0.3
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 02/02/2023
+  Updated: 03/02/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -68,6 +68,7 @@ Creates a log file in %Temp%
   Change: Added parameters for name, ID and tenant details
   Change: Added find ID by name functionality
   Change: Fixed pagination link
+  Change: Added scopes for Win365
 
   
 .EXAMPLE
@@ -3427,7 +3428,7 @@ write-host "Graph Connection Established"
 else {
 ##Connect to Graph
 Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 }
 
 
