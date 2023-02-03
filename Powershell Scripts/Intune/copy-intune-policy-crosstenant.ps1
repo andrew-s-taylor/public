@@ -120,23 +120,61 @@ Start-Transcript -Path $env:TEMP\intune-$date.log
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
-    Write-Host "Microsoft Graph Already Installed"
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+
+#Install MS Graph if not available
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Authentication Already Installed"
 } 
 else {
-    try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0 
+        Write-Host "Microsoft Graph Authentication Installed"
 }
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
+    Write-Host "Microsoft Graph Corporate Management Already Installed"
+} 
+else {
+        Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
+        Write-Host "Microsoft Graph Corporate Management Installed"
+    }
+
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
+        Write-Host "Microsoft Graph Groups Already Installed "
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
+            Write-Host "Microsoft Graph Groups Installed"
+    }
+    
+    #Install MS Graph if not available
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
+        Write-Host "Microsoft Graph DeviceManagement Already Installed"
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
+            Write-Host "Microsoft Graph DeviceManagement Installed"
+    }
+
+    #Install MS Graph if not available
+    if (Get-Module -ListAvailable -Name Microsoft.Graph.identity.signins) {
+        Write-Host "Microsoft Graph Identity SignIns Already Installed"
+    } 
+    else {
+            Install-Module -Name Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Repository PSGallery -Force -RequiredVersion 1.19.0  
+            Write-Host "Microsoft Graph Identity SignIns Installed"
+    }
+
 
 
 # Load the Graph module
 Import-Module microsoft.graph.authentication
 import-module Microsoft.Graph.Identity.SignIns
+import-module Microsoft.Graph.DeviceManagement
+import-module microsoft.Graph.Groups
+import-module microsoft.graph.devices.corporatemanagement
 
 
 
