@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0
+.VERSION 1.1
 .GUID c8f44978-f4b9-45de-a688-07d361fb6747
 .AUTHOR AndrewTaylor
 .DESCRIPTION Display Intune Audit logs in gridview and exports selected events to CSV
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        1.0
+  Version:        1.1
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  06/02/2023
@@ -146,7 +146,7 @@ write-host "Audit Events Grabbed, displaying in GridView"
 ##Create an array to store tweaked output
 $listofevents = @()
 ##Select specific values from the array
-$eventsvalues =  $eventsvalues | select-object Resource, userPrincipalName, displayName, category, activityType, activityDateTime, activityOperationType, id 
+$eventsvalues =  $eventsvalues | select-object resources, userPrincipalName, displayName, category, activityType, activityDateTime, activityOperationType, id 
 ##Loop through the array and create a new object with the values we want
 $counter = 0
 foreach ($event in $eventsvalues)
