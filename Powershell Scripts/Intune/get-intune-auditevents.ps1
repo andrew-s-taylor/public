@@ -60,10 +60,22 @@ else {
 }
 
 #Importing Modules
+Write-Host "Importing Modules"
 import-module microsoft.graph.authentication
+Write-Host "Modules Imported"
 
+
+
+###############################################################################################################
+######                                        Connect to Graph                                           ######
+###############################################################################################################
+
+##Authenticate
+Write-Host "Connecting to Graph"
+Select-MgProfile -Name Beta
 
 Connect-MgGraph -Scopes "DeviceManagementApps.ReadWrite.All"
+write-host "Connected to Graph"
 
 ###############################################################################################################
 ######                                          Add Functions                                            ######
@@ -108,14 +120,17 @@ if ($liveversion -ne $currentversion) {
 write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
 }
 }
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/get-intune-apps.ps1"
+Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/get-intune-auditevents.ps1"
 
 ###############################################################################################################
 
-
+##Get all events
+write-host "Getting all events from Intune"
 $uri = "https://graph.microsoft.com/beta/deviceManagement/auditEvents"
 $events = Invoke-MgGraphRequest -Uri $uri -Method GET -ContentType "application/json" -OutputType PSObject
+##Select the value
 $eventsvalues = $events.value
+##Deal with pagination, grab all settings until no next link
 $policynextlink = ($events."@odata.nextlink")
 while (($policynextlink -ne "") -and ($null -ne $policynextlink))
 {
@@ -124,12 +139,21 @@ while (($policynextlink -ne "") -and ($null -ne $policynextlink))
     $policynextlink = ($nextsettings."@odata.nextLink")
     $eventsvalues += $nextsettings.value
 }
-
+##Expand nested array
 $eventsvalues =  $eventsvalues | select-object * -ExpandProperty Actor
+
+write-host "Audit Events Grabbed, displaying in GridView"
+##Create an array to store tweaked output
 $listofevents = @()
-$eventsvalues | select-object Resource, userPrincipalName, displayName, category, activityType, activityDateTime, activityOperationType, id 
+##Select specific values from the array
+$eventsvalues =  $eventsvalues | select-object Resource, userPrincipalName, displayName, category, activityType, activityDateTime, activityOperationType, id 
+##Loop through the array and create a new object with the values we want
+$counter = 0
 foreach ($event in $eventsvalues)
 {
+    $counter++
+    $id = $event.id
+    Write-Progress -Activity 'Processing Entries' -CurrentOperation $id -PercentComplete (($counter / $eventsvalues.count) * 100)
     $eventobject = [pscustomobject]@{
         changedItem = $event.Resources.displayName
         changedBy = $event.userPrincipalName
@@ -142,13 +166,26 @@ foreach ($event in $eventsvalues)
     $listofevents += $eventobject
 }
 
+##Display the array in a GridView
 $selected = $listofevents | Out-GridView -PassThru
 
+
+##### DEAL WITH EACH EVENT SELECTED
+
+write-host "Getting details for each event selected"
+
+##Create array to store it
+$selectedevents = @()
+
+##Loop through
 foreach ($item in $selected) {
+    ##Grab the details
+    $selectedid = $item.id
 $uri = "https://graph.microsoft.com/beta/deviceManagement/auditEvents/$selectedid"
-$eventdetails = @()
-write-host $uri
+write-host "Getting details for $selectedid"
 $changedcontent = (Invoke-MgGraphRequest -Uri $uri -Method GET -ContentType "application/json" -OutputType PSObject)
+
+##Create a new object with the values we want
 $eventobject = [pscustomobject]@{
     change = $changedcontent.displayName
     changeCategory = $changedcontent.category
@@ -176,23 +213,34 @@ $eventobject = [pscustomobject]@{
     resourceId = $changedcontent.resource.resourceId
 }
 
+##Resources is an open-ended array depending on the size of the policy
+##We can't have multiple items in the object with the same name so we'll use an incrementing number
+
+##Set to 0
 $i = 0
+##Loop through the array
 foreach ($resource in $changedcontent.resources.modifiedproperties) {
+    ##Create a new property with the name and value
     $name = "Name" + $i
     $oldvalue = "OldValue" + $i
     $newvalue = "NewValue" + $i
     $eventobject | Add-Member -MemberType NoteProperty -Name $name -Value $resource.displayName
     $eventobject | Add-Member -MemberType NoteProperty -Name $oldvalue -Value $resource.oldValue
     $eventobject | Add-Member -MemberType NoteProperty -Name $newvalue -Value $resource.newValue
+    ##Increment
     $i++
 }
-
+$selectedevents += $eventobject
 }
 
-
+##Now save the output
+write-host "Saving output to CSV"
+##Prompt for save location
 $SaveTo = Get-FileName -InitialDirectory $env:UserProfile
 
-$eventobject | Export-Csv -Path $SaveTo -NoTypeInformation
+##Save it
+$selectedevents | Export-Csv -Path $SaveTo -NoTypeInformation
+write-host "Save Completed to $SaveTo"
 
-
+##All done
 Stop-Transcript
