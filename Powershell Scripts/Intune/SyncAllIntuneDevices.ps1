@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0
+.VERSION 3.1
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Synchronises All Intune managed devices
@@ -25,15 +25,16 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        3.0
+  Version:        3.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2021
-  Modified Date:  27/01/2023
+  Modified Date:  07/02/2023
   Purpose/Change: Initial script development
   Change:   Switched to MSGraph Auth
   Change:   Added pagination support for larger estates
+  Change: Bug fix
   
 .EXAMPLE
 N/A
@@ -131,7 +132,7 @@ $alldevices += $devices.value
 while ($null -ne $policynextlink) {
 $nextdevices = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
 $policynextlink = $nextdevices."@odata.nextLink"
-$alldevices += $nextsettings
+$alldevices += $nextdevices
 }
 
 
