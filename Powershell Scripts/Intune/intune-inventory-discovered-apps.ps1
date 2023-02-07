@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 7b1c483b-b109-4d45-8abc-84760c84d9d9
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists all discovered apps with drill-down
@@ -25,13 +25,14 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  04/11/2022
-  Updated: 03/11/2022
+  Updated: 07/02/2023
   Purpose/Change: Initial script development
+  Change: Added Regex escape for special characters
  
 .EXAMPLE
 N/A
@@ -135,7 +136,8 @@ $discoveredapps += $app.DisplayName
 ##Group the apps to get a count, sort and then display in GUI with drill-down
 $appslist = $discoveredapps | group | select Count, Name | Sort-Object Count -Descending | Out-GridView -Title "Discovered Apps" -PassThru | ForEach-Object {
 ##App to search for
-$appname = $_.Name
+$appname = [regex]::Escape($_.Name)
+$rawappname = $_.Name
 
 ##Create an array of devices with the app installed in case we want to export-csv or GUI popup with this data at a later date
 $deviceswithappinstalled = @()
@@ -145,10 +147,10 @@ foreach ($findtheapp in $deviceids) {
 $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices('$findtheapp')?`$expand=detectedApps"
 $appsfound = (Invoke-MgGraphRequest -uri $uri -Method GET -OutputType PSObject).detectedApps
 ##App found, grab the devicename
-if ($appsfound -match $appname) {
+if ($appsfound -match "$appname") {
 $deviceuri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices/$Aappsfound"
 $devicename = (Invoke-MgGraphRequest -uri $uri -Method GET -OutputType PSObject).devicename
-write-host "App $appname found on device $devicename ($findtheapp)"
+write-host "App $rawappname found on device $devicename ($findtheapp)"
 $deviceswithappinstalled += $devicename
 }
 }
