@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.94
+  Version:        2.95
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -35,6 +35,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 22/01/2023 - Re-enabled Telemetry for Endpoint Analytics
   Change 30/01/2023 - Added Microsoft Family to removal list
   Change 31/01/2023 - Fixed Dell loop
+  Change 08/02/2023 - Fixed HP apps (thanks to http://gerryhampsoncm.blogspot.com/2023/02/remove-pre-installed-hp-software-during.html?m=1)
   
 .EXAMPLE
 N/A
@@ -674,8 +675,32 @@ $InstalledPrograms | ForEach-Object {
     }
     Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
 }
+
+
+#Remove HP Documentation
+$A = Start-Process -FilePath "C:\Program Files\HP\Documentation\Doc_uninstall.cmd" -Wait -passthru -NoNewWindow;$a.ExitCode
+
+##Remove Standard HP apps via msiexec
+$InstalledPrograms | ForEach-Object {
+$appname = $_.Name
+    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
+
+    Try {
+        $Prod = Get-WMIObject -Classname Win32_Product | Where-Object Name -Match $appname
+        $Prod.UnInstall()
+        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+    }
+    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
+}
+
+##Remove HP Connect Optimizer
+invoke-webrequest -uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/De-Bloat/HPConnOpt.iss" -outfile "C:\Windows\Temp\HPConnOpt.iss"
+
+&'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\Windows\Temp\HPConnOpt.iss')
+
 Write-Host "Removed HP bloat"
 }
+
 
 
 if ($manufacturer -like "*Dell*") {
