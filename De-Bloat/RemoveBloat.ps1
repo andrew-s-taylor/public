@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.95
+  Version:        2.96
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -36,6 +36,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 30/01/2023 - Added Microsoft Family to removal list
   Change 31/01/2023 - Fixed Dell loop
   Change 08/02/2023 - Fixed HP apps (thanks to http://gerryhampsoncm.blogspot.com/2023/02/remove-pre-installed-hp-software-during.html?m=1)
+  Change 08/02/2023 - Removed reg keys for Teams Chat
   
 .EXAMPLE
 N/A
@@ -499,6 +500,28 @@ If ($null -ne $ProvisionedPackage)
 {
     Remove-AppxProvisionedPackage -online -Packagename $ProvisionedPackage.Packagename
 }
+
+##Tweak reg permissions
+invoke-webrequest -uri "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/SetACL.exe" -outfile "C:\Windows\Temp\SetACL.exe"
+C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn setowner -ownr "n:Everyone"
+ C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn ace -ace "n:Everyone;p:full"
+Remove-Item C:\Windows\Temp\SetACL.exe -recurse
+
+
+##Stop it coming back
+$registryPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
+If (!(Test-Path $registryPath)) { 
+    New-Item $registryPath
+}
+Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
+
+
+##Unpin it
+$registryPath = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
+If (!(Test-Path $registryPath)) { 
+    New-Item $registryPath
+}
+Set-ItemProperty $registryPath "ChatIcon" -Value 2
 write-host "Removed Teams Chat"
 
 
