@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 5.0.5
+.VERSION 5.0.6
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.5
+  Version:        5.0.6
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 03/02/2023
+  Updated: 09/02/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -69,6 +69,7 @@ Creates a log file in %Temp%
   Change: Added find ID by name functionality
   Change: Fixed pagination link
   Change: Added scopes for Win365
+  Change: Added support for custom compliance scripts
 
   
 .EXAMPLE
@@ -794,6 +795,48 @@ Function Get-DeviceCompliancePolicy(){
                 }
                 catch {}
             
+}
+
+Function Get-DeviceCompliancePolicyScripts(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get device custom compliance policy scripts from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device compliance policies
+    .EXAMPLE
+    Get-DeviceCompliancePolicyScripts
+    Returns any device compliance policy scripts configured in Intune
+    .NOTES
+    NAME: Get-DeviceCompliancePolicyScripts
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/deviceComplianceScripts"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
 }
             
 #################################################################################################
@@ -1935,6 +1978,54 @@ Function Get-DeviceCompliancePolicybyName(){
                     return $output
                                 
 }
+
+Function Get-DeviceCompliancePolicyScriptsbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get device compliance policy scripts from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device compliance policies
+    .EXAMPLE
+    Get-DeviceCompliancePolicyScriptsbyName
+    Returns any device compliance policy scripts configured in Intune
+    .NOTES
+    NAME: Get-DeviceCompliancePolicyScriptsbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/deviceComplianceScripts"
+    try {
+
+
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $CP = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $CP.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Compliance Policy Script"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+                        
+}
             
 #################################################################################################
 Function Get-DeviceSecurityPolicybyName(){
@@ -2854,6 +2945,13 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-DeviceCompliancePolicyscriptsbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-DeviceSecurityPolicybyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -3134,7 +3232,30 @@ function getpolicyjson() {
                }
            }
        }
-
+       "deviceManagement/deviceComplianceScripts" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-DeviceCompliancePolicyScripts -id $id
+        $oldname = $policy.DisplayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+            # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
+       if ($policy.supportsScopeTags) {
+           $policy.supportsScopeTags = $false
+       }
+   
+           $policy.PSObject.Properties | Foreach-Object {
+               if ($null -ne $_.Value) {
+                   if ($_.Value.GetType().Name -eq "DateTime") {
+                       $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
+                   }
+               }
+           }
+       }
 
     "deviceManagement/configurationPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3460,6 +3581,8 @@ $configuration += Get-DeviceProactiveRemediations | Select-Object ID, DisplayNam
 ##Get Device Scripts
 $configuration += Get-DeviceManagementScripts | Select-Object ID, DisplayName, Description, @{N='Type';E={"PowerShell Script"}}
 
+##Get Compliance Scripts
+$configuration += Get-DeviceCompliancePolicyScripts | Select-Object ID, DisplayName, Description, @{N='Type';E={"Compliance Script"}}
 
 ##Get Security Policies
 $configuration += Get-DeviceSecurityPolicy | Select-Object ID, DisplayName, Description, @{N='Type';E={"Security Policy"}}
@@ -3579,6 +3702,7 @@ $proac = Get-DeviceProactiveRemediations -id $id
 $aad = Get-GraphAADGroups -id $id
 $wingetapp = Get-IntuneApplication -id $id
 $scripts = Get-DeviceManagementScripts -id $id
+$compliancescripts = Get-DeviceCompliancePolicyScripts -id $id
 $win365usersettings = Get-Win365UserSettings -id $id
 $win365provisioning = Get-Win365ProvisioningPolicies -id $id
 $policysets = Get-IntunePolicySets -id $id
@@ -3650,6 +3774,15 @@ $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 
+
+if ($null -ne $complicancescripts) {
+    # Compliance Scripts
+    write-host "It's a Compliance Script"
+$id = $scripts.id
+$Resource = "deviceManagement/deviceComplianceScripts"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+}
 
 if ($null -ne $security) {
     # Security Policy

@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Outputs name, ID, Type and URI
 .NOTES
-  Version:        1.0.4
+  Version:        1.0.5
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.4
+.VERSION 1.0.5
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -497,6 +497,55 @@ Function Get-DeviceCompliancePolicybyName(){
                     $output.type = $type
                     return $output
                                 
+}
+
+
+Function Get-DeviceCompliancePolicyScriptsbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get device compliance policy scripts from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device compliance policies
+    .EXAMPLE
+    Get-DeviceCompliancePolicyScriptsbyName
+    Returns any device compliance policy scripts configured in Intune
+    .NOTES
+    NAME: Get-DeviceCompliancePolicyScriptsbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/deviceComplianceScripts"
+    try {
+
+
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $CP = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $CP.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Compliance Policy Script"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+                        
 }
             
 #################################################################################################
@@ -1411,6 +1460,13 @@ if ($null -ne $check.id) {
     break
 }
 $check = Get-DeviceCompliancePolicybyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
+$check = Get-DeviceCompliancePolicyscriptsbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
     $uri = $check.fulluri
