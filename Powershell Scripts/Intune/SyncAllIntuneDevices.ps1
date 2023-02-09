@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.1
+.VERSION 3.2
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Synchronises All Intune managed devices
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        3.1
+  Version:        3.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -124,16 +124,19 @@ $graphApiVersion = "beta"
 $Resource = "deviceManagement/managedDevices"
 $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 
-$devices = (Invoke-MSGraphRequest -Url $uri -HttpMethod Get)
+$devices = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
 $alldevices = @()
 $alldevices += $devices.value
-        $policynextlink = $devices."@odata.nextlink"
+$policynextlink = $devices."@odata.nextlink"
 
 while ($null -ne $policynextlink) {
-$nextdevices = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject).value
+$nextdevices = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
 $policynextlink = $nextdevices."@odata.nextLink"
-$alldevices += $nextdevices
+$alldevices += $nextdevices.value
 }
+
+
+
 
 
 foreach ($device in $alldevices) {
