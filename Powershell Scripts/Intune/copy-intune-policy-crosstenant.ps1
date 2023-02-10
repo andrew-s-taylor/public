@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 5.0.6
+.VERSION 5.0.7
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.6
+  Version:        5.0.7
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
@@ -824,7 +824,7 @@ Function Get-DeviceCompliancePolicyScripts(){
             if($id){
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
     
             }
     
@@ -3235,7 +3235,7 @@ function getpolicyjson() {
        "deviceManagement/deviceComplianceScripts" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceCompliancePolicyScripts -id $id
-        $oldname = $policy.DisplayName
+        $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
         if ($changename -eq "yes") {
             $newname = $oldname + "-restore-" + $restoredate
@@ -3775,10 +3775,10 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 
 
-if ($null -ne $complicancescripts) {
+if ($null -ne $compliancescripts) {
     # Compliance Scripts
     write-host "It's a Compliance Script"
-$id = $scripts.id
+$id = $compliancescripts.id
 $Resource = "deviceManagement/deviceComplianceScripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))

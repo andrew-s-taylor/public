@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.15
+  Version:        2.0.16
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -50,7 +50,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.15
+.VERSION 2.0.16
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -792,7 +792,7 @@ Function Get-DeviceCompliancePolicyScripts(){
             if($id){
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
     
             }
     
@@ -2371,10 +2371,10 @@ $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
 
-if ($null -ne $complicancescripts) {
+if ($null -ne $compliancescripts) {
     # Compliance Scripts
     write-host "It's a Compliance Script"
-$id = $scripts.id
+$id = $compliancescripts.id
 $Resource = "deviceManagement/deviceComplianceScripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
