@@ -1562,7 +1562,7 @@ $Submit.Add_Click({
         ##Set array
         $windowsapps = @()
         ##iOS App Types
-        $ioslist = "#microsoft.graph.iosVppApp", "#microsoft.graph.iosLobApp", "#microsoft.graph.iosStoreApp", "#microsoft.graph.managedIOSLobApp", "#microsoft.graph.managedIOSStoreApp"
+        $ioslist = "#microsoft.graph.iosVppApp"
         ##Set Array
         $iosapps = @()
         ##Android app types
