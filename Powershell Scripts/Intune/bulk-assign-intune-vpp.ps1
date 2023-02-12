@@ -1632,24 +1632,34 @@ $Submit.Add_Click({
             foreach ($iosapp in $iosapps) {
                 $appid = $iosapp.id
                 $intents = @()
+                $assignedgroups = @()
                 $assignments = (get-intuneapplicationassignments -id $appid).value
                 if (!$assignments) {
                     $object1 = [pscustomobject]@{
                         Intent = "None"
                     }
+                    $object2 = [pscustomobject]@{
+                        Group = "None"
+                    }
                     ##Add object to array
                     $intents += $object1
+                    $assignedgroups += $object2
                 }
                 else {
                 foreach ($assignment in $assignments) {
                     $object1 = [pscustomobject]@{
                         Intent = $assignment.intent
                     }
+                    $object2 = [pscustomobject]@{
+                        Group = $assignment.target.groupid
+                    }
+                    
                     ##Add object to array
                     $intents += $object1
+                    $assignedgroups += $object2
                 }
             }
-                if ($intents.intent.contains("required")) {
+                if (($intents.intent.contains("required")) -or ($assignedgroups.group.contains($intunegrp.Id))) {
                         
                     write-host "Application already has an assignment"
                 }
