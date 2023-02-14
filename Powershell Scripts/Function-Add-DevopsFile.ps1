@@ -32,6 +32,19 @@ Function Add-DevopsFile(){
     $repo = Invoke-RestMethod -Uri $repoUrl -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get
     $repoId = $repo.id
 
+    ##Check for commits
+    $pushiduri = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/pushes?&`$top=1&searchCriteria.refName=refs/heads/master&api-version=6.0"
+    $pushid = ((Invoke-RestMethod -Uri $pushiduri -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get).value).pushId
+    $commituri = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoID/pushes/$pushid`?api-version=6.0"
+    $commit = ((Invoke-RestMethod -Uri $commituri -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get).commits).commitId
+
+    if ($commit) {
+        $oldid = $commit
+    } else {
+        $oldid = "0000000000000000000000000000000000000000"
+    }
+
+
     # Push the commit
 $pushUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/pushes?api-version=6.0"
 $json = @"
@@ -39,7 +52,7 @@ $json = @"
     "refUpdates": [
       {
         "name": "refs/heads/master",
-        "oldObjectId": "0000000000000000000000000000000000000000"
+        "oldObjectId": "$oldid"
       }
     ],
     "commits": [
