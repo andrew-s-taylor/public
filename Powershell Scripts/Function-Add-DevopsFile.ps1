@@ -107,7 +107,7 @@ Function Get-DevOpsCommits(){
     $repoId = $repo.id
 
     # Get the commits
-$ProjectUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/commits?api-version=6.1-preview.1"
+$ProjectUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/commits?api-version=7.0"
 $CommitInfo = (Invoke-RestMethod -Uri $ProjectUrl -Method Get -UseDefaultCredential -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}).value
 
 return $CommitInfo
