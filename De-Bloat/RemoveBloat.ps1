@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.96
+  Version:        2.97
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -37,6 +37,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 31/01/2023 - Fixed Dell loop
   Change 08/02/2023 - Fixed HP apps (thanks to http://gerryhampsoncm.blogspot.com/2023/02/remove-pre-installed-hp-software-during.html?m=1)
   Change 08/02/2023 - Removed reg keys for Teams Chat
+  Change 14/02/2023 - Added HP Sure Apps
   
 .EXAMPLE
 N/A
@@ -651,7 +652,9 @@ $UninstallPrograms = @(
     "AD2F1837.HPSupportAssistant"
     "AD2F1837.HPSystemInformation"
     "AD2F1837.myHP"
-    "RealtekSemiconductorCorp.HPAudioControl"
+    "RealtekSemiconductorCorp.HPAudioControl",
+    "HP Sure Recover",
+    "HP Sure Run Module"
 
 )
 
