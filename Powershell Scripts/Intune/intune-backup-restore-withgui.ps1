@@ -77,14 +77,28 @@ param
     ,  
     [string]$selected #Selected can be "all" or literally anything else
     ,  
-    [string]$reponame #Reponame is the github repo
+    [string]$reponame #Reponame is the github/Azure Devops repo
     , 
-    [string]$ownername #Ownername is the github account
+    [string]$ownername #Ownername is the github account/ Azure Devops Org
     , 
-    [string]$token #Token is the github token
+    [string]$token #Token is the github/devops token
+    , 
+    [string]$project #Project is the project when using Azure Devops
+    , 
+    [string]$repotype #Repotype is the type of repo, github or azuredevops, defaults to github
     , 
     [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
     )
+
+##Defaulting to github if nothing set above
+if (!$repotype) {
+    write-host "No Repo Type set, defaulting to GitHub"
+    $repoType = "github"
+}
+else {
+    "Using $repotype for repo type"
+}
+
 
 ############################################################
 ############################################################
@@ -134,6 +148,13 @@ $token = "YOUR_GITHUB_TOKEN"
 $clientid = "YOUR_AAD_REG_ID"
 
 $clientsecret = "YOUR_CLIENT_SECRET"
+
+
+##Either github or azuredevops
+$repotype = "REPO_TYPE"
+
+##Only for Azure Devops
+$project = "YOUR_AZURE_DEVOPS_PROJECT"
 
 ##Only use if not set in script parameters
 $tenantcheck = $PSBoundParameters.ContainsKey('tenant')
@@ -274,6 +295,125 @@ Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/pu
 ###############################################################################################################
 ######                                          Add Functions                                            ######
 ###############################################################################################################
+
+
+Function Add-DevopsFile(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to add a file to an Azure Devops Repository
+    .DESCRIPTION
+    The function connects to the Azure Devops API and adds a file to a repository
+    .EXAMPLE
+    add-devopsfile -repo reponame -project projectname -organization orgname -filename filename -filecontent filecontent -token token
+    .NOTES
+    NAME: add-devopsfile
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $repo,
+        $project,
+        $organization,
+        $filename,
+        $filecontent,
+        $token,
+        $comment
+    )
+    
+
+    $base64AuthInfo= [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($token)"))
+    $encryptedcontent= [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($filecontent)"))
+
+    $repoUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repo"
+
+    $repo = Invoke-RestMethod -Uri $repoUrl -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get
+    $repoId = $repo.id
+
+    ##Check for commits
+    $pushiduri = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/pushes?&`$top=1&searchCriteria.refName=refs/heads/master&api-version=6.0"
+    $pushid = ((Invoke-RestMethod -Uri $pushiduri -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get).value).pushId
+    $commituri = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoID/pushes/$pushid`?api-version=6.0"
+    $commit = ((Invoke-RestMethod -Uri $commituri -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get).commits).commitId
+
+    if ($commit) {
+        $oldid = $commit
+    } else {
+        $oldid = "0000000000000000000000000000000000000000"
+    }
+
+
+    # Push the commit
+$pushUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/pushes?api-version=6.0"
+$json = @"
+{
+    "refUpdates": [
+      {
+        "name": "refs/heads/master",
+        "oldObjectId": "$oldid"
+      }
+    ],
+    "commits": [
+      {
+        "comment": "$comment",
+        "changes": [
+          {
+            "changeType": "add",
+            "item": {
+              "path": "/$filename"
+            },
+            "newContent": {
+              "content": "$encryptedcontent",
+              "contentType": "base64encoded"
+            }
+          }
+        ]
+      }
+    ]
+  }
+"@
+Invoke-RestMethod -Uri $pushUrl -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Post -Body $json -ContentType "application/json"   
+}
+
+Function Get-DevOpsCommits(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get commits from an Azure Devops Repository
+    .DESCRIPTION
+    The function connects to the Azure Devops API and gets commits from a repository
+    .EXAMPLE
+    Get-DevOpsCommits -repo reponame -project projectname -organization orgname -token token
+    .NOTES
+    NAME: Get-DevOpsCommits
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $repo,
+        $project,
+        $organization,
+        $token
+    )
+    
+
+    $base64AuthInfo= [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($token)"))
+    $repoUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repo"
+    $repo = Invoke-RestMethod -Uri $repoUrl -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get
+    $repoId = $repo.id
+
+    # Get the commits
+$ProjectUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repoId/commits?api-version=7.0"
+$CommitInfo = (Invoke-RestMethod -Uri $ProjectUrl -Method Get -UseDefaultCredential -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}).value
+
+return $CommitInfo
+}
+
+
 
 Function Get-IntuneApplication(){
     
@@ -2553,6 +2693,9 @@ $msg   = 'Enter your backup reason:'
 
 $backupreason = [Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
 }
+
+if ($repotype -eq "github") {
+    write-host "Uploading to Github"
 ##Upload to GitHub
 $date =get-date -format yyMMddmmss
 $date = $date.ToString()
@@ -2562,7 +2705,13 @@ $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
 $message = "$backupreason - $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
 (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
+}
+if ($repotype -eq "azuredevops") {
+    $filename = $tenant+"-intunebackup-"+$date+".json"
+    write-host "Uploading to Azure DevOps"
+    Add-DevopsFile -repo $reponame -project $project -organization $ownername -filename $filename -filecontent $profilesjson -token $token -comment $backupreason
 
+}
 
 
 }
@@ -2584,31 +2733,58 @@ if ($type -eq "restore") {
 ###############################################################################################################
 ######                                          Get Commits                                              ######
 ###############################################################################################################
-write-host "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
-$uri = "https://api.github.com/repos/$ownername/$reponame/commits"
-$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
-$events | Select-object message, url| Out-GridView -PassThru -Title "Select Backup to View" | ForEach-Object {
 
-$eventsuri = $_.url
-$commitid = Split-Path $eventsuri -Leaf
-$commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
-$commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Authorization'='token '+$token; 'Accept'='application/json'}).Files).raw_url
-write-host "$commitfilename Found"
-}
-
-
-$filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
-
-$commitfilename2 = " https://api.github.com/repos/$ownername/$reponame/contents/$filename"
-
-
-$encodedbackup = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json.raw';'Cache-Control'='no-cache'}).Content
-
-##Decode backup from base64
-$decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($encodedbackup))
-
-
-
+if ($repotype -eq "github") {
+    write-host "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
+    $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
+    $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
+    $events2 = $events | Select-object message, url| Out-GridView -PassThru -Title "Select Backup to View"
+        ForEach ($event in $events2) 
+        {
+    $eventsuri = $event.url
+    $commitid = Split-Path $eventsuri -Leaf
+    $commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
+    $commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Authorization'='token '+$token; 'Accept'='application/json'}).Files).raw_url
+    write-host "$commitfilename Found"
+    }
+    
+    
+    $filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
+    
+    $commitfilename2 = " https://api.github.com/repos/$ownername/$reponame/contents/$filename"
+    
+    
+    $encodedbackup = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json.raw';'Cache-Control'='no-cache'}).Content
+    
+    ##Decode backup from base64
+    $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($encodedbackup))
+    }
+    
+    if ($repotype = "azuredevops") {
+        write-host "Finding Latest Backup Commit from Repo $reponame in $ownername DevOps"
+        $base64AuthInfo= [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($token)"))
+        $events = Get-DevOpsCommits -repo $reponame -project $project -organization $ownername -token $token
+        $events2 = $events | Select-object comment, url| Out-GridView -PassThru -Title "Select Backup to View" 
+        ForEach ($event in $events2) 
+        {
+            $eventsuri = $event.url
+            $commitid = Split-Path $eventsuri -Leaf
+            $commituri = "https://dev.azure.com/$ownername/$project/_apis/git/repositories/$reponame/commits/$commitid/changes"
+            $commitfilename2 = (((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}).changes))[0].item.path
+        }
+            $repoUrl = "https://dev.azure.com/$ownername/$project/_apis/git/repositories/$reponame"
+            $repo = Invoke-RestMethod -Uri $repoUrl -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method Get
+            $repoId = $repo.id
+            $jsonuri = " https://dev.azure.com/$ownername/$project/_apis/git/repositories/$repoId/items?scopepath=$commitfilename2&download=true&api-version=7.0&version=master"
+            $decodedbackup2 = (Invoke-RestMethod -Uri $jsonuri -Method Get -UseDefaultCredential -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)})
+            $decodedbackup = $decodedbackup2.Substring(1)
+            
+    
+    
+    
+    }
+    
+    
 ###############################################################################################################
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################

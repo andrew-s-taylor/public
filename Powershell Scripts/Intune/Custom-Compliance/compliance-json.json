@@ -1,0 +1,326 @@
+{
+    "Rules":[ 
+        { 
+           "SettingName":"UpdateStatus",
+           "Operator":"IsEquals",
+           "DataType":"String",
+           "Operand":"True",
+           "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/windows-update-troubleshooter-19bc41ca-ad72-ae67-af3c-89ce169755dd",
+           "RemediationStrings":[ 
+              { 
+                 "Language":"en_US",
+                 "Title":"Missing Updates.",
+                 "Description": "Your machine is missing some recent critical updates."
+              }
+           ]
+        },
+        { 
+           "SettingName":"OSsupported",
+           "Operator":"IsEquals",
+           "DataType":"String",
+           "Operand":"True",
+           "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/windows-update-troubleshooter-19bc41ca-ad72-ae67-af3c-89ce169755dd",
+           "RemediationStrings":[ 
+              { 
+                 "Language": "en_US",
+                 "Title": "Unsupported Operating System.",
+                 "Description": "Your operating system version is now out of support and requires updating"
+              }
+           ]
+        },
+        { 
+           "SettingName":"DomainFirewall",
+           "Operator":"IsEquals",
+           "DataType":"String",
+           "Operand":"True",
+           "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/turn-microsoft-defender-firewall-on-or-off-ec0844f7-aebd-0583-67fe-601ecf5d774f",
+           "RemediationStrings":[ 
+              { 
+                 "Language": "en_US",
+                 "Title": "Domain Firewall is Off",
+                 "Description": "Your domain firewall is switched off, please re-enable."
+              }
+           ]
+        },
+        { 
+            "SettingName":"PrivateFirewall",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/turn-microsoft-defender-firewall-on-or-off-ec0844f7-aebd-0583-67fe-601ecf5d774f",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Private Firewall is Off",
+                  "Description": "Your private firewall is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"PublicFirewall",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/turn-microsoft-defender-firewall-on-or-off-ec0844f7-aebd-0583-67fe-601ecf5d774f",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Public Firewall is Off",
+                  "Description": "Your public firewall is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"AMEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "AntiMalwareScanner is Off",
+                  "Description": "Your anti-malware scanner is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"ASEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "AntiSpyware is Off",
+                  "Description": "Your anti-spyware scanner is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"AVEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "AntiVirus is Off",
+                  "Description": "Your anti-virus scanner is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"NISEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/enable-network-protection?view=o365-worldwide",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Network Inspection Service is Off",
+                  "Description": "Your network inspection service is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"OPEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "On Access Protection is Off",
+                  "Description": "Your on access protection service is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"RPEEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/turn-off-defender-antivirus-protection-in-windows-security-99e6004f-c54c-8509-773c-a4d776b77960",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "RealTime Protection is Off",
+                  "Description": "Your realtime protection service is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"TPEEnabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/prevent-changes-to-security-settings-with-tamper-protection-31d51aaa-645d-408e-6ce7-8d7f8e593f87",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Tamper Protection is Off",
+                  "Description": "Your tamper protection service is switched off, please re-enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"ASAge",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/update-windows-security-signatures-726d462d-b2a8-5bb2-8a9e-5d5871b06e05",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "AntiSpyware Out of Date",
+                  "Description": "Your antispyware is out of date, please update it."
+               }
+            ]
+         },
+         { 
+            "SettingName":"AVAge",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/update-windows-security-signatures-726d462d-b2a8-5bb2-8a9e-5d5871b06e05",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Antivirus Out of Date",
+                  "Description": "Your antivirus is out of date, please update it."
+               }
+            ]
+         },
+         { 
+            "SettingName":"NISEAge",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/update-windows-security-signatures-726d462d-b2a8-5bb2-8a9e-5d5871b06e05",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Network Inspection Out of Date",
+                  "Description": "Your network inspection service is out of date, please update it."
+               }
+            ]
+         },
+         { 
+            "SettingName":"SignatureOutOfDate",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/update-windows-security-signatures-726d462d-b2a8-5bb2-8a9e-5d5871b06e05",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Signatures Out of Date",
+                  "Description": "Your antivirus signatures are out of date, please update them."
+               }
+            ]
+         },
+         { 
+            "SettingName":"QuickScanOverdue",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"False",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Quick Scan Overdue",
+                  "Description": "Your machine needs a quick anti-virus scan."
+               }
+            ]
+         },
+         { 
+            "SettingName":"FullScanOverdue",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"False",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Full Scan Overdue",
+                  "Description": "Your machine needs a full anti-virus scan."
+               }
+            ]
+         },
+         { 
+            "SettingName":"NoActiveMalware",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Active Malware Detected",
+                  "Description": "Active Malware detected, please remediate."
+               }
+            ]
+         },
+         { 
+            "SettingName":"TPMpresent",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/enable-tpm-2-0-on-your-pc-1fd5a332-360d-4f46-a1e7-ae6b0c90645c",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "No TPM Chip",
+                  "Description": "No TPM chip detected, please enable in BIOS."
+               }
+            ]
+         },
+         { 
+            "SettingName":"TPMactivated",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/enable-tpm-2-0-on-your-pc-1fd5a332-360d-4f46-a1e7-ae6b0c90645c",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "TPM not Activated",
+                  "Description": "TPM not activated, please activate."
+               }
+            ]
+         },
+         { 
+            "SettingName":"TPMenabled",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/enable-tpm-2-0-on-your-pc-1fd5a332-360d-4f46-a1e7-ae6b0c90645c",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "TPM not Enabled",
+                  "Description": "TPM not enabled, please enable."
+               }
+            ]
+         },
+         { 
+            "SettingName":"Bitlocker",
+            "Operator":"IsEquals",
+            "DataType":"String",
+            "Operand":"True",
+            "MoreInfoUrl":"https://support.microsoft.com/en-us/windows/turn-on-device-encryption-0c453637-bc88-5f74-5105-741561aae838",
+            "RemediationStrings":[ 
+               { 
+                  "Language": "en_US",
+                  "Title": "Unencrypted",
+                  "Description": "Your device is not fully encrypted, please encrypt."
+               }
+            ]
+         }
+     ]
+    }
