@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.16
+  Version:        2.0.17
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 09/02/2023
+  Updated: 15/02/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -45,12 +45,13 @@ Creates a log file in %Temp%
   Change: Tested with 1.21.0 and removed forced version
   Change: Updated scopes for Win365
   Change: Added support for custom compliance scripts
+  Change: Added support for Azure Devops Repo as well as GitHub
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 2.0.16
+.VERSION 2.0.17
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
