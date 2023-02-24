@@ -1,4 +1,3 @@
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
 .VERSION 2.0.0
 .GUID 35fb7c4b-4114-42a0-a2dd-09a6085cb542
@@ -25,16 +24,16 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        2.0.0
+  Version:        2.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  16/09/2022
-  Amended Date:  06/10/2022
-  Amended Date:  30/10/2022
+  Amended Date:  24/02/2023
   Purpose/Change: Initial script development
   Change: Added support for PowerShell script deletion
   Change: Switched to MS Graph API
+  Change: Removed MS Graph and Changed to MGGrap
   
 .EXAMPLE
 N/A
@@ -64,13 +63,11 @@ else {
 
 
 # Load the Graph module
-Import-Module microsoft.graph.intune
 import-module microsoft.graph.authentication
 
 #Connect to Graph
 Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes  	RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
-Connect-MSGraph
+Connect-MgGraph -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
 
 
@@ -114,67 +111,6 @@ Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/pu
     
 ###############################################################################################################
 
-function Get-MSGraphAllPages {
-    [CmdletBinding(
-        ConfirmImpact = 'Medium',
-        DefaultParameterSetName = 'SearchResult'
-    )]
-    param (
-        [Parameter(Mandatory = $true, ParameterSetName = 'NextLink', ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()]
-        [Alias('@odata.nextLink')]
-        [string]$NextLink,
-
-        [Parameter(Mandatory = $true, ParameterSetName = 'SearchResult', ValueFromPipeline = $true)]
-        [ValidateNotNull()]
-        [PSObject]$SearchResult
-    )
-
-    begin {}
-
-    process {
-        if ($PSCmdlet.ParameterSetName -eq 'SearchResult') {
-            # Set the current page to the search result provided
-            $page = $SearchResult
-
-            # Extract the NextLink
-            $currentNextLink = $page.'@odata.nextLink'
-
-            # We know this is a wrapper object if it has an "@odata.context" property
-            if (Get-Member -InputObject $page -Name '@odata.context' -Membertype Properties) {
-                $values = $page.value
-            } else {
-                $values = $page
-            }
-
-            # Output the values
-            if ($values) {
-                $values | Write-Output
-            }
-        }
-
-        while (-Not ([string]::IsNullOrWhiteSpace($currentNextLink)))
-        {
-            # Make the call to get the next page
-            try {
-                $page = Get-MSGraphNextPage -NextLink $currentNextLink
-            } catch {
-                throw
-            }
-
-            # Extract the NextLink
-            $currentNextLink = $page.'@odata.nextLink'
-
-            # Output the items in the page
-            $values = $page.value
-            if ($values) {
-                $values | Write-Output
-            }
-        }
-    }
-
-    end {}
-}
 #############################################################################################################    
 
 Function Get-DeviceConfigurationPolicyGP(){

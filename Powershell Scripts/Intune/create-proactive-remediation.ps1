@@ -83,12 +83,26 @@ Start-Transcript -Path $env:TEMP\intuneproactive-$date.log
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
+if (Get-Module -ListAvailable -Name Microsoft.Graph.authentication) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.authentication -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -99,10 +113,10 @@ else {
 
 
 
-
 #Importing Modules
 write-host "Importing Graph Module"
-Import-Module Microsoft.Graph.intune
+Import-Module Microsoft.Graph.groups
+Import-Module Microsoft.Graph.authentication
 ##Connect to Graph
 write-host "Connecting to Graph"
 #Connect to Graph
