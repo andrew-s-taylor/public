@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0.0
+.VERSION 3.0.1
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Builds an Intune environment using intunebackupandrestore
@@ -25,21 +25,22 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        3.0.0
+  Version:        3.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  21/08/2021
-  Modified Date:  31/10/2022
+  Modified Date:  24/02/2023
   Purpose/Change: Initial script development
   Reason: Fixed issue with Update ring assignments
   Change: Switched to Graph SDK
+  Change: Removed MS Graph Module
   
 .EXAMPLE
 N/A
 #>
 
-$version = "2.1"
+$version = "3.0.1"
 ###############################################################################################################
 ######                                         Install Modules                                           ######
 ###############################################################################################################
