@@ -78,7 +78,6 @@ else {
 
 #Importing Modules
 Import-Module IntuneBackupAndRestore
-Import-Module Microsoft.Graph.Intune
 import-module microsoft.graph.authentication
 import-module microsoft.graph.groups
 
@@ -1156,7 +1155,8 @@ $msgBody = "Autopilot AAD Group Created, moving on to Intune Deployment"
 [System.Windows.MessageBox]::Show($msgBody)
 
 ##Connect to Intune
-Connect-MSGraph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 
 
 ###############################################################################################################
