@@ -3688,6 +3688,8 @@ $configuration2 | ForEach-Object {
 $id = $_.ID
 write-host $id
 
+##Use $configuration variable to find the ID and Type?
+
 $policy = Get-DeviceConfigurationPolicy -id $id
 $catalog = Get-DeviceConfigurationPolicysc -id $id
 $compliance = Get-DeviceCompliancePolicy -id $id
