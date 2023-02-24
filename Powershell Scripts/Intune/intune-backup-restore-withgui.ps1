@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        3.0.0
+  Version:        4.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 16/02/2023
+  Updated: 24/02/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -46,6 +46,8 @@ Creates a log file in %Temp%
   Change: Updated scopes for Win365
   Change: Added support for custom compliance scripts
   Change: Added support for Azure Devops Repo as well as GitHub
+  Change: Performance improvement (significantly faster)
+
   .EXAMPLE
 N/A
 #>
@@ -2427,32 +2429,60 @@ $configuration2 | foreach-object {
 ##Find out what it is
 $id = $_.ID
 write-host $id
-$policy = Get-DeviceConfigurationPolicy -id $id
-$catalog = Get-DeviceConfigurationPolicysc -id $id
-$compliance = Get-DeviceCompliancePolicy -id $id
-$security = Get-DeviceSecurityPolicy -id $id
-$autopilot = Get-AutoPilotProfile -id $id
-$esp = Get-AutoPilotESP -id $id
-$android = Get-ManagedAppProtectionAndroid -id $id
-$ios = Get-ManagedAppProtectionios -id $id
-$gp = Get-DeviceConfigurationPolicyGP -id $id
-$ca = Get-ConditionalAccessPolicy -id $id
-$proac = Get-DeviceProactiveRemediations -id $id
-$aad = Get-GraphAADGroups -id $id
-$wingetapp = Get-IntuneApplication -id $id
-$scripts = Get-DeviceManagementScripts -id $id
-$compliancescripts = Get-DeviceCompliancePolicyScripts -id $id
-$win365usersettings = Get-Win365UserSettings -id $id
-$win365provisioning = Get-Win365ProvisioningPolicies -id $id
-$policysets = Get-IntunePolicySets -id $id
-$enrollmentconfigs = Get-EnrollmentConfigurations -id $id
-$devicecategories = Get-DeviceCategories -id $id
-$devicefilters = Get-DeviceFilters -id $id
-$brandingprofiles = Get-BrandingProfiles -id $id
-$adminapprovals = Get-AdminApprovals -id $id
+##Performance improvement, use existing array instead of additional graph calls
+
+#$policy = Get-DeviceConfigurationPolicy -id $id
+$policy = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Config Policy")}
+#$catalog = Get-DeviceConfigurationPolicysc -id $id
+$catalog = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Settings Catalog")}
+#$compliance = Get-DeviceCompliancePolicy -id $id
+$compliance = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Compliance Policy")}
+#$security = Get-DeviceSecurityPolicy -id $id
+$security = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Security Policy")}
+#$autopilot = Get-AutoPilotProfile -id $id
+$autopilot = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Autopilot Profile")}
+#$esp = Get-AutoPilotESP -id $id
+$esp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Autopilot ESP")}
+#$android = Get-ManagedAppProtectionAndroid -id $id
+$android = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Android App Protection")}
+#$ios = Get-ManagedAppProtectionios -id $id
+$ios = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "iOS App Protection")}
+#$gp = Get-DeviceConfigurationPolicyGP -id $id
+$gp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Admin Template")}
+#$ca = Get-ConditionalAccessPolicy -id $id
+$ca = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Conditional Access Policy")}
+#$proac = Get-DeviceProactiveRemediations -id $id
+$proac = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Proactive Remediation")}
+#$aad = Get-GraphAADGroups -id $id
+$aad = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "AAD Group")}
+#$wingetapp = Get-IntuneApplication -id $id
+$wingetapp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Winget Application")}
+#$scripts = Get-DeviceManagementScripts -id $id
+$scripts = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "PowerShell Script")}
+#$compliancescripts = Get-DeviceCompliancePolicyScripts -id $id
+$compliancescripts = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Compliance Script")}
+#$win365usersettings = Get-Win365UserSettings -id $id
+$win365usersettings = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Win365 User Settings")}
+#$win365provisioning = Get-Win365ProvisioningPolicies -id $id
+$win365provisioning = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Win365 Provisioning Policy")}
+#$policysets = Get-IntunePolicySets -id $id
+$policysets = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Policy Set")}
+#$enrollmentconfigs = Get-EnrollmentConfigurations -id $id
+$enrollmentconfigs = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Enrollment Configuration")}
+#$devicecategories = Get-DeviceCategories -id $id
+$devicecategories = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Device Categories")}
+#$devicefilters = Get-DeviceFilters -id $id
+$devicefilters = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Device Filter")}
+#$brandingprofiles = Get-BrandingProfiles -id $id
+$brandingprofiles = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Branding Profile")}
+#$adminapprovals = Get-AdminApprovals -id $id
+$adminapprovals = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Admin Approval")}
 #$orgmessages = Get-OrgMessages -id $id
-$intuneterms = Get-IntuneTerms -id $id
-$intunerole = Get-IntuneRoles -id $id
+#$intuneterms = Get-IntuneTerms -id $id
+$intuneterms = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Intune Terms")}
+#$intunerole = Get-IntuneRoles -id $id
+$intunerole = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Intune Role")}
+
 
 
 
