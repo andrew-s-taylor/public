@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.0
+.VERSION 2.0.1
 .GUID 35fb7c4b-4114-42a0-a2dd-09a6085cb542
 .AUTHOR AndrewTaylor
 .DESCRIPTION Bulk Deletes Intune policies, Conditional Access, AAD Groups, Proactive Remediations and more
