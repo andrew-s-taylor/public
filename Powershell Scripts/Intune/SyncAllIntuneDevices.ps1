@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.2
+.VERSION 3.3
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Synchronises All Intune managed devices
@@ -25,16 +25,17 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        3.2
+  Version:        3.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2021
-  Modified Date:  07/02/2023
+  Modified Date:  24/02/2023
   Purpose/Change: Initial script development
   Change:   Switched to MSGraph Auth
   Change:   Added pagination support for larger estates
   Change: Bug fix
+  Change: Removed MS Graph module and switched to MgGraph
   
 .EXAMPLE
 N/A
@@ -44,12 +45,12 @@ N/A
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph.authentication) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.authentication -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -59,7 +60,7 @@ else {
 
 
 # Load the Graph module
-Import-Module microsoft.graph.intune
+Import-Module microsoft.graph.authentication
 
 ####################################################################### END INSTALL MODULES #######################################################################
 
@@ -96,7 +97,8 @@ Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/pu
 
 ####################################################################### CREATE AAD OBJECTS #######################################################################
 #Connect to Graph
-Connect-MSGraph
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes CloudPC.ReadWrite.All, Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
 ####################################################
     
@@ -109,7 +111,7 @@ Connect-MSGraph
         $uri = "https://graph.microsoft.com/Beta/$($resource)"
         write-verbose $uri
         Write-Verbose "Sending sync command to $DeviceID"
-        Invoke-MSGraphRequest -Url $uri -HttpMethod POST
+        Invoke-MgGraphRequest -Uri $uri -Method Post -Body $null
     }
     ####################################################
 
@@ -144,3 +146,6 @@ foreach ($device in $alldevices) {
     $devicename = $device.deviceName
     write-host "Sync sent to $devicename"
 }
+
+##All done
+Disconnect-MgGraph
