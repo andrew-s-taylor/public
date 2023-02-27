@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        4.0.0
+  Version:        4.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 24/02/2023
+  Updated: 27/02/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -47,13 +47,14 @@ Creates a log file in %Temp%
   Change: Added support for custom compliance scripts
   Change: Added support for Azure Devops Repo as well as GitHub
   Change: Performance improvement (significantly faster)
+  Change: Removed pagination error (whitespace)
 
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 4.0.0
+.VERSION 4.0.1
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -795,11 +796,12 @@ Function Get-DeviceConfigurationPolicySC(){
                         $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
                         $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
                                 $policynextlink = $configurationsettingscatalog."@odata.nextlink"
-
+                                $policynextlink = $policynextlink -replace '\S', ''
                                 while (($policynextlink -ne "") -and ($null -ne $policynextlink))
                                 {
                 $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
                 $policynextlink = $nextsettings."@odata.nextLink"
+                $policynextlink = $policynextlink -replace '\S', ''
                 $allconfigurationsettingscatalogpages += $nextsettings.value
             }
 
@@ -1959,11 +1961,12 @@ function getpolicyjson() {
         $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
         $settings = $settings.value
         $policynextlink = $settings."@odata.nextlink"
-
+        $policynextlink = $policynextlink -replace '\S', ''
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
             $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
             $policynextlink = $nextsettings."@odata.nextLink"
+            $policynextlink = $policynextlink -replace '\S', ''
             $settings += $nextsettings.value
         }
 

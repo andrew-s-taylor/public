@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.0
+.VERSION 6.0.1
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.0
+  Version:        6.0.1
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 24/02/2023
+  Updated: 27/02/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -71,6 +71,7 @@ Creates a log file in %Temp%
   Change: Added scopes for Win365
   Change: Added support for custom compliance scripts
   Change: Performance improvement (significantly faster)
+  Change: Removed pagination error (whitespace)
 
   
 .EXAMPLE
@@ -639,11 +640,12 @@ Function Get-DeviceConfigurationPolicySC(){
                         $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
                         $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
                                 $policynextlink = $configurationsettingscatalog."@odata.nextlink"
-
+                                $policynextlink = $policynextlink -replace '\S', ''
                                 while (($policynextlink -ne "") -and ($null -ne $policynextlink))
                                 {
                 $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
                 $policynextlink = $nextsettings."@odata.nextLink"
+                $policynextlink = $policynextlink -replace '\S', ''
                 $allconfigurationsettingscatalogpages += $nextsettings.value
             }
 
@@ -3264,11 +3266,12 @@ function getpolicyjson() {
         $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
         $settings = $settings.value
         $policynextlink = $settings."@odata.nextlink"
-
+        $policynextlink = $policynextlink -replace '\S', ''
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
             $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Gconneet -OutputType PSObject)
             $policynextlink = $nextsettings."@odata.nextLink"
+            $policynextlink = $policynextlink -replace '\S', ''
             $settings += $nextsettings.value
         }
 
