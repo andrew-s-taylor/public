@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.1
+.VERSION 6.0.2
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.1
+  Version:        6.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
@@ -72,6 +72,7 @@ Creates a log file in %Temp%
   Change: Added support for custom compliance scripts
   Change: Performance improvement (significantly faster)
   Change: Removed pagination error (whitespace)
+  Change: Fix for when supplying ID at command line
 
   
 .EXAMPLE
@@ -3560,9 +3561,7 @@ Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.Al
 $profiles = @()
 $configuration = @()
 
-##Check if any parameters have been passed
-if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
-write-host "No parameters passed, grabbing all profiles"
+
 
 ##Get Config Policies
 $configuration += Get-DeviceConfigurationPolicy | Select-Object ID, DisplayName, Description, @{N='Type';E={"Config Policy"}}
@@ -3646,6 +3645,9 @@ $configuration += Get-IntuneTerms | Select-Object ID, DisplayName, Description, 
 
 ##Get Intune Roles
 $configuration += Get-IntuneRoles | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Intune Role"}}
+
+##Check if any parameters have been passed
+if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
 
 ##Check if everything set in parameters
 if ($everythingcheck -ne $true) {
