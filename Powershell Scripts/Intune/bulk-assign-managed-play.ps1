@@ -1,6 +1,27 @@
 ##Bulk assigns all Managed Play Store apps as Available to All Users
 
+Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
+        exit
+    }
+}
+
+
+# Load the Graph module
+Import-Module microsoft.graph.authentication  
+
+Select-MgProfile -Name Beta
+Connect-MgGraph -Scopes  RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
 
 Function Add-ApplicationAssignment() {
     <#
