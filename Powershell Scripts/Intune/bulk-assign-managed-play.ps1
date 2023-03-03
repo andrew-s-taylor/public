@@ -97,7 +97,7 @@ NAME: Add-ApplicationAssignment
 
 
 $uri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps?`$filter=((isof('microsoft.graph.androidManagedStoreApp') and microsoft.graph.androidManagedStoreApp/isSystemApp eq false)) and (microsoft.graph.managedApp/appAvailability eq null or microsoft.graph.managedApp/appAvailability eq 'lineOfBusiness' or isAssigned eq true)"
-$app = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+$apps = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
 
 foreach ($app in $apps) {
     $appid = $app.id
