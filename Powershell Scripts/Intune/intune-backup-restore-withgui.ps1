@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.0
+  Version:        5.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 01/03/2023
+  Updated: 06/03/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -54,6 +54,7 @@ Creates a log file in %Temp%
   Change: Added parameter for filename to skip grid-view on automated restore
   Change: Bypass script check when running on webhook
   Change: Github fix to cope with large files
+  Change: Added webhook password for extra security
 
   .EXAMPLE
 N/A
@@ -130,6 +131,18 @@ $clientsecret = ((($bodyData.clientsecret) | out-string).trim())
 $policyid = ((($bodyData.policyid) | out-string).trim())
 $postedfilename = ((($bodyData.filename) | out-string).trim())
 
+$keycheck = ((($bodyData.webhooksecret) | out-string).trim())
+
+##Lets add some security, check if a password has been sent in the header
+
+##Set my password
+$webhooksecret = ""
+
+##Check if the password is correct
+if ($keycheck -ne $webhooksecret) {
+    write-output "Webhook password incorrect, exiting"
+    exit
+}
 
 
 if ($policyid) {
