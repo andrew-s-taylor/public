@@ -17,11 +17,11 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.97
+  Version:        2.98
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
-  Creation Date:  03/07/2022
+  Creation Date:  07/03/2022
   Purpose/Change: Initial script development
   Change: 12/08/2022 - Added additional HP applications
   Change 23/09/2022 - Added Clipchamp (new in W11 22H2)
@@ -38,6 +38,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 08/02/2023 - Fixed HP apps (thanks to http://gerryhampsoncm.blogspot.com/2023/02/remove-pre-installed-hp-software-during.html?m=1)
   Change 08/02/2023 - Removed reg keys for Teams Chat
   Change 14/02/2023 - Added HP Sure Apps
+  Change 07/03/2023 - Enabled Location tracking (with commenting to disable)
   
 .EXAMPLE
 N/A
@@ -368,18 +369,21 @@ Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
     #    Set-ItemProperty $DataCollection3  AllowTelemetry -Value 0 
     #}
     
+
+###Enable location tracking for "find my device", uncomment if you don't need it
+
     #Disabling Location Tracking
-    Write-Host "Disabling Location Tracking"
-    $SensorState = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}"
-    $LocationConfig = "HKLM:\SYSTEM\CurrentControlSet\Services\lfsvc\Service\Configuration"
-    If (!(Test-Path $SensorState)) {
-        New-Item $SensorState
-    }
-    Set-ItemProperty $SensorState SensorPermissionState -Value 0 
-    If (!(Test-Path $LocationConfig)) {
-        New-Item $LocationConfig
-    }
-    Set-ItemProperty $LocationConfig Status -Value 0 
+    #Write-Host "Disabling Location Tracking"
+    #$SensorState = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}"
+    #$LocationConfig = "HKLM:\SYSTEM\CurrentControlSet\Services\lfsvc\Service\Configuration"
+    #If (!(Test-Path $SensorState)) {
+    #    New-Item $SensorState
+    #}
+    #Set-ItemProperty $SensorState SensorPermissionState -Value 0 
+    #If (!(Test-Path $LocationConfig)) {
+    #    New-Item $LocationConfig
+    #}
+    #Set-ItemProperty $LocationConfig Status -Value 0 
         
     #Disables People icon on Taskbar
     Write-Host "Disabling People icon on Taskbar"
