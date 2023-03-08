@@ -21,7 +21,7 @@ Remove-Item C:\Windows\Temp\SetACL.exe -recurse
 
 
 ##Stop it coming back
-$registryPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
+$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
 If (!(Test-Path $registryPath)) { 
     New-Item $registryPath
 }
@@ -29,7 +29,7 @@ Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
 
 
 ##Unpin it
-$registryPath = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
 If (!(Test-Path $registryPath)) { 
     New-Item $registryPath
 }

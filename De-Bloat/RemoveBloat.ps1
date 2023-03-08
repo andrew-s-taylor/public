@@ -17,11 +17,11 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.98
+  Version:        2.99
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
-  Creation Date:  07/03/2022
+  Creation Date:  08/03/2022
   Purpose/Change: Initial script development
   Change: 12/08/2022 - Added additional HP applications
   Change 23/09/2022 - Added Clipchamp (new in W11 22H2)
@@ -39,6 +39,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 08/02/2023 - Removed reg keys for Teams Chat
   Change 14/02/2023 - Added HP Sure Apps
   Change 07/03/2023 - Enabled Location tracking (with commenting to disable)
+  Change 08/03/2023 - Teams chat fix
   
 .EXAMPLE
 N/A
@@ -514,7 +515,7 @@ Remove-Item C:\Windows\Temp\SetACL.exe -recurse
 
 
 ##Stop it coming back
-$registryPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
+$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
 If (!(Test-Path $registryPath)) { 
     New-Item $registryPath
 }
@@ -522,7 +523,7 @@ Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
 
 
 ##Unpin it
-$registryPath = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
 If (!(Test-Path $registryPath)) { 
     New-Item $registryPath
 }
