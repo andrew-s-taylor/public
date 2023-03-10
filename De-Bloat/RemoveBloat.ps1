@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.99
+  Version:        2.991
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -40,6 +40,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 14/02/2023 - Added HP Sure Apps
   Change 07/03/2023 - Enabled Location tracking (with commenting to disable)
   Change 08/03/2023 - Teams chat fix
+  Change 10/03/2023 - Dell array fix
   
 .EXAMPLE
 N/A
@@ -758,12 +759,11 @@ $WhitelistedApps = @(
     "Dell, Inc. - Firmware*"
 )
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")  | Where-Object ($_.Name -NotMatch $WhitelistedApps)}
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")  | Where-Object ($_.Name -NotMatch $WhitelistedApps)}
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
 
-$InstalledPrograms = Get-Package | Where-Object {($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")  | Where-Object ($_.Name -NotMatch $WhitelistedApps)}
-
+$InstalledPrograms = Get-Package | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
 # Remove provisioned packages first
 ForEach ($ProvPackage in $ProvisionedPackages) {
 
