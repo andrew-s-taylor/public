@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.1
+  Version:        5.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 06/03/2023
+  Updated: 10/03/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -55,13 +55,14 @@ Creates a log file in %Temp%
   Change: Bypass script check when running on webhook
   Change: Github fix to cope with large files
   Change: Added webhook password for extra security
+  Change: Pagination fix (again)
 
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.1
+.VERSION 5.0.2
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -3529,9 +3530,9 @@ function getpolicyjson() {
         $policy = Get-DeviceConfigurationPolicysc -id $id
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
-        $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
-        $settings = $settings.value
-        $policynextlink = $settings."@odata.nextlink"
+        $firstsettings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
+        $settings = $firstsettings.value
+        $policynextlink = $firstsettings."@odata.nextlink"
         $policynextlink = $policynextlink -replace '\S', ''
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
