@@ -3264,15 +3264,15 @@ function getpolicyjson() {
         $policy = Get-DeviceConfigurationPolicysc -id $id
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
-        $settings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
-        $settings = $settings.value
-        $policynextlink = $settings."@odata.nextlink"
-        $policynextlink = $policynextlink -replace '\S', ''
+        $firstSettings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
+        $settings = $firstSettings.value
+        $policynextlink = $firstSettings."@odata.nextlink"
+        #$policynextlink = $policynextlink -replace '\S', ''
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
-            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Gconneet -OutputType PSObject)
+            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method GET -OutputType PSObject)
             $policynextlink = $nextsettings."@odata.nextLink"
-            $policynextlink = $policynextlink -replace '\S', ''
+            #$policynextlink = $policynextlink -replace '\S', ''
             $settings += $nextsettings.value
         }
 
@@ -3551,7 +3551,7 @@ write-host "Graph Connection Established"
 else {
 ##Connect to Graph
 Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+Connect-MgGraph -TenantId $sourcetenant -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 }
 
 
@@ -4005,7 +4005,7 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
         else {
         ##Connect to Graph
         Select-MgProfile -Name Beta
-        Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+        Connect-MgGraph -TenantId $desttenant -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
         }        
 
 
