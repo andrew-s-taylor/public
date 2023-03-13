@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.7
+.VERSION 2.0.8
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,18 +30,19 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.7
+  Version:        2.0.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  28/11/2022
+  Last Modified:  13/03/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
   Update: Fixed issue with app detection script (missing exit code)
   Update: Fixed install script error
   Update: Fixed encoding for detection script
+  Update: Added speechmarks around $appid in install and uninstall scripts for German language issues
 .EXAMPLE
 N/A
 #>
@@ -2386,7 +2387,7 @@ function new-installscript {
         }
     
     `$Winget = `$WingetPath + "\winget.exe"
-    &`$winget install --id $appid --silent --force --accept-package-agreements --accept-source-agreements --scope machine --exact | out-null
+    &`$winget install --id "$appid" --silent --force --accept-package-agreements --accept-source-agreements --scope machine --exact | out-null
 "@
     return $install
 
@@ -2405,7 +2406,7 @@ function new-uninstallscript {
         }
     
     `$Winget = `$WingetPath + "\winget.exe"
-    &`$winget uninstall --id $appid --silent --force --accept-package-agreements --accept-source-agreements
+    &`$winget uninstall --id "$appid" --silent --force --accept-package-agreements --accept-source-agreements
 "@
     return $uninstall
 
