@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.3
+  Version:        5.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -56,13 +56,15 @@ Creates a log file in %Temp%
   Change: Github fix to cope with large files
   Change: Added webhook password for extra security
   Change: Pagination fix (again)
+  Change: Added support for Windows Hello for Business Config
+
 
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.3
+.VERSION 5.0.4
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1869,6 +1871,103 @@ Function Get-IntuneRoles(){
 }
 ################################################################################################
 
+
+Function Get-WHfBPolicies(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Intune Windows Hello for Business policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Intune WHfB Policies
+    .EXAMPLE
+    Get-WHfBPolicies
+    Returns any WHfB Policies configured in Intune
+    .NOTES
+    NAME: Get-WHfBPolicies
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/deviceEnrollmentConfigurations"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | where-object deviceEnrollmentConfigurationType -eq "WindowsHelloForBusiness"
+    
+            }
+        }
+        catch {}
+    
+   
+}
+
+Function Get-WHfBPoliciesbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Intune Windows Hello for Business policies from the Graph API REST interface by name
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Intune WHfB Policies
+    .EXAMPLE
+    Get-WHfBPoliciesbyName
+    Returns any WHfB Policies configured in Intune
+    .NOTES
+    NAME: Get-WHfBPoliciesbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/deviceEnrollmentConfigurations"
+    try {
+    
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource/$($DCP_resource)"
+        $allpolicies = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | where-object deviceEnrollmentConfigurationType -eq "WindowsHelloForBusiness"
+        $app = $allpolicies | Where-Object DisplayName -eq $name
+
+
+    }
+
+    catch {
+
+    }
+    $myid = $app.id
+    if ($null -ne $myid) {
+    $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+    $type = "Winget Application"
+    }
+    else {
+        $fulluri = ""
+        $type = ""
+    }
+    $output = "" | Select-Object -Property id,fulluri, type    
+    $output.id = $myid
+    $output.fulluri = $fulluri
+    $output.type = $type
+    return $output
+   
+}
+
+
 Function Get-IntuneApplicationbyName(){
     
     <#
@@ -3339,6 +3438,13 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-WHfBPoliciesbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-IntuneRolesbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -3649,8 +3755,8 @@ function getpolicyjson() {
         }           $policy.displayName = $newname
         $policy = $policy | Select-Object description, DisplayName, groupTypes, mailEnabled, mailNickname, securityEnabled, isAssignabletoRole, membershiprule, MembershipRuleProcessingState
     }
-    "deviceManagement/deviceEnrollmentConfigurations" {
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+    "deviceManagement/deviceEnrollmentConfigurationsESP" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/deviceManagement/deviceEnrollmentConfigurations"
         $policy = Get-AutoPilotESP -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
@@ -3776,6 +3882,18 @@ function getpolicyjson() {
     "deviceManagement/deviceEnrollmentConfigurations" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-EnrollmentConfigurations -id $id
+        $oldname = $policy.displayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+    }
+    "deviceManagement/deviceEnrollmentConfigurationswhfb" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/deviceManagement/deviceEnrollmentConfigurations"
+        $policy = Get-WHfBPolicies -id $id
         $oldname = $policy.displayName
         $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
         if ($changename -eq "yes") {
@@ -3972,6 +4090,9 @@ $configuration += Get-IntunePolicySets | Select-Object ID, DisplayName, Descript
 ##Get Enrollment Configurations
 $configuration += Get-EnrollmentConfigurations | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Enrollment Configuration"}}
 
+##Get WHfBPolicies
+$configuration += Get-WHfBPolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"WHfB Policy"}}
+
 ##Get Device Categories
 $configuration += Get-DeviceCategories | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Device Categories"}}
 
@@ -4063,6 +4184,8 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $adminapprovals = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Admin Approval")}
     $intuneterms = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Intune Terms")}
     $intunerole = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Intune Role")}
+    $whfb = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "WHfB Policy")}
+
     }
     else {
         
@@ -4092,6 +4215,7 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     #$orgmessages = Get-OrgMessages -id $id
     $intuneterms = Get-IntuneTerms -id $id
     $intunerole = Get-IntuneRoles -id $id
+    $whfb = get-whfbpolicy -id $id
     }
 
 
@@ -4179,7 +4303,15 @@ if ($null -ne $esp) {
     # Autopilot ESP
 write-output "It's an AutoPilot ESP"
 $id = $esp.id
-$Resource = "deviceManagement/deviceEnrollmentConfigurations"
+$Resource = "deviceManagement/deviceEnrollmentConfigurationsESP"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+}
+if ($null -ne $whfb) {
+    # Windows Hello for Business
+write-output "It's a WHfB Policy"
+$id = $esp.id
+$Resource = "deviceManagement/deviceEnrollmentConfigurationswhfb"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
 }
