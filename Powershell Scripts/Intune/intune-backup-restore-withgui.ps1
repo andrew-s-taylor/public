@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.2
+  Version:        5.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 10/03/2023
+  Updated: 13/03/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -62,7 +62,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.2
+.VERSION 5.0.3
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -3533,12 +3533,12 @@ function getpolicyjson() {
         $firstsettings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
         $settings = $firstsettings.value
         $policynextlink = $firstsettings."@odata.nextlink"
-        $policynextlink = $policynextlink -replace '\S', ''
+        #$policynextlink = $policynextlink -replace '\S', ''
         while (($policynextlink -ne "") -and ($null -ne $policynextlink))
         {
             $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
             $policynextlink = $nextsettings."@odata.nextLink"
-            $policynextlink = $policynextlink -replace '\S', ''
+            #$policynextlink = $policynextlink -replace '\S', ''
             $settings += $nextsettings.value
         }
 
