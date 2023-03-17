@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.8
+.VERSION 2.0.9
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,7 +30,7 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.8
+  Version:        2.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -43,6 +43,7 @@ In-Line Outputs
   Update: Fixed install script error
   Update: Fixed encoding for detection script
   Update: Added speechmarks around $appid in install and uninstall scripts for German language issues
+  Update: Uninstall fix
 .EXAMPLE
 N/A
 #>
@@ -2406,7 +2407,7 @@ function new-uninstallscript {
         }
     
     `$Winget = `$WingetPath + "\winget.exe"
-    &`$winget uninstall --id "$appid" --silent --force --accept-package-agreements --accept-source-agreements
+    &`$winget uninstall --id "$appid" --silent --force --accept-source-agreements
 "@
     return $uninstall
 
