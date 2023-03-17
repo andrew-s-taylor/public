@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.4
+  Version:        5.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 13/03/2023
+  Updated: 17/03/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -57,6 +57,7 @@ Creates a log file in %Temp%
   Change: Added webhook password for extra security
   Change: Pagination fix (again)
   Change: Added support for Windows Hello for Business Config
+  Change: Fixed issue with security settings not importing
 
 
   .EXAMPLE
@@ -64,7 +65,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.4
+.VERSION 5.0.5
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -4747,7 +4748,33 @@ else {
                             }
                         }
             }
-
+            if ($policyuri -like "https://graph.microsoft.com/beta/deviceManagement/templates*") {
+                write-host "It's a security intent, add the settings"
+                $policyid = $copypolicy.id
+                $uri = "https://graph.microsoft.com/beta/deviceManagement/intents/$policyid/updateSettings"
+                $values = ($policyjson | convertfrom-json).values[1]
+                $settingjson = @"
+                {
+      "settings": [
+"@
+    $countarray = $values.Count
+    $start = 0
+    foreach ($value in $values) {
+    $settingjson += $value | convertto-json
+    $start++
+    if ($start -ne $countarray) {
+    $settingjson += ","
+    }
+    }
+                $settingjson += @"
+      ]
+    }
+"@
+                $body = ([System.Text.Encoding]::UTF8.GetBytes($settingjson.tostring()))
+    
+    Invoke-MgGraphRequest -Uri $uri -Method POST -Body $body -ContentType "application/json; charset=utf-8" 
+    
+                }
         }
     
             }

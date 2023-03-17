@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.6
+.VERSION 6.0.7
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.6
+  Version:        6.0.7
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 13/03/2023
+  Updated: 17/03/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -76,6 +76,7 @@ Creates a log file in %Temp%
   Change: Pagination fix (Mark Goodman)
   Change: Revert change to connect-mggraph
   Change: Added support for Windows Hello for Business Config
+  Change: Fixed issue with security intents not importing settings
 
   
 .EXAMPLE
@@ -4218,6 +4219,33 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
                                 catch {}
                             }
                         }
+            }
+            if ($policyuri -like "https://graph.microsoft.com/beta/deviceManagement/templates*") {
+            write-host "It's a security intent, add the settings"
+            $policyid = $copypolicy.id
+            $uri = "https://graph.microsoft.com/beta/deviceManagement/intents/$policyid/updateSettings"
+            $values = ($policyjson | convertfrom-json).values[1]
+            $settingjson = @"
+            {
+  "settings": [
+"@
+$countarray = $values.Count
+$start = 0
+foreach ($value in $values) {
+$settingjson += $value | convertto-json
+$start++
+if ($start -ne $countarray) {
+$settingjson += ","
+}
+}
+            $settingjson += @"
+  ]
+}
+"@
+            $body = ([System.Text.Encoding]::UTF8.GetBytes($settingjson.tostring()))
+
+Invoke-MgGraphRequest -Uri $uri -Method POST -Body $body -ContentType "application/json; charset=utf-8" 
+
             }
 
         }
