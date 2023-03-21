@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.7
+.VERSION 6.0.8
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.7
+  Version:        6.0.8
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 17/03/2023
+  Updated: 21/03/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -77,6 +77,7 @@ Creates a log file in %Temp%
   Change: Revert change to connect-mggraph
   Change: Added support for Windows Hello for Business Config
   Change: Fixed issue with security intents not importing settings
+  Change: Conditional Access fix
 
   
 .EXAMPLE
@@ -400,7 +401,7 @@ Function Get-ConditionalAccessPolicy(){
             else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
     
             }
         }
