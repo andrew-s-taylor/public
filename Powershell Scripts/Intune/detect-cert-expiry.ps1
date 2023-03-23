@@ -85,7 +85,7 @@ $body = @{
     scope         = "https://graph.microsoft.com/.default";
 }
  
-$response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token -Body $body
+$response = Invoke-RestMethod -Method Post -Uri "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token" -Body $body
 $accessToken = $response.access_token
  
 $accessToken
@@ -132,7 +132,7 @@ $BodyJsonsend = @"
                       }
 "@
 
-Invoke-RestMethod -Method POST -Uri $URLsend -Headers $headers -Body $BodyJsonsend
+Invoke-MgGraphRequest -Method POST -Uri $URLsend -Body $BodyJsonsend -ContentType "application/json"
 
 }
 else {
