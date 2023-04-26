@@ -9,7 +9,7 @@ Account name $name
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/04/2023
@@ -18,7 +18,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 22204255-7dfa-4393-aba7-5c9a1fc765d9
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -108,14 +108,20 @@ $password = Get-RandomPassword -Length 20
 
 
 ##Enable LAPS in AAD
+write-host "Checking Azure Active Directory Settings"
 $checkuri = "https://graph.microsoft.com/beta/policies/deviceRegistrationPolicy"
 $currentpolicy = Invoke-MgGraphRequest -Method GET -Uri $checkuri -OutputType PSObject -ContentType "application/json"
 $lapssetting = ($currentpolicy.localAdminPassword).isEnabled
 if ($lapssetting -eq $false) {
+write-host "LAPS is not enabled, enabling"
 $newsetting = $true
 $currentpolicy.localAdminPassword.isEnabled = $newsetting
 $policytojson = $currentpolicy | ConvertTo-Json
 Invoke-MgGraphRequest -Method PUT -Uri $checkuri -Body $policytojson -ContentType "application/json"
+write-host "LAPS enabled"
+}
+else {
+write-host "LAPS is already enabled"
 }
 
 
