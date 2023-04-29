@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.992
+  Version:        2.993
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -42,6 +42,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 08/03/2023 - Teams chat fix
   Change 10/03/2023 - Dell array fix
   Change 19/04/2023 - Added loop through all users for HKCU keys for post-OOBE deployments
+  Change 29/04/2023 - Removes News Feed
   
 .EXAMPLE
 N/A
@@ -508,6 +509,19 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     }
 
    
+    ##Removes the Microsoft Feeds from displaying
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"
+$Name = "EnableFeeds"
+$value = "0"
+
+if (!(Test-Path $registryPath)) {
+    New-Item -Path $registryPath -Force | Out-Null
+    New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
+}
+
+else {
+    New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
+}
     
 ############################################################################################################
 #                                        Remove Scheduled Tasks                                            #
