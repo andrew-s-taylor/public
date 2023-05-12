@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.6
+  Version:        5.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 21/03/2023
+  Updated: 12/05/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -59,6 +59,7 @@ Creates a log file in %Temp%
   Change: Added support for Windows Hello for Business Config
   Change: Fixed issue with security settings not importing
   Change: Conditional Access Fix
+  Change: Checked if ID is a string for Admin Template copying
 
 
   .EXAMPLE
@@ -66,7 +67,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.6
+.VERSION 5.0.7
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -4708,6 +4709,15 @@ else {
 
             ##If policy is an admin template, we need to loop through and add the settings
             if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {
+                
+                ##Check if ID is a string and if not convert it
+                if ($id -is [string]) {
+                    $id = $id
+                }
+                else {
+                    $id = $id.tostring()
+                }
+
                 ##Now grab the JSON
                 $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
                 $OutDefjson = @()

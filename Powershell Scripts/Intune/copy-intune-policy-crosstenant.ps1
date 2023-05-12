@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.8
+.VERSION 6.0.9
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.8
+  Version:        6.0.9
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 21/03/2023
+  Updated: 12/05/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -78,6 +78,7 @@ Creates a log file in %Temp%
   Change: Added support for Windows Hello for Business Config
   Change: Fixed issue with security intents not importing settings
   Change: Conditional Access fix
+  Change: Checked if ID is a string for Admin Template copying
 
   
 .EXAMPLE
@@ -4180,6 +4181,15 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
 
             ##If policy is an admin template, we need to loop through and add the settings
             if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {
+
+                ##Check if ID is a string and if not convert it
+                if ($id -is [string]) {
+                    $id = $id
+                }
+                else {
+                    $id = $id.tostring()
+                }
+
                 ##Now grab the JSON
                 $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
                 $OutDefjson = @()
