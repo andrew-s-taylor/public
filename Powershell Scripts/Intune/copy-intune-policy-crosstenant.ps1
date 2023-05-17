@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.9
+.VERSION 6.0.10
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.9
+  Version:        6.0.10
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 12/05/2023
+  Updated: 17/05/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -79,6 +79,8 @@ Creates a log file in %Temp%
   Change: Fixed issue with security intents not importing settings
   Change: Conditional Access fix
   Change: Checked if ID is a string for Admin Template copying
+  Change: Update to handle Authentication Strength in CA policies
+
 
   
 .EXAMPLE
@@ -3621,6 +3623,12 @@ function getpolicyjson() {
 
     ##We don't want to convert CA policy to JSON
     if (($resource -eq "conditionalaccess")) {
+    ##If Authentication strength is included, we need to make some tweaks
+    if ($policy.grantControls.authenticationStrength) {
+    $policy.grantControls = $policy.grantControls | Select-Object * -ExcludeProperty authenticationStrength@odata.context
+    $policy.grantControls.authenticationStrength = $policy.grantControls.authenticationStrength | Select-Object id
+    write-host "set"
+    }
         $policy = $policy
     }
     else {
@@ -4158,7 +4166,7 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
                 write-host "Creating Conditional Access Policy"
-                $uri = "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies"
+                $uri = "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
                 $NewDisplayName = "Copy of " + $Policy.DisplayName
                 $Parameters = @{
                     displayName     = $NewDisplayName

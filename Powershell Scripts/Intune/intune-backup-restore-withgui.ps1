@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.7
+  Version:        5.0.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 12/05/2023
+  Updated: 17/05/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -60,6 +60,7 @@ Creates a log file in %Temp%
   Change: Fixed issue with security settings not importing
   Change: Conditional Access Fix
   Change: Checked if ID is a string for Admin Template copying
+  Change: Update to handle Authentication Strength in CA policies
 
 
   .EXAMPLE
@@ -67,7 +68,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.7
+.VERSION 5.0.8
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -3997,6 +3998,13 @@ function getpolicyjson() {
     ##We don't want to convert CA policy to JSON
     if (($resource -eq "conditionalaccess")) {
         $policy = $policy
+            ##If Authentication strength is included, we need to make some tweaks
+    if ($policy.grantControls.authenticationStrength) {
+        $policy.grantControls = $policy.grantControls | Select-Object * -ExcludeProperty authenticationStrength@odata.context
+        $policy.grantControls.authenticationStrength = $policy.grantControls.authenticationStrength | Select-Object id
+        write-host "set"
+        }
+    
     }
     else {
     # Remove any GUIDs or dates/times to allow Intune to regenerate
@@ -4680,7 +4688,7 @@ else {
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
                 write-output "Creating Conditional Access Policy"
-                $uri = "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies"
+                $uri = "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
                 $oldname = $Policy.DisplayName
                 $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
                 $NewDisplayName = $oldname + "-restore-" + $restoredate        
