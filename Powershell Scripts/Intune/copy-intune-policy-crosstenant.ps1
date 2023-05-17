@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.10
+.VERSION 6.0.11
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,7 +26,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.10
+  Version:        6.0.11
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
@@ -80,6 +80,7 @@ Creates a log file in %Temp%
   Change: Conditional Access fix
   Change: Checked if ID is a string for Admin Template copying
   Change: Update to handle Authentication Strength in CA policies
+  Change: More automation support
 
 
   
@@ -103,6 +104,12 @@ param
     [string]$sourcetenant #Source Tenant
     ,  
     [string]$desttenant #Destination Tenant
+    ,  
+    [string]$automation #Destination Tenant
+    ,  
+    [string]$appid #Destination Tenant
+    ,  
+    [string]$appsecret #Destination Tenant
     )
 
 ##################################################################################################################################
@@ -115,6 +122,9 @@ $idcheck = $PSBoundParameters.ContainsKey('id')
 $everythingcheck = $PSBoundParameters.ContainsKey('everything')
 $sourcetenantcheck = $PSBoundParameters.ContainsKey('sourcetenant')
 $desttenantcheck = $PSBoundParameters.ContainsKey('desttenant')
+$automationcheck = $PSBoundParameters.ContainsKey('automation')
+$appidcheck = $PSBoundParameters.ContainsKey('appid')
+$appsecretcheck = $PSBoundParameters.ContainsKey('appsecret')
 
 
 
@@ -225,12 +235,21 @@ write-warning "Script has been updated, please download the latest version from 
 Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/copy-intune-policy-crosstenant.ps1"
 
 
+##Check if Automation is set in a parameter
+if ($automationcheck -eq $true) {
+    $automated = $automation
+}
+else {
+##It's not, but you can still set manually
 ############################################################
 ############################################################
 ############# CHANGE THIS TO USE IN AUTOMATION #############
 ############################################################
 ############################################################
 $automated = "no"
+
+
+}
 ############################################################
 ############################################################
 #############           AUTOMATION NOTES       #############
@@ -250,10 +269,20 @@ if ($automated -eq "yes") {
     #################                                                  VARIABLES                                     #################
     ##################################################################################################################################
     
-  
+    ##Check if these are set in params
+    if ($appidcheck -eq $true) {
+        $clientid = $appid
+    }
+    else {
     $clientid = "YOUR_AAD_REG_ID"
+    }
     
+    if ($appsecretcheck -eq $true) {
+        $clientsecret = $appsecret
+    }
+    else {
     $clientsecret = "YOUR_CLIENT_SECRET"
+    }
     
     ##Only use if not set in script parameters
     if ($sourcetenantcheck -ne $true) {
