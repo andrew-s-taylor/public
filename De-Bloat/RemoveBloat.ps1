@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.997
+  Version:        2.998
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -44,6 +44,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 19/04/2023 - Added loop through all users for HKCU keys for post-OOBE deployments
   Change 29/04/2023 - Removes News Feed
   Change 26/05/2023 - Added Set-ACL
+  Change 26/05/2023 - Added multi-language support for Set-ACL commands
 .EXAMPLE
 N/A
 #>
@@ -119,6 +120,160 @@ Else {
 
 Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
 
+$locale = Get-WinSystemLocale | select -expandproperty Name
+
+##Switch on locale to set variables
+## Switch on locale to set variables
+switch ($locale) {
+    "ar-SA" {
+        $everyone = "الجميع"
+        $builtin = "مدمج"
+    }
+    "bg-BG" {
+        $everyone = "Всички"
+        $builtin = "Вграден"
+    }
+    "cs-CZ" {
+        $everyone = "Všichni"
+        $builtin = "Vestavěný"
+    }
+    "da-DK" {
+        $everyone = "Alle"
+        $builtin = "Indbygget"
+    }
+    "de-DE" {
+        $everyone = "Jeder"
+        $builtin = "Integriert"
+    }
+    "el-GR" {
+        $everyone = "Όλοι"
+        $builtin = "Ενσωματωμένο"
+    }
+    "en-US" {
+        $everyone = "Everyone"
+        $builtin = "Builtin"
+    }    
+    "en-GB" {
+        $everyone = "Everyone"
+        $builtin = "Builtin"
+    }
+    "es-ES" {
+        $everyone = "Todos"
+        $builtin = "Incorporado"
+    }
+    "et-EE" {
+        $everyone = "Kõik"
+        $builtin = "Sisseehitatud"
+    }
+    "fi-FI" {
+        $everyone = "Kaikki"
+        $builtin = "Sisäänrakennettu"
+    }
+    "fr-FR" {
+        $everyone = "Tout le monde"
+        $builtin = "Intégré"
+    }
+    "he-IL" {
+        $everyone = "כולם"
+        $builtin = "מובנה"
+    }
+    "hr-HR" {
+        $everyone = "Svi"
+        $builtin = "Ugrađeni"
+    }
+    "hu-HU" {
+        $everyone = "Mindenki"
+        $builtin = "Beépített"
+    }
+    "it-IT" {
+        $everyone = "Tutti"
+        $builtin = "Incorporato"
+    }
+    "ja-JP" {
+        $everyone = "すべてのユーザー"
+        $builtin = "ビルトイン"
+    }
+    "ko-KR" {
+        $everyone = "모든 사용자"
+        $builtin = "기본 제공"
+    }
+    "lt-LT" {
+        $everyone = "Visi"
+        $builtin = "Įmontuotas"
+    }
+    "lv-LV" {
+        $everyone = "Visi"
+        $builtin = "Iebūvēts"
+    }
+    "nb-NO" {
+        $everyone = "Alle"
+        $builtin = "Innebygd"
+    }
+    "nl-NL" {
+        $everyone = "Iedereen"
+        $builtin = "Ingebouwd"
+    }
+    "pl-PL" {
+        $everyone = "Wszyscy"
+        $builtin = "Wbudowany"
+    }
+    "pt-BR" {
+        $everyone = "Todos"
+        $builtin = "Integrado"
+    }
+    "pt-PT" {
+        $everyone = "Todos"
+        $builtin = "Incorporado"
+    }
+    "ro-RO" {
+        $everyone = "Toată lumea"
+        $builtin = "Incorporat"
+    }
+    "ru-RU" {
+        $everyone = "Все пользователи"
+        $builtin = "Встроенный"
+    }
+    "sk-SK" {
+        $everyone = "Všetci"
+        $builtin = "Vstavaný"
+    }
+    "sl-SI" {
+        $everyone = "Vsi"
+        $builtin = "Vgrajen"
+    }
+    "sr-Latn-RS" {
+        $everyone = "Svi"
+        $builtin = "Ugrađeni"
+    }
+    "sv-SE" {
+        $everyone = "Alla"
+        $builtin = "Inbyggd"
+    }
+    "th-TH" {
+        $everyone = "ทุกคน"
+        $builtin = "ภายในเครื่อง"
+    }
+    "tr-TR" {
+        $everyone = "Herkes"
+        $builtin = "Yerleşik"
+    }
+    "uk-UA" {
+        $everyone = "Всі"
+        $builtin = "Вбудований"
+    }
+    "zh-CN" {
+        $everyone = "所有人"
+        $builtin = "内置"
+    }
+    "zh-TW" {
+        $everyone = "所有人"
+        $builtin = "內建"
+    }
+    default {
+        $everyone = "Everyone"
+        $builtin = "Builtin"
+    }
+}
 
 ############################################################################################################
 #                                        Remove AppX Packages                                              #
@@ -608,8 +763,8 @@ If ($null -ne $ProvisionedPackage)
 
 ##Tweak reg permissions
 invoke-webrequest -uri "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/SetACL.exe" -outfile "C:\Windows\Temp\SetACL.exe"
-C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn setowner -ownr "n:Everyone"
- C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn ace -ace "n:Everyone;p:full"
+C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn setowner -ownr "n:$everyone"
+ C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn ace -ace "n:$everyone;p:full"
 
 
 ##Stop it coming back
@@ -707,13 +862,13 @@ $task = Get-ScheduledTask -TaskName "Microsoft\XblGameSave\XblGameSaveTask" -Err
 if ($null -ne $task) {
 Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
 }
-C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:Everyone"
-C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:Everyone;p:full"
+C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:$everyone"
+C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:$everyone;p:full"
 
 #Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
 $NewAcl = Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
 # Set properties
-$identity = "BUILTIN\Administrators"
+$identity = "$builtin\Administrators"
 $fileSystemRights = "FullControl"
 $type = "Allow"
 # Create new rule
