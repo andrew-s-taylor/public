@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.993
+  Version:        2.994
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -43,7 +43,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 10/03/2023 - Dell array fix
   Change 19/04/2023 - Added loop through all users for HKCU keys for post-OOBE deployments
   Change 29/04/2023 - Removes News Feed
-  
+  Change 26/05/2023 - Added Set-ACL fix
 .EXAMPLE
 N/A
 #>
@@ -709,8 +709,17 @@ if ($null -ne $task) {
 Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
 }
 Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
-Set-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe" -AclObject (Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe").SetAccessRuleProtection($true, $true) -InheritanceFlags "None" -AddAccessRule (New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators","FullControl","Allow"))
-Stop-Process -Name "GameBarPresenceWriter.exe" -Force
+$NewAcl = Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
+# Set properties
+$identity = "BUILTIN\Administrators"
+$fileSystemRights = "FullControl"
+$type = "Allow"
+# Create new rule
+$fileSystemAccessRuleArgumentList = $identity, $fileSystemRights, $type
+$fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
+# Apply new rule
+$NewAcl.SetAccessRule($fileSystemAccessRule)
+Set-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe" -AclObject $NewAclStop-Process -Name "GameBarPresenceWriter.exe" -Force
 Remove-Item "$env:WinDir\System32\GameBarPresenceWriter.exe" -Force -Confirm:$false
 New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name "AllowgameDVR" -PropertyType DWORD -Value 0 -Force
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "SettingsPageVisibility" -PropertyType String -Value "hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-xboxnetworking" -Force
