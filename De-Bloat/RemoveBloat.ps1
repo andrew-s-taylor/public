@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.996
+  Version:        2.997
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -610,7 +610,6 @@ If ($null -ne $ProvisionedPackage)
 invoke-webrequest -uri "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/SetACL.exe" -outfile "C:\Windows\Temp\SetACL.exe"
 C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn setowner -ownr "n:Everyone"
  C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn ace -ace "n:Everyone;p:full"
-Remove-Item C:\Windows\Temp\SetACL.exe -recurse
 
 
 ##Stop it coming back
@@ -708,7 +707,10 @@ $task = Get-ScheduledTask -TaskName "Microsoft\XblGameSave\XblGameSaveTask" -Err
 if ($null -ne $task) {
 Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
 }
-Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
+C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:Everyone"
+C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:Everyone;p:full"
+
+#Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
 $NewAcl = Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
 # Set properties
 $identity = "BUILTIN\Administrators"
@@ -724,6 +726,7 @@ Stop-Process -Name "GameBarPresenceWriter.exe" -Force
 Remove-Item "$env:WinDir\System32\GameBarPresenceWriter.exe" -Force -Confirm:$false
 New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name "AllowgameDVR" -PropertyType DWORD -Value 0 -Force
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "SettingsPageVisibility" -PropertyType String -Value "hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-xboxnetworking" -Force
+Remove-Item C:\Windows\Temp\SetACL.exe -recurse
 
 ############################################################################################################
 #                                        Disable Edge Surf Game                                            #
