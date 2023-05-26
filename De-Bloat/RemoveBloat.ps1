@@ -120,7 +120,7 @@ Else {
 
 Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
 
-$locale = Get-WinSystemLocale | select -expandproperty Name
+$locale = Get-WinSystemLocale | Select-Object -expandproperty Name
 
 ##Switch on locale to set variables
 ## Switch on locale to set variables
