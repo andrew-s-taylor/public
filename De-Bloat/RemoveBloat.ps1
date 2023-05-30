@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        2.998
+  Version:        2.999
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -45,6 +45,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 29/04/2023 - Removes News Feed
   Change 26/05/2023 - Added Set-ACL
   Change 26/05/2023 - Added multi-language support for Set-ACL commands
+  Change 30/05/2023 - Logic to check if gamepresencewriter exists before running Set-ACL to stop errors on re-run
 .EXAMPLE
 N/A
 #>
@@ -862,7 +863,11 @@ $task = Get-ScheduledTask -TaskName "Microsoft\XblGameSave\XblGameSaveTask" -Err
 if ($null -ne $task) {
 Set-ScheduledTask -TaskPath $task.TaskPath -Enabled $false
 }
-C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:$everyone"
+
+##Check if GamePresenceWriter.exe exists
+if (Test-Path "$env:WinDir\System32\GameBarPresenceWriter.exe") {
+    write-host "GamePresenceWriter.exe exists"
+    C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:$everyone"
 C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:$everyone;p:full"
 
 #Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
@@ -879,6 +884,12 @@ $NewAcl.SetAccessRule($fileSystemAccessRule)
 Set-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe" -AclObject $NewAcl
 Stop-Process -Name "GameBarPresenceWriter.exe" -Force
 Remove-Item "$env:WinDir\System32\GameBarPresenceWriter.exe" -Force -Confirm:$false
+
+}
+else {
+    write-host "GamePresenceWriter.exe does not exist"
+}
+
 New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name "AllowgameDVR" -PropertyType DWORD -Value 0 -Force
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "SettingsPageVisibility" -PropertyType String -Value "hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-xboxnetworking" -Force
 Remove-Item C:\Windows\Temp\SetACL.exe -recurse
