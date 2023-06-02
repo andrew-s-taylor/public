@@ -9,7 +9,7 @@ Account name $name
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.2
+  Version:        1.0.3
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/04/2023
@@ -18,7 +18,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID 22204255-7dfa-4393-aba7-5c9a1fc765d9
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -74,7 +74,7 @@ else {
 write-host "Connecting to Graph"
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, openid, profile, email, offline_access, Policy.ReadWrite.DeviceConfiguration
-wirte-host "Connected to Graph"
+write-host "Connected to Graph"
 
 
 ##Check if parameter has been passed
