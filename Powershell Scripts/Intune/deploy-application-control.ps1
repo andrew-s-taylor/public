@@ -46,7 +46,36 @@ param(
 )
 
 
+###############################################################################################################
+######                                              Set Variables                                        ######
+###############################################################################################################
+
+$name = "Application Control"
+$description = "Application Control Policy"
+$groupid = "000000000-0000-000"
+
+write-host "Checking for XML"
+$wdacxml = ""
+
+if ($wdacxml -eq "") {
+write-host "No XML Detected, checking GUI values"
+##Only for GUI configured
+##Allow Managed installers?
+##Options are true or false
+$managedinstallers = "false"
+write-host "Managed installers set to $managedinstallers"
+##Allow Trusted Installers?
+##Options are true or false
+$trustedinstallers = "false"
+write-host "Trusted installers set to $trustedinstallers"
+##Enable Store or Audit only?
+##Options are enable or audit
+$windowsappcontrol = "enable"
+write-host "Windows App Control set to $windowsappcontrol"
+}
+
 ##########################################################################################
+
 
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
@@ -128,24 +157,6 @@ else {
 ##Add Profile
 write-host "Configuring Profile"
 $url = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
-$name = "Application Control"
-$description = "Application Control Policy"
-write-host "Checking for XML"
-$wdacxml = ""
-
-if ($wdacxml -eq "") {
-write-host "No XML Detected, checking GUI values"
-##Only for GUI configured
-##Allow Managed installers?
-$managedinstallers = "false"
-write-host "Managed installers set to $managedinstallers"
-##Allow Trusted Installers?
-$trustedinstallers = "false"
-write-host "Trusted installers set to $trustedinstallers"
-##Enable Store or Audit only?
-$windowsappcontrol = "enable"
-write-host "Windows App Control set to $windowsappcontrol"
-}
 
 if ($windowsappcontrol -eq "enable") {
     $windowsappcontrol = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_0"
