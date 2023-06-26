@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.10
+.VERSION 3.0.0
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.10
+  Version:        3.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  13/03/2023
+  Last Modified:  26/06/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -44,15 +44,67 @@ In-Line Outputs
   Update: Fixed encoding for detection script
   Update: Added speechmarks around $appid in install and uninstall scripts for German language issues
   Update: Uninstall fix
+  Update: Added parameters for automation
 .EXAMPLE
 N/A
 #>
 ##########################################################################################
 
+##################################################################################################################################
+#################                                                  PARAMS                                        #################
+##################################################################################################################################
+
+[cmdletbinding()]
+    
+param
+(
+    [string]$appid #The Winget App ID
+    ,  
+    [string]$appname #The exact Winget Name
+    , 
+    [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
+    ,
+    [string]$clientid #ClientID is the type of Azure AD App Reg ID
+    ,
+    [string]$clientsecret #ClientSecret is the type of Azure AD App Reg Secret
+    ,
+    [object] $WebHookData #Webhook data for Azure Automation
+
+    )
+
+##WebHook Data
+
+if ($WebHookData){
+
+$bodyData = ConvertFrom-Json -InputObject $WebHookData.RequestBody
+$appid = ((($bodyData.appid) | out-string).trim())
+$appname = ((($bodyData.appname) | out-string).trim())
+$tenant = ((($bodyData.tenant) | out-string).trim())
+$clientid = ((($bodyData.clientid) | out-string).trim())
+$clientsecret = ((($bodyData.clientsecret) | out-string).trim())
+
+$keycheck = ((($bodyData.webhooksecret) | out-string).trim())
+
+##Lets add some security, check if a password has been sent in the header
+
+##Set my password
+$webhooksecret = ""
+
+##Check if the password is correct
+if ($keycheck -ne $webhooksecret) {
+    write-output "Webhook password incorrect, exiting"
+    exit
+}
+
+}
+
+
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
 $date = get-date -format ddMMyyyy
 Start-Transcript -Path $env:TEMP\intune-$date.log
+
+
 
 ##########################################################################################
 #$cred = Get-Credential -Message "Enter your Intune Credentials"
@@ -68,13 +120,9 @@ if (Get-Module -ListAvailable -Name powershell-yaml) {
     Write-Host "PowerShell YAML Already Installed"
 } 
 else {
-    try {
+
         Install-Module -Name powershell-yaml -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+
 }
 
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
@@ -84,13 +132,9 @@ if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
-    try {
+
         Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+
 }
 
 #Install MS Graph if not available
@@ -98,13 +142,9 @@ if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
-    try {
+
         Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+
 }
 
 #Install MS Graph if not available
@@ -112,13 +152,9 @@ if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
-    try {
+
         Install-Module -Name Microsoft.Graph.Intune -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+
 }
 
 #Install MS Graph if not available
@@ -126,13 +162,9 @@ if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
-    try {
+
         Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force 
-    }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
+
 }
 
 #Install MS Graph if not available
@@ -140,14 +172,10 @@ if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement 
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
-    try {
+
         Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force 
     }
-    catch [Exception] {
-        $_.message 
-        exit
-    }
-}
+
 
 
 #Importing Modules
@@ -190,8 +218,9 @@ if ($liveversion -ne $currentversion) {
 write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
 }
 }
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/deploy-winget-win32-multiple.ps1"
-
+if (!$WebHookData){
+    Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/intune-backup-restore-withgui.ps1"
+    }
 
 
 ###############################################################################################################
@@ -419,7 +448,7 @@ function UploadAzureStorageChunk($sasUri, $id, $body) {
     if ($logHeaders) { WriteHeaders $headers }
         
     try {
-        Invoke-WebRequest $uri -Method Put -Headers $headers -Body $encodedBody
+        Invoke-WebRequest $uri -Method Put -Headers $headers -Body $encodedBody -UseBasicParsing
     }
     catch {
         Write-Error $request
@@ -2493,27 +2522,63 @@ function new-win32app {
 ############################################################################################################
 ######                          END FUNCTIONS SECTION                                               ########
 ############################################################################################################
-
+if ($appid) {
+    $question = 0
+}
+else {
 $question = $host.UI.PromptForChoice("Verbose output?", "Do you want verbose output?", ([System.Management.Automation.Host.ChoiceDescription]"&Yes",[System.Management.Automation.Host.ChoiceDescription]"&No"), 1)
-
+}
 Write-Verbose "Connecting to Microsoft Graph"
+
+if ($clientid -and $clientsecret -and $tenant) {
+ 
+    $body = @{
+        grant_type="client_credentials";
+        client_id=$clientId;
+        client_secret=$clientSecret;
+        scope="https://graph.microsoft.com/.default";
+    }
+     
+    $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenant/oauth2/v2.0/token -Body $body
+    $accessToken = $response.access_token
+     
+    $accessToken
+
+    Select-MgProfile -Name Beta
+Connect-MgGraph  -AccessToken $accessToken 
+write-output "Graph Connection Established"
+}
+else {
+##Connect to Graph
 Select-MgProfile -Name Beta
 Connect-MgGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access
+}
 Write-Verbose "Graph connection established"
 
 if ($question -eq 0) {
     $VerbosePreference="Continue"
 }
 
+if ($appid) {
+    ##Create a custom object to store app details in
+    $packs = [pscustomobject]@{
+        Id = $appid
+        Name = $appname
+    }
+
+
+}
+else {
 Write-Progress "Loading Winget Packages" -PercentComplete 1
 
-$packs = find-wingetpackage '""'
+$packs2 = find-wingetpackage '""'
 
 Write-Progress "Loading Winget Packages" -Completed
-
-$packs | out-gridview -PassThru -Title "Available Applications" | ForEach-Object {
-    $appid = $_.Id.Trim()
-    $appname = $_.Name.Trim()
+$packs = $packs2 | out-gridview -PassThru -Title "Available Applications"
+}
+foreach ($pack in $packs) {
+    $appid = $pack.Id.Trim()
+    $appname = $pack.Name.Trim()
 
     Write-Verbose "$appname Selected with ID of $appid"
 
