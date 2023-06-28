@@ -81,6 +81,7 @@ Creates a log file in %Temp%
   Change: Checked if ID is a string for Admin Template copying
   Change: Update to handle Authentication Strength in CA policies
   Change: More automation support
+  Change: Fix
 
 
   
