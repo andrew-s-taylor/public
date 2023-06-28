@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0.0
+.VERSION 4.0.0
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        3.0.0
+  Version:        4.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  26/06/2023
+  Last Modified:  28/06/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -45,6 +45,7 @@ In-Line Outputs
   Update: Added speechmarks around $appid in install and uninstall scripts for German language issues
   Update: Uninstall fix
   Update: Added parameters for automation
+  Update: Added option to specify group names
 .EXAMPLE
 N/A
 #>
@@ -68,6 +69,10 @@ param
     ,
     [string]$clientsecret #ClientSecret is the type of Azure AD App Reg Secret
     ,
+    [string]$installgroupname #Group Name for Installation
+    ,
+    [string]$uninstallgroupname #Uninstall group name
+    ,
     [object] $WebHookData #Webhook data for Azure Automation
 
     )
@@ -82,6 +87,8 @@ $appname = ((($bodyData.appname) | out-string).trim())
 $tenant = ((($bodyData.tenant) | out-string).trim())
 $clientid = ((($bodyData.clientid) | out-string).trim())
 $clientsecret = ((($bodyData.clientsecret) | out-string).trim())
+$installgroupname = ((($bodyData.installgroupname) | out-string).trim())
+$uninstallgroupname = ((($bodyData.uninstallgroupname) | out-string).trim())
 
 $keycheck = ((($bodyData.webhooksecret) | out-string).trim())
 
@@ -2239,6 +2246,33 @@ function new-aadgroups {
 
 }
 
+function new-aadgroupsspecific {
+    [cmdletbinding()]
+        
+    param
+    (
+        $appid,
+        $appname,
+        $grouptype,
+        $groupname
+    )
+    switch ($grouptype) {
+        "install" {
+            $nickname = $appid + "install"
+            $groupdescription = "Group for installation and updating of $appname application"
+        }
+        "uninstall" {
+            $nickname = $appid + "uninstall"
+            $groupdescription = "Group for uninstallation of $appname application"
+        }
+    }
+
+    $grp = New-MgGroup -DisplayName $groupname -Description $groupdescription -MailEnabled:$False -MailNickName $nickname -SecurityEnabled:$True
+
+    return $grp.id
+
+}
+
 function new-detectionscript {
     param
     (
@@ -2519,6 +2553,20 @@ function new-win32app {
 
 }
 
+function checkforgroup() {
+
+        [cmdletbinding()]
+            
+        param
+        (
+            $groupname
+        )
+
+        $url = "https://graph.microsoft.com/beta/groups?`$filter=displayName eq '$groupname'"
+        $group = (Invoke-MgGraphRequest -Uri $url -Method GET -OutputType PSObject -SkipHttpErrorCheck).value
+        return $group.id
+}
+
 ############################################################################################################
 ######                          END FUNCTIONS SECTION                                               ########
 ############################################################################################################
@@ -2591,9 +2639,33 @@ foreach ($pack in $packs) {
 
     ##Create Groups
     Write-Verbose "Creating AAD Groups for $appname"
-    $installgroup = new-aadgroups -appid $appid -appname $appname -grouptype "Install"
-    $uninstallgroup = new-aadgroups -appid $appid -appname $appname -grouptype "Uninstall"
+
+    ##Check if Groups have been specified 
+
+    if ($installgroupname) {
+        $installgrouptest = checkforgroup -groupname $installgroupname
+        if ($installgrouptest) {
+            $installgroup = $installgrouptest
+        }
+        else {
+            $installgroup = new-aadgroupsspecific -appid $appid -appname $appname -grouptype "Install" -groupname $installgroupname
+        }
+
+    }
+    else {
+        $installgroup = new-aadgroups -appid $appid -appname $appname -grouptype "Install"
+    }
     Write-Host "Created $installgroup for installing $appname"
+    if ($uninstallgroupname) {
+        if ($uninstallgrouptest) {
+            $uninstallgroup = $uninstallgrouptest
+        }
+        else {
+            $uninstallgroup = new-aadgroupsspecific -appid $appid -appname $appname -grouptype "Uninstall" -groupname $uninstallgroupname
+        }    }
+    else {
+        $uninstallgroup = new-aadgroups -appid $appid -appname $appname -grouptype "Uninstall"
+    }
     Write-Host "Created $uninstallgroup for uninstalling $appname"
 
     ##Create Install Script
