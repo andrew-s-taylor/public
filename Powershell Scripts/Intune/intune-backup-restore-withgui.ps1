@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.8
+  Version:        5.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -68,7 +68,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.8
+.VERSION 5.0.9
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -855,61 +855,55 @@ Function Get-GroupPolicyDefinitionsPresentations ()
     
 Function Get-DeviceConfigurationPolicySC(){
     
-            <#
-            .SYNOPSIS
-            This function is used to get device configuration policies from the Graph API REST interface - SETTINGS CATALOG
-            .DESCRIPTION
-            The function connects to the Graph API Interface and gets any device configuration policies
-            .EXAMPLE
-            Get-DeviceConfigurationPolicySC
-            Returns any device configuration policies configured in Intune
-            .NOTES
-            NAME: Get-DeviceConfigurationPolicySC
-            #>
-            
-            [cmdletbinding()]
-            
-            param
-            (
-                $id
-            )
-            
-            $graphApiVersion = "beta"
-            $DCP_resource = "deviceManagement/configurationPolicies"
-            try {
-                    if($id){
-            
-                    $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
-            
-                    }
-            
-                    else {
-
-                        $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-                        $allconfigurationsettingscatalogpages = @()
-                        $configurationsettingscatalog = Invoke-MgGraphRequest -Uri $uri -Method Get
-                        $allconfigurationsettingscatalogpages += $configurationsettingscatalog.value
-                                $policynextlink = $configurationsettingscatalog."@odata.nextlink"
-                                $policynextlink = $policynextlink -replace '\S', ''
-                                while (($policynextlink -ne "") -and ($null -ne $policynextlink))
-                                {
-                $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
-                $policynextlink = $nextsettings."@odata.nextLink"
-                $policynextlink = $policynextlink -replace '\S', ''
-                $allconfigurationsettingscatalogpages += $nextsettings.value
+    <#
+    .SYNOPSIS
+    This function is used to get device configuration policies from the Graph API REST interface - SETTINGS CATALOG
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device configuration policies
+    .EXAMPLE
+    Get-DeviceConfigurationPolicySC
+    Returns any device configuration policies configured in Intune
+    .NOTES
+    NAME: Get-DeviceConfigurationPolicySC
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/configurationPolicies"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+    
             }
+    
+            else {
 
-
-                
-                        $configurationsettingscatalog = $allconfigurationsettingscatalogpages
-                        $configurationsettingscatalog  
-                
-                        }
+                $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+        $response = (Invoke-MgGraphRequest -uri $uri -Method Get -OutputType PSObject)
+        $allscsettings = $response.value
+        
+        $allscsettingsNextLink = $response."@odata.nextLink"
+        
+        while ($null -ne $allscsettingsNextLink) {
+            $allscsettingsResponse = (Invoke-MGGraphRequest -Uri $allscsettingsNextLink -Method Get -outputType PSObject)
+            $allscsettingsNextLink = $allscsettingsResponse."@odata.nextLink"
+            $allscsettings += $allscsettingsResponse.value
+        }
+                $allscsettings  
+        
                 }
-                catch {}
-            
-            
+        }
+        catch {}
+    
+    
 }
             
 ################################################################################################
