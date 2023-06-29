@@ -667,8 +667,8 @@ Function Get-DeviceConfigurationPolicySC(){
     try {
             if($id){
     
-            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)?`$filter=id eq '$id'"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
     
             }
     
