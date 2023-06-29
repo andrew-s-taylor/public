@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.13
+.VERSION 6.0.14
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.13
+  Version:        6.0.14
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 17/05/2023
+  Updated: 29/06/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -82,6 +82,7 @@ Creates a log file in %Temp%
   Change: Update to handle Authentication Strength in CA policies
   Change: More automation support
   Change: Fix
+  Change: Added support for App Config policies
 
 
   
@@ -722,6 +723,53 @@ Function Get-DeviceProactiveRemediations(){
     
     $graphApiVersion = "beta"
     $DCP_resource = "deviceManagement/devicehealthscripts"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
+    
+################################################################################################
+
+####################################################
+    
+Function Get-MobileAppConfigurations(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Mobile App Configurations from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Mobile App Configurations
+    .EXAMPLE
+    Get-mobileAppConfigurations
+    Returns any Mobile App Configurations configured in Intune
+    .NOTES
+    NAME: Get-mobileAppConfigurations
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceAppManagement/mobileAppConfigurations"
     try {
             if($id){
     
@@ -2062,7 +2110,55 @@ Function Get-DeviceProactiveRemediationsbyName(){
 }
     
 ################################################################################################
+
+Function Get-MobileAppConfigurationsbyName(){
     
+    <#
+    .SYNOPSIS
+    This function is used to get Mobile App Configurations from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Mobile App Configurations
+    .EXAMPLE
+    Get-MobileAppConfigurationsbyName
+    Returns any Mobile App Configurations configured in Intune
+    .NOTES
+    NAME: Get-MobileAppConfigurationsbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceAppManagement/mobileAppConfigurations"
+    try {
+
+    
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $PR = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $PR.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "App Config"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
+}
+
 Function Get-DeviceCompliancePolicybyName(){
     
             <#
@@ -3140,6 +3236,13 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-MobileAppConfigurationsbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-GraphAADGroupsbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -3350,7 +3453,32 @@ function getpolicyjson() {
                }
            }
        }
+       "deviceAppManagement/mobileAppConfigurations" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-MobileAppConfigurations -id $id
+        $oldname = $policy.DisplayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+            # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
+       if ($policy.supportsScopeTags) {
+           $policy.supportsScopeTags = $false
+       }
+   
+           $policy.PSObject.Properties | Foreach-Object {
+               if ($null -ne $_.Value) {
+                   if ($_.Value.GetType().Name -eq "DateTime") {
+                       $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
+                   }
+               }
+           }
 
+                $assignments = Get-MobileAppConfigurationsAssignments -id $id
+       }
        "deviceManagement/devicemanagementscripts" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceManagementScripts -id $id
@@ -3735,6 +3863,10 @@ $configuration += Get-DeviceCompliancePolicy | Select-Object ID, DisplayName, De
 ##Get Proactive Remediations
 $configuration += Get-DeviceProactiveRemediations | Select-Object ID, DisplayName, Description, @{N='Type';E={"Proactive Remediation"}}
 
+##Get App Config
+$configuration += Get-MobileAppConfigurations | Select-Object ID, DisplayName, Description, @{N='Type';E={"App Config"}}
+
+
 ##Get Device Scripts
 $configuration += Get-DeviceManagementScripts | Select-Object ID, DisplayName, Description, @{N='Type';E={"PowerShell Script"}}
 
@@ -3861,6 +3993,7 @@ $ios = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "iOS App
 $gp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Admin Template")}
 $ca = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Conditional Access Policy")}
 $proac = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Proactive Remediation")}
+$appconfig = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "App Config")}
 $aad = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "AAD Group")}
 $wingetapp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Winget Application")}
 $scripts = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "PowerShell Script")}
@@ -3891,6 +4024,7 @@ $ios = Get-ManagedAppProtectionios -id $id
 $gp = Get-DeviceConfigurationPolicyGP -id $id
 $ca = Get-ConditionalAccessPolicy -id $id
 $proac = Get-DeviceProactiveRemediations -id $id
+$appconfig = Get-MobileAppConfigurations -id $id
 $aad = Get-GraphAADGroups -id $id
 $wingetapp = Get-IntuneApplication -id $id
 $scripts = Get-DeviceManagementScripts -id $id
@@ -3952,6 +4086,16 @@ if ($null -ne $proac) {
     # Proactive Remediations
 write-host "It's a Proactive Remediation"
 $id = $proac.id
+$Resource = "deviceManagement/devicehealthscripts"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
+
+}
+
+if ($null -ne $appconfig) {
+    # App Config
+write-host "It's an App Config"
+$id = $appconfig.id
 $Resource = "deviceManagement/devicehealthscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
