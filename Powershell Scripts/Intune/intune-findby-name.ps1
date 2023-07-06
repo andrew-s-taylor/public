@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Outputs name, ID, Type and URI
 .NOTES
-  Version:        1.0.5
+  Version:        1.0.6
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.5
+.VERSION 1.0.6
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -59,7 +59,80 @@ param
 ############################################################
 $automated = "no"
 ############################################################
+Function Connect-ToGraph {
+    <#
+.SYNOPSIS
+Authenticates to the Graph API via the Microsoft.Graph.Authentication module.
+ 
+.DESCRIPTION
+The Connect-ToGraph cmdlet is a wrapper cmdlet that helps authenticate to the Intune Graph API using the Microsoft.Graph.Authentication module. It leverages an Azure AD app ID and app secret for authentication or user-based auth.
+ 
+.PARAMETER Tenant
+Specifies the tenant (e.g. contoso.onmicrosoft.com) to which to authenticate.
+ 
+.PARAMETER AppId
+Specifies the Azure AD app ID (GUID) for the application that will be used to authenticate.
+ 
+.PARAMETER AppSecret
+Specifies the Azure AD app secret corresponding to the app ID that will be used to authenticate.
 
+.PARAMETER Scopes
+Specifies the user scopes for interactive authentication.
+ 
+.EXAMPLE
+Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
+ 
+-#>
+    [cmdletbinding()]
+    param
+    (
+        [Parameter(Mandatory = $false)] [string]$Tenant,
+        [Parameter(Mandatory = $false)] [string]$AppId,
+        [Parameter(Mandatory = $false)] [string]$AppSecret,
+        [Parameter(Mandatory = $false)] [string]$scopes
+    )
+
+    Process {
+        Import-Module Microsoft.Graph.Authentication
+        $version = (get-module microsoft.graph.authentication | Select-Object -expandproperty Version).major
+
+        if ($AppId -ne "") {
+            $body = @{
+                grant_type    = "client_credentials";
+                client_id     = $AppId;
+                client_secret = $AppSecret;
+                scope         = "https://graph.microsoft.com/.default";
+            }
+     
+            $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body
+            $accessToken = $response.access_token
+     
+            $accessToken
+            if ($version -eq 2) {
+                write-host "Version 2 module detected"
+                $accesstokenfinal = ConvertTo-SecureString -String $accessToken -AsPlainText -Force
+            }
+            else {
+                write-host "Version 1 Module Detected"
+                Select-MgProfile -Name Beta
+                $accesstokenfinal = $accessToken
+            }
+            $graph = Connect-MgGraph  -AccessToken $accesstokenfinal 
+            Write-Host "Connected to Intune tenant $TenantId using app-based authentication (Azure AD authentication not supported)"
+        }
+        else {
+            if ($version -eq 2) {
+                write-host "Version 2 module detected"
+            }
+            else {
+                write-host "Version 1 Module Detected"
+                Select-MgProfile -Name Beta
+            }
+            $graph = Connect-MgGraph -scopes $scopes
+            Write-Host "Connected to Intune tenant $($graph.TenantId)"
+        }
+    }
+}    
 ##################################################################################################################################
 #################                                                  INITIALIZATION                                #################
 ##################################################################################################################################
@@ -82,27 +155,12 @@ else {
 }
 Import-Module microsoft.graph.authentication
 if ($automated -eq "yes") {
- 
-    $body = @{
-        grant_type="client_credentials";
-        client_id=$clientId;
-        client_secret=$clientSecret;
-        scope="https://graph.microsoft.com/.default";
-    }
-     
-    $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenant/oauth2/v2.0/token -Body $body
-    $accessToken = $response.access_token
-     
-    $accessToken
-
-    Select-MgProfile -Name Beta
-Connect-MgGraph  -AccessToken $accessToken 
+Connect-ToGraph -Tenant $tenant -AppId $app -AppSecret $secret
 write-host "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+Connect-ToGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 }
 ##################################################################################################################################
 #################                                           Check for Script Updates                             #################

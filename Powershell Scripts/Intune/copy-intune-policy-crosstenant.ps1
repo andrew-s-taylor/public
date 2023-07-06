@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.14
+.VERSION 6.0.15
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.14
+  Version:        6.0.15
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 29/06/2023
+  Updated: 06/07/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -83,6 +83,7 @@ Creates a log file in %Temp%
   Change: More automation support
   Change: Fix
   Change: Added support for App Config policies
+  Change: Update to work with SDK v2
 
 
   
@@ -205,7 +206,80 @@ import-module microsoft.graph.devices.corporatemanagement
 
 ##Disconnect just in case anything is lingering
 Disconnect-MgGraph
+Function Connect-ToGraph {
+    <#
+.SYNOPSIS
+Authenticates to the Graph API via the Microsoft.Graph.Authentication module.
+ 
+.DESCRIPTION
+The Connect-ToGraph cmdlet is a wrapper cmdlet that helps authenticate to the Intune Graph API using the Microsoft.Graph.Authentication module. It leverages an Azure AD app ID and app secret for authentication or user-based auth.
+ 
+.PARAMETER Tenant
+Specifies the tenant (e.g. contoso.onmicrosoft.com) to which to authenticate.
+ 
+.PARAMETER AppId
+Specifies the Azure AD app ID (GUID) for the application that will be used to authenticate.
+ 
+.PARAMETER AppSecret
+Specifies the Azure AD app secret corresponding to the app ID that will be used to authenticate.
 
+.PARAMETER Scopes
+Specifies the user scopes for interactive authentication.
+ 
+.EXAMPLE
+Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
+ 
+-#>
+    [cmdletbinding()]
+    param
+    (
+        [Parameter(Mandatory = $false)] [string]$Tenant,
+        [Parameter(Mandatory = $false)] [string]$AppId,
+        [Parameter(Mandatory = $false)] [string]$AppSecret,
+        [Parameter(Mandatory = $false)] [string]$scopes
+    )
+
+    Process {
+        Import-Module Microsoft.Graph.Authentication
+        $version = (get-module microsoft.graph.authentication | Select-Object -expandproperty Version).major
+
+        if ($AppId -ne "") {
+            $body = @{
+                grant_type    = "client_credentials";
+                client_id     = $AppId;
+                client_secret = $AppSecret;
+                scope         = "https://graph.microsoft.com/.default";
+            }
+     
+            $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body
+            $accessToken = $response.access_token
+     
+            $accessToken
+            if ($version -eq 2) {
+                write-host "Version 2 module detected"
+                $accesstokenfinal = ConvertTo-SecureString -String $accessToken -AsPlainText -Force
+            }
+            else {
+                write-host "Version 1 Module Detected"
+                Select-MgProfile -Name Beta
+                $accesstokenfinal = $accessToken
+            }
+            $graph = Connect-MgGraph  -AccessToken $accesstokenfinal 
+            Write-Host "Connected to Intune tenant $TenantId using app-based authentication (Azure AD authentication not supported)"
+        }
+        else {
+            if ($version -eq 2) {
+                write-host "Version 2 module detected"
+            }
+            else {
+                write-host "Version 1 Module Detected"
+                Select-MgProfile -Name Beta
+            }
+            $graph = Connect-MgGraph -scopes $scopes
+            Write-Host "Connected to Intune tenant $($graph.TenantId)"
+        }
+    }
+}    
 Function Get-ScriptVersion(){
     
     <#
@@ -3809,26 +3883,13 @@ function getpolicyjson() {
 ###############################################################################################################
 if ($automated -eq "yes") {
  
-    $body = @{
-        grant_type="client_credentials";
-        client_id=$clientId;
-        client_secret=$clientSecret;
-        scope="https://graph.microsoft.com/.default";
-    }
-     
-    $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$sourcetenant/oauth2/v2.0/token -Body $body
-    $accessToken = $response.access_token
-     
-
-    Select-MgProfile -Name Beta
-Connect-MgGraph  -AccessToken $accessToken 
+Connect-ToGraph -Tenant $sourcetenant -AppId $clientid -AppSecret $clientsecret
 write-host "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Select-MgProfile -Name Beta
 if ($sourcetenantcheck -ne $true) {
-    Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+    Connect-ToGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
 }
 else {
     Connect-MgGraph -TenantId $sourcetenant -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
@@ -4297,26 +4358,11 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1], $id))
         ##Get new Tenant details
         write-host "Connecting to destination tenant"
         if ($automated -eq "yes") {
- 
-            $body = @{
-                grant_type="client_credentials";
-                client_id=$clientId;
-                client_secret=$clientSecret;
-                scope="https://graph.microsoft.com/.default";
-            }
-             
-            $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$desttenant/oauth2/v2.0/token -Body $body
-            $accessToken = $response.access_token
-             
-            $accessToken
-        
-            Select-MgProfile -Name Beta
-        Connect-MgGraph  -AccessToken $accessToken 
+        Connect-ToGraph -Tenant $desttenant -AppId $clientId -AppSecret $clientSecret
         write-host "Graph Connection Established"
         }
         else {
         ##Connect to Graph
-        Select-MgProfile -Name Beta
         if ($desttenantcheck -ne $true) {
             Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
         }
