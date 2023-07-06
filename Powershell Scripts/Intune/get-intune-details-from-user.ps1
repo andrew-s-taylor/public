@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.1
+.VERSION 2.2
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Display a list of devices for a user in Intune with drill-down for more information
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        2.1
+  Version:        2.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -136,7 +136,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
     }
 }    
 #Connect to Graph
-Connect-ToGraph -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 Function Get-ScriptVersion(){
     

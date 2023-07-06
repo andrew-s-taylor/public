@@ -8,7 +8,7 @@ None
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -113,7 +113,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 }    
 
 ##Connect to Graph
-Connect-ToGraph -Scopes Domain.Read.All, Directory.Read.All, DeviceManagementApps.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "Domain.Read.All, Directory.Read.All, DeviceManagementApps.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 
 

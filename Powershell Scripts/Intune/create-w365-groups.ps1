@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 90ccb2c9-a75c-4d6b-a92a-a12866166b84
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Windows 365 for all purchased SKUs and then nests them within master groups
@@ -25,7 +25,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
@@ -190,7 +190,7 @@ write-host "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-    Connect-ToGraph -Scopes Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All openid, profile, email, offline_access, Group.ReadWrite.All
+    Connect-ToGraph -Scopes "Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All openid, profile, email, offline_access, Group.ReadWrite.All"
 
 }
 

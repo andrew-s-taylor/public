@@ -193,7 +193,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 ######                                          MS Graph Implementations                                 ######
 ###############################################################################################################
 #Connect to Graph
-Connect-ToGraph -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 
 $uri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=deviceType eq 'iPhone'"

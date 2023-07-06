@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.1
+.VERSION 2.2
 .GUID 9cb596f8-e4f4-4fbb-bf0b-8d5c227af59c
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Intune groups via command line or GUI
@@ -34,7 +34,7 @@ Deployment
 .OUTPUTS
 None
 .NOTES
-  Version:        2.1
+  Version:        2.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -159,8 +159,7 @@ Import-Module microsoft.graph
 ## END IMPORT MODULES ###
 
 #Connect to Graph
-Select-MgProfile -Name Beta
-Connect-ToGraph -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 
 Function Get-ScriptVersion(){

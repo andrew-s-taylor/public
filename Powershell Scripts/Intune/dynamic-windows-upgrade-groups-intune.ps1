@@ -10,7 +10,7 @@ None
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  26/01/2023
@@ -21,7 +21,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 1bcfb95b-ab34-48c5-92de-ff191763c471
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -156,7 +156,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
     }
 }    
 
-Connect-ToGraph -Scopes Device.Read.All, User.Read.All, Domain.Read.All, Directory.Read.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access, Mail.Send
+Connect-ToGraph -Scopes "Device.Read.All, User.Read.All, Domain.Read.All, Directory.Read.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access, Mail.Send"
 
 
 ##Get Devices compliant/not compliant with windows 11

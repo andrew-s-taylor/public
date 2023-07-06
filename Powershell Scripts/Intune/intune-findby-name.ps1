@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Outputs name, ID, Type and URI
 .NOTES
-  Version:        1.0.6
+  Version:        1.0.7
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  27/01/2023
@@ -25,7 +25,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.6
+.VERSION 1.0.7
 .GUID 967db1ba-9bbe-4709-bec1-61773b7add2b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -160,7 +160,7 @@ write-host "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Connect-ToGraph -Scopes DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+Connect-ToGraph -Scopes "DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All"
 }
 ##################################################################################################################################
 #################                                           Check for Script Updates                             #################

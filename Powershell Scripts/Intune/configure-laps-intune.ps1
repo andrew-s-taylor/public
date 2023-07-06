@@ -9,7 +9,7 @@ Account name $name
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.4
+  Version:        1.0.5
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/04/2023
@@ -18,7 +18,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.4
+.VERSION 1.0.5
 .GUID 22204255-7dfa-4393-aba7-5c9a1fc765d9
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -147,7 +147,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 }    
 
 write-host "Connecting to Graph"
-Connect-ToGraph -Scopes Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, openid, profile, email, offline_access, Policy.ReadWrite.DeviceConfiguration
+Connect-ToGraph -Scopes "Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, openid, profile, email, offline_access, Policy.ReadWrite.DeviceConfiguration"
 write-host "Connected to Graph"
 
 

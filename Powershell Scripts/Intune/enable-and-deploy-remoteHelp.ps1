@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID ed937b40-9073-41c4-8ae9-4dc8fa2596d9 
 .AUTHOR AndrewTaylor
 .DESCRIPTION Enables RemoteHelp, grabs the latest installer, packages and deploys including AAD Groups
@@ -29,7 +29,7 @@ None Required
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  15/03/2023
@@ -1410,7 +1410,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 ##Connect to Graph
 
 Write-Verbose "Connecting to Microsoft Graph"
-Connect-ToGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access"
 Write-Verbose "Graph connection established"
 
 

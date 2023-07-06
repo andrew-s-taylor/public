@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.4
+.VERSION 3.5
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Synchronises All Intune managed devices
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        3.4
+  Version:        3.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -170,7 +170,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 }    
 ####################################################################### CREATE AAD OBJECTS #######################################################################
 #Connect to Graph
-Connect-ToGraph -Scopes CloudPC.ReadWrite.All, Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "CloudPC.ReadWrite.All, Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 ####################################################
     

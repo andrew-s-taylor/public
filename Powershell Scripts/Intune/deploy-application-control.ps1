@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID ed937b40-9073-41c4-8ae9-4dc8fa2596d9 
 .AUTHOR AndrewTaylor
 .DESCRIPTION Enables Managed Installer and configures Application Control Policy
@@ -28,7 +28,7 @@ None Required
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  22/06/2023
@@ -189,7 +189,7 @@ if ($AppId -ne "") {
     Write-Host "Connected to Intune tenant $TenantId using app-based authentication (Azure AD authentication not supported)"
 }
 else {
-    $graph = Connect-ToGraph -scopes Group.ReadWrite.All, Device.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, GroupMember.ReadWrite.All
+    $graph = Connect-ToGraph -scopes "Group.ReadWrite.All, Device.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, GroupMember.ReadWrite.All"
     Write-Host "Connected to Intune tenant $($graph.TenantId)"
 }
 

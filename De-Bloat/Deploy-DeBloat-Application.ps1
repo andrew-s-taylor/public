@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0
+.VERSION 2.1
 .GUID 91dfcf8e-2e73-4440-bbd5-0f9a74da7888
 .AUTHOR AndrewTaylor
 .DESCRIPTION Deploys De-Bloat application
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        2.0
+  Version:        2.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -1442,7 +1442,7 @@ function new-win32app {
 ##Connect to Graph
 
 Write-Verbose "Connecting to Microsoft Graph"
-Connect-ToGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access"
 Write-Verbose "Graph connection established"
 
 

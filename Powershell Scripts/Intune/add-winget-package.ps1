@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.2
+.VERSION 2.3
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates an Intune application from a Winget Manifest
 .GUID ebed646c-ee4a-418c-ac46-0a2af1925016
@@ -27,7 +27,7 @@ Winget YAML URL
 .OUTPUTS
 None
 .NOTES
-  Version:        2.2
+  Version:        2.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -215,8 +215,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 }    
 #Get Creds and connect
 #Connect to Graph
-Select-MgProfile -Name Beta
-Connect-ToGraph -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 
 #Get Tenant ID

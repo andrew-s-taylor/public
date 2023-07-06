@@ -1,6 +1,6 @@
 $maximumfunctioncount = 32768
 <#PSScriptInfo
-.VERSION 2.1
+.VERSION 2.2
 .GUID 1c0a3eff-2a30-4ed7-904f-15396802c874
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Local Admin
@@ -27,7 +27,7 @@ silent (hides popups)
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        2.1
+  Version:        2.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -235,7 +235,7 @@ $Button1.Add_Click({
 
 
 #Connect to Graph
-Connect-ToGraph -Scopes RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 
 

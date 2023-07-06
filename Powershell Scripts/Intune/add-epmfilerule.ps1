@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -28,7 +28,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID a154ec0b-3d01-4bfb-8890-258f85ba24df
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -227,7 +227,7 @@ write-output "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Connect-ToGraph -Scopes Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, openid, profile, email, offline_access, Group.ReadWrite.All
+Connect-ToGraph -Scopes "Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, openid, profile, email, offline_access, Group.ReadWrite.All"
 write-output "Graph Connection Established"
 
 }

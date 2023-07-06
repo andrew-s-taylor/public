@@ -11,7 +11,7 @@ None
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  09/01/2023
@@ -22,7 +22,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 979c8308-07a3-4918-9caf-58693fd44536
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -191,7 +191,7 @@ $MailSender = "<YOUR FROM ADDRESS>"
 
 if ($automated -eq "No") {
 ################################## CONNECT TO GRAPH ##########################################
-Connect-ToGraph -Scopes Device.Read.All, User.Read.All, Domain.Read.All, Directory.Read.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, Mail.Send
+Connect-ToGraph -Scopes "Device.Read.All, User.Read.All, Domain.Read.All, Directory.Read.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, Mail.Send"
 
 ################################## END CONNECT TO GRAPH ######################################
 }

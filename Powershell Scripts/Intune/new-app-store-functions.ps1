@@ -89,7 +89,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 }    
 
 ## And to Connect to Graph
-Connect-ToGraph -Scopes Domain.Read.All, Directory.Read.All, DeviceManagementApps.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "Domain.Read.All, Directory.Read.All, DeviceManagementApps.ReadWrite.All, openid, profile, email, offline_access"
 
 
 

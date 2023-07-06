@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0.1
+.VERSION 3.0.2
 .GUID 71d4d716-70bb-468a-9322-a0441468919b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists Intune apps and shows which machines have it installed
@@ -25,7 +25,7 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        3.0.1
+  Version:        3.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -136,7 +136,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 
 import-module microsoft.graph
 ##Authenticate
-Connect-ToGraph -Scopes DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access
+Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
     
 
 Function Get-ScriptVersion(){
