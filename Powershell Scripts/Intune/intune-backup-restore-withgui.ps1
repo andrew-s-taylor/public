@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        5.0.10
+  Version:        6.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -61,6 +61,9 @@ Creates a log file in %Temp%
   Change: Conditional Access Fix
   Change: Checked if ID is a string for Admin Template copying
   Change: Update to handle Authentication Strength in CA policies
+  Change: Added support for Mobile App Config policies
+  Change: Repaired pagination issue with Settings Catalog
+  Change: Added support for assignments
 
 
   .EXAMPLE
@@ -68,7 +71,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 5.0.10
+.VERSION 6.0.0
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -115,6 +118,10 @@ param
     ,
     [string]$clientsecret #ClientSecret is the type of Azure AD App Reg Secret
     ,
+    [string]$assignments #Assignments triggers restoration of polciy assignments
+    ,
+    [string]$groupcreate #Create groups if they don't exist, works with assignments
+    ,
     [object] $WebHookData #Webhook data for Azure Automation
 
     )
@@ -137,6 +144,8 @@ $clientid = ((($bodyData.clientid) | out-string).trim())
 $clientsecret = ((($bodyData.clientsecret) | out-string).trim())
 $policyid = ((($bodyData.policyid) | out-string).trim())
 $postedfilename = ((($bodyData.filename) | out-string).trim())
+$assignments = ((($bodyData.assignments) | out-string).trim())
+$groupcreate = ((($bodyData.groupcreate) | out-string).trim())
 
 $keycheck = ((($bodyData.webhooksecret) | out-string).trim())
 
@@ -324,6 +333,81 @@ else {
     }
 
 
+    Function Connect-ToGraph {
+        <#
+    .SYNOPSIS
+    Authenticates to the Graph API via the Microsoft.Graph.Authentication module.
+     
+    .DESCRIPTION
+    The Connect-ToGraph cmdlet is a wrapper cmdlet that helps authenticate to the Intune Graph API using the Microsoft.Graph.Authentication module. It leverages an Azure AD app ID and app secret for authentication or user-based auth.
+     
+    .PARAMETER Tenant
+    Specifies the tenant (e.g. contoso.onmicrosoft.com) to which to authenticate.
+     
+    .PARAMETER AppId
+    Specifies the Azure AD app ID (GUID) for the application that will be used to authenticate.
+     
+    .PARAMETER AppSecret
+    Specifies the Azure AD app secret corresponding to the app ID that will be used to authenticate.
+    
+    .PARAMETER Scopes
+    Specifies the user scopes for interactive authentication.
+     
+    .EXAMPLE
+    Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
+     
+    -#>
+        [cmdletbinding()]
+        param
+        (
+            [Parameter(Mandatory = $false)] [string]$Tenant,
+            [Parameter(Mandatory = $false)] [string]$AppId,
+            [Parameter(Mandatory = $false)] [string]$AppSecret,
+            [Parameter(Mandatory = $false)] [string]$scopes
+        )
+    
+        Process {
+            Import-Module Microsoft.Graph.Authentication
+            $version = (get-module microsoft.graph.authentication | Select-Object -expandproperty Version).major
+    
+            if ($AppId -ne "") {
+                $body = @{
+                    grant_type    = "client_credentials";
+                    client_id     = $AppId;
+                    client_secret = $AppSecret;
+                    scope         = "https://graph.microsoft.com/.default";
+                }
+         
+                $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body
+                $accessToken = $response.access_token
+         
+                $accessToken
+                if ($version -eq 2) {
+                    write-host "Version 2 module detected"
+                    $accesstokenfinal = ConvertTo-SecureString -String $accessToken -AsPlainText -Force
+                }
+                else {
+                    write-host "Version 1 Module Detected"
+                    Select-MgProfile -Name Beta
+                    $accesstokenfinal = $accessToken
+                }
+                $graph = Connect-MgGraph  -AccessToken $accesstokenfinal 
+                Write-Host "Connected to Intune tenant $TenantId using app-based authentication (Azure AD authentication not supported)"
+            }
+            else {
+                if ($version -eq 2) {
+                    write-host "Version 2 module detected"
+                }
+                else {
+                    write-host "Version 1 Module Detected"
+                    Select-MgProfile -Name Beta
+                }
+                $graph = Connect-MgGraph -scopes $scopes
+                Write-Host "Connected to Intune tenant $($graph.TenantId)"
+            }
+        }
+    }    
+
 # Load the Graph module
 Import-Module microsoft.graph.authentication
 import-module Microsoft.Graph.Identity.SignIns
@@ -333,26 +417,13 @@ import-module microsoft.graph.devices.corporatemanagement
 
 if (($automated -eq "yes") -or ($aadlogin -eq "yes")) {
  
-    $body = @{
-        grant_type="client_credentials";
-        client_id=$clientId;
-        client_secret=$clientSecret;
-        scope="https://graph.microsoft.com/.default";
-    }
-     
-    $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$tenant/oauth2/v2.0/token -Body $body
-    $accessToken = $response.access_token
-     
-    $accessToken
-
-    Select-MgProfile -Name Beta
-Connect-MgGraph  -AccessToken $accessToken 
+Connect-ToGraph -Tenant $tenant -AppId $clientId -AppSecret $clientSecret
 write-output "Graph Connection Established"
 }
 else {
 ##Connect to Graph
 Select-MgProfile -Name Beta
-Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All
+Connect-ToGraph -Scopes "Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All"
 }
 
 ##################################################################################################################################
@@ -855,55 +926,55 @@ Function Get-GroupPolicyDefinitionsPresentations ()
     
 Function Get-DeviceConfigurationPolicySC(){
     
-    <#
-    .SYNOPSIS
-    This function is used to get device configuration policies from the Graph API REST interface - SETTINGS CATALOG
-    .DESCRIPTION
-    The function connects to the Graph API Interface and gets any device configuration policies
-    .EXAMPLE
-    Get-DeviceConfigurationPolicySC
-    Returns any device configuration policies configured in Intune
-    .NOTES
-    NAME: Get-DeviceConfigurationPolicySC
-    #>
-    
-    [cmdletbinding()]
-    
-    param
-    (
-        $id
-    )
-    
-    $graphApiVersion = "beta"
-    $DCP_resource = "deviceManagement/configurationPolicies"
-    try {
-            if($id){
-    
-            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
-    
-            }
-    
-            else {
+            <#
+            .SYNOPSIS
+            This function is used to get device configuration policies from the Graph API REST interface - SETTINGS CATALOG
+            .DESCRIPTION
+            The function connects to the Graph API Interface and gets any device configuration policies
+            .EXAMPLE
+            Get-DeviceConfigurationPolicySC
+            Returns any device configuration policies configured in Intune
+            .NOTES
+            NAME: Get-DeviceConfigurationPolicySC
+            #>
+            
+            [cmdletbinding()]
+            
+            param
+            (
+                $id
+            )
+            
+            $graphApiVersion = "beta"
+            $DCP_resource = "deviceManagement/configurationPolicies"
+            try {
+                    if($id){
+            
+                    $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+            
+                    }
+            
+                    else {
 
-                $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-        $response = (Invoke-MgGraphRequest -uri $uri -Method Get -OutputType PSObject)
-        $allscsettings = $response.value
-        
-        $allscsettingsNextLink = $response."@odata.nextLink"
-        
-        while ($null -ne $allscsettingsNextLink) {
-            $allscsettingsResponse = (Invoke-MGGraphRequest -Uri $allscsettingsNextLink -Method Get -outputType PSObject)
-            $allscsettingsNextLink = $allscsettingsResponse."@odata.nextLink"
-            $allscsettings += $allscsettingsResponse.value
-        }
-                $allscsettings  
-        
+                        $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+                $response = (Invoke-MgGraphRequest -uri $uri -Method Get -OutputType PSObject)
+                $allscsettings = $response.value
+                
+                $allscsettingsNextLink = $response."@odata.nextLink"
+                
+                while ($null -ne $allscsettingsNextLink) {
+                    $allscsettingsResponse = (Invoke-MGGraphRequest -Uri $allscsettingsNextLink -Method Get -outputType PSObject)
+                    $allscsettingsNextLink = $allscsettingsResponse."@odata.nextLink"
+                    $allscsettings += $allscsettingsResponse.value
                 }
-        }
-        catch {}
-    
-    
+                        $allscsettings  
+                
+                        }
+                }
+                catch {}
+            
+            
 }
             
 ################################################################################################
@@ -955,7 +1026,48 @@ Function Get-DeviceProactiveRemediations(){
 }
     
 ################################################################################################
+Function Get-MobileAppConfigurations(){
     
+    <#
+    .SYNOPSIS
+    This function is used to get Mobile App Configurations from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Mobile App Configurations
+    .EXAMPLE
+    Get-mobileAppConfigurations
+    Returns any Mobile App Configurations configured in Intune
+    .NOTES
+    NAME: Get-mobileAppConfigurations
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceAppManagement/mobileAppConfigurations"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
 Function Get-DeviceCompliancePolicy(){
     
             <#
@@ -2273,6 +2385,56 @@ Function Get-DeviceProactiveRemediationsbyName(){
 }
     
 ################################################################################################
+
+Function Get-MobileAppConfigurationsbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Mobile App Configurations from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Mobile App Configurations
+    .EXAMPLE
+    Get-MobileAppConfigurationsbyName
+    Returns any Mobile App Configurations configured in Intune
+    .NOTES
+    NAME: Get-MobileAppConfigurationsbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceAppManagement/mobileAppConfigurations"
+    try {
+
+    
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $PR = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $PR.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "App Config"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+    
+}
+    
+################################################################################################
     
 Function Get-DeviceCompliancePolicybyName(){
     
@@ -3351,6 +3513,13 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-MobileAppConfigurationsbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-GraphAADGroupsbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -3458,6 +3627,759 @@ if ($null -ne $check.id) {
         return $output
 }
 #################################################################################################
+### ASSIGNMENT FUNCTIONS
+#################################################################################################
+Function Get-IntuneApplicationAssignments() {
+    
+    <#
+    .SYNOPSIS
+    This function is used to get application assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any application assignments
+    .EXAMPLE
+    Get-IntuneApplicationAssignments
+    Returns any application assignments configured in Intune
+    .NOTES
+    NAME: Get-IntuneApplicationAssignments
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+    
+    $graphApiVersion = "Beta"
+    $Resource = "deviceAppManagement/mobileApps"
+    
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+    
+    catch {
+    
+    }
+    
+}
+
+Function Get-DeviceConfigurationPolicyGPAssignments() {
+    
+    <#
+        .SYNOPSIS
+        This function is used to get Group Policy assignments from the Graph API REST interface
+        .DESCRIPTION
+        The function connects to the Graph API Interface and gets any group policy assignments
+        .EXAMPLE
+        Get-DeviceConfigurationPolicyGPAssignments
+        Returns any group policy assignments configured in Intune
+        .NOTES
+        NAME: Get-DeviceConfigurationPolicyGPAssignments
+        #>
+        
+    [cmdletbinding()]
+        
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+        
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/groupPolicyConfigurations"
+        
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+        
+    catch {
+        
+    }
+        
+}
+
+
+Function Get-DeviceConfigurationPolicyAssignments() {
+    
+    <#
+            .SYNOPSIS
+            This function is used to get configuration Policy assignments from the Graph API REST interface
+            .DESCRIPTION
+            The function connects to the Graph API Interface and gets any configuration policy assignments
+            .EXAMPLE
+            Get-DeviceConfigurationPolicyAssignments
+            Returns any configuration policy assignments configured in Intune
+            .NOTES
+            NAME: Get-DeviceConfigurationPolicyAssignments
+            #>
+            
+    [cmdletbinding()]
+            
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+            
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/deviceConfigurations"
+            
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+            
+    catch {
+            
+    }
+            
+}
+
+Function Get-DeviceConfigurationPolicySCAssignments() {
+    
+    <#
+                .SYNOPSIS
+                This function is used to get settings catalog Policy assignments from the Graph API REST interface
+                .DESCRIPTION
+                The function connects to the Graph API Interface and gets any settings catalog policy assignments
+                .EXAMPLE
+                Get-DeviceConfigurationPolicySCAssignments
+                Returns any settings catalog policy assignments configured in Intune
+                .NOTES
+                NAME: Get-DeviceConfigurationPolicySCAssignments
+                #>
+                
+    [cmdletbinding()]
+                
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/configurationPolicies"
+                
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                
+    catch {
+                
+    }
+                
+}
+Function Get-DeviceProactiveRemediationsAssignments() {
+    
+    <#
+                    .SYNOPSIS
+                    This function is used to get proactive remediation assignments from the Graph API REST interface
+                    .DESCRIPTION
+                    The function connects to the Graph API Interface and gets any proactive remediation assignments
+                    .EXAMPLE
+                    Get-DeviceProactiveRemediationsAssignments
+                    Returns any proactive remediation assignments configured in Intune
+                    .NOTES
+                    NAME: Get-DeviceProactiveRemediationsAssignments
+                    #>
+                    
+    [cmdletbinding()]
+                    
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                    
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/devicehealthscripts"
+                    
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                    
+    catch {
+                    
+    }
+                    
+}
+
+
+Function Get-MobileAppConfigurationsAssignments() {
+    
+    <#
+                    .SYNOPSIS
+                    This function is used to get Mobile App Configuration assignments from the Graph API REST interface
+                    .DESCRIPTION
+                    The function connects to the Graph API Interface and gets any Mobile App Configuration assignments
+                    .EXAMPLE
+                    Get-MobileAppConfigurationsAssignments
+                    Returns any Mobile App Configuration assignments configured in Intune
+                    .NOTES
+                    NAME: Get-MobileAppConfigurationsAssignments
+                    #>
+                    
+    [cmdletbinding()]
+                    
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                    
+    $graphApiVersion = "Beta"
+    $Resource = "deviceAppManagement/mobileAppConfigurations"
+                    
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                    
+    catch {
+                    
+    }
+                    
+}
+Function Get-DeviceCompliancePolicyAssignments() {
+    
+    <#
+                        .SYNOPSIS
+                        This function is used to get compliance policy assignments from the Graph API REST interface
+                        .DESCRIPTION
+                        The function connects to the Graph API Interface and gets any compliance policy assignments
+                        .EXAMPLE
+                        Get-DeviceCompliancePolicyAssignments
+                        Returns any compliance policy assignments configured in Intune
+                        .NOTES
+                        NAME: Get-DeviceCompliancePolicyAssignments
+                        #>
+                        
+    [cmdletbinding()]
+                        
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                        
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/deviceCompliancePolicies"
+                        
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                        
+    catch {
+                        
+    }
+                        
+}
+Function Get-DeviceSecurityPolicyAssignments() {
+    
+    <#
+                            .SYNOPSIS
+                            This function is used to get security policy assignments from the Graph API REST interface
+                            .DESCRIPTION
+                            The function connects to the Graph API Interface and gets any security policy assignments
+                            .EXAMPLE
+                            Get-DeviceSecurityPolicyAssignments
+                            Returns any security policy assignments configured in Intune
+                            .NOTES
+                            NAME: Get-DeviceSecurityPolicyAssignments
+                            #>
+                            
+    [cmdletbinding()]
+                            
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                            
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/intents"
+                            
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                            
+    catch {
+                            
+    }
+                            
+}
+                                  
+
+Function Get-AutoPilotProfileAssignments() {
+    
+    <#
+                                        .SYNOPSIS
+                                        This function is used to get autopilot profile assignments from the Graph API REST interface
+                                        .DESCRIPTION
+                                        The function connects to the Graph API Interface and gets any autopilot profile assignments
+                                        .EXAMPLE
+                                        Get-AutoPilotProfileAssignments
+                                        Returns any autopilot profile assignments configured in Intune
+                                        .NOTES
+                                        NAME: Get-AutoPilotProfileAssignments
+                                        #>
+                                        
+    [cmdletbinding()]
+                                        
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                                        
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
+                                        
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                                (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                                        
+    catch {
+                                        
+    }
+                                        
+}
+                                        
+Function Get-AutoPilotESPAssignments() {
+    
+    <#
+                                            .SYNOPSIS
+                                            This function is used to get autopilot ESP assignments from the Graph API REST interface
+                                            .DESCRIPTION
+                                            The function connects to the Graph API Interface and gets any autopilot ESP assignments
+                                            .EXAMPLE
+                                            Get-AutoPilotESPAssignments
+                                            Returns any autopilot ESP assignments configured in Intune
+                                            .NOTES
+                                            NAME: Get-AutoPilotESPAssignments
+                                            #>
+                                            
+    [cmdletbinding()]
+                                            
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                                            
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/deviceEnrollmentConfigurations"
+                                            
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                                            
+    catch {
+                                            
+    }
+                                            
+}
+                                            
+Function Get-DeviceManagementScriptsAssignments() {
+    
+    <#
+                                                .SYNOPSIS
+                                                This function is used to get PowerShell script assignments from the Graph API REST interface
+                                                .DESCRIPTION
+                                                The function connects to the Graph API Interface and gets any PowerShell script assignments
+                                                .EXAMPLE
+                                                Get-DeviceManagementScriptsAssignments
+                                                Returns any PowerShell script assignments configured in Intune
+                                                .NOTES
+                                                NAME: Get-DeviceManagementScriptsAssignments
+                                                #>
+                                                
+    [cmdletbinding()]
+                                                
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                                                
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/devicemanagementscripts"
+                                                
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                                        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                                                
+    catch {
+                                                
+    }
+                                                
+}
+
+Function Get-Win365UserSettingsAssignments() {
+    
+    <#
+                                                    .SYNOPSIS
+                                                    This function is used to get Windows 365 User Settings Policies assignments from the Graph API REST interface
+                                                    .DESCRIPTION
+                                                    The function connects to the Graph API Interface and gets any Windows 365 User Settings Policies assignments
+                                                    .EXAMPLE
+                                                    Get-Win365UserSettingsAssignments
+                                                    Returns any Windows 365 User Settings Policies assignments configured in Intune
+                                                    .NOTES
+                                                    NAME: Get-Win365UserSettingsAssignments
+                                                    #>
+                                                    
+    [cmdletbinding()]
+                                                    
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                                                    
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/virtualEndpoint/userSettings"
+                                                    
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                                            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                                                    
+    catch {
+                                                    
+    }
+                                                    
+}
+
+Function Get-Win365ProvisioningPoliciesAssignments() {
+    
+    <#
+        .SYNOPSIS
+        This function is used to get Windows 365 Provisioning Policies assignments from the Graph API REST interface
+        .DESCRIPTION
+                                                        The function connects to the Graph API Interface and gets any Windows 365 Provisioning Policies assignments
+                                                        .EXAMPLE
+                                                        Get-Win365ProvisioningPoliciesAssignments
+                                                        Returns any Windows 365 Provisioning Policies assignments configured in Intune
+                                                        .NOTES
+                                                        NAME: Get-Win365ProvisioningPoliciesAssignments
+                                                        #>
+                                                        
+    [cmdletbinding()]
+                                                        
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+                                                        
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/virtualEndpoint/provisioningPolicies"
+                                                        
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                                                                (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+                                                        
+    catch {
+                                                        
+    }
+                                                        
+}                         
+
+Function Get-EnrollmentConfigurationsAssignments(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Intune enrollment configurations from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Intune enrollment configurations
+    .EXAMPLE
+    Get-EnrollmentConfigurationsAssignments -id xx
+    Returns any enrollment configurations configured in Intune
+    .NOTES
+    NAME: Get-EnrollmentConfigurationsAssignments
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/deviceEnrollmentConfigurations"
+    try {
+ 
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/assignments"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+
+        }
+        catch {}
+    
+   
+}
+
+
+Function Get-BrandingProfilesAssignments(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Intune Branding Profiles assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Intune Branding Profiles assignments
+    .EXAMPLE
+    Get-BrandingProfilesAssignments
+    Returns any Branding Profiles assignments configured in Intune
+    .NOTES
+    NAME: Get-BrandingProfilesAssignments
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/intuneBrandingProfiles"
+    try {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/assignments"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+
+        }
+        catch {}
+    
+   
+}
+
+
+Function Get-AdminApprovalsAssignments(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Intune admin approvals assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Intune admin approvals assignments
+    .EXAMPLE
+    Get-AdminApprovalsAssignments
+    Returns any admin approvals assignments configured in Intune
+    .NOTES
+    NAME: Get-AdminApprovalsAssignments
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/operationApprovalPolicies"
+    try {
+   
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/assignments"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+  
+    }
+        catch {}
+    
+   
+}
+
+Function Get-DeviceCompliancePolicyScriptsAssignments(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get device custom compliance policy scripts Assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any device compliance policies assignments
+    .EXAMPLE
+    Get-DeviceCompliancePolicyScriptsAssignments
+    Returns any device compliance policy scripts assignments configured in Intune
+    .NOTES
+    NAME: Get-DeviceCompliancePolicyScriptsAssignments
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/deviceComplianceScripts"
+    try {
+      
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/assignments"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+        }
+        catch {}
+    
+}
+
+Function Get-IntuneTermsAssignments(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Intune terms and conditions assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Intune terms and conditions assignments
+    .EXAMPLE
+    Get-IntuneTermsAssignments
+    Returns any terms and conditions assignments configured in Intune
+    .NOTES
+    NAME: Get-IntuneTermsAssignments
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/termsAndConditions"
+    try {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id/assignments"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+
+        }
+        catch {}
+    
+   
+}
+function getallgroups () {
+<#
+.SYNOPSIS
+This function is used to grab all groups in Azure AD
+.DESCRIPTION
+The function connects to the Graph API Interface and gets all groups
+.EXAMPLE
+getallgroups
+ Returns all groups
+.NOTES
+ NAME: getallgroups
+#>
+    $response = (Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/groups" -Method Get -OutputType PSObject)
+    $allgroups = $response.value
+    
+    $allgroupsNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $allgroupsNextLink) {
+        $allgroupsResponse = (Invoke-MGGraphRequest -Uri $allgroupsNextLink -Method Get -outputType PSObject)
+        $allgroupsNextLink = $allgroupsResponse."@odata.nextLink"
+        $allgroups += $allgroupsResponse.value
+    }
+    
+    return $allgroups
+}
+function getallfilters () {
+    $response = (Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters" -Method Get -OutputType PSObject)
+    $allfilters = $response.value
+    
+    $allfiltersNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $allfiltersNextLink) {
+        $allfiltersResponse = (Invoke-MGGraphRequest -Uri $allfiltersNextLink -Method Get -outputType PSObject)
+        $allfiltersNextLink = $allfiltersResponse."@odata.nextLink"
+        $allfilters += $allfiltersResponse.value
+    }
+    
+    return $allfilters
+    }
+function convertidtoname() {
+    [cmdletbinding()]
+    
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $json,
+        $allgroups,
+        $allfilters
+    )
+    
+foreach ($assignment in $json) {
+    $groupid = $assignment.target.groupid
+    if ($groupid) {
+    $groupname = $allgroups | where-object {$_.id -eq $groupid} | select-object -expandproperty displayname
+    $assignment.target.groupId = $groupname
+    }
+    $filterid = $assignment.target.deviceAndAppManagementAssignmentFilterId
+    if ($filterid) {
+    $filtername = $allfilters | where-object {$_.id -eq $filterid} | select-object -expandproperty displayname
+    $assignment.target.deviceAndAppManagementAssignmentFilterId = $filtername
+    }
+}
+return $json
+}
+
+function convertnametoid() {
+    [cmdletbinding()]
+    
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $json,
+        $allgroups,
+        $allfilters,
+        $create
+    )
+foreach ($assignment in $json) {
+    $groupid = $assignment.target.groupid
+    if ($groupid) {
+    $groupname = $allgroups | where-object {$_.displayName -eq $groupid} | select-object -expandproperty ID
+    ##If group can't be found and create is yes, create it
+    if (!$groupname -and $create -eq "yes") {
+                ##Remove all spaces and special characters for the nickname
+                $groupidnick = $groupid -replace " ",""
+                $groupidnick = $groupid -replace "[^a-zA-Z0-9]",""
+    $groupjson = @"
+        {
+            "description": "$groupid Automatically Created",
+            "displayName": "$groupid",
+            "groupTypes": [
+            ],
+            "mailEnabled": false,
+            "mailNickname": "$groupidnick",
+            "securityEnabled": true,
+          }
+"@
+        $group = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups" -Method Post -Body $groupjson -OutputType PSObject
+        $groupname = $group.id
+    }
+    $assignment.target.groupId = $groupname
+    }
+    $filterid = $assignment.target.deviceAndAppManagementAssignmentFilterId
+    if ($filterid) {
+    $filtername = $allfilters | where-object {$_.displayName -eq $filterid} | select-object -expandproperty ID
+    $assignment.target.deviceAndAppManagementAssignmentFilterId = $filtername
+    }
+}
+return $json
+}
+
+#################################################################################################
 function getpolicyjson() {
         <#
     .SYNOPSIS
@@ -3525,7 +4447,7 @@ function getpolicyjson() {
             }
         }
 
-
+        $assignments = Get-DeviceConfigurationPolicyAssignments -id $id
     }
 
     "deviceManagement/groupPolicyConfigurations" {
@@ -3551,6 +4473,8 @@ function getpolicyjson() {
                    }
                }
            }
+
+              $assignments = Get-DeviceConfigurationPolicyGPAssignments -id $id
        }
 
     "deviceManagement/devicehealthscripts" {
@@ -3576,6 +4500,34 @@ function getpolicyjson() {
                    }
                }
            }
+
+                $assignments = Get-DeviceProactiveRemediationsAssignments -id $id
+       }
+       "deviceAppManagement/mobileAppConfigurations" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-MobileAppConfigurations -id $id
+        $oldname = $policy.DisplayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+            # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
+       if ($policy.supportsScopeTags) {
+           $policy.supportsScopeTags = $false
+       }
+   
+           $policy.PSObject.Properties | Foreach-Object {
+               if ($null -ne $_.Value) {
+                   if ($_.Value.GetType().Name -eq "DateTime") {
+                       $_.Value = (Get-Date -Date $_.Value -Format s) + "Z"
+                   }
+               }
+           }
+
+                $assignments = Get-MobileAppConfigurationsAssignments -id $id
        }
 
        "deviceManagement/devicemanagementscripts" {
@@ -3601,6 +4553,8 @@ function getpolicyjson() {
                    }
                }
            }
+
+                $assignments = Get-DeviceManagementScriptsAssignments -id $id
        }
 
        "deviceManagement/deviceComplianceScripts" {
@@ -3626,6 +4580,8 @@ function getpolicyjson() {
                    }
                }
            }
+            
+                    $assignments = Get-DeviceCompliancePolicyScriptsAssignments -id $id
        }
     
 
@@ -3634,19 +4590,19 @@ function getpolicyjson() {
         $policy = Get-DeviceConfigurationPolicysc -id $id
         $policy | Add-Member -MemberType NoteProperty -Name 'settings' -Value @() -Force
         #$settings = Invoke-MSGraphRequest -HttpMethod GET -Url "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" | Get-MSGraphAllPages
-        $firstsettings = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings" -OutputType PSObject
-        $settings = $firstsettings.value
-        $policynextlink = $firstsettings."@odata.nextlink"
-        #$policynextlink = $policynextlink -replace '\S', ''
-        while (($policynextlink -ne "") -and ($null -ne $policynextlink))
-        {
-            $nextsettings = (Invoke-MgGraphRequest -Uri $policynextlink -Method Get -OutputType PSObject)
-            $policynextlink = $nextsettings."@odata.nextLink"
-            #$policynextlink = $policynextlink -replace '\S', ''
-            $settings += $nextsettings.value
+        $uri2 = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$id/settings"
+        $response = (Invoke-MgGraphRequest -uri $uri2 -Method Get -OutputType PSObject)
+        $allsettings = $response.value
+        
+        $allsettingsNextLink = $response."@odata.nextLink"
+        
+        while ($null -ne $allsettingsNextLink) {
+            $allsettingsResponse = (Invoke-MGGraphRequest -Uri $allsettingsNextLink -Method Get -outputType PSObject)
+            $allsettingsNextLink = $allsettingsResponse."@odata.nextLink"
+            $allsettings += $allsettingsResponse.value
         }
 
-        $settings =  $settings | select-object * -ExcludeProperty '@odata.count'
+        $settings =  $allsettings | select-object * -ExcludeProperty '@odata.count'
         if ($settings -isnot [System.Array]) {
             $policy.Settings = @($settings)
         } else {
@@ -3662,6 +4618,7 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.Name = $newname
+            $assignments = Get-DeviceConfigurationPolicySCAssignments -id $id
 
     }
     
@@ -3691,6 +4648,7 @@ function getpolicyjson() {
             )
             $policy | Add-Member -NotePropertyName scheduledActionsForRule -NotePropertyValue $scheduledActionsForRule
             
+            $assignments = Get-DeviceCompliancePolicyAssignments -id $id
             
     }
     
@@ -3725,7 +4683,7 @@ function getpolicyjson() {
         }
         $policy | Add-Member -NotePropertyName displayName -NotePropertyValue $newname
 
-
+        $assignments = Get-DeviceSecurityPolicyAssignments -id $id
 
     }
     "deviceManagement/windowsAutopilotDeploymentProfiles" {
@@ -3739,6 +4697,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }           $policy.displayName = $newname
+
+        $assignments = Get-AutoPilotProfileAssignments -id $id
     }
     "groups" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3752,6 +4712,8 @@ function getpolicyjson() {
             $newname = $oldname
         }           $policy.displayName = $newname
         $policy = $policy | Select-Object description, DisplayName, groupTypes, mailEnabled, mailNickname, securityEnabled, isAssignabletoRole, membershiprule, MembershipRuleProcessingState
+
+        $assignments = "none"
     }
     "deviceManagement/deviceEnrollmentConfigurationsESP" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceManagement/deviceEnrollmentConfigurations"
@@ -3764,6 +4726,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }           $policy.displayName = $newname
+
+        $assignments = Get-AutoPilotESPAssignments -id $id
     }
     "deviceManagement/virtualEndpoint/userSettings" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3776,6 +4740,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = Get-Win365UserSettingsAssignments -id $id
     }
     "deviceManagement/virtualEndpoint/provisioningPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3788,6 +4754,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = Get-Win365ProvisioningPoliciesAssignments -id $id
     }
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
@@ -3814,6 +4782,7 @@ function getpolicyjson() {
                 }
             }
 
+        $assignments = "none"
 
     }
     "deviceAppManagement/managedAppPoliciesios" {
@@ -3842,6 +4811,7 @@ function getpolicyjson() {
             }
 
 
+        $assignments = "none"
     }
 
     "conditionalaccess" {
@@ -3861,6 +4831,8 @@ function getpolicyjson() {
             $newname = $oldname
         }           $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount
+
+        $assignments = Get-IntuneApplicationAssignments -id $id
     }
     "deviceAppManagement/policySets" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3876,6 +4848,8 @@ function getpolicyjson() {
         $policyitems = $policy.items | select-object * -ExcludeProperty createdDateTime, lastModifiedDateTime, id, itemType, displayName, status, errorcode, priority, targetedAppManagementLevels
         $policy.items = $policyitems
         $policy = $policy | Select-Object * -ExcludeProperty '@odata.context', status, errorcode, 'items@odata.context'
+
+        $assignments = "none"
     }
     "deviceManagement/deviceEnrollmentConfigurations" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3888,6 +4862,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = Get-EnrollmentConfigurationsAssignments -id $id
     }
     "deviceManagement/deviceEnrollmentConfigurationswhfb" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceManagement/deviceEnrollmentConfigurations"
@@ -3900,6 +4876,9 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = Get-EnrollmentConfigurationsAssignments -id $id
+
     }
     "deviceManagement/deviceCategories" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3912,6 +4891,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = "none"
     }
     "deviceManagement/assignmentFilters" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3925,6 +4906,8 @@ function getpolicyjson() {
             $newname = $oldname
         }        $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty Payloads
+
+        $assignments = "none"
     }
     "deviceManagement/intuneBrandingProfiles" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3937,6 +4920,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.profileName = $newname
+
+        $assignments = Get-BrandingProfilesAssignments -id $id
     }
     "deviceManagement/operationApprovalPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3949,6 +4934,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = get-adminapprovalassignments -id $id
     }
     "deviceManagement/organizationalMessageDetails" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3961,6 +4948,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = "none"
     }
     "deviceManagement/termsAndConditions" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3974,6 +4963,8 @@ function getpolicyjson() {
             $newname = $oldname
         }        $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty modifiedDateTime
+
+        $assignments = Get-IntuneTermsAssignments -id $id
     }
     "deviceManagement/roleDefinitions" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -3986,6 +4977,8 @@ function getpolicyjson() {
         else {
             $newname = $oldname
         }        $policy.displayName = $newname
+
+        $assignments = "none"
     }
     }
 
@@ -3998,7 +4991,7 @@ function getpolicyjson() {
         $policy.grantControls.authenticationStrength = $policy.grantControls.authenticationStrength | Select-Object id
         write-host "set"
         }
-    
+        $assignments = "none"
     }
     else {
     # Remove any GUIDs or dates/times to allow Intune to regenerate
@@ -4012,7 +5005,7 @@ function getpolicyjson() {
         }
         }
 
-    return $policy, $uri, $oldname
+    return $policy, $uri, $oldname, $assignments
 
 }
 
@@ -4049,6 +5042,10 @@ $configuration += Get-DeviceCompliancePolicy | Select-Object ID, DisplayName, De
 
 ##Get Proactive Remediations
 $configuration += Get-DeviceProactiveRemediations | Select-Object ID, DisplayName, Description, @{N='Type';E={"Proactive Remediation"}}
+
+##Get App Config
+$configuration += Get-MobileAppConfigurations | Select-Object ID, DisplayName, Description, @{N='Type';E={"App Config"}}
+
 
 ##Get Device Scripts
 $configuration += Get-DeviceManagementScripts | Select-Object ID, DisplayName, Description, @{N='Type';E={"PowerShell Script"}}
@@ -4175,6 +5172,7 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $gp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Admin Template")}
     $ca = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Conditional Access Policy")}
     $proac = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Proactive Remediation")}
+    $appconfig = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "App Config")}
     $aad = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "AAD Group")}
     $wingetapp = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Winget Application")}
     $scripts = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "PowerShell Script")}
@@ -4205,6 +5203,7 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $gp = Get-DeviceConfigurationPolicyGP -id $id
     $ca = Get-ConditionalAccessPolicy -id $id
     $proac = Get-DeviceProactiveRemediations -id $id
+    $appconfig = Get-MobileAppConfigurations -id $id
     $aad = Get-GraphAADGroups -id $id
     $wingetapp = Get-IntuneApplication -id $id
     $scripts = Get-DeviceManagementScripts -id $id
@@ -4224,6 +5223,11 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     }
 
 
+##Grab the groups
+$allgroups = getallgroups
+
+##Grab the filters
+$allfilters = getallfilters
 
 
 
@@ -4234,7 +5238,14 @@ write-output "It's a policy"
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 
 }
 if ($null -ne $gp) {
@@ -4243,16 +5254,28 @@ write-output "It's an Admin Template"
 $id = $gp.id
 $Resource = "deviceManagement/groupPolicyConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $catalog) {
     # Settings Catalog Policy
 write-output "It's a Settings Catalog"
 $id = $catalog.id
 $Resource = "deviceManagement/configurationPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
-
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $compliance) {
     # Compliance Policy
@@ -4260,15 +5283,42 @@ write-output "It's a Compliance Policy"
 $id = $compliance.id
 $Resource = "deviceManagement/deviceCompliancePolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $proac) {
     # Proactive Remediations
 write-output "It's a Proactive Remediation"
 $id = $proac.id
 $Resource = "deviceManagement/devicehealthscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
+if ($null -ne $appconfig) {
+    # App Config
+write-output "It's an App Config"
+$id = $appconfig.id
+$Resource = "deviceAppManagement/mobileAppConfigurations"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $scripts) {
     # Device Scripts
@@ -4276,8 +5326,14 @@ if ($null -ne $scripts) {
 $id = $scripts.id
 $Resource = "deviceManagement/devicemanagementscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 
 if ($null -ne $compliancescripts) {
     # Compliance Scripts
@@ -4285,8 +5341,14 @@ if ($null -ne $compliancescripts) {
 $id = $compliancescripts.id
 $Resource = "deviceManagement/deviceComplianceScripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 
 if ($null -ne $security) {
     # Security Policy
@@ -4294,47 +5356,84 @@ write-output "It's a Security Policy"
 $id = $security.id
 $Resource = "deviceManagement/intents"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $autopilot) {
     # Autopilot Profile
 write-output "It's an Autopilot Profile"
 $id = $autopilot.id
 $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $esp) {
     # Autopilot ESP
 write-output "It's an AutoPilot ESP"
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurationsESP"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $whfb) {
     # Windows Hello for Business
 write-output "It's a WHfB Policy"
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurationswhfb"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $android) {
     # Android App Protection
 write-output "It's an Android App Protection Policy"
 $id = $android.id
 $Resource = "deviceAppManagement/managedAppPoliciesandroid"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
 }
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))}
 if ($null -ne $ios) {
     # iOS App Protection
 write-output "It's an iOS App Protection Policy"
 $id = $ios.id
 $Resource = "deviceAppManagement/managedAppPoliciesios"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $aad) {
     # AAD Groups
@@ -4342,7 +5441,14 @@ write-output "It's an AAD Group"
 $id = $aad.id
 $Resource = "groups"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $ca) {
     # Conditional Access
@@ -4350,7 +5456,14 @@ write-output "It's a Conditional Access Policy"
 $id = $ca.id
 $Resource = "ConditionalAccess"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $wingetapp) {
     # Winget App
@@ -4358,7 +5471,14 @@ write-output "It's a Windows Application"
 $id = $wingetapp.id
 $Resource = "deviceAppManagement/mobileApps"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $win365usersettings) {
     # W365 User Settings
@@ -4366,7 +5486,14 @@ write-output "It's a W365 User Setting"
 $id = $win365usersettings.id
 $Resource = "deviceManagement/virtualEndpoint/userSettings"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $win365provisioning) {
     # W365 Provisioning Policy
@@ -4374,7 +5501,14 @@ write-output "It's a W365 Provisioning Policy"
 $id = $win365provisioning.id
 $Resource = "deviceManagement/virtualEndpoint/provisioningPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $policysets) {
     # Policy Set
@@ -4382,7 +5516,14 @@ write-output "It's a Policy Set"
 $id = $policysets.id
 $Resource = "deviceAppManagement/policySets"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $enrollmentconfigs) {
     # Enrollment Config
@@ -4390,7 +5531,14 @@ write-output "It's an enrollment configuration"
 $id = $enrollmentconfigs.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $devicecategories) {
     # Device Categories
@@ -4398,7 +5546,14 @@ write-output "It's a device category"
 $id = $devicecategories.id
 $Resource = "deviceManagement/deviceCategories"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $devicefilters) {
     # Device Filter
@@ -4406,7 +5561,14 @@ write-output "It's a device filter"
 $id = $devicefilters.id
 $Resource = "deviceManagement/assignmentFilters"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $brandingprofiles) {
     # Branding Profile
@@ -4414,7 +5576,14 @@ write-output "It's a branding profile"
 $id = $brandingprofiles.id
 $Resource = "deviceManagement/intuneBrandingProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $adminapprovals) {
     # Multi-admin approval
@@ -4422,7 +5591,14 @@ write-output "It's a multi-admin approval"
 $id = $adminapprovals.id
 $Resource = "deviceManagement/operationApprovalPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 #if ($null -ne $orgmessages) {
     # Organizational Message
@@ -4438,7 +5614,14 @@ write-output "It's a T&C"
 $id = $intuneterms.id
 $Resource = "deviceManagement/termsAndConditions"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 if ($null -ne $intunerole) {
     # Intune Role
@@ -4446,7 +5629,14 @@ write-output "It's a role"
 $id = $intunerole.id
 $Resource = "deviceManagement/roleDefinitions"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
-$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id))
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
 }
 
@@ -4511,7 +5701,11 @@ $date = $date.ToString()
 #######################################################################################################################################
 
 if ($type -eq "restore") {
+##Grab the groups
+$allgroups = getallgroups
 
+##Grab the filters
+$allfilters = getallfilters
         
 ###############################################################################################################
 ######                                          Get Commits                                              ######
@@ -4544,7 +5738,8 @@ if ($repotype -eq "github") {
     $commitfilename2 = " https://api.github.com/repos/$ownername/$reponame/contents/$filename"
     
     
-    $decodedbackup = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github.v3.raw';'Cache-Control'='no-cache'})
+    $decodedbackupdownload = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/json';'Cache-Control'='no-cache'}).download_url
+    $decodedbackup = (Invoke-RestMethod -Uri $decodedbackupdownload -Method Get)
     
     }
     
@@ -4635,6 +5830,23 @@ else {
     $temp = $profilelist | Out-GridView -Title "Select Object to Restore" -PassThru
 
 }
+if (($automated -eq "yes") -or ($WebHookData)) {
+    ##Do nothing
+    }
+    else {
+        ##Popup prompt to ask about assignments
+        Add-Type -AssemblyName System.Windows.Forms
+
+$caption = "Confirmation"
+$message = "Do you want to restore assignments?"
+$buttons = [System.Windows.Forms.MessageBoxButtons]::YesNo
+$result = [System.Windows.Forms.MessageBox]::Show($message, $caption, $buttons)
+
+if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+    # User clicked "Yes"
+    $assignments = "yes"
+} 
+    }
 }
 else {
     $temp = @()
@@ -4677,7 +5889,7 @@ else {
             $policyuri =  $profilevalue[1]
             $policyjson =  $profilevalue[0]
             $id = $profilevalue[3]
-            write-output $profilevalue[1]
+            $assignmentjson = $profilevalue[4]
             $policy = $policyjson
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
@@ -4702,7 +5914,34 @@ else {
             $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
             try {
             $copypolicy = Invoke-MgGraphRequest -Uri $policyuri -Method Post -Body $body  -ContentType "application/json; charset=utf-8"
+            ##Assign if selected
+            if ($assignments -eq "yes") {
+                write-output "Assignment Selected, assigning policy"
+                if ($assignmentjson -ne "No Available Assignment") {
+                $copypolicyid = $copypolicy.id
+                $assignmenturi = $policyuri + "/" + $copypolicyid + "/assign"
+                    ##Check if group creation
+                    if ($groupcreate -eq "yes") {
+                        $assignmenttoid = convertnametoid -json $assignmentjson -allgroups $allgroups -allfilters $allfilters -create "yes"
+                    }
+                    else {
+                        $assignmenttoid = convertnametoid -json $assignmentjson -allgroups $allgroups -allfilters $allfilters -create "no"
+                    }
+                $assignments2a = @"
+                {
+                    "assignments": [
+                
+"@
+                $assignmentjson2b = ($assignmenttoid | select-object * -excludeproperty id, source, sourceId, intent | ConvertTo-Json).replace("[","").replace("]","")
+                $assignmentjson2c = @"
+            ]
             }
+"@
+                $assignmentjson2 = $assignments2a + $assignmentjson2b + $assignmentjson2c
+                Invoke-MgGraphRequest -Uri $assignmenturi -Method Post -Body $assignmentjson2  -ContentType "application/json"
+                }
+            }
+        }
             catch {
 
             }
