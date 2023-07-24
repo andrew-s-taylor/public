@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.2
+.VERSION 4.0.3
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.2
+  Version:        4.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  06/07/2023
+  Last Modified:  24/07/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -47,6 +47,7 @@ In-Line Outputs
   Update: Added parameters for automation
   Update: Added option to specify group names
   Update: Fix for Graph SDK v2
+  Update: Further fix for SDK v2
 .EXAMPLE
 N/A
 #>

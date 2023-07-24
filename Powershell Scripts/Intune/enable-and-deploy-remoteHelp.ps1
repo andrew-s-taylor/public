@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID ed937b40-9073-41c4-8ae9-4dc8fa2596d9 
 .AUTHOR AndrewTaylor
 .DESCRIPTION Enables RemoteHelp, grabs the latest installer, packages and deploys including AAD Groups
@@ -29,7 +29,7 @@ None Required
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.2
+  Version:        1.0.3
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  15/03/2023
