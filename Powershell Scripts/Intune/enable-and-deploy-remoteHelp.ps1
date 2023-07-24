@@ -163,140 +163,41 @@ Invoke-WebRequest -Uri $intuneapputilurl -OutFile $intuneapputiloutput
 ###############################################################################################################
 ######                                          Add Functions                                            ######
 ###############################################################################################################
-function Add-MDMApplication() {
 
+function getallpagination () {
     <#
-        .SYNOPSIS
-        This function is used to add an MDM application using the Graph API REST interface
-        .DESCRIPTION
-        The function connects to the Graph API Interface and adds an MDM application from the itunes store
-        .EXAMPLE
-        Add-MDMApplication -JSON $JSON
-        Adds an application into Intune
-        .NOTES
-        NAME: Add-MDMApplication
-        #>
-        
-    [cmdletbinding()]
-        
-    param
-    (
-        $JSON
-    )
-        
-    try {
-        
-        if (!$JSON) {
-        
-            Write-Error "No JSON was passed to the function, provide a JSON variable"
-            break
-        
-        }
-        
-        Test-JSON -JSON $JSON
-
-        New-MgDeviceAppMgtMobileApp -BodyParameter $JSON        
+.SYNOPSIS
+This function is used to grab all items from Graph API that are paginated
+.DESCRIPTION
+The function connects to the Graph API Interface and gets all items from the API that are paginated
+.EXAMPLE
+getallpagination -url "https://graph.microsoft.com/v1.0/groups"
+ Returns all items
+.NOTES
+ NAME: getallpagination
+#>
+[cmdletbinding()]
+    
+param
+(
+    $url
+)
+    $response = (Invoke-MgGraphRequest -uri $url -Method Get -OutputType PSObject)
+    $alloutput = $response.value
+    
+    $alloutputNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $alloutputNextLink) {
+        $alloutputResponse = (Invoke-MGGraphRequest -Uri $alloutputNextLink -Method Get -outputType PSObject)
+        $alloutputNextLink = $alloutputResponse."@odata.nextLink"
+        $alloutput += $alloutputResponse.value
     }
-        
-    catch {
-        
-        $ex = $_.Exception
-        $errorResponse = $ex.Response.GetResponseStream()
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $reader.BaseStream.Position = 0
-        $reader.DiscardBufferedData()
-        $responseBody = $reader.ReadToEnd()
-        Write-Debug "Response content:`n$responseBody"
-        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-
-        break
-        
+    
+    return $alloutput
     }
-        
-}
         
 ####################################################
         
-Function Add-ApplicationAssignment() {
-        
-    <#
-        .SYNOPSIS
-        This function is used to add an application assignment using the Graph API REST interface
-        .DESCRIPTION
-        The function connects to the Graph API Interface and adds a application assignment
-        .EXAMPLE
-        Add-ApplicationAssignment -ApplicationId $ApplicationId -TargetGroupId $TargetGroupId -InstallIntent $InstallIntent
-        Adds an application assignment in Intune
-        .NOTES
-        NAME: Add-ApplicationAssignment
-        #>
-        
-    [cmdletbinding()]
-        
-    param
-    (
-        $ApplicationId,
-        $TargetGroupId,
-        $InstallIntent
-    )
-            
-    try {
-        
-        if (!$ApplicationId) {
-        
-            Write-Error "No Application Id specified, specify a valid Application Id"
-            break
-        
-        }
-        
-        if (!$TargetGroupId) {
-        
-            Write-Error "No Target Group Id specified, specify a valid Target Group Id"
-            break
-        
-        }
-        
-                
-        if (!$InstallIntent) {
-        
-            Write-Error "No Install Intent specified, specify a valid Install Intent - available, notApplicable, required, uninstall, availableWithoutEnrollment"
-            break
-        
-        }
-        
-        $JSON = @"
-        {
-            "mobileAppAssignments": [
-            {
-                "@odata.type": "#microsoft.graph.mobileAppAssignment",
-                "target": {
-                "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-                "groupId": "$TargetGroupId"
-                },
-                "intent": "$InstallIntent"
-            }
-            ]
-        }
-"@
-        New-MgDeviceAppMgtMobileAppAssignment -BodyParameter $JSON
-        
-    }
-            
-    catch {
-        
-        $ex = $_.Exception
-        $errorResponse = $ex.Response.GetResponseStream()
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $reader.BaseStream.Position = 0
-        $reader.DiscardBufferedData()
-        $responseBody = $reader.ReadToEnd()
-        Write-Debug "Response content:`n$responseBody"
-        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        break
-        
-    }
-        
-}
         
         
 function CloneObject($object) {
@@ -1045,8 +946,7 @@ function Invoke-UploadWin32Lob() {
             break
         }
         Write-Verbose "Creating application in Intune..."
-        $mobileApp = New-MgDeviceAppMgtMobileApp -BodyParameter ($mobileAppBody | ConvertTo-Json)
-        
+        $mobileApp = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/" -Body ($mobileAppBody | ConvertTo-Json) -ContentType "application/json" -OutputType PSObject        
         # Get the content version for the new app (this will always be 1 until the new app is committed).
         Write-Verbose "Creating Content Version in the service for the application..."
         $appId = $mobileApp.id
@@ -1145,7 +1045,7 @@ Function Get-IntuneApplication() {
         #>            
     try {
 
-        return Get-MgDeviceAppMgtMobileApp -All | Where-Object { (!($_.AdditionalProperties['@odata.type']).Contains("managed")) }
+        return getallpagination -url "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/"
         
     }
             
