@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.00
+  Version:        3.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -1094,8 +1094,9 @@ $InstalledPrograms | ForEach-Object {
 }
 
 
-if ($manufacturer -ccontains "Lenovo") {
+if ($manufacturer -like "Lenovo") {
     Write-Host "Lenovo detected"
+
     #Remove HP bloat
 
 ##Lenovo Specific
