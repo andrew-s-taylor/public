@@ -499,7 +499,7 @@ $json = @'
 		"termsOfUse": []
 	},
 	"sessionControls": null,
-	"state": "enabled"
+	"state": "disabled"
 }
 '@
 
@@ -583,7 +583,7 @@ $json = @"
 		"secureSignInSession": null,
 		"signInFrequency": null
 	},
-	"state": "enabled"
+	"state": "disabled"
 }
 "@
 
