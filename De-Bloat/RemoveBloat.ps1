@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.0.1
+  Version:        3.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -47,6 +47,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 26/05/2023 - Added multi-language support for Set-ACL commands
   Change 30/05/2023 - Logic to check if gamepresencewriter exists before running Set-ACL to stop errors on re-run
   Change 25/07/2023 - Added Lenovo apps (Thanks to Simon Lilly and Philip Jorgensen)
+  Change 31/07/2023 - Added LenovoAssist
 .EXAMPLE
 N/A
 #>
@@ -1153,6 +1154,7 @@ if ($manufacturer -like "Lenovo") {
         "E0469640.SmartAppearance"
         "MirametrixInc.GlancebyMirametrix"
         "E046963F.LenovoCompanion"
+        "E0469640.LenovoUtility"
     )
     
     
