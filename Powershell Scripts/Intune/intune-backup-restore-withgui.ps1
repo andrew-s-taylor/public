@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.0
+  Version:        6.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 17/05/2023
+  Updated: 01/08/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -64,6 +64,7 @@ Creates a log file in %Temp%
   Change: Added support for Mobile App Config policies
   Change: Repaired pagination issue with Settings Catalog
   Change: Added support for assignments
+  Change: Added support for GitLab
 
 
   .EXAMPLE
@@ -71,7 +72,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.0.0
+.VERSION 6.1.0
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -108,9 +109,9 @@ param
     , 
     [string]$token #Token is the github/devops token
     , 
-    [string]$project #Project is the project when using Azure Devops
+    [string]$project #Project is the project when using Azure Devops or Project ID when using GitLab
     , 
-    [string]$repotype #Repotype is the type of repo, github or azuredevops, defaults to github
+    [string]$repotype #Repotype is the type of repo, github, gitlab or azuredevops, defaults to github
     , 
     [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
     ,
@@ -157,7 +158,7 @@ $webhooksecret = ""
 ##Check if the password is correct
 if ($keycheck -ne $webhooksecret) {
     write-output "Webhook password incorrect, exiting"
-    exit
+    #exit
 }
 
 
@@ -258,8 +259,9 @@ $clientsecret = "YOUR_CLIENT_SECRET"
 ##Either github or azuredevops
 $repotype = "REPO_TYPE"
 
-##Only for Azure Devops
-$project = "YOUR_AZURE_DEVOPS_PROJECT"
+##Only for Azure Devops or GitLab
+$project = "YOUR_AZURE_DEVOPS_PROJECT_OR_GITLAB_ID"
+
 
 ##Only use if not set in script parameters
 $tenantcheck = $PSBoundParameters.ContainsKey('tenant')
@@ -5676,6 +5678,36 @@ $message = "$backupreason - $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
 (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
 }
+if ($repotype -eq "gitlab") {
+    write-output "Uploading to GitLab"
+##Upload to GitLab
+$date = Get-Date -Format yyMMddHHmmss
+$date = $date.ToString()
+$readabledate = Get-Date -Format dd-MM-yyyy-HH-mm-ss
+$filename = $tenant + "-intunebackup-" + $date + ".json"
+$GitLabUrl = "https://gitlab.com/api/v4"
+
+# Create a new file in the repository
+$CommitMessage = $backupreason
+$BranchName = "main"
+$FileContent = @{
+    "branch" = $BranchName
+    "commit_message" = $CommitMessage
+    "actions" = @(
+        @{
+            "action" = "create"
+            "file_path" = $filename
+            "content" = $profilesencoded
+        }
+    )
+}
+$FileContentJson = $FileContent | ConvertTo-Json -Depth 10
+$CreateFileUrl = "$GitLabUrl/projects/$project/repository/commits"
+$Headers = @{
+    "PRIVATE-TOKEN" = $token
+}
+Invoke-RestMethod -Uri $CreateFileUrl -Method Post -Headers $Headers -Body $FileContentJson -ContentType "application/json"
+}
 if ($repotype -eq "azuredevops") {
     $date =get-date -format yyMMddHHmmss
 $date = $date.ToString()
@@ -5742,6 +5774,45 @@ if ($repotype -eq "github") {
     $decodedbackup = (Invoke-RestMethod -Uri $decodedbackupdownload -Method Get)
     
     }
+
+    if ($repotype -eq "gitlab") {
+
+        $GitLabUrl = "https://gitlab.com/api/v4"
+        $Headers = @{
+            "PRIVATE-TOKEN" = $token
+        }
+        if ($WebHookData){
+            $filename = $postedfilename
+        }
+        else {
+    
+        
+        write-output "Finding Latest Backup Commit from Project $project in GitLab"
+        $CommitsUrl = "$GitLabUrl/projects/$project/repository/commits"
+        $events = Invoke-RestMethod -Uri $CommitsUrl -Method Get -Headers $Headers
+        $events2 = $events | Select-object message, web_url| Out-GridView -PassThru -Title "Select Backup to View"
+            ForEach ($event in $events2) 
+            {
+        $eventsuri = $event.web_url
+        $commitid = Split-Path $eventsuri -Leaf
+        $commituri = "$GitLabUrl/projects/$project/repository/commits/$commitid/diff"
+        $commit = Invoke-RestMethod -Uri $commitUri -Method Get -Headers $Headers
+        $commitFilename = $commit.new_path
+        write-output "$commitfilename Found"
+        }
+        
+        
+        $filename = $commitfilename.Substring($commitfilename.LastIndexOf("/") + 1)
+    }
+        $commitfilename2 = "$GitLabUrl/projects/$project/repository/files/$filename"+"/raw?ref=main"
+        
+        $decodedbackupdownload = (Invoke-RestMethod -Uri $commitfilename2 -Method Get -Headers $Headers)
+        ##Decode
+
+        $decodedbackup = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($decodedbackupdownload))
+
+        
+        }
     
     if ($repotype -eq "azuredevops") {
 
@@ -5782,6 +5853,9 @@ if ($repotype -eq "github") {
 if ($repotype -eq "azuredevops") {
 $profilelist2 = $decodedbackup | ConvertFrom-Json
 }
+if ($repotype -eq "gitlab") {
+    $profilelist2 = $decodedbackup | ConvertFrom-Json
+    }
 if ($repotype -eq "github") {
 $profilelist2 = $decodedbackup
 }
