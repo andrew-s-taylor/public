@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -29,7 +29,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID 95df78d9-209b-434e-bc56-2bee6f9dae8b
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -184,7 +184,7 @@ function set-appuninstall() {
     $app = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appid" -Method Get -OutputType PSObject
     $app.allowAvailableUninstall = $true
     $appid = $app.id
-    $app = $app | Select-Object * -ExcludeProperty createdDateTime, id, lastModifiedDateTime, uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount, committedContentVersion, size
+    $app = $app | Select-Object * -ExcludeProperty createdDateTime, id, lastModifiedDateTime, uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount, committedContentVersion, size, minimumSupportedOperatingSystem
         $appjson = $app | ConvertTo-Json -Depth 10
         $appuri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appid"
         Invoke-MgGraphRequest -Uri $appuri -Method Patch -Body $appjson
