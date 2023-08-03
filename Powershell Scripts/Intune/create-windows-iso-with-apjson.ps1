@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID 26fabcfd-1773-409e-a952-a8f94fbe660b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
@@ -28,13 +28,15 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.2
+  Version:        1.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  26/06/2023
+  Last Modified:  03/08/2023
   Purpose/Change: Initial script development
+  Change: Amended to grab latest supported versions
+  Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
 .EXAMPLE
 N/A
 #>
@@ -51,9 +53,6 @@ param
 
     )
 
-##Set the Windows 10 and 11 Download URLs
-$windows11uri = "https://software.download.prss.microsoft.com/dbazure/Win11_22H2_EnglishInternational_x64v2.iso?t=a8779d0c-39d6-41c4-bceb-fab947ca22ec&e=1687961338&h=82a936411e001b899e7219225fc80035f79310cb317b20b651e91f2fbd9bc82b"
-$windows10uri = "https://software.download.prss.microsoft.com/dbazure/Win10_22H2_EnglishInternational_x64v1.iso?t=298eeedb-6bc1-4f29-b3d2-253ca4498d80&e=1687961600&h=c584fe0e3c0cd265469fa921b75e66f3ec89f736aeb0460de0722702c0815501"
 
 
 ###############################################################################################################
@@ -339,28 +338,121 @@ $wimnametemp = "$path\installtemp.wim"
 
 
 write-host "Selecting OS"
+write-host "Finding latest supported versions"
+$allversions = @()
 ##Popup a gridview to select which OS to download and configure
-$options = 'Windows 10 21H2', 'Windows 11 22H2'
+
+
+###WINDOWS 11
+$url = "https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information"
+$content = (Invoke-WebRequest -Uri $url -UseBasicParsing).content
+[regex]$regex = "(?s)<tr class=.*?</tr>"
+$tables = $regex.matches($content).groups.value
+$tables = $tables.replace("<td>","")
+$tables = $tables.replace("</td>","")
+$tables = $tables.replace('<td align="left">',"")
+$tables = $tables.replace('<tr class="highlight">',"")
+$tables = $tables.replace("</tr>","")
+
+##Add each found version for array
+$availableversions = @()
+foreach ($table in $tables) {
+    [array]$toArray = $table.Split("`n") | Where-Object {$_.Trim("")}
+    $availableversions += ($toArray[0]).Trim()
+}
+
+##We want n-1 so grab the first two objects
+$Win11versions = $availableversions | select-object -first 2
+
+
+
+####WINDOWS 10
+    ##Scrape the release information to find latest supported versions
+    $url = "https://learn.microsoft.com/en-us/windows/release-health/release-information"
+    $content = (Invoke-WebRequest -Uri $url -UseBasicParsing).content
+    [regex]$regex = "(?s)<tr class=.*?</tr>"
+    $tables = $regex.matches($content).groups.value
+    $tables = $tables.replace("<td>","")
+    $tables = $tables.replace("</td>","")
+    $tables = $tables.replace('<td align="left">',"")
+    $tables = $tables.replace('<tr class="highlight">',"")
+    $tables = $tables.replace("</tr>","")
+    
+    ##Add each found version for array
+    $availableversions = @()
+    foreach ($table in $tables) {
+        [array]$toArray = $table.Split("`n") | Where-Object {$_.Trim("")}
+        $availableversions += ($toArray[0]).Trim()
+    }
+
+    ##We want n-1 so grab the first two objects
+    $win10versions = $availableversions | select-object -first 2
+
+
+
+##Create a custom object to store versions
+foreach ($win11 in $Win11versions) {
+    $os = "11"
+    $osversion = $win11
+    $objectdetails = [pscustomobject]@{
+        Major = $os
+        Minor = $osversion
+        Name = "Windows $os $osversion"
+    }
+    $allversions += $objectdetails
+}
+foreach ($win10 in $Win10versions) {
+    $os = "10"
+    $osversion = $win10
+    $objectdetails = [pscustomobject]@{
+        Major = $os
+        Minor = $osversion
+        Name = "Windows $os $osversion"
+    }
+    $allversions += $objectdetails
+}
+
+
+$options = @()
+foreach ($foundversion in $allversions) {
+    $options += $foundversion.name
+}
 $object  = foreach($option in $options){new-object psobject -Property @{'Pick your Option' = $option}}
 $osinput   = $object | Out-GridView -Title "Windows Selection" -PassThru
-
-switch($osinput.'Pick your Option'){
-    'Windows 10 22H2'{
-        $windowsuri = $windows10uri
-        $imageindex = 5
-        write-host "Windows 10 Selected"
-    }
-    'Windows 11 22H2'{
-        $windowsuri = $windows11uri
-        $imageindex = 6
-        write-host "Windows 11 Selected"
-    }
-    default{
-        $windowsuri = $windows11uri
-        $imageindex = 6
-        write-host "Nothing selected, defaulting to Windows 11"
-    }
+$selectedname = $osinput.'Pick your Option'
+$selectedos = $allversions | Where-Object Name -eq "$selectedname"
+if ($selectedos.Major -eq 11) {
+    $imageindex = 6
 }
+if ($selectedos.Major -eq 10) {
+    $imageindex = 5
+}
+write-host "$selectedname Chosen"
+
+
+##Download Fido
+write-host "Downloading Fido"
+$fidourl = "https://raw.githubusercontent.com/pbatard/Fido/master/Fido.ps1"
+$fidopath = $path + "\fido.ps1"
+Invoke-WebRequest -Uri $fidourl -OutFile $fidopath -UseBasicParsing
+write-host "Fido Downloaded"
+##Run Fido
+# Set the parameters
+$Locale = "en-US"
+$Win = $selectedos.Major
+$Rel = $selectedos.Minor
+$Ed = "Pro"
+$GetUrl = $true
+write-host "Grabbing ISO URL"
+# Build the command string
+$Command = "$fidopath -Locale $Locale -Win $Win -Rel $Rel -Ed $Ed -GetUrl"
+
+# Run the command and store the output in a variable
+$windowsuri = Invoke-Expression $Command
+
+# Display the output
+Write-Output $windowsuri
+
 
 write-host "Downloading OS ISO"
 ##Download the OS
