@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.1.0
+  Version:        6.1.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 01/08/2023
+  Updated: 11/08/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -65,6 +65,7 @@ Creates a log file in %Temp%
   Change: Repaired pagination issue with Settings Catalog
   Change: Added support for assignments
   Change: Added support for GitLab
+  Change: Added logging during runbook
 
 
   .EXAMPLE
@@ -72,7 +73,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.1.0
+.VERSION 6.1.1
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -157,7 +158,7 @@ $webhooksecret = ""
 
 ##Check if the password is correct
 if ($keycheck -ne $webhooksecret) {
-    write-output "Webhook password incorrect, exiting"
+    #write-output "Webhook password incorrect, exiting"
     #exit
 }
 
@@ -284,54 +285,84 @@ $ErrorActionPreference = "Continue"
 $date = get-date -format yyyyMMddTHHmmssffff
 Start-Transcript -Path $env:TEMP\intune-$date.log
 
+##Add custom logging for runbook
+$Logfile = "$env:TEMP\intuneauto-$date.log"
+function WriteLog
+{
+Param ([string]$LogString)
+$Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
+$LogMessage = "$Stamp $LogString \n"
+Add-content $LogFile -value $LogMessage
+}
+
 #Install MS Graph if not available
 
 
 write-output "Installing Microsoft Graph modules if required (current user scope)"
+writelog "Installing Microsoft Graph modules if required (current user scope)"
+
 
 #Install MS Graph if not available
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
     write-output "Microsoft Graph Authentication Already Installed"
+    writelog "Microsoft Graph Authentication Already Installed"
 } 
 else {
         Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Repository PSGallery -Force
         write-output "Microsoft Graph Authentication Installed"
+        writelog "Microsoft Graph Authentication Installed"
 }
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
     write-output "Microsoft Graph Corporate Management Already Installed"
+    writelog "Microsoft Graph Corporate Management Already Installed"
+
 } 
 else {
         Install-Module -Name microsoft.graph.devices.corporatemanagement  -Scope CurrentUser -Repository PSGallery -Force  
         write-output "Microsoft Graph Corporate Management Installed"
+        writelog "Microsoft Graph Corporate Management Installed"
+
     }
 
     if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
         write-output "Microsoft Graph Groups Already Installed "
+        writelog "Microsoft Graph Groups Already Installed "
+
     } 
     else {
             Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser -Repository PSGallery -Force
             write-output "Microsoft Graph Groups Installed"
+            writelog "Microsoft Graph Groups Installed"
+
     }
     
     #Install MS Graph if not available
     if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
         write-output "Microsoft Graph DeviceManagement Already Installed"
+        writelog "Microsoft Graph DeviceManagement Already Installed"
+
     } 
     else {
             Install-Module -Name Microsoft.Graph.DeviceManagement -Scope CurrentUser -Repository PSGallery -Force  
             write-output "Microsoft Graph DeviceManagement Installed"
-    }
+            writelog "Microsoft Graph DeviceManagement Installed"
+
+        }
 
     #Install MS Graph if not available
     if (Get-Module -ListAvailable -Name Microsoft.Graph.identity.signins) {
         write-output "Microsoft Graph Identity SignIns Already Installed"
+        writelog "Microsoft Graph Identity SignIns Already Installed"
+
     } 
     else {
             Install-Module -Name Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Repository PSGallery -Force
             write-output "Microsoft Graph Identity SignIns Installed"
+            writelog "Microsoft Graph Identity SignIns Installed"
+
     }
 
 
@@ -385,27 +416,27 @@ else {
          
                 $accessToken
                 if ($version -eq 2) {
-                    write-host "Version 2 module detected"
+                    write-output "Version 2 module detected"
                     $accesstokenfinal = ConvertTo-SecureString -String $accessToken -AsPlainText -Force
                 }
                 else {
-                    write-host "Version 1 Module Detected"
+                    write-output "Version 1 Module Detected"
                     Select-MgProfile -Name Beta
                     $accesstokenfinal = $accessToken
                 }
                 $graph = Connect-MgGraph  -AccessToken $accesstokenfinal 
-                Write-Host "Connected to Intune tenant $TenantId using app-based authentication (Azure AD authentication not supported)"
+                write-output "Connected to Intune tenant $TenantId using app-based authentication (Azure AD authentication not supported)"
             }
             else {
                 if ($version -eq 2) {
-                    write-host "Version 2 module detected"
+                    write-output "Version 2 module detected"
                 }
                 else {
-                    write-host "Version 1 Module Detected"
+                    write-output "Version 1 Module Detected"
                     Select-MgProfile -Name Beta
                 }
                 $graph = Connect-MgGraph -scopes $scopes
-                Write-Host "Connected to Intune tenant $($graph.TenantId)"
+                write-output "Connected to Intune tenant $($graph.TenantId)"
             }
         }
     }    
@@ -421,6 +452,8 @@ if (($automated -eq "yes") -or ($aadlogin -eq "yes")) {
  
 Connect-ToGraph -Tenant $tenant -AppId $clientId -AppSecret $clientSecret
 write-output "Graph Connection Established"
+writelog "Graph Connection Established"
+
 }
 else {
 ##Connect to Graph
@@ -5137,6 +5170,7 @@ $configuration2 = @()
         ##Name(s) sent, convert to ID and pass-through
         foreach ($item in $name) {
             write-output "Getting ID for $name"
+            writelog "Getting ID for $name"
             $policyid = (Get-DetailsbyName -name $item)
             $id = $policyid.ID
             write-output "ID is $id"
@@ -5147,6 +5181,7 @@ $configuration2 = @()
         ##ID(s) sent, pass-through
         foreach ($item in $inputid) {
             write-output "Copying policy $id"
+            writelog "Copying policy $id"
             $object = "" | select-object id
             $object.id = $item
             $configuration2 += $object
@@ -5160,6 +5195,7 @@ $configuration2 | foreach-object {
 ##Find out what it is
 $id = $_.ID
 write-output $id
+writelog $id
 ##Performance improvement, use existing array instead of additional graph calls
 
 if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
@@ -5237,6 +5273,8 @@ $allfilters = getallfilters
 if ($null -ne $policy) {
     # Standard Device Configuratio Policy
 write-output "It's a policy"
+writelog "It's a policy"
+
 $id = $policy.id
 $Resource = "deviceManagement/deviceConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5253,6 +5291,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $gp) {
     # Standard Device Configuration Policy
 write-output "It's an Admin Template"
+writelog "It's an Admin Template"
+
 $id = $gp.id
 $Resource = "deviceManagement/groupPolicyConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5267,6 +5307,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $catalog) {
     # Settings Catalog Policy
 write-output "It's a Settings Catalog"
+writelog "It's a Settings Catalog"
+
 $id = $catalog.id
 $Resource = "deviceManagement/configurationPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5282,6 +5324,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $compliance) {
     # Compliance Policy
 write-output "It's a Compliance Policy"
+writelog "It's a Compliance Policy"
+
 $id = $compliance.id
 $Resource = "deviceManagement/deviceCompliancePolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5296,6 +5340,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $proac) {
     # Proactive Remediations
 write-output "It's a Proactive Remediation"
+writelog "It's a Proactive Remediation"
+
 $id = $proac.id
 $Resource = "deviceManagement/devicehealthscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5310,6 +5356,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $appconfig) {
     # App Config
 write-output "It's an App Config"
+writelog "It's an App Config"
+
 $id = $appconfig.id
 $Resource = "deviceAppManagement/mobileAppConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5325,6 +5373,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $scripts) {
     # Device Scripts
     write-output "It's a PowerShell Script"
+    writelog "It's a PowerShell Script"
+
 $id = $scripts.id
 $Resource = "deviceManagement/devicemanagementscripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5340,6 +5390,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $compliancescripts) {
     # Compliance Scripts
     write-output "It's a Compliance Script"
+    writelog "It's a Compliance Script"
+
 $id = $compliancescripts.id
 $Resource = "deviceManagement/deviceComplianceScripts"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5355,6 +5407,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $security) {
     # Security Policy
 write-output "It's a Security Policy"
+writelog "It's a Security Policy"
+
 $id = $security.id
 $Resource = "deviceManagement/intents"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5369,6 +5423,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $autopilot) {
     # Autopilot Profile
 write-output "It's an Autopilot Profile"
+writelog "It's an Autopilot Profile"
+
 $id = $autopilot.id
 $Resource = "deviceManagement/windowsAutopilotDeploymentProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5383,6 +5439,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $esp) {
     # Autopilot ESP
 write-output "It's an AutoPilot ESP"
+writelog "It's an AutoPilot ESP"
+
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurationsESP"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5397,6 +5455,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $whfb) {
     # Windows Hello for Business
 write-output "It's a WHfB Policy"
+writelog "It's a WHfB Policy"
+
 $id = $esp.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurationswhfb"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5411,6 +5471,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $android) {
     # Android App Protection
 write-output "It's an Android App Protection Policy"
+writelog "It's an Android App Protection Policy"
+
 $id = $android.id
 $Resource = "deviceAppManagement/managedAppPoliciesandroid"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5425,6 +5487,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $ios) {
     # iOS App Protection
 write-output "It's an iOS App Protection Policy"
+writelog "It's an iOS App Protection Policy"
+
 $id = $ios.id
 $Resource = "deviceAppManagement/managedAppPoliciesios"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5440,6 +5504,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $aad) {
     # AAD Groups
 write-output "It's an AAD Group"
+writelog "It's an AAD Group"
+
 $id = $aad.id
 $Resource = "groups"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5455,6 +5521,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $ca) {
     # Conditional Access
 write-output "It's a Conditional Access Policy"
+writelog "It's a Conditional Access Policy"
+
 $id = $ca.id
 $Resource = "ConditionalAccess"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5470,6 +5538,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $wingetapp) {
     # Winget App
 write-output "It's a Windows Application"
+writelog "It's a Windows Application"
+
 $id = $wingetapp.id
 $Resource = "deviceAppManagement/mobileApps"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5485,6 +5555,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $win365usersettings) {
     # W365 User Settings
 write-output "It's a W365 User Setting"
+writelog "It's a W365 User Setting"
+
 $id = $win365usersettings.id
 $Resource = "deviceManagement/virtualEndpoint/userSettings"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5500,6 +5572,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $win365provisioning) {
     # W365 Provisioning Policy
 write-output "It's a W365 Provisioning Policy"
+writelog "It's a W365 Provisioning Policy"
+
 $id = $win365provisioning.id
 $Resource = "deviceManagement/virtualEndpoint/provisioningPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5515,6 +5589,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $policysets) {
     # Policy Set
 write-output "It's a Policy Set"
+writelog "It's a Policy Set"
+
 $id = $policysets.id
 $Resource = "deviceAppManagement/policySets"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5530,6 +5606,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $enrollmentconfigs) {
     # Enrollment Config
 write-output "It's an enrollment configuration"
+writelog "It's an enrollment configuration"
+
 $id = $enrollmentconfigs.id
 $Resource = "deviceManagement/deviceEnrollmentConfigurations"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5545,6 +5623,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $devicecategories) {
     # Device Categories
 write-output "It's a device category"
+writelog "It's a device category"
+
 $id = $devicecategories.id
 $Resource = "deviceManagement/deviceCategories"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5560,6 +5640,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $devicefilters) {
     # Device Filter
 write-output "It's a device filter"
+writelog "It's a device filter"
+
 $id = $devicefilters.id
 $Resource = "deviceManagement/assignmentFilters"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5575,6 +5657,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $brandingprofiles) {
     # Branding Profile
 write-output "It's a branding profile"
+writelog "It's a branding profile"
+
 $id = $brandingprofiles.id
 $Resource = "deviceManagement/intuneBrandingProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5590,6 +5674,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $adminapprovals) {
     # Multi-admin approval
 write-output "It's a multi-admin approval"
+writelog "It's a multi-admin approval"
+
 $id = $adminapprovals.id
 $Resource = "deviceManagement/operationApprovalPolicies"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5613,6 +5699,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $intuneterms) {
     # Intune Terms
 write-output "It's a T&C"
+writelog "It's a T&C"
+
 $id = $intuneterms.id
 $Resource = "deviceManagement/termsAndConditions"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5628,6 +5716,8 @@ $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentna
 if ($null -ne $intunerole) {
     # Intune Role
 write-output "It's a role"
+writelog "It's a role"
+
 $id = $intunerole.id
 $Resource = "deviceManagement/roleDefinitions"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
@@ -5668,6 +5758,8 @@ $backupreason = [Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
 
 if ($repotype -eq "github") {
     write-output "Uploading to Github"
+    writelog "Uploading to Github"
+
 ##Upload to GitHub
 $date =get-date -format yyMMddHHmmss
 $date = $date.ToString()
@@ -5680,6 +5772,8 @@ $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
 }
 if ($repotype -eq "gitlab") {
     write-output "Uploading to GitLab"
+    writelog "Uploading to GitLab"
+
 ##Upload to GitLab
 $date = Get-Date -Format yyMMddHHmmss
 $date = $date.ToString()
@@ -5714,6 +5808,8 @@ $date = $date.ToString()
 
     $filename = $tenant+"-intunebackup-"+$date+".json"
     write-output "Uploading to Azure DevOps"
+    writelog "Uploading to Azure DevOps"
+
     Add-DevopsFile -repo $reponame -project $project -organization $ownername -filename $filename -filecontent $profilesjson -token $token -comment $backupreason
 
 }
@@ -5734,9 +5830,15 @@ $date = $date.ToString()
 
 if ($type -eq "restore") {
 ##Grab the groups
+write-output "Grabbing Groups"
+writelog "Grabbing Groups"
+
 $allgroups = getallgroups
 
 ##Grab the filters
+write-output "Grabbing Filters"
+writelog "Grabbing Filters"
+
 $allfilters = getallfilters
         
 ###############################################################################################################
@@ -5752,16 +5854,20 @@ if ($repotype -eq "github") {
 
     
     write-output "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
+    writelog "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
+
     $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
     $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
-    $events2 = $events | Select-object message, url| Out-GridView -PassThru -Title "Select Backup to View"
-        ForEach ($event in $events2) 
+    $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"        
+    ForEach ($event in $events2) 
         {
     $eventsuri = $event.url
     $commitid = Split-Path $eventsuri -Leaf
     $commituri = "https://api.github.com/repos/$ownername/$reponame/commits/$commitid"
     $commitfilename = ((Invoke-RestMethod -Uri $commituri -Method Get -Headers @{'Authorization'='token '+$token; 'Accept'='application/json'}).Files).raw_url
     write-output "$commitfilename Found"
+    writelog "$commitfilename Found"
+
     }
     
     
@@ -5788,9 +5894,11 @@ if ($repotype -eq "github") {
     
         
         write-output "Finding Latest Backup Commit from Project $project in GitLab"
+        writelog "Finding Latest Backup Commit from Project $project in GitLab"
+
         $CommitsUrl = "$GitLabUrl/projects/$project/repository/commits"
         $events = Invoke-RestMethod -Uri $CommitsUrl -Method Get -Headers $Headers
-        $events2 = $events | Select-object message, web_url| Out-GridView -PassThru -Title "Select Backup to View"
+        $events2 = $events | Select-object message, web_url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"
             ForEach ($event in $events2) 
             {
         $eventsuri = $event.web_url
@@ -5799,6 +5907,8 @@ if ($repotype -eq "github") {
         $commit = Invoke-RestMethod -Uri $commitUri -Method Get -Headers $Headers
         $commitFilename = $commit.new_path
         write-output "$commitfilename Found"
+        writelog "$commitfilename Found"
+
         }
         
         
@@ -5823,8 +5933,10 @@ if ($repotype -eq "github") {
         }
         else {
         write-output "Finding Latest Backup Commit from Repo $reponame in $ownername DevOps"
+        writelog "Finding Latest Backup Commit from Repo $reponame in $ownername DevOps"
+
         $events = Get-DevOpsCommits -repo $reponame -project $project -organization $ownername -token $token
-        $events2 = $events | Select-object comment, url| Out-GridView -PassThru -Title "Select Backup to View" 
+        $events2 = $events | Select-object comment, url| Where-Object {($_.comment -notmatch "\blog\b") -and ($_.comment -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View" 
         ForEach ($event in $events2) 
         {
             $eventsuri = $event.url
@@ -5968,6 +6080,7 @@ else {
             ##If policy is conditional access, we need special config
             if ($policyuri -eq "conditionalaccess") {
                 write-output "Creating Conditional Access Policy"
+                writelog "Creating Conditional Access Policy"
                 $uri = "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
                 $oldname = $Policy.DisplayName
                 $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
@@ -5987,10 +6100,15 @@ else {
                # Add the policy
             $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
             try {
+                write-output "Restoring Policy $tname"
+                writelog "Restoring Policy $tname"
+
             $copypolicy = Invoke-MgGraphRequest -Uri $policyuri -Method Post -Body $body  -ContentType "application/json; charset=utf-8"
             ##Assign if selected
             if ($assignments -eq "yes") {
                 write-output "Assignment Selected, assigning policy"
+                writelog "Assignment Selected, assigning policy"
+
                 if ($assignmentjson -ne "No Available Assignment") {
                 $copypolicyid = $copypolicy.id
                 $assignmenturi = $policyuri + "/" + $copypolicyid + "/assign"
@@ -6024,7 +6142,9 @@ else {
 
             ##If policy is an admin template, we need to loop through and add the settings
             if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {
-                
+                write-output "Policy is admin template, restoring values"
+                writelog "Policy is admin template, restoring values"
+
                 ##Check if ID is a string and if not convert it
                 if ($id -is [string]) {
                     $id = $id
@@ -6116,6 +6236,69 @@ else {
 
         ##Clear Tenant Connections
         Disconnect-MgGraph
-        if (!$WebHookData){
-            Stop-Transcript        
+        if (!$WebHookData) {
+            Stop-Transcript  
         }
+                  
+
+            if (($automated -eq "yes") -or ($WebHookData)) {
+                $backupreason = "Log on $tenant"
+
+                ##Ingest it
+                $logcontent = Get-Content -Path $Logfile      
+                ##Encode profiles to base64
+                $logencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($logcontent))
+                ##Upload Logs
+                writelog "Uploading log to Git Repo"
+                if ($repotype -eq "github") {
+                    writelog "Uploading to Github"
+                ##Upload to GitHub
+                $date =get-date -format yyMMddHHmmss
+                $date = $date.ToString()
+                $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
+                $filename = $tenant+"-log-"+$date+".json"
+                $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
+                $message = "$backupreason - $readabledate"
+                $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $logencoded
+                (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
+                }
+                if ($repotype -eq "gitlab") {
+                    writelog "Uploading to GitLab"
+                ##Upload to GitLab
+                $date = Get-Date -Format yyMMddHHmmss
+                $date = $date.ToString()
+                $readabledate = Get-Date -Format dd-MM-yyyy-HH-mm-ss
+                $filename = $tenant + "-log-" + $date + ".json"
+                $GitLabUrl = "https://gitlab.com/api/v4"
+                
+                # Create a new file in the repository
+                $CommitMessage = $backupreason
+                $BranchName = "main"
+                $FileContent = @{
+                    "branch" = $BranchName
+                    "commit_message" = $CommitMessage
+                    "actions" = @(
+                        @{
+                            "action" = "create"
+                            "file_path" = $filename
+                            "content" = $logencoded
+                        }
+                    )
+                }
+                $FileContentJson = $FileContent | ConvertTo-Json -Depth 10
+                $CreateFileUrl = "$GitLabUrl/projects/$project/repository/commits"
+                $Headers = @{
+                    "PRIVATE-TOKEN" = $token
+                }
+                Invoke-RestMethod -Uri $CreateFileUrl -Method Post -Headers $Headers -Body $FileContentJson -ContentType "application/json"
+                }
+                if ($repotype -eq "azuredevops") {
+                    $date =get-date -format yyMMddHHmmss
+                $date = $date.ToString()
+                
+                    $filename = $tenant+"-log-"+$date+".json"
+                    writelog "Uploading to Azure DevOps"
+                    Add-DevopsFile -repo $reponame -project $project -organization $ownername -filename $filename -filecontent $logcontent -token $token -comment $backupreason
+                
+                }
+                }

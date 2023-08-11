@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.3
+.VERSION 4.0.4
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.3
+  Version:        4.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  24/07/2023
+  Last Modified:  11/08/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -48,6 +48,7 @@ In-Line Outputs
   Update: Added option to specify group names
   Update: Fix for Graph SDK v2
   Update: Further fix for SDK v2
+  Update: Added Logging for Runbook
 .EXAMPLE
 N/A
 #>
@@ -91,6 +92,11 @@ $clientid = ((($bodyData.clientid) | out-string).trim())
 $clientsecret = ((($bodyData.clientsecret) | out-string).trim())
 $installgroupname = ((($bodyData.installgroupname) | out-string).trim())
 $uninstallgroupname = ((($bodyData.uninstallgroupname) | out-string).trim())
+$reponame = ((($bodyData.reponame) | out-string).trim())
+$ownername = ((($bodyData.ownername) | out-string).trim())
+$token = ((($bodyData.token) | out-string).trim())
+$project = ((($bodyData.project) | out-string).trim())
+$repotype = ((($bodyData.repotype) | out-string).trim())
 
 $keycheck = ((($bodyData.webhooksecret) | out-string).trim())
 
@@ -113,6 +119,16 @@ $ErrorActionPreference = "Continue"
 $date = get-date -format ddMMyyyy
 Start-Transcript -Path $env:TEMP\intune-$date.log
 
+##Add custom logging for runbook
+$Logfile = "$env:TEMP\intuneauto-$date.log"
+function WriteLog
+{
+Param ([string]$LogString)
+$Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
+$LogMessage = "$Stamp $LogString \n"
+Add-content $LogFile -value $LogMessage
+}
+
 
 
 ##########################################################################################
@@ -121,12 +137,16 @@ Start-Transcript -Path $env:TEMP\intune-$date.log
 ######                                         Install Modules                                           ######
 ###############################################################################################################
 Write-Host "Installing Intune modules if required (current user scope)"
+writelog "Installing Intune modules if required (current user scope)"
 
 Write-Host "Installing Intune modules if required (current user scope)"
+writelog "Installing Intune modules if required (current user scope)"
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name powershell-yaml) {
     Write-Host "PowerShell YAML Already Installed"
+    writelog "PowerShell YAML Already Installed"
+
 } 
 else {
 
@@ -135,10 +155,14 @@ else {
 }
 
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
+writelog "Installing Microsoft Graph modules if required (current user scope)"
+
 
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Groups) {
     Write-Host "Microsoft Graph Already Installed"
+    writelog "Microsoft Graph Already Installed"
+
 } 
 else {
 
@@ -149,6 +173,8 @@ else {
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.DeviceManagement) {
     Write-Host "Microsoft Graph Already Installed"
+    writelog "Microsoft Graph Already Installed"
+
 } 
 else {
 
@@ -159,6 +185,8 @@ else {
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Intune) {
     Write-Host "Microsoft Graph Already Installed"
+    writelog "Microsoft Graph Already Installed"
+
 } 
 else {
 
@@ -169,6 +197,8 @@ else {
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
     Write-Host "Microsoft Graph Already Installed"
+    writelog "Microsoft Graph Already Installed"
+
 } 
 else {
 
@@ -179,6 +209,8 @@ else {
 #Install MS Graph if not available
 if (Get-Module -ListAvailable -Name microsoft.graph.devices.corporatemanagement ) {
     Write-Host "Microsoft Graph Already Installed"
+    writelog "Microsoft Graph Already Installed"
+
 } 
 else {
 
@@ -1151,17 +1183,23 @@ function Invoke-UploadWin32Lob() {
         }
         
         Write-Verbose "Creating application in Intune..."
+        writelog "Creating application in Intune..."
+
         $mobileApp = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/" -Body ($mobileAppBody | ConvertTo-Json) -ContentType "application/json" -OutputType PSObject
         #$mobileApp = New-MgDeviceAppMgtMobileApp -BodyParameter ($mobileAppBody | ConvertTo-Json)
         
         # Get the content version for the new app (this will always be 1 until the new app is committed).
         Write-Verbose "Creating Content Version in the service for the application..."
+        writelog "Creating Content Version in the service for the application..."
+
         $appId = $mobileApp.id
         $contentVersionUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appId/$LOBType/contentVersions"
         $contentVersion = Invoke-MgGraphRequest -method POST -Uri $contentVersionUri -Body "{}"
         
         # Encrypt file and Get File Information
         Write-Verbose "Getting Encryption Information for '$SourceFile'..."
+        writelog "Getting Encryption Information for '$SourceFile'..."
+
         
         $encryptionInfo = @{}
         $encryptionInfo.encryptionKey = $DetectionXML.ApplicationInfo.EncryptionInfo.EncryptionKey
@@ -1183,6 +1221,8 @@ function Invoke-UploadWin32Lob() {
         
         # Create a new file for the app.
         Write-Verbose "Creating a new file entry in Azure for the upload..."
+        writelog "Creating a new file entry in Azure for the upload..."
+
         $contentVersionId = $contentVersion.id
         $fileBody = GetAppFileBody "$FileName" $Size $EncrySize $null
         $filesUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appId/$LOBType/contentVersions/$contentVersionId/files"
@@ -1190,12 +1230,16 @@ function Invoke-UploadWin32Lob() {
             
         # Wait for the service to process the new file request.
         Write-Verbose "Waiting for the file entry URI to be created..."
+        writelog "Waiting for the file entry URI to be created..."
+
         $fileId = $file.id
         $fileUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appId/$LOBType/contentVersions/$contentVersionId/files/$fileId"
         $file = Start-WaitForFileProcessing $fileUri "AzureStorageUriRequest"
         
         # Upload the content to Azure Storage.
         Write-Verbose "Uploading file to Azure Storage..."
+        writelog "Uploading file to Azure Storage..."
+
         
         UploadFileToAzureStorage $file.azureStorageUri "$IntuneWinFile" $fileUri
         
@@ -1204,15 +1248,21 @@ function Invoke-UploadWin32Lob() {
         
         # Commit the file.
         Write-Verbose "Committing the file into Azure Storage..."
+        writelog "Committing the file into Azure Storage..."
+
         $commitFileUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appId/$LOBType/contentVersions/$contentVersionId/files/$fileId/commit"
         Invoke-MgGraphRequest -Uri $commitFileUri -Method POST -Body ($fileEncryptionInfo | ConvertTo-Json)
         
         # Wait for the service to process the commit file request.
         Write-Verbose "Waiting for the service to process the commit file request..."
+        writelog "Waiting for the service to process the commit file request..."
+
         $file = Start-WaitForFileProcessing $fileUri "CommitFile"
         
         # Commit the app.
         Write-Verbose "Committing the file into Azure Storage..."
+        writelog "Committing the file into Azure Storage..."
+
         $commitAppUri = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$appId"
         $commitAppBody = GetAppCommitBody $contentVersionId $LOBType
         Invoke-MgGraphRequest -Method PATCH -Uri $commitAppUri -Body ($commitAppBody | ConvertTo-Json)
@@ -2552,11 +2602,15 @@ else {
 $question = $host.UI.PromptForChoice("Verbose output?", "Do you want verbose output?", ([System.Management.Automation.Host.ChoiceDescription]"&Yes",[System.Management.Automation.Host.ChoiceDescription]"&No"), 1)
 }
 Write-Verbose "Connecting to Microsoft Graph"
+writelog "Connecting to Microsoft Graph"
+
 
 if ($clientid -and $clientsecret -and $tenant) {
 
 Connect-ToGraph -Tenant $tenant -AppId $clientid -AppSecret $clientsecret
 write-output "Graph Connection Established"
+writelog "Graph Connection Established"
+
 }
 else {
 ##Connect to Graph
@@ -2564,6 +2618,8 @@ else {
 Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, Group.ReadWrite.All, GroupMember.ReadWrite.All, openid, profile, email, offline_access"
 }
 Write-Verbose "Graph connection established"
+writelog "Graph connection established"
+
 
 if ($question -eq 0) {
     $VerbosePreference="Continue"
@@ -2591,16 +2647,24 @@ foreach ($pack in $packs) {
     $appname = $pack.Name.Trim()
 
     Write-Verbose "$appname Selected with ID of $appid"
+    writelog "$appname Selected with ID of $appid"
+
 
 
     ##Create Directory
     Write-Verbose "Creating Directory for $appname"
+    writelog "Creating Directory for $appname"
+
     $apppath = "$path\$appid"
     new-item -Path $apppath -ItemType Directory -Force
     Write-Host "Directory $apppath Created"
+    writelog "Directory $apppath Created"
+
 
     ##Create Groups
     Write-Verbose "Creating AAD Groups for $appname"
+    writelog "Creating AAD Groups for $appname"
+
 
     ##Check if Groups have been specified 
 
@@ -2618,6 +2682,8 @@ foreach ($pack in $packs) {
         $installgroup = new-aadgroups -appid $appid -appname $appname -grouptype "Install"
     }
     Write-Host "Created $installgroup for installing $appname"
+    writelog "Created $installgroup for installing $appname"
+
     if ($uninstallgroupname) {
         if ($uninstallgrouptest) {
             $uninstallgroup = $uninstallgrouptest
@@ -2629,41 +2695,58 @@ foreach ($pack in $packs) {
         $uninstallgroup = new-aadgroups -appid $appid -appname $appname -grouptype "Uninstall"
     }
     Write-Host "Created $uninstallgroup for uninstalling $appname"
+    writelog "Created $uninstallgroup for uninstalling $appname"
+
 
     ##Create Install Script
     Write-Verbose "Creating Install Script for $appname"
+    writelog "Creating Install Script for $appname"
+
     $installscript = new-installscript -appid $appid -appname $appname
     $installfilename = "install$appid.ps1"
     $installscriptfile = $apppath + "\" + $installfilename
     $installscript | Out-File $installscriptfile -Encoding utf8
     Write-Host "Script created at $installscriptfile"
+    writelog "Script created at $installscriptfile"
+
 
     ##Create Uninstall Script
     Write-Verbose "Creating Uninstall Script for $appname"
+    writelog "Creating Uninstall Script for $appname"
+
     $uninstallscript = new-uninstallscript -appid $appid -appname $appname
     $uninstallfilename = "uninstall$appid.ps1"
     $uninstallscriptfile = $apppath + "\" + $uninstallfilename
     $uninstallscript | Out-File $uninstallscriptfile -Encoding utf8
     Write-Host "Script created at $uninstallscriptfile"
+    writelog "Script created at $uninstallscriptfile"
+
 
     ##Create Detection Script
     Write-Verbose "Creating Detection Script for $appname"
+    writelog "Creating Detection Script for $appname"
+
     $detectionscript = new-detectionscriptinstall -appid $appid -appname $appname
     $detectionscriptfile = $apppath + "\detection$appid.ps1"
     $detectionscript | Out-File $detectionscriptfile -Encoding utf8
     Write-Host "Script created at $detectionscriptfile"
+    writelog "Script created at $detectionscriptfile"
 
 
     ##Create Proac
     Write-Verbose "Creation Proactive Remediation for $appname"
+    writelog "Creation Proactive Remediation for $appname"
     new-proac -appid $appid -appname $appname -groupid $installgroup
     Write-Host "Proactive Remediation Created and Assigned for $appname"
+    writelog "Proactive Remediation Created and Assigned for $appname"
 
     ##Create IntuneWin
     Write-Verbose "Creating Intunewin File for $appname"
+    writelog "Creating Intunewin File for $appname"
     $intunewinpath = $apppath + "\install$appid.intunewin"
     new-intunewinfile -appid $appid -appname $appname -apppath $apppath -setupfilename $installscriptfile
     Write-Host "Intunewin $intunewinpath Created"
+    writelog "Intunewin $intunewinpath Created"
     $sleep = 10
     foreach ($i in 0..$sleep) {
         Write-Progress -Activity "Sleeping for $($sleep-$i) seconds" -PercentComplete ($i / $sleep * 100) -SecondsRemaining ($sleep - $i)
@@ -2671,19 +2754,25 @@ foreach ($pack in $packs) {
     }
     ##Create and upload Win32
     Write-Verbose "Uploading $appname to Intune"
+    writelog "Uploading $appname to Intune"
     $installcmd = "powershell.exe -ExecutionPolicy Bypass -File $installfilename"
     $uninstallcmd = "powershell.exe -ExecutionPolicy Bypass -File $uninstallfilename"
     new-win32app -appid $appid -appname $appname -appfile $intunewinpath -installcmd $installcmd -uninstallcmd $uninstallcmd -detectionfile $detectionscriptfile
     Write-Host "$appname Created and uploaded"
+    writelog "$appname Created and uploaded"
 
     ##Assign Win32
     Write-Verbose "Assigning Groups"
+    writelog "Assigning Groups"
     grant-win32app -appname $appname -installgroup $installgroup -uninstallgroup $uninstallgroup
     Write-Host "Assigned $installgroup as Required Install to $appname"
+    writelog "Assigned $installgroup as Required Install to $appname"
     Write-Host "Assigned $uninstallgroup as Required Uninstall to $appname"
+    writelog "Assigned $uninstallgroup as Required Uninstall to $appname"
 
     ##Done
     Write-Host "$appname packaged and deployed"
+    writelog "$appname packaged and deployed"
 
 }
 Disconnect-MgGraph
@@ -2691,4 +2780,71 @@ if ($question -eq 0) {
     $VerbosePreference="SilentlyContinue"
 }
 Write-Host "👍 Selected apps have been deployed to Intune" -ForegroundColor Green
-Stop-Transcript
+
+
+if (!$WebHookData) {
+    Stop-Transcript  
+}
+          
+
+    if ($WebHookData) {
+        $backupreason = "Log on $tenant"
+
+        ##Ingest it
+        $logcontent = Get-Content -Path $Logfile      
+        ##Encode profiles to base64
+        $logencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($logcontent))
+        ##Upload Logs
+        writelog "Uploading log to Git Repo"
+        if ($repotype -eq "github") {
+            writelog "Uploading to Github"
+        ##Upload to GitHub
+        $date =get-date -format yyMMddHHmmss
+        $date = $date.ToString()
+        $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
+        $filename = $tenant+"-log-"+$date+".json"
+        $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
+        $message = "$backupreason - $readabledate"
+        $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $logencoded
+        (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
+        }
+        if ($repotype -eq "gitlab") {
+            writelog "Uploading to GitLab"
+        ##Upload to GitLab
+        $date = Get-Date -Format yyMMddHHmmss
+        $date = $date.ToString()
+        $readabledate = Get-Date -Format dd-MM-yyyy-HH-mm-ss
+        $filename = $tenant + "-log-" + $date + ".json"
+        $GitLabUrl = "https://gitlab.com/api/v4"
+        
+        # Create a new file in the repository
+        $CommitMessage = $backupreason
+        $BranchName = "main"
+        $FileContent = @{
+            "branch" = $BranchName
+            "commit_message" = $CommitMessage
+            "actions" = @(
+                @{
+                    "action" = "create"
+                    "file_path" = $filename
+                    "content" = $logencoded
+                }
+            )
+        }
+        $FileContentJson = $FileContent | ConvertTo-Json -Depth 10
+        $CreateFileUrl = "$GitLabUrl/projects/$project/repository/commits"
+        $Headers = @{
+            "PRIVATE-TOKEN" = $token
+        }
+        Invoke-RestMethod -Uri $CreateFileUrl -Method Post -Headers $Headers -Body $FileContentJson -ContentType "application/json"
+        }
+        if ($repotype -eq "azuredevops") {
+            $date =get-date -format yyMMddHHmmss
+        $date = $date.ToString()
+        
+            $filename = $tenant+"-log-"+$date+".json"
+            writelog "Uploading to Azure DevOps"
+            Add-DevopsFile -repo $reponame -project $project -organization $ownername -filename $filename -filecontent $logcontent -token $token -comment $backupreason
+        
+        }
+        }
