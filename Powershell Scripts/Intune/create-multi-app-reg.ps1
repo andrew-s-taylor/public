@@ -205,6 +205,14 @@ $params = @{
                 @{
                     Id = "1c6e93a6-28e2-4cbb-9f64-1a46a821124d"
                     Type = "Role"
+                },
+                @{
+                    Id = "b0afded3-3588-46d8-8b3d-9842eff778da"
+                    Type = "Role"
+                },
+                @{
+                    Id = "b633e1c5-b582-4048-a93e-9f11b44c7e96"
+                    Type = "Role"
                 }
             )
         }
