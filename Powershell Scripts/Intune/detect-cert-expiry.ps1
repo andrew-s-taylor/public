@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 1000d8c2-73b3-48a8-b1ec-f894fec7df58
 .AUTHOR AndrewTaylor
 .DESCRIPTION Alerts when a certificate is due to expire
@@ -162,7 +162,7 @@ write-host "Graph Connection Established"
 #MDM Push
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $pushuri = "https://graph.microsoft.com/beta/deviceManagement/applePushNotificationCertificate"
-$pushcert = (Invoke-RestMethod -Uri $pushuri -Headers $headers -Method Get)
+$pushcert = Invoke-MgGraphRequest -Uri $pushuri -Method Get -OutputType PSObject
 $pushexpiryplaintext = $pushcert.expirationDateTime
 $pushexpiry = ($pushcert.expirationDateTime).ToString("yyyy-MM-dd")
 if ($pushexpiry -lt $30days) {
@@ -204,7 +204,7 @@ write-host "All fine" -ForegroundColor Green
 #VPP
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $vppuri = "https://graph.microsoft.com/beta/deviceAppManagement/vppTokens"
-$vppcert = (Invoke-RestMethod -Uri $vppuri -Headers $headers -Method Get)
+$vppcert = Invoke-MgGraphRequest -Uri $vppuri -Method Get -OutputType PSObject
 $vppexpiryvalue = $vppcert.value
 $vppexpiryplaintext = $vppexpiryvalue.expirationDateTime
 $vppexpiry = ($vppexpiryvalue.expirationDateTime).ToString("yyyy-MM-dd")
@@ -249,7 +249,7 @@ write-host "All fine" -ForegroundColor Green
 #DEP
 $30days = ((get-date).AddDays(30)).ToString("yyyy-MM-dd")
 $depuri = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
-$depcert = (Invoke-RestMethod -Uri $depuri -Headers $headers -Method Get)
+$depcert = Invoke-MgGraphRequest -Uri $depuri -Method Get -OutputType PSObject
 $depexpiryvalue = $depcert.value
 $depexpiryplaintext = $depexpiryvalue.tokenexpirationDateTime
 
