@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID 1000d8c2-73b3-48a8-b1ec-f894fec7df58
 .AUTHOR AndrewTaylor
 .DESCRIPTION Alerts when a certificate is due to expire
@@ -235,7 +235,7 @@ $BodyJsonsend = @"
                       }
 "@
 
-Invoke-RestMethod -Method POST -Uri $URLsend -Headers $headers -Body $BodyJsonsend
+Invoke-MgGraphRequest -Method POST -Uri $URLsend -Body $BodyJsonsend -ContentType "application/json"
 }
 else {
 write-host "All fine" -ForegroundColor Green
