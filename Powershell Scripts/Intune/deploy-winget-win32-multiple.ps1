@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.4
+.VERSION 4.0.5
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.4
+  Version:        4.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  11/08/2023
+  Last Modified:  31/08/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -49,6 +49,7 @@ In-Line Outputs
   Update: Fix for Graph SDK v2
   Update: Further fix for SDK v2
   Update: Added Logging for Runbook
+  Update: Added support for Available Installation via parameter
 .EXAMPLE
 N/A
 #>
@@ -76,6 +77,8 @@ param
     ,
     [string]$uninstallgroupname #Uninstall group name
     ,
+    [string]$availableinstall #Make available as well, can be Users, Devices, Both or None - default is None
+    ,
     [object] $WebHookData #Webhook data for Azure Automation
 
     )
@@ -97,6 +100,7 @@ $ownername = ((($bodyData.ownername) | out-string).trim())
 $token = ((($bodyData.token) | out-string).trim())
 $project = ((($bodyData.project) | out-string).trim())
 $repotype = ((($bodyData.repotype) | out-string).trim())
+$availableinstall = ((($bodyData.availableinstall) | out-string).trim())
 
 $keycheck = ((($bodyData.webhooksecret) | out-string).trim())
 
@@ -113,7 +117,13 @@ if ($keycheck -ne $webhooksecret) {
 
 }
 
+##Check if Available Install is set, if not set to None
+if ((!$availableinstall)) {
+    write-output "Available Not Set"
+$availableinstall = "None"
+}
 
+write-output $availableinstall
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
 $date = get-date -format ddMMyyyy
@@ -2506,7 +2516,8 @@ function grant-win32app {
     (
         $appname,
         $installgroup,
-        $uninstallgroup
+        $uninstallgroup,
+        $availableinstall
     )
     $Application = Get-IntuneApplication | where-object { $_.displayName -eq "$appname" -and $_.description -like "*Winget*" }
     #Install
@@ -2519,7 +2530,8 @@ function grant-win32app {
     $ApplicationId = $Application.id
     $TargetGroupId = $uninstallgroup
     $InstallIntent = "uninstall"
-    $JSON = @"
+
+    $JSON1 = @"
     
     {
         "mobileAppAssignments": [
@@ -2539,10 +2551,101 @@ function grant-win32app {
             },
             "intent": "$InstallIntent"
         }
-        ]
-    }
     
 "@
+
+##Switch on available install for Devices, Users, Both or None
+switch ($availableinstall) {
+    "Device" {
+        write-output "Making available for devices"
+       $JSON2 = @"
+       ,{
+        "@odata.type": "#microsoft.graph.mobileAppAssignment",
+        "intent": "Available",
+        "settings": {
+            "@odata.type": "#microsoft.graph.win32LobAppAssignmentSettings",
+            "deliveryOptimizationPriority": "foreground",
+            "installTimeSettings": null,
+            "notifications": "showAll",
+            "restartSettings": null
+        },
+        "target": {
+            "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+        }
+    }
+"@
+break;
+    }
+    "User" {
+        write-output "Making Available for Users"
+        $JSON2 = @"
+        ,{
+			"@odata.type": "#microsoft.graph.mobileAppAssignment",
+			"intent": "Available",
+			"settings": {
+				"@odata.type": "#microsoft.graph.win32LobAppAssignmentSettings",
+				"deliveryOptimizationPriority": "foreground",
+				"installTimeSettings": null,
+				"notifications": "showAll",
+				"restartSettings": null
+			},
+			"target": {
+				"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+			}
+		}
+"@
+break;
+    }
+    "Both" {
+        write-output "Making Available for Users and Devices"
+       $JSON2 = @"
+       ,{
+        "@odata.type": "#microsoft.graph.mobileAppAssignment",
+        "intent": "Available",
+        "settings": {
+            "@odata.type": "#microsoft.graph.win32LobAppAssignmentSettings",
+            "deliveryOptimizationPriority": "foreground",
+            "installTimeSettings": null,
+            "notifications": "showAll",
+            "restartSettings": null
+        },
+        "target": {
+            "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+        }
+    },
+    {
+        "@odata.type": "#microsoft.graph.mobileAppAssignment",
+        "intent": "Available",
+        "settings": {
+            "@odata.type": "#microsoft.graph.win32LobAppAssignmentSettings",
+            "deliveryOptimizationPriority": "foreground",
+            "installTimeSettings": null,
+            "notifications": "showAll",
+            "restartSettings": null
+        },
+        "target": {
+            "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+        }
+    }
+"@
+break;
+    }
+    "None" {
+        write-output "No Available Intent"
+       $JSON2 = ""
+       break;
+    }
+    Default {
+        $JSON2 = ""
+    }
+}
+    $JSON3 = @"
+    ]
+}
+
+"@
+
+$JSON = $JSON1 + $JSON2 + $JSON3
     Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/$ApplicationId/assign" -Method POST -Body $JSON
     
 }
@@ -2764,7 +2867,7 @@ foreach ($pack in $packs) {
     ##Assign Win32
     Write-Verbose "Assigning Groups"
     writelog "Assigning Groups"
-    grant-win32app -appname $appname -installgroup $installgroup -uninstallgroup $uninstallgroup
+    grant-win32app -appname $appname -installgroup $installgroup -uninstallgroup $uninstallgroup -availableinstall $availableinstall
     Write-Host "Assigned $installgroup as Required Install to $appname"
     writelog "Assigned $installgroup as Required Install to $appname"
     Write-Host "Assigned $uninstallgroup as Required Uninstall to $appname"
