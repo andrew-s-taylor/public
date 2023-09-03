@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.1.1
+  Version:        6.2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 11/08/2023
+  Updated: 03/09/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -66,6 +66,7 @@ Creates a log file in %Temp%
   Change: Added support for assignments
   Change: Added support for GitLab
   Change: Added logging during runbook
+  Change: Added support for template creation
 
 
   .EXAMPLE
@@ -124,6 +125,10 @@ param
     ,
     [string]$groupcreate #Create groups if they don't exist, works with assignments
     ,
+    [string]$template #Used with backup, adds "template" to the filename, can be "yes" or "no"
+    ,
+    [string]$templatename #Used with backup, adds a name to the template
+    ,
     [object] $WebHookData #Webhook data for Azure Automation
 
     )
@@ -148,6 +153,8 @@ $policyid = ((($bodyData.policyid) | out-string).trim())
 $postedfilename = ((($bodyData.filename) | out-string).trim())
 $assignments = ((($bodyData.assignments) | out-string).trim())
 $groupcreate = ((($bodyData.groupcreate) | out-string).trim())
+$templatecheck  = ((($bodyData.template) | out-string).trim())
+$templatename  = ((($bodyData.templatename) | out-string).trim())
 
 $keycheck = ((($bodyData.webhooksecret) | out-string).trim())
 
@@ -194,6 +201,12 @@ $namecheck = $PSBoundParameters.ContainsKey('name')
 $idcheck = $PSBoundParameters.ContainsKey('id')
 $clientidcheck = $PSBoundParameters.ContainsKey('clientid')
 $clientsecretcheck = $PSBoundParameters.ContainsKey('clientsecret')
+$templatetest1 = $PSBoundParameters.ContainsKey('template')
+
+if ($templatetest1 -eq $true) {
+    $templatecheck = $template
+}
+
 
 if (($clientidcheck -eq $true) -and ($clientsecretcheck -eq $true)) {
 ##AAD Secret passed, use to login
@@ -5257,7 +5270,7 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     #$orgmessages = Get-OrgMessages -id $id
     $intuneterms = Get-IntuneTerms -id $id
     $intunerole = Get-IntuneRoles -id $id
-    $whfb = get-whfbpolicy -id $id
+    $whfb = get-whfbpolicies -id $id
     }
 
 
@@ -5742,6 +5755,9 @@ $profilesencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($prof
 if ($selected -eq "all") {
 $backupreason = "Automated Backup"
 }
+if ($templatecheck -eq "yes") {
+    $backupreason = "Automated Template"
+    }
 else {
     if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
         $backupreason = "Automated Backup on $id"
@@ -5756,29 +5772,34 @@ $backupreason = [Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
     }
 }
 
+
+$date =get-date -format yyMMddHHmmss
+$date = $date.ToString()
+
+if ($templatecheck -eq "yes") {
+    $filename = $tenant + "-intunebackup-" + $date + "-Template-" + $templatename + ".json"
+}
+else {
+    $filename = $tenant + "-intunebackup-" + $date + ".json"
+}
+
 if ($repotype -eq "github") {
     write-output "Uploading to Github"
     writelog "Uploading to Github"
 
 ##Upload to GitHub
-$date =get-date -format yyMMddHHmmss
-$date = $date.ToString()
 $readabledate = get-date -format dd-MM-yyyy-HH-mm-ss
-$filename = $tenant+"-intunebackup-"+$date+".json"
 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
 $message = "$backupreason - $readabledate"
 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $profilesencoded
-(Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
+(Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token;} -Body $body -ContentType "application/json")
 }
 if ($repotype -eq "gitlab") {
     write-output "Uploading to GitLab"
     writelog "Uploading to GitLab"
 
 ##Upload to GitLab
-$date = Get-Date -Format yyMMddHHmmss
-$date = $date.ToString()
 $readabledate = Get-Date -Format dd-MM-yyyy-HH-mm-ss
-$filename = $tenant + "-intunebackup-" + $date + ".json"
 $GitLabUrl = "https://gitlab.com/api/v4"
 
 # Create a new file in the repository
@@ -5803,10 +5824,7 @@ $Headers = @{
 Invoke-RestMethod -Uri $CreateFileUrl -Method Post -Headers $Headers -Body $FileContentJson -ContentType "application/json"
 }
 if ($repotype -eq "azuredevops") {
-    $date =get-date -format yyMMddHHmmss
-$date = $date.ToString()
 
-    $filename = $tenant+"-intunebackup-"+$date+".json"
     write-output "Uploading to Azure DevOps"
     writelog "Uploading to Azure DevOps"
 
@@ -5857,7 +5875,7 @@ if ($repotype -eq "github") {
     writelog "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
 
     $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
-    $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'}).commit
+    $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
     $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"        
     ForEach ($event in $events2) 
         {
@@ -6260,7 +6278,7 @@ else {
                 $uri = "https://api.github.com/repos/$ownername/$reponame/contents/$filename"
                 $message = "$backupreason - $readabledate"
                 $body = '{{"message": "{0}", "content": "{1}" }}' -f $message, $logencoded
-                (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token; 'Accept'='Accept: application/vnd.github+json'} -Body $body -ContentType "application/json")
+                (Invoke-RestMethod -Uri $uri -Method put -Headers @{'Authorization'='bearer '+$token;} -Body $body -ContentType "application/json")
                 }
                 if ($repotype -eq "gitlab") {
                     writelog "Uploading to GitLab"

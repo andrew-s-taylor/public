@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.4
+.VERSION 2.0.0
 .GUID 26fabcfd-1773-409e-a952-a8f94fbe660b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
@@ -28,16 +28,17 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.4
+  Version:        2.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  15/08/2023
+  Last Modified:  02/09/2023
   Purpose/Change: Initial script development
   Change: Amended to grab latest supported versions
   Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
   Change: Added Organization.Read.All to scopes
+  Change: Added support for multiple languages
 .EXAMPLE
 N/A
 #>
@@ -430,6 +431,29 @@ if ($selectedos.Major -eq 10) {
 }
 write-host "$selectedname Chosen"
 
+##Prompt for language
+$url = "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/available-language-packs-for-windows?view=windows-11"
+$content = (Invoke-WebRequest -Uri $url -UseBasicParsing).content
+
+# Use regex to extract the first table from the HTML content
+$tableRegex = '<table.*?>(.*?)</table>'
+$tableMatches = [regex]::Matches($content, $tableRegex, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+$firstTable = $tableMatches[0].Value
+$rowRegex = '<tr.*?>\s*<td.*?>.*?</td>\s*<td.*?>(.*?)</td>'
+$rowMatches = [regex]::Matches($firstTable, $rowRegex, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+
+$rowgroups = $rowMatches.Groups
+$languages = @()
+foreach ($row in $rowgroups) {
+    $secondColumnContent = [regex]::Match($row.Value, '<td.*?>(.*?)</td>\s*<td.*?>(.*?)</td>').Groups[2].Value
+    if ($secondColumnContent) {
+        if ($secondColumnContent -notlike "*<p>*") {
+    $languages += $secondColumnContent
+        }
+    }
+}
+
+$selectedlanguage = $languages | Out-GridView -Title "Select a Language" -PassThru
 
 ##Download Fido
 write-host "Downloading Fido"
@@ -439,7 +463,7 @@ Invoke-WebRequest -Uri $fidourl -OutFile $fidopath -UseBasicParsing
 write-host "Fido Downloaded"
 ##Run Fido
 # Set the parameters
-$Locale = "en-US"
+$Locale = $selectedlanguage
 $Win = $selectedos.Major
 $Rel = $selectedos.Minor
 $Ed = "Pro"
