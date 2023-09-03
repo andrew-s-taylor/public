@@ -1,0 +1,14 @@
+trigger:
+- main
+
+pool:
+  vmImage: windows-latest
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- task: PowerShell@2
+  inputs:
+    filePath: '.\publish-to-gallery.ps1'
+    arguments: -url $(URL) -ownername $(ownername) -reponame $(reponame) -token $(token) -key $(key)
