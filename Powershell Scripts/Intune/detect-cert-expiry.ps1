@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.3
+.VERSION 1.0.4
 .GUID 1000d8c2-73b3-48a8-b1ec-f894fec7df58
 .AUTHOR AndrewTaylor
 .DESCRIPTION Alerts when a certificate is due to expire
@@ -43,36 +43,6 @@ $MailSender = "<YOUR FROM ADDRESS>"
 
 
 ##############################################################################################################################################
-
-Function Get-ScriptVersion(){
-    
-  <#
-  .SYNOPSIS
-  This function is used to check if the running script is the latest version
-  .DESCRIPTION
-  This function checks GitHub and compares the 'live' version with the one running
-  .EXAMPLE
-  Get-ScriptVersion
-  Returns a warning and URL if outdated
-  .NOTES
-  NAME: Get-ScriptVersion
-  #>
-  
-  [cmdletbinding()]
-  
-  param
-  (
-      $liveuri
-  )
-$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
-$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
-$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
-$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
-if ($liveversion -ne $currentversion) {
-write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
-}
-}
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/detect-cert-expiry.ps1"
 
 
 Function Connect-ToGraph {
