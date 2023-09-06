@@ -28,17 +28,18 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.0
+  Version:        2.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  02/09/2023
+  Last Modified:  06/09/2023
   Purpose/Change: Initial script development
   Change: Amended to grab latest supported versions
   Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
   Change: Added Organization.Read.All to scopes
   Change: Added support for multiple languages
+  Change: Languages fix
 .EXAMPLE
 N/A
 #>
@@ -432,6 +433,7 @@ if ($selectedos.Major -eq 10) {
 write-host "$selectedname Chosen"
 
 ##Prompt for language
+write-output "Select a language"
 $url = "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/available-language-packs-for-windows?view=windows-11"
 $content = (Invoke-WebRequest -Uri $url -UseBasicParsing).content
 
@@ -455,6 +457,51 @@ foreach ($row in $rowgroups) {
 
 $selectedlanguage = $languages | Out-GridView -Title "Select a Language" -PassThru
 
+write-host "$selectedlanguage Chosen"
+
+##Convert to text
+switch ($selectedlanguage) {
+    "ar-SA" { $Locale = "Arabic" }
+    "pt-BR" { $Locale = "Brazilian Portuguese" }
+    "bg-BG" { $Locale = "Bulgarian" }
+    "zh-CN" { $Locale = "Chinese (Simplified)" }
+    "zh-TW" { $Locale = "Chinese (Traditional)" }
+    "hr-HR" { $Locale = "Croatian" }
+    "cs-CZ" { $Locale = "Czech" }
+    "da-DK" { $Locale = "Danish" }
+    "nl-NL" { $Locale = "Dutch" }
+    "en-US" { $Locale = "English" }
+    "en-GB" { $Locale = "English International" }
+    "et-EE" { $Locale = "Estonian" }
+    "fi-FI" { $Locale = "Finnish" }
+    "fr-FR" { $Locale = "French" }
+    "fr-CA" { $Locale = "French Canadian" }
+    "de-DE" { $Locale = "German" }
+    "el-GR" { $Locale = "Greek" }
+    "he-IL" { $Locale = "Hebrew" }
+    "hu-HU" { $Locale = "Hungarian" }
+    "it-IT" { $Locale = "Italian" }
+    "ja-JP" { $Locale = "Japanese" }
+    "ko-KR" { $Locale = "Korean" }
+    "lv-LV" { $Locale = "Latvian" }
+    "lt-LT" { $Locale = "Lithuanian" }
+    "nb-NO" { $Locale = "Norwegian" }
+    "pl-PL" { $Locale = "Polish" }
+    "pt-PT" { $Locale = "Portuguese" }
+    "ro-RO" { $Locale = "Romanian" }
+    "ru-RU" { $Locale = "Russian" }
+    "sr-Latn-RS" { $Locale = "Serbian Latin" }
+    "sk-SK" { $Locale = "Slovak" }
+    "sl-SI" { $Locale = "Slovenian" }
+    "es-ES" { $Locale = "Spanish" }
+    "es-MX" { $Locale = "Spanish (Mexico)" }
+    "sv-SE" { $Locale = "Swedish" }
+    "th-TH" { $Locale = "Thai" }
+    "tr-TR" { $Locale = "Turkish" }
+    "uk-UA" { $Locale = "Ukrainian" }
+    default { $Locale = $selectedlanguage }
+}
+
 ##Download Fido
 write-host "Downloading Fido"
 $fidourl = "https://raw.githubusercontent.com/pbatard/Fido/master/Fido.ps1"
@@ -463,17 +510,17 @@ Invoke-WebRequest -Uri $fidourl -OutFile $fidopath -UseBasicParsing
 write-host "Fido Downloaded"
 ##Run Fido
 # Set the parameters
-$Locale = $selectedlanguage
 $Win = $selectedos.Major
 $Rel = $selectedos.Minor
 $Ed = "Pro"
 $GetUrl = $true
 write-host "Grabbing ISO URL"
 # Build the command string
-$Command = "$fidopath -Locale $Locale -Win $Win -Rel $Rel -Ed $Ed -GetUrl"
+$Command = "$fidopath -Lang '$Locale' -Win $Win -Rel $Rel -Ed $Ed -GetUrl"
 
 # Run the command and store the output in a variable
 $windowsuri = Invoke-Expression $Command
+
 
 # Display the output
 Write-Output $windowsuri
