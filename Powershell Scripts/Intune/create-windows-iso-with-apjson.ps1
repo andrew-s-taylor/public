@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.0.1
+.VERSION 3.0.0
 .GUID 26fabcfd-1773-409e-a952-a8f94fbe660b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
@@ -28,18 +28,19 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        2.0.1
+  Version:        3.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  06/09/2023
+  Last Modified:  12/09/2023
   Purpose/Change: Initial script development
   Change: Amended to grab latest supported versions
   Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
   Change: Added Organization.Read.All to scopes
   Change: Added support for multiple languages
   Change: Languages fix
+  Change: Added support to select version
 .EXAMPLE
 N/A
 #>
@@ -424,12 +425,6 @@ $object  = foreach($option in $options){new-object psobject -Property @{'Pick yo
 $osinput   = $object | Out-GridView -Title "Windows Selection" -PassThru
 $selectedname = $osinput.'Pick your Option'
 $selectedos = $allversions | Where-Object Name -eq "$selectedname"
-if ($selectedos.Major -eq 11) {
-    $imageindex = 6
-}
-if ($selectedos.Major -eq 10) {
-    $imageindex = 5
-}
 write-host "$selectedname Chosen"
 
 ##Prompt for language
@@ -547,6 +542,25 @@ write-host "Drive Letter is $ISODrive"
 write-host "Copying ISO Contents"
 $copyisofules = Copy-Item -Path $isodrive":" -Destination $isocontents -Recurse
 write-host "Copying Complete"
+##Select Image
+write-host "Select Windows Version"
+$wimpath = $isodrive+":\sources\install.wim”
+$WinImages = Get-windowsimage -ImagePath $wimpath
+$Report = @()
+Foreach ($WinImage in $WinImages)
+{
+$curImage=Get-WindowsImage -ImagePath $wimpath -Index $WinImage.ImageIndex
+$objImage = [PSCustomObject]@{
+ImageIndex = $curImage.ImageIndex
+ImageName = $curImage.ImageName
+Version = $curImage.Version
+Languages=$curImage.Languages
+Architecture =$curImage.Architecture
+}
+$Report += $objImage
+}
+$imageselection = $Report | Out-GridView -PassThru
+$imageindex = $imageselection.ImageIndex
 ##Copy the WIM to mount
 write-host "Copying temporary WIM for manipulation"
 $copywim = copy-item $wimname $wimnametemp
