@@ -98,7 +98,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
     }
 }    
 
-Connect-ToGraph -Scopes "Application.Read.All","Application.ReadWrite.All","User.Read.All"
+Connect-ToGraph -Scopes "Application.Read.All,Application.ReadWrite.All,User.Read.All"
 
 
 function Get-RandomPassword {
