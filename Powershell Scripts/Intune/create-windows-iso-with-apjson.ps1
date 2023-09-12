@@ -16,7 +16,7 @@
 #>
 <#
 .SYNOPSIS
-  Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
+Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
 .DESCRIPTION
 .Downloads latest windows ISO
 .Grabs Autopilot Profile
@@ -544,7 +544,7 @@ $copyisofules = Copy-Item -Path $isodrive":" -Destination $isocontents -Recurse
 write-host "Copying Complete"
 ##Select Image
 write-host "Select Windows Version"
-$wimpath = $isodrive+":\sources\install.wim”
+$wimpath = $isodrive+":\sources\install.wim"
 $WinImages = Get-windowsimage -ImagePath $wimpath
 $Report = @()
 Foreach ($WinImage in $WinImages)
