@@ -229,7 +229,7 @@ $win10groupexist = (get-mggroup -filter "displayName eq '$w10groupname'").id
 ##Check if group exists
 write-host "Checking if Windows 11 Group Exists"
 if ($null -ne $win11groupexist) {
-    $allmembers = get-mggroupmember -GroupId $win11groupexist
+    $allmembers = get-mggroupmember -All -GroupId $win11groupexist
 ##It exists, add members
 write-host "Windows 11 Group Exists, adding members"
 foreach ($compliantdevice in $compliantdevices) {
@@ -248,7 +248,7 @@ else {
 write-host "Windows 11 Group does not exist, creating it"
 $win11group = new-mggroup -DisplayName $w11groupname -Description "Devices Compliant with Windows 11" -SecurityEnabled -mailEnabled:$false -MailNickname $w11groupname
 $win11groupid = $win11group.id
-$allmembers = get-mggroupmember -GroupId $win11groupid
+$allmembers = get-mggroupmember -All -GroupId $win11groupid
 foreach ($compliantdevice in $compliantdevices) {
     $compliantdeviceid = ($alldevices | Where-Object displayName -eq $compliantdevice).id
 
@@ -265,7 +265,7 @@ foreach ($compliantdevice in $compliantdevices) {
 
 ##Windows 10
 if ($null -ne $win10groupexist) {
-    $allmembers = get-mggroupmember -GroupId $win10groupexist
+    $allmembers = get-mggroupmember -All -GroupId $win10groupexist
 ##It exists, add members
 write-host "Windows 10 Group Exists, adding members"
 foreach ($compliantdevice in $compliantdevices) {
@@ -284,7 +284,7 @@ else {
 write-host "Windows 10 Group does not exist, creating it"
 $win10group = new-mggroup -DisplayName $w10groupname -Description "Devices Not Compliant with Windows 10" -SecurityEnabled -MailEnabled:$false -MailNickname $w10groupname
 $win10groupid = $win10group.id
-$allmembers = get-mggroupmember -GroupId $win10groupid
+$allmembers = get-mggroupmember -All -GroupId $win10groupid
 foreach ($compliantdevice in $compliantdevices) {
     $compliantdeviceid = ($alldevices | Where-Object displayName -eq $compliantdevice).id
 
