@@ -10,7 +10,7 @@ None
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.2
+  Version:        2.0.0
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  26/01/2023
@@ -21,7 +21,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 2.0.0
 .GUID 1bcfb95b-ab34-48c5-92de-ff191763c471
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -79,6 +79,37 @@ write-host "Script has been updated, please download the latest version from $li
 }
 Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/dynamic-windows-upgrade-groups-intune.ps1"
 
+function getallpagination () {
+    <#
+.SYNOPSIS
+This function is used to grab all items from Graph API that are paginated
+.DESCRIPTION
+The function connects to the Graph API Interface and gets all items from the API that are paginated
+.EXAMPLE
+getallpagination -url "https://graph.microsoft.com/v1.0/groups"
+ Returns all items
+.NOTES
+ NAME: getallpagination
+#>
+[cmdletbinding()]
+    
+param
+(
+    $url
+)
+    $response = (Invoke-MgGraphRequest -uri $url -Method Get -OutputType PSObject)
+    $alloutput = $response.value
+    
+    $alloutputNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $alloutputNextLink) {
+        $alloutputResponse = (Invoke-MGGraphRequest -Uri $alloutputNextLink -Method Get -outputType PSObject)
+        $alloutputNextLink = $alloutputResponse."@odata.nextLink"
+        $alloutput += $alloutputResponse.value
+    }
+    
+    return $alloutput
+    }
 
 ##Connect to Graph
 Function Connect-ToGraph {
@@ -163,7 +194,7 @@ Connect-ToGraph -Scopes "Device.Read.All, User.Read.All, Domain.Read.All, Direct
 write-host "Inspecting devices for Windows 11 compliance"
 $reporturi = "https://graph.microsoft.com/beta/deviceManagement/userExperienceAnalyticsWorkFromAnywhereMetrics('allDevices')/metricDevices?`$select=id,deviceName,managedBy,manufacturer,model,osDescription,osVersion,upgradeEligibility,azureAdJoinType,upgradeEligibility,ramCheckFailed,storageCheckFailed,processorCoreCountCheckFailed,processorSpeedCheckFailed,tpmCheckFailed,secureBootCheckFailed,processorFamilyCheckFailed,processor64BitCheckFailed,osCheckFailed&dtFilter=all&`$orderBy=osVersion asc"
 
-$reportdata = (invoke-mggraphrequest -uri $reporturi -method GET).value
+$reportdata = getallpagination -url $reporturi
 
 $compliantdevices = @()
 $noncompliantdevices = @()
