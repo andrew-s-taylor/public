@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.4
+.VERSION 1.0.5
 .GUID 7b1c483b-b109-4d45-8abc-84760c84d9d9
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists all discovered apps with drill-down
@@ -25,14 +25,15 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.4
+  Version:        1.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  04/11/2022
-  Updated: 07/02/2023
+  Updated: 19/09/2023
   Purpose/Change: Initial script development
   Change: Added Regex escape for special characters
+  Change: Added pagination for devices
  
 .EXAMPLE
 N/A
@@ -145,7 +146,37 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 
 Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
-
+function getallpagination () {
+    <#
+.SYNOPSIS
+This function is used to grab all items from Graph API that are paginated
+.DESCRIPTION
+The function connects to the Graph API Interface and gets all items from the API that are paginated
+.EXAMPLE
+getallpagination -url "https://graph.microsoft.com/v1.0/groups"
+ Returns all items
+.NOTES
+ NAME: getallpagination
+#>
+[cmdletbinding()]
+    
+param
+(
+    $url
+)
+    $response = (Invoke-MgGraphRequest -uri $url -Method Get -OutputType PSObject)
+    $alloutput = $response.value
+    
+    $alloutputNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $alloutputNextLink) {
+        $alloutputResponse = (Invoke-MGGraphRequest -Uri $alloutputNextLink -Method Get -outputType PSObject)
+        $alloutputNextLink = $alloutputResponse."@odata.nextLink"
+        $alloutput += $alloutputResponse.value
+    }
+    
+    return $alloutput
+    }
 
 Function Get-ScriptVersion(){
     
@@ -182,7 +213,7 @@ Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/pu
 
 ##Grab all devices
 $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices"
-$alldevices = (Invoke-MgGraphRequest -uri $uri -Method GET -OutputType PSObject).value
+$alldevices = getallpagination -url $uri
 
 ##Drop them into an array to save too many nested loops
 $deviceids = @()
