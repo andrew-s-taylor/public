@@ -10,7 +10,7 @@ None
 .OUTPUTS
 None
 .NOTES
-  Version:        3.0.0
+  Version:        3.0.1
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  26/01/2023
@@ -21,7 +21,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 3.0.0
+.VERSION 3.0.1
 .GUID 1bcfb95b-ab34-48c5-92de-ff191763c471
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -268,14 +268,14 @@ if ($null -ne $win10groupexist) {
     $allmembers = get-mggroupmember -All -GroupId $win10groupexist
 ##It exists, add members
 write-host "Windows 10 Group Exists, adding members"
-foreach ($compliantdevice in $compliantdevices) {
-    $compliantdeviceid = ($alldevices | Where-Object displayName -eq $compliantdevice).id
+foreach ($noncompliantdevice in $noncompliantdevices) {
+    $noncompliantdeviceid = ($alldevices | Where-Object displayName -eq $noncompliantdevice).id
     ##Check if already in the group
-    write-host "Checking if $compliantdevice is already in the group"
-    $groupmember = ($allmembers) | where-object ID -eq $compliantdeviceid
+    write-host "Checking if $noncompliantdevice is already in the group"
+    $groupmember = ($allmembers) | where-object ID -eq $noncompliantdeviceid
     if ($null -eq $groupmember) {
-    write-host "Adding $compliantdevice to the group"
-   new-mggroupmember -GroupId $win10groupexist -DirectoryObjectId  $compliantdeviceid
+    write-host "Adding $noncompliantdevice to the group"
+   new-mggroupmember -GroupId $win10groupexist -DirectoryObjectId  $noncompliantdeviceid
     }
 }
 }
@@ -285,15 +285,15 @@ write-host "Windows 10 Group does not exist, creating it"
 $win10group = new-mggroup -DisplayName $w10groupname -Description "Devices Not Compliant with Windows 10" -SecurityEnabled -MailEnabled:$false -MailNickname $w10groupname
 $win10groupid = $win10group.id
 $allmembers = get-mggroupmember -All -GroupId $win10groupid
-foreach ($compliantdevice in $compliantdevices) {
-    $compliantdeviceid = ($alldevices | Where-Object displayName -eq $compliantdevice).id
+foreach ($noncompliantdevice in $noncompliantdevices) {
+    $noncompliantdeviceid = ($alldevices | Where-Object displayName -eq $noncompliantdevice).id
 
     ##Check if already in the group
-    write-host "Checking if $compliantdevice is already in the group"
-    $groupmember = ($allmembers) | where-object ID -eq $compliantdeviceid
+    write-host "Checking if $noncompliantdevice is already in the group"
+    $groupmember = ($allmembers) | where-object ID -eq $noncompliantdeviceid
     if ($null -eq $groupmember) {
-        write-host "Adding $compliantdevice to the group"
-    new-mggroupmember -GroupId $win10groupid -DirectoryObjectId  $compliantdeviceid
+        write-host "Adding $noncompliantdevice to the group"
+    new-mggroupmember -GroupId $win10groupid -DirectoryObjectId  $noncompliantdeviceid
     }
 }
 }
