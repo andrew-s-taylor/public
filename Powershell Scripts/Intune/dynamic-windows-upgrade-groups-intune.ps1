@@ -192,9 +192,9 @@ Connect-ToGraph -Scopes "Device.Read.All, User.Read.All, Domain.Read.All, Direct
 
 ##Get Devices compliant/not compliant with windows 11
 write-host "Inspecting devices for Windows 11 compliance"
-$reporturi = "https://graph.microsoft.com/beta/deviceManagement/userExperienceAnalyticsWorkFromAnywhereMetrics('allDevices')/metricDevices?`$select=id,deviceName,managedBy,manufacturer,model,osDescription,osVersion,upgradeEligibility,azureAdJoinType,upgradeEligibility,ramCheckFailed,storageCheckFailed,processorCoreCountCheckFailed,processorSpeedCheckFailed,tpmCheckFailed,secureBootCheckFailed,processorFamilyCheckFailed,processor64BitCheckFailed,osCheckFailed&dtFilter=all&`$orderBy=osVersion asc"
+$reporturi = "https://graph.microsoft.com/beta/deviceManagement/userExperienceAnalyticsWorkFromAnywhereMetrics('allDevices')/metricDevices?`$select=id,deviceName,upgradeEligibility,azureAdJoinType"
 
-$reportdata = getallpagination -url $reporturi
+$reportdata = (getallpagination -url $reporturi)
 
 $compliantdevices = @()
 $noncompliantdevices = @()
