@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.0.2
+  Version:        3.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -48,6 +48,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 30/05/2023 - Logic to check if gamepresencewriter exists before running Set-ACL to stop errors on re-run
   Change 25/07/2023 - Added Lenovo apps (Thanks to Simon Lilly and Philip Jorgensen)
   Change 31/07/2023 - Added LenovoAssist
+  Change 21/09/2023 - Remove Windows backup for Win10
 .EXAMPLE
 N/A
 #>
@@ -785,8 +786,19 @@ If (!(Test-Path $registryPath)) {
 }
 Set-ItemProperty $registryPath "ChatIcon" -Value 2
 write-host "Removed Teams Chat"
-
-
+############################################################################################################
+#                                           Windows Backup App                                             #
+#                                                                                                          #
+############################################################################################################
+$version = Get-WMIObject win32_operatingsystem | Select-Object Caption
+if ($version.Caption -like "*Windows 10*") {
+    write-host "Removing Windows Backup"
+    $filepath = "C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\WindowsBackup\Assets"
+if (Test-Path $filepath) {
+Remove-WindowsPackage -Online -PackageName "Microsoft-Windows-UserExperience-Desktop-Package~31bf3856ad364e35~amd64~~10.0.19041.3393"
+}
+write-host "Removed"
+}
 
 ############################################################################################################
 #                                             Clear Start Menu                                             #
