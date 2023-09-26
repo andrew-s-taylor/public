@@ -15,7 +15,7 @@ $string2 = $string2 -replace "/I", "/X "
 #Remove msiexec as we need to split for the uninstall
 $string2 = $string2 -replace "msiexec.exe", ""
 #Uninstall with string2 params
-#Start-Process 'msiexec.exe' -ArgumentList $string2 -NoNewWindow -Wait
+Start-Process 'msiexec.exe' -ArgumentList $string2 -NoNewWindow -Wait
 }
 else {
 #Exe installer, run straight path
@@ -43,7 +43,7 @@ $string2 = $string2 -replace "/I", "/X "
 #Remove msiexec as we need to split for the uninstall
 $string2 = $string2 -replace "msiexec.exe", ""
 #Uninstall with string2 params
-#Start-Process 'msiexec.exe' -ArgumentList $string2 -NoNewWindow -Wait
+Start-Process 'msiexec.exe' -ArgumentList $string2 -NoNewWindow -Wait
 }
 else {
 #Exe installer, run straight path
