@@ -110,6 +110,8 @@ write-host "64-bit checks complete"
 write-host "Checking 32-bit User Registry"
 ##Search for 32-bit versions and list them
 $path1 =  "HKCU:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+##Check if path exists
+if (Test-Path $path1) {
 #Loop Through the apps if name has Adobe and NOT reader
 $32apps = Get-ChildItem -Path $path1 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
 
@@ -137,7 +139,7 @@ $allstring += New-Object -TypeName PSObject -Property @{
     String = $string2
 }
 }
-
+}
 }
 write-host "32-bit check complete"
 write-host "Checking 64-bit Use registry"
