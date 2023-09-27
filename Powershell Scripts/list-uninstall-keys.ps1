@@ -1,5 +1,5 @@
 ﻿<#PSScriptInfo
-.VERSION 1.0.0
+.VERSION 1.0.1
 .GUID c693116d-5ab5-4985-9408-f2c0bc7ba499
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists uninstall keys for all items installed.  Can export or display in a grid-view output
@@ -25,7 +25,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.0
+  Version:        1.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -35,8 +35,8 @@ Creates a log file in %Temp%
 .EXAMPLE
 N/A
 #>
-
-write-host "Checking 32-bit Registry"
+##SYSTEM
+write-host "Checking 32-bit System Registry"
 ##Search for 32-bit versions and list them
 $allstring = @()
 $path1 =  "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
@@ -70,10 +70,80 @@ $allstring += New-Object -TypeName PSObject -Property @{
 
 }
 write-host "32-bit check complete"
-write-host "Checking 64-bit registry"
+write-host "Checking 64-bit System registry"
 ##Search for 64-bit versions and list them
 
 $path2 =  "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+#Loop Through the apps if name has Adobe and NOT reader
+$64apps = Get-ChildItem -Path $path2 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
+
+foreach ($64app in $64apps) {
+#Get uninstall string
+$string1 =  $64app.uninstallstring
+#Check if it's an MSI install
+if ($string1 -match "^msiexec*") {
+#MSI install, replace the I with an X and make it quiet
+$string2 = $string1 + " /quiet /norestart"
+$string2 = $string2 -replace "/I", "/X "
+#Remove msiexec as we need to split for the uninstall
+$string2 = $string2 -replace "msiexec.exe", ""
+#Uninstall with string2 params
+$allstring += New-Object -TypeName PSObject -Property @{
+    Name = $64app.DisplayName
+    String = $string2
+}
+}
+else {
+#Exe installer, run straight path
+$string2 = $string1
+$allstring += New-Object -TypeName PSObject -Property @{
+    Name = $64app.DisplayName
+    String = $string2
+}
+}
+
+}
+
+write-host "64-bit checks complete"
+
+##USER
+write-host "Checking 32-bit User Registry"
+##Search for 32-bit versions and list them
+$path1 =  "HKCU:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+#Loop Through the apps if name has Adobe and NOT reader
+$32apps = Get-ChildItem -Path $path1 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
+
+foreach ($32app in $32apps) {
+#Get uninstall string
+$string1 =  $32app.uninstallstring
+#Check if it's an MSI install
+if ($string1 -match "^msiexec*") {
+#MSI install, replace the I with an X and make it quiet
+$string2 = $string1 + " /quiet /norestart"
+$string2 = $string2 -replace "/I", "/X "
+#Remove msiexec as we need to split for the uninstall
+$string2 = $string2 -replace "msiexec.exe", ""
+#Create custom object with name and string
+$allstring += New-Object -TypeName PSObject -Property @{
+    Name = $32app.DisplayName
+    String = $string2
+}
+}
+else {
+#Exe installer, run straight path
+$string2 = $string1
+$allstring += New-Object -TypeName PSObject -Property @{
+    Name = $32app.DisplayName
+    String = $string2
+}
+}
+
+}
+write-host "32-bit check complete"
+write-host "Checking 64-bit Use registry"
+##Search for 64-bit versions and list them
+
+$path2 =  "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 #Loop Through the apps if name has Adobe and NOT reader
 $64apps = Get-ChildItem -Path $path2 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
 
