@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.0.3
+  Version:        3.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -49,6 +49,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 25/07/2023 - Added Lenovo apps (Thanks to Simon Lilly and Philip Jorgensen)
   Change 31/07/2023 - Added LenovoAssist
   Change 21/09/2023 - Remove Windows backup for Win10
+  Change 28/09/2023 - Enabled Diagnostic Tracking for Endpoint Analytics
 .EXAMPLE
 N/A
 #>
@@ -719,10 +720,10 @@ else {
 #                                             Disable Services                                             #
 #                                                                                                          #
 ############################################################################################################
-    Write-Host "Stopping and disabling Diagnostics Tracking Service"
+    ##Write-Host "Stopping and disabling Diagnostics Tracking Service"
     #Disabling the Diagnostics Tracking Service
-    Stop-Service "DiagTrack"
-    Set-Service "DiagTrack" -StartupType Disabled
+    ##Stop-Service "DiagTrack"
+    ##Set-Service "DiagTrack" -StartupType Disabled
 
 
 ############################################################################################################
