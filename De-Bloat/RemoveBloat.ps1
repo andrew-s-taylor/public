@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.0.4
+  Version:        3.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -50,6 +50,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 31/07/2023 - Added LenovoAssist
   Change 21/09/2023 - Remove Windows backup for Win10
   Change 28/09/2023 - Enabled Diagnostic Tracking for Endpoint Analytics
+  Change 02/10/2023 - Lenovo Fix
 .EXAMPLE
 N/A
 #>
@@ -1240,7 +1241,18 @@ if ($manufacturer -like "Lenovo") {
     UninstallApp -appName "Ai Meeting Manager"
 
     # Uninstall ImController service
-    Invoke-Expression -Command 'cmd.exe /c "c:\windows\system32\ImController.InfInstaller.exe" -uninstall'
+    ##Check if exists
+    $path = "c:\windows\system32\ImController.InfInstaller.exe"
+    if (Test-Path $path) {
+        Write-Host "ImController.InfInstaller.exe exists"
+        $uninstall = "cmd /c " + $path + " -uninstall"
+        Write-Host $uninstall
+        Invoke-Expression $uninstall
+    }
+    else {
+        Write-Host "ImController.InfInstaller.exe does not exist"
+    }
+    ##Invoke-Expression -Command 'cmd.exe /c "c:\windows\system32\ImController.InfInstaller.exe" -uninstall'
 
     # Remove vantage associated registry keys
     Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\E046963F.LenovoCompanion_k1h2ywk1493x8' -Recurse -ErrorAction SilentlyContinue
@@ -1249,14 +1261,20 @@ if ($manufacturer -like "Lenovo") {
     Remove-Item 'HKLM:\SOFTWARE\Policies\Lenovo\Commercial Vantage' -Recurse -ErrorAction SilentlyContinue
 
      # Uninstall AI Meeting Manager Service
-     Invoke-Expression -Command 'cmd.exe /c "C:\Program Files\Lenovo\Ai Meeting Manager Service\unins000.exe" /SILENT'
+     $path = 'C:\Program Files\Lenovo\Ai Meeting Manager Service\unins000.exe'
+     $params = "/SILENT"
+     
+     Start-Process -FilePath $path -ArgumentList $params -Wait
 
     # Uninstall Lenovo Vantage
-    Invoke-Expression -Command 'cmd.exe /c "C:\Program Files (x86)\Lenovo\VantageService\3.13.43.0\Uninstall.exe" /SILENT'
+    $path = 'C:\Program Files (x86)\Lenovo\VantageService\3.13.43.0\Uninstall.exe'
+    $params = '/SILENT'
+        Start-Process -FilePath $path -ArgumentList $params -Wait
 
     ##Uninstall Smart Appearance
-    Invoke-Expression -Command 'cmd.exe /c "C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe" /SILENT'
-
+    $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
+    $params = '/SILENT'
+        Start-Process -FilePath $path -ArgumentList $params -Wait
 
 
     # Remove Lenovo Now
