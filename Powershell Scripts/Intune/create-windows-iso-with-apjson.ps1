@@ -28,12 +28,12 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        3.0.0
+  Version:        3.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  12/09/2023
+  Last Modified:  02/10/2023
   Purpose/Change: Initial script development
   Change: Amended to grab latest supported versions
   Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
@@ -41,6 +41,7 @@ In-Line Outputs
   Change: Added support for multiple languages
   Change: Languages fix
   Change: Added support to select version
+  Change: JSON update
 .EXAMPLE
 N/A
 #>
@@ -162,9 +163,9 @@ $oobeSettings = $approfile.outOfBoxExperienceSettings
 
 # Build up properties
 $json = @{}
-$json.Add("Comment_File", "Profile $($_.displayName)")
+$json.Add("Comment_File", "Profile $($approfile.displayName)")
 $json.Add("Version", 2049)
-$json.Add("ZtdCorrelationId", $_.id)
+$json.Add("ZtdCorrelationId", $approfile.id)
 if ($approfile."@odata.type" -eq "#microsoft.graph.activeDirectoryWindowsAutopilotDeploymentProfile") {
     $json.Add("CloudAssignedDomainJoinMethod", 1)
 }
@@ -172,7 +173,7 @@ else {
     $json.Add("CloudAssignedDomainJoinMethod", 0)
 }
 if ($approfile.deviceNameTemplate) {
-    $json.Add("CloudAssignedDeviceName", $_.deviceNameTemplate)
+    $json.Add("CloudAssignedDeviceName", $approfile.deviceNameTemplate)
 }
 
 # Figure out config value
@@ -189,7 +190,7 @@ if ($oobeSettings.hideEULA -eq $true) {
 if ($oobeSettings.skipKeyboardSelectionPage -eq $true) {
     $oobeConfig += 1024
     if ($_.language) {
-        $json.Add("CloudAssignedLanguage", $_.language)
+        $json.Add("CloudAssignedLanguage", $approfile.language)
     }
 }
 if ($oobeSettings.deviceUsageType -eq 'shared') {
