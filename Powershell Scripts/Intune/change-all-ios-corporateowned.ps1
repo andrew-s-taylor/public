@@ -18,6 +18,37 @@ else {
 # Load the Graph module
 Import-Module microsoft.graph
 
+function getallpagination () {
+    <#
+.SYNOPSIS
+This function is used to grab all items from Graph API that are paginated
+.DESCRIPTION
+The function connects to the Graph API Interface and gets all items from the API that are paginated
+.EXAMPLE
+getallpagination -url "https://graph.microsoft.com/v1.0/groups"
+ Returns all items
+.NOTES
+ NAME: getallpagination
+#>
+[cmdletbinding()]
+    
+param
+(
+    $url
+)
+    $response = (Invoke-MgGraphRequest -uri $url -Method Get -OutputType PSObject)
+    $alloutput = $response.value
+    
+    $alloutputNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $alloutputNextLink) {
+        $alloutputResponse = (Invoke-MGGraphRequest -Uri $alloutputNextLink -Method Get -outputType PSObject)
+        $alloutputNextLink = $alloutputResponse."@odata.nextLink"
+        $alloutput += $alloutputResponse.value
+    }
+    
+    return $alloutput
+    }
 Function Set-ManagedDevice(){
 
 <#
@@ -196,8 +227,8 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
 
 
-$uri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=deviceType eq 'iPhone'"
-$iphones = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+$uri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices?$filter=deviceType eq 'iPhone' and ownerType eq 'personal'"
+$iphones = getallpagination -url $uri
 foreach ($iphone in $iphones) {
 $phoneid = $iphone.id
 write-host "Setting $phoneid to Corporate Owned"
