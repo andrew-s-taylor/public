@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.0.5
+  Version:        3.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -51,6 +51,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 21/09/2023 - Remove Windows backup for Win10
   Change 28/09/2023 - Enabled Diagnostic Tracking for Endpoint Analytics
   Change 02/10/2023 - Lenovo Fix
+  Change 06/10/2023 - Teams chat fix
 .EXAMPLE
 N/A
 #>
@@ -759,12 +760,12 @@ $WinPackage = Get-AppxPackage -allusers | Where-Object {$_.Name -eq $MSTeams}
 $ProvisionedPackage = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $WinPackage }
 If ($null -ne $WinPackage) 
 {
-    Remove-AppxPackage  -Package $WinPackage.PackageFullName
+    Remove-AppxPackage  -Package $WinPackage.PackageFullName -AllUsers
 } 
 
 If ($null -ne $ProvisionedPackage) 
 {
-    Remove-AppxProvisionedPackage -online -Packagename $ProvisionedPackage.Packagename
+    Remove-AppxProvisionedPackage -online -Packagename $ProvisionedPackage.Packagename -AllUsers
 }
 
 ##Tweak reg permissions
