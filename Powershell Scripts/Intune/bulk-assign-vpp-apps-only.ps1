@@ -151,10 +151,9 @@ $json = @"
 	"mobileAppAssignments": [
 		{
 			"@odata.type": "#microsoft.graph.mobileAppAssignment",
-			"intent": "Required",
+			"intent": "Available",
 			"settings": {
 				"@odata.type": "#microsoft.graph.iosVppAppAssignmentSettings",
-				"isRemovable": true,
 				"preventAutoAppUpdate": false,
 				"preventManagedAppBackup": false,
 				"uninstallOnDeviceRemoval": false,
