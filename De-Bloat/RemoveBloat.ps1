@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        3.0.6
+  Version:        3.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -52,6 +52,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 28/09/2023 - Enabled Diagnostic Tracking for Endpoint Analytics
   Change 02/10/2023 - Lenovo Fix
   Change 06/10/2023 - Teams chat fix
+  Change 09/10/2023 - Dell Command Update change
 .EXAMPLE
 N/A
 #>
@@ -1045,6 +1046,7 @@ $UninstallPrograms = @(
     "DellInc.PartnerPromo"
     "DellInc.DellOptimizer"
     "DellInc.DellCommandUpdate"
+    "Dell Command | Update for Windows"
 )
 
 $WhitelistedApps = @(
