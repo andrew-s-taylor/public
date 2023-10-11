@@ -1276,7 +1276,7 @@ $InstalledPrograms | ForEach-Object {
 
 ##Remove Support Assist Remediation
 write-host "Removing Support Assist Remediation"
-$searchpath = "C:\"
+$searchpath = "C:\ProgramData\Package Cache"
 $filename = "DellSupportAssistRemediationServiceInstaller.exe"
 
 $results = Get-ChildItem -Path $searchpath -Recurse -Filter $filename -ErrorAction SilentlyContinue
