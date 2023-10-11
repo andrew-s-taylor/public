@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.1
+  Version:        4.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -1135,7 +1135,18 @@ $InstalledPrograms | ForEach-Object {
     $uninstallcommand = $_.String
 
     Try {
-        $A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
         #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
         Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
     }
@@ -1245,15 +1256,23 @@ $InstalledPrograms | ForEach-Object {
     $uninstallcommand = $_.String
 
     Try {
-        $A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode        
         #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
         Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
     }
     Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
 }
-
-##Force remove Dell Support Assist Remediation
-
 
 }
 
@@ -1370,7 +1389,18 @@ $InstalledPrograms | ForEach-Object {
     $uninstallcommand = $_.String
 
     Try {
-        $A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
+        if ($uninstallcommand -match "^msiexec*") {
+            #Remove msiexec as we need to split for the uninstall
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            #Uninstall with string2 params
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallcommand
+            start-process $string2
+            }
+        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
         #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
         Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
     }
