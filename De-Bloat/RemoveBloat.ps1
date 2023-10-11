@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.0
+  Version:        4.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -944,8 +944,6 @@ if ($string1 -match "^msiexec*") {
 #MSI install, replace the I with an X and make it quiet
 $string2 = $string1 + " /quiet /norestart"
 $string2 = $string2 -replace "/I", "/X "
-#Remove msiexec as we need to split for the uninstall
-$string2 = $string2 -replace "msiexec.exe", ""
 #Create custom object with name and string
 $allstring += New-Object -TypeName PSObject -Property @{
     Name = $32app.DisplayName
@@ -978,8 +976,6 @@ if ($string1 -match "^msiexec*") {
 #MSI install, replace the I with an X and make it quiet
 $string2 = $string1 + " /quiet /norestart"
 $string2 = $string2 -replace "/I", "/X "
-#Remove msiexec as we need to split for the uninstall
-$string2 = $string2 -replace "msiexec.exe", ""
 #Uninstall with string2 params
 $allstring += New-Object -TypeName PSObject -Property @{
     Name = $64app.DisplayName
@@ -1016,8 +1012,6 @@ if ($string1 -match "^msiexec*") {
 #MSI install, replace the I with an X and make it quiet
 $string2 = $string1 + " /quiet /norestart"
 $string2 = $string2 -replace "/I", "/X "
-#Remove msiexec as we need to split for the uninstall
-$string2 = $string2 -replace "msiexec.exe", ""
 #Create custom object with name and string
 $allstring += New-Object -TypeName PSObject -Property @{
     Name = $32app.DisplayName
@@ -1050,8 +1044,6 @@ if ($string1 -match "^msiexec*") {
 #MSI install, replace the I with an X and make it quiet
 $string2 = $string1 + " /quiet /norestart"
 $string2 = $string2 -replace "/I", "/X "
-#Remove msiexec as we need to split for the uninstall
-$string2 = $string2 -replace "msiexec.exe", ""
 #Uninstall with string2 params
 $allstring += New-Object -TypeName PSObject -Property @{
     Name = $64app.DisplayName
