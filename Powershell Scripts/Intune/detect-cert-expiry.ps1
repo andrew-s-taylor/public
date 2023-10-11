@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.4
+.VERSION 1.0.5
 .GUID 1000d8c2-73b3-48a8-b1ec-f894fec7df58
 .AUTHOR AndrewTaylor
 .DESCRIPTION Alerts when a certificate is due to expire
@@ -90,7 +90,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
               scope         = "https://graph.microsoft.com/.default";
           }
    
-          $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body
+          $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body -UseBasicParsing
           $accessToken = $response.access_token
    
           $accessToken
