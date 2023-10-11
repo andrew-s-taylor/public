@@ -1186,6 +1186,8 @@ $UninstallPrograms = @(
     "DellInc.DellOptimizer"
     "DellInc.DellCommandUpdate"
     "Dell Command | Update for Windows"
+    "Dell Digital Delivery"
+    "Dell SupportAssist Remediation"
 )
 
 $WhitelistedApps = @(
