@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.2
+  Version:        4.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -1274,6 +1274,16 @@ $InstalledPrograms | ForEach-Object {
     Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
 }
 
+##Remove Support Assist Remediation
+$searchpath = "C:\"
+$filename = "DellSupportAssistRemediationServiceInstaller.exe"
+
+$results = Get-ChildItem -Path $searchpath -Recurse -Filter $filename -ErrorAction SilentlyContinue
+
+$filepath = $results.FullName
+$params = "/uninstall"
+
+Start-Process -FilePath $filepath -ArgumentList $params -Wait
 }
 
 
