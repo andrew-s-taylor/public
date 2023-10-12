@@ -1276,7 +1276,7 @@ $InstalledPrograms | ForEach-Object {
 
 ##Remove Support Assist Remediation
 write-host "Removing Support Assist Remediation"
-$filename = "c:\windows\c33f.msi"
+$filename = "c:\windows\installer\c33f.msi"
 ##Check if msi exists
 if (Test-Path $filename) {
 $path = $filename
