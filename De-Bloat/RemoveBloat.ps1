@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.3
+  Version:        4.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -1276,16 +1276,26 @@ $InstalledPrograms | ForEach-Object {
 
 ##Remove Support Assist Remediation
 write-host "Removing Support Assist Remediation"
-$searchpath = "C:\ProgramData\Package Cache"
-$filename = "DellSupportAssistRemediationServiceInstaller.exe"
+$filename = "c:\windows\c33f.msi"
+##Check if msi exists
+if (Test-Path $filename) {
+$path = $filename
 
-$results = Get-ChildItem -Path $searchpath -Recurse -Filter $filename -ErrorAction SilentlyContinue
+$comObjWI = New-Object -ComObject WindowsInstaller.Installer
+$MSIDatabase = $comObjWI.GetType().InvokeMember("OpenDatabase","InvokeMethod",$Null,$comObjWI,@($Path,0))
+$Query = "SELECT Value FROM Property WHERE Property = 'ProductCode'"
+$View = $MSIDatabase.GetType().InvokeMember("OpenView","InvokeMethod",$null,$MSIDatabase,($Query))
+$View.GetType().InvokeMember("Execute", "InvokeMethod", $null, $View, $null)
+$Record = $View.GetType().InvokeMember("Fetch","InvokeMethod",$null,$View,$null)
+$Value = $Record.GetType().InvokeMember("StringData","GetProperty",$null,$Record,1)
 
-$filepath = $results.FullName
-$params = "/uninstall"
-write-host "Found at $filepath"
+
+write-host "Your MSI code is $Value" -ForegroundColor Green
 
 Start-Process -FilePath $filepath -ArgumentList $params -Wait
+$uninstallcommand = "/x $value /qn"
+Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+}
 write-host "Removed Support Assist Remediation"
 }
 

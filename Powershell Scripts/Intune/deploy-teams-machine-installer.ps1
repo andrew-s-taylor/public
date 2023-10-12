@@ -1097,7 +1097,7 @@ function new-detectionscriptinstall {
         $appname
     )
     $detection = @"
-    `$File = "$filepath"
+`$File = "$filepath"
     if (Test-Path `$File) {
         write-output "$appname detected, exiting"
         exit 0
