@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 94357caa-de53-401c-bbdd-2400a974944c
 .AUTHOR AndrewTaylor
 .DESCRIPTION Packages and deploys Teams Machine Wide installer to Intune
@@ -29,7 +29,7 @@ None
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
