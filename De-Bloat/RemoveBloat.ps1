@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.4
+  Version:        4.0.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -54,7 +54,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/10/2023 - Teams chat fix
   Change 09/10/2023 - Dell Command Update change
   Change 11/10/2023 - Grab all uninstall strings and use native uninstaller instead of uninstall-package
-.EXAMPLE
+  Change 14/10/2023 - Updated HP Audio package name
 N/A
 #>
 
@@ -1094,6 +1094,7 @@ $UninstallPrograms = @(
     "RealtekSemiconductorCorp.HPAudioControl",
     "HP Sure Recover",
     "HP Sure Run Module"
+    "RealtekSemiconductorCorp.HPAudioControl_2.39.280.0_x64__dt26b99r8h8gj"
 )
 
 $HPidentifier = "AD2F1837"
