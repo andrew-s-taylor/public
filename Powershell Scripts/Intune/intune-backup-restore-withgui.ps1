@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.2.0
+  Version:        6.2.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -67,6 +67,7 @@ Creates a log file in %Temp%
   Change: Added support for GitLab
   Change: Added logging during runbook
   Change: Added support for template creation
+  Change: Set connection to use basic parsing for runbooks
 
 
   .EXAMPLE
@@ -74,7 +75,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.2.0
+.VERSION 6.2.1
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -424,7 +425,7 @@ else {
                     scope         = "https://graph.microsoft.com/.default";
                 }
          
-                $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body
+                $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body -UseBasicParsing
                 $accessToken = $response.access_token
          
                 $accessToken
