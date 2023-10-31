@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.6
+  Version:        4.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -55,6 +55,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 09/10/2023 - Dell Command Update change
   Change 11/10/2023 - Grab all uninstall strings and use native uninstaller instead of uninstall-package
   Change 14/10/2023 - Updated HP Audio package name
+  Change 31/10/2023 - Added PowerAutomateDesktop and update Microsoft.Todos
 N/A
 #>
 
@@ -308,6 +309,7 @@ switch ($locale) {
     $Bloatware = @(
 
         #Unnecessary Windows 10/11 AppX Apps
+        "Microsoft.549981C3F5F10"
         "Microsoft.BingNews"
         "Microsoft.GetHelp"
         "Microsoft.Getstarted"
@@ -346,6 +348,8 @@ switch ($locale) {
         "Microsoft.YourPhone"
         "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
         "Microsoft.GamingApp"
+        "Microsoft.Todos"
+        "Microsoft.PowerAutomateDesktop"
         "SpotifyAB.SpotifyMusic"
         "Disney.37853FC22B2CE"
         "*EclipseManager*"
@@ -686,6 +690,9 @@ if (!(Test-Path $registryPath)) {
 else {
     New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
 }
+
+##Kill Cortana again
+Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage
     
 ############################################################################################################
 #                                        Remove Scheduled Tasks                                            #
