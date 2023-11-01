@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.7
+  Version:        4.0.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -56,6 +56,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 11/10/2023 - Grab all uninstall strings and use native uninstaller instead of uninstall-package
   Change 14/10/2023 - Updated HP Audio package name
   Change 31/10/2023 - Added PowerAutomateDesktop and update Microsoft.Todos
+  Change 01/11/2023 - Added fix for Windows backup removing Shell Components
 N/A
 #>
 
@@ -808,6 +809,11 @@ if ($version.Caption -like "*Windows 10*") {
     $filepath = "C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\WindowsBackup\Assets"
 if (Test-Path $filepath) {
 Remove-WindowsPackage -Online -PackageName "Microsoft-Windows-UserExperience-Desktop-Package~31bf3856ad364e35~amd64~~10.0.19041.3393"
+
+##Add back snipping tool functionality
+write-host "Adding Windows Shell Components"
+DISM /Online /Add-Capability /CapabilityName:Windows.Client.ShellComponents~~~~0.0.1.0
+write-host "Components Added"
 }
 write-host "Removed"
 }
