@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.5
+.VERSION 3.6
 .GUID 729ebf90-26fe-4795-92dc-ca8f570cdd22
 .AUTHOR AndrewTaylor
 .DESCRIPTION Synchronises All Intune managed devices
@@ -25,17 +25,18 @@ None required
 .OUTPUTS
 Within Azure
 .NOTES
-  Version:        3.5
+  Version:        3.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2021
-  Modified Date:  24/02/2023
+  Modified Date:  01/11/2023
   Purpose/Change: Initial script development
   Change:   Switched to MSGraph Auth
   Change:   Added pagination support for larger estates
   Change: Bug fix
   Change: Removed MS Graph module and switched to MgGraph
+  Change: Fix scopes
   
 .EXAMPLE
 N/A
@@ -170,7 +171,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 }    
 ####################################################################### CREATE AAD OBJECTS #######################################################################
 #Connect to Graph
-Connect-ToGraph -Scopes "CloudPC.ReadWrite.All, Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
+Connect-ToGraph -Scopes "CloudPC.ReadWrite.All, Domain.Read.All, Directory.Read.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementManagedDevices.PrivilegedOperations.All"
 
 ####################################################
     
