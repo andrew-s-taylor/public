@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.8
+  Version:        4.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -57,6 +57,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 14/10/2023 - Updated HP Audio package name
   Change 31/10/2023 - Added PowerAutomateDesktop and update Microsoft.Todos
   Change 01/11/2023 - Added fix for Windows backup removing Shell Components
+  Change 06/11/2023 - Removes Windows CoPilot
 N/A
 #>
 
@@ -816,6 +817,57 @@ DISM /Online /Add-Capability /CapabilityName:Windows.Client.ShellComponents~~~~0
 write-host "Components Added"
 }
 write-host "Removed"
+}
+
+############################################################################################################
+#                                           Windows CoPilot                                                #
+#                                                                                                          #
+############################################################################################################
+$version = Get-WMIObject win32_operatingsystem | Select-Object Caption
+if ($version.Caption -like "*Windows 11*") {
+    write-host "Removing Windows Copilot"
+# Define the registry key and value
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"
+$propertyName = "TurnOffWindowsCopilot"
+$propertyValue = 1
+
+# Check if the registry key exists
+if (!(Test-Path $registryPath)) {
+    # If the registry key doesn't exist, create it
+    New-Item -Path $registryPath -Force | Out-Null
+}
+
+# Get the property value
+$currentValue = Get-ItemProperty -Path $registryPath -Name $propertyName -ErrorAction SilentlyContinue
+
+# Check if the property exists and if its value is different from the desired value
+if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) {
+    # If the property doesn't exist or its value is different, set the property value
+    Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
+}
+write-host "Removed"
+
+
+foreach ($sid in $UserSIDs) {
+    $registryPath = "HKU:\$sid\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"
+    $propertyName = "TurnOffWindowsCopilot"
+    $propertyValue = 1
+    
+    # Check if the registry key exists
+    if (!(Test-Path $registryPath)) {
+        # If the registry key doesn't exist, create it
+        New-Item -Path $registryPath -Force | Out-Null
+    }
+    
+    # Get the property value
+    $currentValue = Get-ItemProperty -Path $registryPath -Name $propertyName -ErrorAction SilentlyContinue
+    
+    # Check if the property exists and if its value is different from the desired value
+    if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) {
+        # If the property doesn't exist or its value is different, set the property value
+        Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
+    }
+}
 }
 
 ############################################################################################################
