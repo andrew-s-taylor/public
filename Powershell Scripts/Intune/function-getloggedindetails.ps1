@@ -1,4 +1,16 @@
 function getloggedindetails() {
+        <#
+    .SYNOPSIS
+    This function is used to find the logged in user SID and username when running as System
+    .DESCRIPTION
+    This function is used to find the logged in user SID and username when running as System
+    .EXAMPLE
+    getloggedindetails
+    Returns the SID and Username in an array
+    .NOTES
+    NAME: getloggedindetails
+    Written by: Andrew Taylor (https://andrewstaylor.com)
+    #>
     ##Find logged in username
     $user = Get-WmiObject Win32_Process -Filter "Name='explorer.exe'" |
       ForEach-Object { $_.GetOwner() } |
