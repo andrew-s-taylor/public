@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.9
+  Version:        4.0.10
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -58,6 +58,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 31/10/2023 - Added PowerAutomateDesktop and update Microsoft.Todos
   Change 01/11/2023 - Added fix for Windows backup removing Shell Components
   Change 06/11/2023 - Removes Windows CoPilot
+  Change 07/11/2023 - HKU fix
 N/A
 #>
 
@@ -474,7 +475,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     Set-ItemProperty $WebSearch DisableWebSearch -Value 1 
     ##Loop through all user SIDs in the registry and disable Bing Search
     foreach ($sid in $UserSIDs) {
-        $WebSearch = "HKU:\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Search"
+        $WebSearch = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Search"
         If (!(Test-Path $WebSearch)) {
             New-Item $WebSearch
         }
@@ -494,7 +495,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
 
     ##Loop and do the same
     foreach ($sid in $UserSIDs) {
-        $Period = "HKU:\$sid\Software\Microsoft\Siuf\Rules"
+        $Period = "Registry::HKU\$sid\Software\Microsoft\Siuf\Rules"
         If (!(Test-Path $Period)) { 
             New-Item $Period
         }
@@ -522,7 +523,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $registryOEM = "HKU:\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+        $registryOEM = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
         If (!(Test-Path $registryOEM)) {
             New-Item $registryOEM
         }
@@ -543,7 +544,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
 
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $Holo = "HKU:\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"    
+        $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"    
         If (Test-Path $Holo) {
             Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
         }
@@ -574,7 +575,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
 
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $Live = "HKU:\$sid\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
+        $Live = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
         If (!(Test-Path $Live)) {      
             New-Item $Live
         }
@@ -622,7 +623,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
 
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $People = "HKU:\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People"
+        $People = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People"
         If (Test-Path $People) {
             Set-ItemProperty $People -Name PeopleBand -Value 0
         }
@@ -648,9 +649,9 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
 
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $Cortana1 = "HKU:\$sid\SOFTWARE\Microsoft\Personalization\Settings"
-        $Cortana2 = "HKU:\$sid\SOFTWARE\Microsoft\InputPersonalization"
-        $Cortana3 = "HKU:\$sid\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
+        $Cortana1 = "Registry::HKU\$sid\SOFTWARE\Microsoft\Personalization\Settings"
+        $Cortana2 = "Registry::HKU\$sid\SOFTWARE\Microsoft\InputPersonalization"
+        $Cortana3 = "Registry::HKU\$sid\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
         If (!(Test-Path $Cortana1)) {
             New-Item $Cortana1
         }
@@ -849,7 +850,7 @@ write-host "Removed"
 
 
 foreach ($sid in $UserSIDs) {
-    $registryPath = "HKU:\$sid\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"
+    $registryPath = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"
     $propertyName = "TurnOffWindowsCopilot"
     $propertyValue = 1
     
