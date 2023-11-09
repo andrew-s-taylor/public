@@ -247,6 +247,6 @@ $AppID = $App.AppID
 $URL = "https://login.microsoftonline.com/$TenantID/adminconsent?client_id=$AppID"
 Start-Process $URL
 
-write-host "Your App ID is $APPObjectID"
+write-host "Your App ID is $AppID"
 
 write-host "Your App Secret is $appsecret"
