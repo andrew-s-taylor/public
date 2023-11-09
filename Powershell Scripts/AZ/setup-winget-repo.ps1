@@ -207,8 +207,20 @@ new-wingetsource -Name $wingetitemname -ResourceGroup $resourcegroup -Region $re
 write-host "Created the Winget Repo"
 
 ##Web app keeps failing so manually publish
-$RestSourcePath = "$unziplocation\WinGet.RestSource-Winget.PowerShell.Source\Library\RestAPI\WinGet.RestSource.Functions.zip"
+##Check if needed
+$webapptest = get-azwebapp -Name $wingetitemname
+
+##Check if empty
+if ($webapptest -eq $null) {
+    write-host "Web App doesn't exist"
+    $RestSourcePath = "$unziplocation\WinGet.RestSource-Winget.PowerShell.Source\Library\RestAPI\WinGet.RestSource.Functions.zip"
 $webapp = Publish-AzWebApp -ArchivePath $RestSourcePath -ResourceGroupName $resourcegroup -Name $wingetitemname -Force
+write-host "web app created"
+}
+else {
+    write-host "Web App exists"
+}
+
 
 ##Get the URL
 $webappurl = (get-azwebapp -Name $wingetitemname).HostNames[0]
