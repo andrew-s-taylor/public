@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.11
+  Version:        4.0.12
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -868,6 +868,31 @@ if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) 
     # If the property doesn't exist or its value is different, set the property value
     Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
 }
+
+
+##Load the default hive from c:\users\Default\NTUSER.dat
+reg load HKU\temphive "c:\users\default\ntuser.dat"
+$registryPath = "registry::hku\temphive\Software\Policies\Microsoft\Windows\WindowsCopilot"
+$propertyName = "TurnOffWindowsCopilot"
+$propertyValue = 1
+
+# Check if the registry key exists
+if (!(Test-Path $registryPath)) {
+    # If the registry key doesn't exist, create it
+    [Microsoft.Win32.RegistryKey]$HKUCoPilot = [Microsoft.Win32.Registry]::Users.CreateSubKey("temphive\Software\Policies\Microsoft\Windows\WindowsCopilot", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree)
+    $HKUCoPilot.SetValue("TurnOffWindowsCopilot", 0x1, [Microsoft.Win32.RegistryValueKind]::DWord)
+}
+
+        
+
+
+
+    $HKUCoPilot.Flush()
+    $HKUCoPilot.Close()
+[gc]::Collect()
+[gc]::WaitForPendingFinalizers()
+reg unload HKU\temphive
+
 
 write-host "Removed"
 
