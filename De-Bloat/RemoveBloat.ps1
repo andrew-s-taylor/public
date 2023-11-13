@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.10
+  Version:        4.0.11
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -59,6 +59,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 01/11/2023 - Added fix for Windows backup removing Shell Components
   Change 06/11/2023 - Removes Windows CoPilot
   Change 07/11/2023 - HKU fix
+  Change 13/11/2023 - Added CoPilot removal to .Default Users
 N/A
 #>
 
@@ -846,6 +847,28 @@ if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) 
     # If the property doesn't exist or its value is different, set the property value
     Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
 }
+
+
+##Grab the default user as well
+$registryPath = "HKEY_USERS\.DEFAULT\Software\Policies\Microsoft\Windows\WindowsCopilot"
+$propertyName = "TurnOffWindowsCopilot"
+$propertyValue = 1
+
+# Check if the registry key exists
+if (!(Test-Path $registryPath)) {
+    # If the registry key doesn't exist, create it
+    New-Item -Path $registryPath -Force | Out-Null
+}
+
+# Get the property value
+$currentValue = Get-ItemProperty -Path $registryPath -Name $propertyName -ErrorAction SilentlyContinue
+
+# Check if the property exists and if its value is different from the desired value
+if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) {
+    # If the property doesn't exist or its value is different, set the property value
+    Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
+}
+
 write-host "Removed"
 
 
