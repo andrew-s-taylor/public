@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.12
+  Version:        4.0.13
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -60,6 +60,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/11/2023 - Removes Windows CoPilot
   Change 07/11/2023 - HKU fix
   Change 13/11/2023 - Added CoPilot removal to .Default Users
+  Change 14/11/2023 - Added logic to stop errors on HP machines without HP docs installed
+  Change 14/11/2023 - Added logic to stop errors on Lenovo machines without some installers
 N/A
 #>
 
@@ -1276,27 +1278,17 @@ Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | I
 }
 
 
-#Remove HP Documentation
-$A = Start-Process -FilePath "C:\Program Files\HP\Documentation\Doc_uninstall.cmd" -Wait -passthru -NoNewWindow;$a.ExitCode
-
-##Remove Standard HP apps via msiexec
-$InstalledPrograms | ForEach-Object {
-$appname = $_.Name
-    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
-
-    Try {
-        $Prod = Get-WMIObject -Classname Win32_Product | Where-Object Name -Match $appname
-        $Prod.UnInstall()
-        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
-    }
-    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
+#Remove HP Documentation if it exists
+if (test-path -Path "C:\Program Files\HP\Documentation\Doc_uninstall.cmd") {
+$A = Start-Process -FilePath "C:\Program Files\HP\Documentation\Doc_uninstall.cmd" -Wait -passthru -NoNewWindow
 }
 
-##Remove HP Connect Optimizer
+##Remove HP Connect Optimizer if setup.exe exists
+if (test-path -Path 'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe') {
 invoke-webrequest -uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/De-Bloat/HPConnOpt.iss" -outfile "C:\Windows\Temp\HPConnOpt.iss"
 
 &'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\Windows\Temp\HPConnOpt.iss')
-
+}
 Write-Host "Removed HP bloat"
 }
 
@@ -1577,19 +1569,21 @@ foreach ($program in $UninstallPrograms) {
      # Uninstall AI Meeting Manager Service
      $path = 'C:\Program Files\Lenovo\Ai Meeting Manager Service\unins000.exe'
      $params = "/SILENT"
-     
+     if (test-path -Path $path) {
      Start-Process -FilePath $path -ArgumentList $params -Wait
-
+     }
     # Uninstall Lenovo Vantage
     $path = 'C:\Program Files (x86)\Lenovo\VantageService\3.13.43.0\Uninstall.exe'
     $params = '/SILENT'
+    if (test-path -Path $path) {
         Start-Process -FilePath $path -ArgumentList $params -Wait
-
+    }
     ##Uninstall Smart Appearance
     $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
     $params = '/SILENT'
+    if (test-path -Path $path) {
         Start-Process -FilePath $path -ArgumentList $params -Wait
-
+    }
 
     # Remove Lenovo Now
     Set-Location "c:\program files (x86)\lenovo\lenovowelcome\x86"
