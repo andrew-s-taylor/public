@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.5
+.VERSION 1.0.6
 .GUID 7b1c483b-b109-4d45-8abc-84760c84d9d9
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists all discovered apps with drill-down
@@ -25,7 +25,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.5
+  Version:        1.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -178,39 +178,6 @@ param
     return $alloutput
     }
 
-Function Get-ScriptVersion(){
-    
-  <#
-  .SYNOPSIS
-  This function is used to check if the running script is the latest version
-  .DESCRIPTION
-  This function checks GitHub and compares the 'live' version with the one running
-  .EXAMPLE
-  Get-ScriptVersion
-  Returns a warning and URL if outdated
-  .NOTES
-  NAME: Get-ScriptVersion
-  #>
-  
-  [cmdletbinding()]
-  
-  param
-  (
-      $liveuri
-  )
-$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
-$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
-$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
-$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
-if ($liveversion -ne $currentversion) {
-write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
-}
-}
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/intune-inventory-discovered-apps.ps1"
-
-
-
-
 ##Grab all devices
 $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices"
 $alldevices = getallpagination -url $uri
@@ -265,8 +232,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAQHgBb6tK1HKbs
-# spiPTHw+JWL0UxBukxj+Cf5uSOSXI6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCDGn4NtDvHspDr
+# 6xkk3pGadMzKmEusLlvHLDJ86uUeEKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -448,33 +415,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIErWlEnZtuI/5IiDWf0veHmBEdW0FUJUJXqy
-# v3oxbmUMMA0GCSqGSIb3DQEBAQUABIICAJcSMP39FgLNKmiMy88hVbLPLn1l15uY
-# mqGLyR/2NgKEUKOahF+UuPhDIGo/00JqJeEBO730Rzy/uK1HIHtpeUsqXswoMsHf
-# IGZaTGN0Lx/srC3VqdzoIXp0rD0Oz62maDrtQgkR+MxJYGfASP7/Mt6DbRcbR0HA
-# ObpEm+qY9KBOc8KbFPdki+cGvhP3scf0GjczK7IpQkQQYJpLNz+9yQ9qwjNdskjh
-# H27uyyIP2Rx+Qq3hNvZyyoIBxYJBiP5KeJJTqzL0/u7qO6D06OX3OFe2ez/Mv0JE
-# r+8GyV3XVYZ8ntMIjDfQoWgP3zSuESOspyJXd2MIYCuRAJuCGhwqrmh99gkQORXV
-# PEeUPtQ9zQ4z76gwWiAW6d/i6nQ1C4wsJOGM/U1yqifsMU+L4LkQpGJwjMSwUZuq
-# 1GtGeuMRkYTeIgcgbNNO2PYCxBNfn8uli59Pe5URCwv/66jgfoh2eD7+EsaiLw8V
-# aPIIMlmuVl+nIfWIPQuXq5yIS1RRqSBCEcVl18zfSbnlx9zDusMnt+beLGq8N8Bm
-# mmqIkHgN76iXafzDs+qCN22W0TOyZNhiy6NaSPgqCxJ7UNMEiKcYIbByUFIv9rF6
-# XYKPmhzq6NKvzvEQ+MKfLKmVTOmlvM/jfRNOJBPKDumPk723vW4iE00zDmT64Lpb
-# E2jBXu7eAMJYoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK9kawObw5pJZ0EFXAg6OH08rTB8ZOxKWLzl
+# bj45L2XJMA0GCSqGSIb3DQEBAQUABIICAB3jOFjiNaPuesKAKVRCyZxMx8VaXT40
+# skesjVpcmxfoaoU92MFoKOcHtx5acY3HsZXXA3mbPhgEkJY+G7R0K4XkMqS9wWg5
+# ee5XXMYKk3tJPZPhpxy3nPBLmNF4FspVnENVjknZ/2Xd68f7tiy7il2QrAwoweJu
+# JTbFqd7aiv9NVmFPTOs2XN9dz6+4wtkvaL5nyXzYb+TiY/SAS/veuNUDlSX6DGST
+# R0pTt9VqVf3kQnA8Ke5mWhAYhvbneCgc3V+3tAAAZMz6WG7/rS6zyCuU+x1QrPxo
+# QnLq0mXps8g7TGCY1bqkE4iwMOFrnE8qxujOMlDbnh4vG2SFniIQNdKyxDChohxp
+# Xn9M/pQ3UQKcFguLGw8jMeoZnLWB5PWBbYj+IDxOSi0CJ6qFPqRddURmnLSiEVTH
+# 6L8velFKSwdDGjqVraNMS31dNK885yJe0AujYpkwpEqu8q6V134iwGpxHdOnI/HD
+# TfdH5w9dmYxtLJtgXgvNUhAOOAo22LXx8bcIcAQMX+4JCLJJjWZHjF5khIi4Y2AP
+# uyP1ZhfJYZLvyXxRl6YxKKrVYf4ygdQUXLJbMWelnmjC5WzE9OqbQzpGKyzUD3wj
+# L2N1udYceOpU6uNb6WMUx1CsN7w8qTQDpXgcZ0tzQSeTnlTKqpaMzNWzCIKETPd6
+# vB6x7tSiJ0F3oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDc1NVowLwYJKoZI
-# hvcNAQkEMSIEIJn0lS1c6FA5UouRjmS+fVAsxZdwWGwqXjr2gZ5cghrrMA0GCSqG
-# SIb3DQEBAQUABIICABkVvVW+CpKEbpfhegfauTqPakGNnmjuE67+4Yuz+zrBT0xo
-# 71B0U+b+W4MASVlOPMTb+a7EXk2nWohDagV8PU4ay86XXrlux9rG4bz5d6bvTKDW
-# XTl+pX7wA7VGly8ejE/YDM+KdWI37nhgbWUg8MTvhdtCUAa1soK5aYc2GKuV8Nnl
-# ZjCH47YQPgxXAr/AFAxgKrdTxdAUdMmwAy2W0rSCSGoWJlUMaDWrYdUJajq25SGK
-# FSVGtmC0DdzqiC7csxoIW8K6/V6KDF5zIBg/yHpo2mszmc63HYU/wwQDSRQWTLmh
-# gd6OnVVdS6yCNiLGAxw8K/unLngcUgPicDnCli3nqau6zlOF73ihV5dJuxdV3OyW
-# UxWzsP3hy3usIK7RsmQ1wepsSOdpH1wcXyGvh83tBJIbMXmdMGWgILJms6G78X93
-# Rr+LGKbxlpCWhA6lBUpf7NOpng2gAI4ts3sYR1FKme8KmR/3h79VlQMc9gCdIWhF
-# FripzYsRQ9NiKIVAFnBc8jrmaYfRBM4F9zpbFEVjcQiU2IlLL65j1ENY8+hJPS2O
-# HPclI/r+f4BWbBkrLQxBolyKJV0gWw7VU5m3XcNPoVEbRF2g49BKz9Blkybhgnyp
-# 2PP0Vt09611j5jKOJH6EpIW0oPE+q9OkkxvE7XIbd/m4T3+uAf1JX32BLlHw
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNjE0MTk0OVowLwYJKoZI
+# hvcNAQkEMSIEIDkrWCObHV2/jZs9yG4nhjp28OAaO6fvjxiUeKzLfmCBMA0GCSqG
+# SIb3DQEBAQUABIICACAT5bngAsSz+fEUi6ElnP97Gg2Btvj6HEdPo1v8a5CG/wVi
+# h07T0mlmp6WI93s17yWzWPmWVN6LjlzF4iOTZrhZcmO+b9z6mxI9qX3Z+QGGATzk
+# 7tuQkfaqZDNMhlOU9KP6CcZPbvFAM4/tykKx/7r049IE/cyr+qLwaNRUtQpX78EJ
+# IjoXyLqTw7SLfDbHmqfWFWk03CN5J8ECGMHPFTZ86XBfayOBv97WTR5ptS8fCseb
+# 2JZsO7p7kENtjC+yPelnuofmJdkABgdTJXqB4B7/KgOQHmI3nKo9RkseXaDoQMVZ
+# y2xEq6oK2pBSATsCmPhJSrhcFKTNPywQgfGw/8kUs93ayGJDXbohU0ylt12cazLQ
+# oya2cK2TR6dJ7jfzzj5YURPPGoFe9CXg4n9qTS7LWr98EW502iuvD9X3sqhgxcO/
+# qghNs1kT8wart4CgCLoBYBNoDrvF13Itl4ipxepe06UuYAck+gvsIvg/1mXlvxT1
+# ins/6kvOBRgrhTRa8UW4Dl/Br9oaIdOsJwpQBeFKa1FQgJ5W+Nkxz26jVFCGVQ34
+# CuJN0XFGKiLlLbzs/4QMgsfMB0AOBN0Z/mJKajgag4hBR5Wq3E874AntrnhM9xxh
+# 7wNkD6JWQ5PvzqYVqR+xHShnpaZPyoNn9Hps2IHsFrnIjD1BUXw8aJ+8M1kg
 # SIG # End signature block
