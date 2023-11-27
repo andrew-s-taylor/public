@@ -1461,6 +1461,19 @@ Function Find-WinGetPackage {
 }
 
 
+##Check if running PS5 or PS7
+if ($PSVersionTable.PSVersion.Major -eq 5) {
+    write-host "Running PowerShell 5"
+    WriteLog "Running PowerShell 5"
+    Write-Verbose "Loading WinGet Functions for PowerShell 5"
+    WriteLog "Loading Winget functions for PowerShell 7"
+
+
+##################################################################################################################
+####################                WINGET FUNCTIONS FOR PS 5                       ##############################
+##################################################################################################################
+
+
 Function Install-WinGetPackage {
     <#
         .SYNOPSIS
@@ -2253,6 +2266,28 @@ Function Get-WinGetPackage {
     }
 }   
 
+
+
+#######################################################################################################################
+#################                           END WINGET FUNCTIONS                                #######################
+#######################################################################################################################
+}
+##Else if running PowerShell 7
+else {
+    write-host "Running PowerShell 7, importing module"
+
+    if (Get-Module -ListAvailable -Name Microsoft.Winget.Client) {
+    Write-Host "Microsoft Winget Client Already Installed"
+    writelog "Microsoft Winget Client Already Installed"
+
+} 
+else {
+
+        Install-Module -Name Microsoft.Winget.Client -Scope CurrentUser -Repository PSGallery -Force 
+
+}
+    import-module microsoft.winget.client
+}
 
 function new-aadgroups {
     [cmdletbinding()]
