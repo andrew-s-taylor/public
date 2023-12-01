@@ -63,6 +63,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 14/11/2023 - Added logic to stop errors on HP machines without HP docs installed
   Change 14/11/2023 - Added logic to stop errors on Lenovo machines without some installers
   Change 15/11/2023 - Code Signed for additional security
+  Change 01/12/2023 - CITS - Commented out Dell Command Update and whitelisted DCU
 N/A
 #>
 
@@ -1310,8 +1311,7 @@ $UninstallPrograms = @(
     "Dell Optimizer Service"
     "DellInc.PartnerPromo"
     "DellInc.DellOptimizer"
-    "DellInc.DellCommandUpdate"
-    "Dell Command | Update for Windows"
+    #"Dell Command | Update for Windows"
     "Dell Digital Delivery"
     "Dell SupportAssist Remediation"
     "SupportAssist Recovery Assistant"
@@ -1321,6 +1321,7 @@ $WhitelistedApps = @(
     "WavesAudio.MaxxAudioProforDell2019"
     "Dell - Extension*"
     "Dell, Inc. - Firmware*"
+    "Dell Command | Update for Windows Universal"
 )
 
 $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
