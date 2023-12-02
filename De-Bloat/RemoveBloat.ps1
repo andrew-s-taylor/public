@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.0.14
+  Version:        4.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -63,6 +63,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 14/11/2023 - Added logic to stop errors on HP machines without HP docs installed
   Change 14/11/2023 - Added logic to stop errors on Lenovo machines without some installers
   Change 15/11/2023 - Code Signed for additional security
+  Change 02/12/2023 - Added extra logic before app uninstall to check if a user has logged in
 N/A
 #>
 
@@ -1653,7 +1654,18 @@ write-host "McAfee Removal Tool has been run"
 
 $intunepath = "HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Win32Apps"
 $intunecomplete = @(Get-ChildItem $intunepath).count
-if ($intunecomplete -eq 0) {
+$userpath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+$userprofiles = Get-ChildItem $userpath | ForEach-Object { Get-ItemProperty $_.PSPath }
+
+$nonAdminLoggedOn = $false
+foreach ($user in $userprofiles) {
+    if ($user.PSChildName -ne '.DEFAULT' -and $user.PSChildName -ne 'S-1-5-18' -and $user.PSChildName -ne 'S-1-5-19' -and $user.PSChildName -ne 'S-1-5-20' -and $user.PSChildName -notmatch 'S-1-5-21-\d+-\d+-\d+-500') {
+        $nonAdminLoggedOn = $true
+        break
+    }
+}
+
+if ($intunecomplete -eq 0 -and $nonAdminLoggedOn) {
 
 
 ##Apps to ignore - NOTE: Chrome has an unusual uninstall so sort on it's own
@@ -1752,8 +1764,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAoBSilqChN+C0K
-# VZz9Jt8g6uBJUBAgm6d3EUDZWWnLAqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA4U/lwWbODwC0X
+# Yqvplm64ab3u5CAyqpiSfsGqYP9wbKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -1935,33 +1947,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGDFsbL2Gcb9w6iu+qRv/5SPJdHbuL12sjPx
-# CIT4MTJSMA0GCSqGSIb3DQEBAQUABIICAGEdGdwPrdVUfw6tx92+sBRfbGOMMF5H
-# xgeSl8HPzbNXR7uxC2RBK1f4uABWUbxOilaaGGuet7gOhLWBBbzr3qIV8kYph3J1
-# ViQ5lFMM9s6CP+krepGd80F06EeYxTocblbBd9OA7/NOjWEN7XpFyIYQ3dWyE0ab
-# 3b7dhI3+JOkG4gRj6xDE4fi75/vKKUe9whrsCBnUS3bpNQZrfEdAJcnBCHXGAQqz
-# syajgS3xWy6sc0M6n7scKSu3KjAWDI9/nAsXqrulHDl2ivy7w7fN8t5ntYGIaFfL
-# xe40Idn/Jjn8JxfkMqZlwt13SBjvaorgxOI06C7gR3kog8mSNwwT5d43YWTWPEf8
-# M6FB2hboNJwShH8Ry/4U9b1doj7InoptzW8yrx6Sc+uJs34t/1qRj84UkHxSCo6/
-# fu+zT2jeYk3mwLTUzr2Ues1mwtAN5ebUQ896F215WIqVWwWtfLqhBCkw95DUsCl4
-# +19GUw6bD1NKVWVZ7XetZZeXOG1dgvCLxlQy9LTMTqFaKg1ZO7uNDLQHGsFZfuwk
-# c7/ZJZm5+JIICNlqb5qxRolWJAEMcYeM20gQrzUFGVWPE1c+F+6e35QIBlXE1+qy
-# 3oZ88dPErrBhnpWb13cWitIrYWHHFzV7ycC09y/YJC/KwUhprc1ugLyorvraEyCV
-# eV11cmADnEh4oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIIGqa2PsZn4sdR6hS9sup0pMEqUgbczW9FBq
+# 9UDGqvu+MA0GCSqGSIb3DQEBAQUABIICALyq5MtmL8pRX552/pXFUtUat9NUFyhG
+# lB42hE2n8acBpKbcf/2rf+cyS0BkjYN3oapvwQy2SCirtFiWt9S9yOFm8M1XKmBO
+# pMKxWD6FoIH4kUOrE28IRhk3u6CaiSZaIP+/jAah4ciAoJ0jCywFRiF0By6xbCFE
+# +oKOsizhmMgwS3k+VeWhzyptUosf6VZCOohaqCuhaFKh9b4HGnm80WC/dHNxX8Ra
+# /ML7+eIdpeNuMx9o+C9BrnE8Us5O5Plc5hGd93mhYGAA/EkyWzoyAkQl1rPO19l7
+# XCZ+M9kr8UO31Ev4EEswuaIlcfm7NaxVcmtX9d0XC6+agAXSFKmZWkjdZLAM6rVX
+# 3bVFJAaDwU5E9ufiPEvVdJmsIa5zLQb9Ue3fwICPvRzd4gq3z5gUFNiEQNsImUq7
+# GmujW2i6zvTMApoCtuH6ZTrK0mXlQkdN2Tg2q2nxw3WMBvXHanA9Y+H8p6ok4Diy
+# wXPj1QEZh/Gt/9ePRYAuNhLHGwSMo3oYjcX64LgzBe5YXu0rwscgMJY7zxkdXn+D
+# 6Lt3WHSbgmkTKVjXD8IzLDy4vKL8wu5/Bus5bUITu8K/zs95rKO0C0yn50se9BQD
+# 7yIA5zrCYlPIM94YVrhQoD5yjGoYRM6EG96S98TR1b4Jvwv97FRwjpT6UfFUmJG5
+# edyXFuoB8TB2oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIwMTIwMTkyOVowLwYJKoZI
-# hvcNAQkEMSIEIIBgatj8Rzn5tNJ0v8QYj6fcg7AX60/l1LReIbfz4gbjMA0GCSqG
-# SIb3DQEBAQUABIICAGXyiWEoL60w47uhZuT4r88cS4RGdO6KNsq6/mIB76ZOv7Tr
-# BibT5fB0/2o1lx5QEWt/k2FfoMyuNZB8skQ+uLDuOhe8uugZkEFsJHCvCNAuG+U2
-# s66kX7LXDv6GV3++uUId2vwNOzOOFj8a1pZ+cGg3+duXrfe7B0eo/kLy+9CCtzZa
-# b5lWMEb0482CBnTPX6dVGaxa59JCCig6xL7Rxho9hHXWOndk8TAeNb2oyhGLYCCx
-# Xm5YWH1jfucMDYCW857sSweG0LSu9DKNH6TNv0OVixukuYzv/9JYn06qUdI7F2Y6
-# UHICUXg/SxX8JzwSgjVywF/wkINFcJI36YYg/htoCT+6Q1UEdLXXl61HqLx7WN31
-# ofmGPdFbsqtPz+fHYzPr4ubePOFt3cCEHxptMaSHYikMYOdWHqzyZ+XGfd1u11Ki
-# OqX1lO9f2dvHRvYUULWX/wTkarR35WGdspAsbxkasLYHn/lUbTlVdoiM2JQxbXmJ
-# ErrqykLUchQdb8eS9XL5TURxlpVwoZc9B4GF/eUxs97pXvAKJbXCTipICeVKdHP/
-# aZVtPfsJKIsNfOSe64UfMcCLMDl7F33YoPv6Rc2HAdpCem+IZQiyVlrngPOxRCF+
-# RUlq7evRL8NxGVwkYuJn6GFTjCRr28kZilRnhf4lzB+cla2gou05xA80+K5g
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIwMjExMzg0NFowLwYJKoZI
+# hvcNAQkEMSIEIEYdVSn2HhMqFrEHT1Bwm8+dwGEClvIXmU3vl+Fuk4tTMA0GCSqG
+# SIb3DQEBAQUABIICAJRpBeWerYczyIhdcrGsEug//xqo7ZHvriBWbuLYNKtbvm8g
+# dWh/z3UIG3hmgYvf+AuGouOR7ZPcR6oz19IOAAJTy+4E1Hw93Alk1ptzCK996Lrz
+# r7sMlovv6mmW80SNz8IGKyJ9eOzqXG3LCqdQANuj5IGN7PGD/cR3dILbXAyK96fm
+# OybbwxWget714KZpAA16ZpbwDEVsA5A9HoLKAwa954cMt9ps6A/w5DQ0CM8Le2Xo
+# HCJjCKqgetSQgbZk3FffH2VfOVVHkil8fLwuquBz+JLGR+Y2qdTFTZPH0ef2gmDc
+# cZne9XBfcx1rNFNybjnYbI3AaJBrzZqlvhEze7nsDfGT5S4rDFo0evX46uV9skGU
+# hPImuMO3XmdihWRhb0Ej88jriQ3YzYmB77mG2tOLmZnDdn5bivZMKYuJsseJc5+z
+# 9kARXbvtk1LBIKMteM2QOgeTEOIrYizBvnmqk6uDy6+4gFaJ9BdE0MfBR3X+Wq9l
+# xiqrWHXK/IBhNXAUm/mnmx+Wdx2sdNTxITwhIrSQvDeyEXKW+QGlsYFFpZL6ltzP
+# flbik9zFdHs1rfRSeliDunY1dye7mI9bSpskJA25qfw+GX7gd2FTuzz20xCG9Ez7
+# v7XnRFfPK2BZgjRdyvSkvn5/89bq1EUeg9UG0KBisImQLthInb/UXPNbJ5iD
 # SIG # End signature block
