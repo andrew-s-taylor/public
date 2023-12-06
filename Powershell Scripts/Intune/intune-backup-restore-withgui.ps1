@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.2.2
+  Version:        6.2.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 03/09/2023
+  Updated: 06/12/2023
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -68,6 +68,7 @@ Creates a log file in %Temp%
   Change: Added logging during runbook
   Change: Added support for template creation
   Change: Set connection to use basic parsing for runbooks
+  Change: Fix for Boolean custom policies
 
 
   .EXAMPLE
@@ -75,7 +76,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.2.2
+.VERSION 6.2.3
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -4434,14 +4435,18 @@ function getpolicyjson() {
              
              if ($null -ne $policy.omaSettings) {
                 $policyconvert = $policy.omaSettings
-             $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
+             $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty secretReferenceValueId
              foreach ($pvalue in $policyconvert) {
              $unencoded = $pvalue.value
-             $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
-                $pvalue.value = $EncodedText
+             ##Check if $unencoded is boolean
+             if ($unencoded -is [bool]) {
+                $unencoded = $unencoded.ToString().ToLower()
+            }
+            $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
+            
+$pvalue.value = $EncodedText
              }
-             $policy.omaSettings = $policyconvert
-
+             $policy.omaSettings = @($policyconvert)
             }
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
     if ($policy.supportsScopeTags) {
@@ -6290,8 +6295,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBZp26DFYMu2C9S
-# Sxw+E021HdQIFQN2+c9LqcbRtnqsLKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAu6tt8pCGq6Weo
+# ezJHzzF/muQxVe15oemYksRuAyWx6KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -6473,33 +6478,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK9tzzrW7SV0eT6Znql2epNYh8KjhVun8hgb
-# AVHmg1hMMA0GCSqGSIb3DQEBAQUABIICAEcRmFj5Lbr3E4+lgjzXnz9AjHHhPEva
-# j+akIrMKwA9u2hd3TTyFjbydt8KK0z48XUAwU8T262XvFQP8e3I8av861ZKHvxq2
-# jO1HtfScuCP8E4DkHaaO7zmPQIF2eKGutcXTQyjqQfdaJMHti7xjxAZw08jp14tO
-# qZ6oSBQ8jXNtWlQ0vXPn6qfwqhV8ajnmSjcXt1+yikphlluMEnHoeTkYVziHpW5j
-# khvVkjdqGpNP/dWKGnqPfM1NkgbEIUW8n6s1e/lSivX1qcURfXwIoaCdQP/Fhn95
-# DJT7cwSvVhNa5UVkgsNo+ef2+H9wowRxMgBFhzCqlYAA1l2jvSfjlFwaFW7vY2kZ
-# 2AGv/hxqrNOon8l90WnClygoQt+NzhSZ2bslgzVdykKjgPuSocbWwDpJj3S95Y9N
-# NTH/hDRfxsRxXEWOI+Nbz97J8ZmYwUQC67EVl5n273c7y3uhpZp6Cc1jrmQpZgBi
-# ftX+DlTynTZuMfGC+SMW4RLHG8MwGNXWLTUcgMS2XiAHfHCGuRVXwsYoKyNBlvh1
-# 6IJa527yi1zekeTFr2pMkExuyXrcI85cho5wyYY1TDlUQfNXUuoXBKBrhqbVLnYa
-# 3BSSIVu7AsU5isu5GlAyhP3NSWwDvnCPsFHdkuyYTXcSPZq0gfUzfGN22rt1yU6v
-# 0kjAPBNZVkKAoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIAbVgkh8XKnVGqI1+IatlM3yeh2QWUN2SUUO
+# B4NlmPyjMA0GCSqGSIb3DQEBAQUABIICAG2PN2feRphN5R0BInrRKsrqgXD4EcyM
+# g6HElylyx1A7kPNmSs9ryeBNUBeEwlf/yoAxyg+65cbK0IPVonVtIXwIcc9bCX43
+# 7ow6q2Jnt/RXghiPiaugKIuu66E7XpWtwfK82tVRGX2rR21Sox2l4+fC4LPE+OzE
+# tQEsS0iF3TUUrcpP446++NJFHQAix8I4opv+IUOIVi7HluV2yARxJzS/bJGljFtv
+# 8oKTep3yTyiVvHcY35tFPWaY3Hxsi4WPGdFvcHSCiZV9FNJ672bngUmSBwz7zCgc
+# AY94z3yGOwXsY72PP5QPSpoKMVWXPh5WLIxTBgwfnjzSTNRzveVBOch3zkVnrloq
+# Qt3LsvxwWCR4WJrHMFwOumwKyUqUBwBVr2w8e+0iglGUJ+/z3Kjk/HWg5pT1a4Yq
+# z2FqsRDke7yZJN8gjHDca5F+0nmgrgmTGb853CndXPG3w4ZYp/zliMfMj55VmFpg
+# RAK59+zjTDz4n9RN0oBF/nvzUFs9R6C8Mkcq9GKjJop8zHH96ocFzAmISQZOWioy
+# RzYHQenpX6P0ij8pIhV2eiz9wAllKziPRv7zQ00uI2p9BsIPJfPKVYtnOIB9pN8D
+# Vjy3MB2/KVvG1NebGNCyggIqErbeqEGqIvIprrr3dxruX24pQI7yXM1GVWXTodmO
+# mFc6fBBeZheGoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDc1MFowLwYJKoZI
-# hvcNAQkEMSIEIKQQZE9/V7hYvsH6puYB+JIQZOcqb6dHl4NQQdf/DrTRMA0GCSqG
-# SIb3DQEBAQUABIICAABPdp20Xiss7MghTtSXzxBXsYa3SCPJQ4GDq0wT+BktIyyq
-# nhj9KohuDzqsTl32VxjR/kPGG7XXwy4Jnkh3fCjrtEOu+eMDv83nsx1OKD7gi44x
-# BaPjXUXqnbyKYKXT9OSV2trvV5t1ogjKQpaugkE9wjV8++JPdRGywHhy+AD1KNnR
-# C+wJ8/7tnzr4pW+7rssyHvOfzpYZ8+zM/E7RMwitcZrzeGOVOfdNBle+H48Gc5oX
-# TMhwVs0Uaw5tV2bT5Y3k5T47Let4PKZYEJRBwokr0iKh0PnBWJHEfLUxhMXV8H2P
-# 3fF4abeCN4A++lnhWEkGW1n1ozzD9OsHwcRSL2mC3WW1Yj1rinCHH/fZY/0d3LY2
-# GenEj0AZRdk1D2nWzlU7DHhD+uoZ6JmH0c2cglcPEztII89DTCd40gwQj/GX9zYG
-# Q+7a/aoEaz6zAtcXA04pzm38Vp4SG5oq3+QtMtKBO2GX2EqhE/4MZhwh4CUQBkET
-# BAvrOEks82LDzGYNV0bWSauEEnAe99p3IXOebVTQ3jTRiaBquqWQKeukXy2F6NFq
-# LNObmknW4f9QnmZtc5UzppCg0QOU0uQ7eKxs1ufOUYnGhSowxx86DIzeFsHrjkCs
-# bsgTnl8xGXyx4Tv1SzJCJpg3tg180xoybrZuZvE1gmi+f/YsZmdHbvjn3RiB
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIwNjEyMjI0NVowLwYJKoZI
+# hvcNAQkEMSIEIC7dZhmLmc4bquwDnG06+VG/6Sq/jr2akHb+eRfFOpOdMA0GCSqG
+# SIb3DQEBAQUABIICAAUwmaRptBBkIsYbmIqQsFQsBGpmCr+SqD74gITP7zHVh2bW
+# 2nBSvi80TtqZM+Rs2fdllH0qW2tDn2KxYslvXUxSKTFjxqW89MEzg5YqgSlmY48B
+# foJlkrtM8wLPbYl8I7HuWkERbv5Phe5nDJ4HljT5zT2iCQHh4hWFqC0bjoLEmloK
+# aVoNhZMXpDOyCVZAkHs7+5GjHQQPE9OYx+Y/3qqRsKXhRPcNc739EqQQMOz70BxL
+# 9R8xdr+eLlKUJCmQQGjzFXUKjZFIK5DW4Y8pGGLRsgQqUQfmLLvO2bKDEZwggG9G
+# nyUrRaWw7vg9Uof8WT77Q8sZeYsQOF8GZg2bPXTDLuzI5Ea+rvKfddZsdD6uRdJA
+# 76EuySe3KhhAm9IqYAF3YT1SEwKfh7Dwy272bDxNklJRJ7uS5yfhaIUWZrjMfQQQ
+# n5jacDJEQB/2gxfzFbg95lcu0n1CXJWXMpwAfqFkiGumt+Mw+qQHTvwxjSyYz5yr
+# jUUzFcJdZvItwBvqvQN2uFwAVyq8/oziCv7UtzGUkfsRWgvfIRedoEvk6P/UvfAm
+# UlDpxT0rk8iVg05ZGZ7/Yv7QMdq4PVh/cLVXPcMRpIs6bjOlbHHSYdhmyj5BGnCv
+# XYGEVYSiEApTNKlvENTuHb+NuVIx0PINDDv0qf0SpIEZTd40wQI8uhudlzWJ
 # SIG # End signature block

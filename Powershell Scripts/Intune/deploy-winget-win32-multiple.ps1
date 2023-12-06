@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.6
+.VERSION 4.0.8
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.6
+  Version:        4.0.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  15/11/2023
+  Last Modified:  06/12/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -51,6 +51,8 @@ In-Line Outputs
   Update: Added Logging for Runbook
   Update: Added support for Available Installation via parameter
   Update: Code signed
+  Update: Removed sleep from detection script
+  Update: Added support for Winget PowerShell module on PS7
 .EXAMPLE
 N/A
 #>
@@ -2491,8 +2493,7 @@ function new-detectionscriptinstall {
         if (`$ResolveWingetPath){
                `$WingetPath = `$ResolveWingetPath[-1].Path
         }
-    start-sleep -seconds 10
-    
+       
     `$Winget = `$WingetPath + "\winget.exe"
     `$wingettest = &`$winget list --id $appid
     if (`$wingettest -like "*$appid*"){
@@ -2990,8 +2991,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBPreXpQfcUidiM
-# jg4GFzXrcjPUGrJ44TKDQ12O4/4uAKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCeE8IUTTi33mvD
+# MEcxdRLZiUCchVcuwARfYmZyaUsTpKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3173,33 +3174,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFJUKBzFs6QB0DXf5ogynkGy3+wYyYfQxUuL
-# SHtWw0WlMA0GCSqGSIb3DQEBAQUABIICABC6P3DmzNETSbZjRvHJzVv0If1V3TWR
-# IlynOWTjWfLw2CYZCsMlkYaVTMfOeWyQ6Qxc8/NBJAL5lJ4pRc/W0eMufqaEvQwX
-# N2yE+5sdBozXRD07K9bhtgX9bFfccyqyrit4s6dKOq3SP1L+xuwt+gD7iLhlNSqz
-# Lkkr0JOHauNrY+q1k3u/qlJCui0BRUcWNCtzmYdkady6x7SXjg4jxxAEA83AVAwe
-# xnHApkJYxnV4JOO8Fp1KP8KvDx7XxNlDIrTnHhFqzZa3zLktABTXsgL7obn6jXoI
-# Br0gNwqBQ7KsTLhyxAf9xwvI1av5kDEZd7sHZg7MkGduAFmfIGcxnnTe+xwarw+g
-# oMQfVcoDEgY5W2lOSwvep8v1xSMILMGGj0jVa5CW7RH7swuisPcowz81X0KiYI/1
-# 0w51uQeYoawyU9MftJeuXHEk9n+gAdtP6gu4RreY2FbN4gJ0lhxO+EXwPPeZVIjU
-# /mlWtvQkCePcGOrZVmvN9ikoCudjHUaqUt13RbtqKtpiKRNJ1yLIt22TnBXM7m4x
-# BeGIWgzGDrzsXOiYl3/wfP8hyBmo6wbUfpfGeaT2Kj8dQaCTVoucyWloRCyzn8iO
-# sLys/csDkACwuGjYTF0d1cAClLNG62TC1rxweq0fO9dQ9TqfX7x1Y3cRfJeglzp5
-# EtMQkVn466S2oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJomj4YJGRTrR+0NBI6GXK4m++7qjCG9h/rK
+# OmOgg18iMA0GCSqGSIb3DQEBAQUABIICAMMkMxxz/WY7pqmsmxaB97SoOeSOC3ED
+# SMg/ARNgNoZohWF7psKYnGhJaTTcRIl0sS94TRyp13MYhqGH5f5Zx4ZbuCwfXdUJ
+# dsKkEnNv2lS+X9GJurhXmgNtqBmGsKTz8xISfuiuHg8szgwQqo3rP4jYiXhe5SeJ
+# NxGoWR0T/P8bvifiFw27gF9MrFkLPwSdmdsuaxSXDEPo2DPkxfFWLlAegOvAsvPc
+# aAMedngNKXLyp/a+6348naSFIPRouJK5LFJd1RbLpWf6xC6p6O92LCwvrBSg3YJG
+# SuNTIPekgg3oPZP3BFfavWLlm/CBWzE7wtRBR86Z5AuGzRp9O522jUwSQ+Dnu4bB
+# 1pl6bkgnCyNzorGkyEzliB18JCrBlas7O39fer6qK/2h1Yf8T86f6XSNuJvLcKYY
+# zFDEyTXdLZnvxD4Lp9hCXNdPoKpItHkxpXJlqFCik3LIrN98neRO5QBtoAF9LgWT
+# BpCsD5BuLaBzCISTIoxGfAXPAUhTEaPWlk4rrSzk23LzoqcZRa6bmdKHQ2IT2tHX
+# PjLWU/QPNycYED4A6cSp8DME1KAoMV4UhIOCB2duWSgaZ3ytVNNcJvmPIWujVweV
+# t/uJhqwhrvlk+cI4GG8cILpGFi6/zQkjoWffoMBXecFzIxeRmAakUYF68IpfM0aM
+# bijC+CKqh0DvoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDcwOFowLwYJKoZI
-# hvcNAQkEMSIEIKFuqojHCMf9Wsy+zSxQxAIAylMRrQwVefiC6Cs9Wxk8MA0GCSqG
-# SIb3DQEBAQUABIICAKIfYvUlLgx6fhTopBHN26sSxnBQG9HZzHfnzC7O3/e0Bxv9
-# SLIyIPe1r+Mp08zAhooMkdIbvBEDbjCUWj1ceXINDn/VrkPeYUtn1buCm+JTE/R1
-# Ki2v8itjI0o6M63Hb1/HRMHQhuWrtkT+jR7J2MesWvf/d6jVFWPJxX56EkK/9UbW
-# slQglYU0TzbaQstjhxFVd1oS3IMlfYqiLMqvgp9d5HmX0oRsGxf8Q2jk35lvGd2Z
-# CiO8SntuVMzxgCrbaxOW2A7QsUHieywq2qW2DRaZZxxMYAmxomj9NbG0zbdMZRUG
-# tOoc2imZumqpj4/tJaq8LFBBgxcr60TJdNMPB0wPT8DNrPwwfMFKRzkoRuHiS0ov
-# sxDOSvx6Xw1AvqOIXRItQJODwWp72a0fyRUpAUK5wpR5wS2p36OpJ2RF2yURgr1D
-# Oq1NeT5i1HbQzcA4eCmL6lsX4ik20qS3DI5A+cH0f1iS+6KKjGdN0pfn/+NosJz2
-# urJpZazosElM2x967ZbUhzyC0OxMi36jMUDjF8WPu3uX/U41i2G7Emu66XW9Elje
-# SR6vhABLWU0L3+yk+KSLuDgSZfrHbwPHOdqgXhRk4Qg2xRJx5+G2NtHQHRkG80Hr
-# gH7UqxNDPbbLh+hSTKJUuXEaEqnOEfANZF6q+0nuz3WMV784WaIyKExAjvV3
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIwNjEyMjE0MFowLwYJKoZI
+# hvcNAQkEMSIEIFV82l7cqbV9cQscifrcGSJcVIuQ/ExsIAZOWomBd07qMA0GCSqG
+# SIb3DQEBAQUABIICADmyWQEA+u0siu1tW5D1r1m7m53oTk6yT9GUii0QCEti/usb
+# g2K9Oc0Z4Rn7bd+PiQOa6wcZ9zPaU/qL5pSHIr2uuVn3GDiu7btjC77bDchK6C6g
+# BbMlBhOFlZMWkL9wIW3FdAqspkroNeWAFI3ENZrnm8/YrRoqMUOLngN1Og7+XvMr
+# DIzCaFt7M7sj2SNt7QvSWuBzgoGNVFVV3ckTb4UFJOE5HPjKiYH6aaGzIlGPzItU
+# hLPUJhLX9ZJlhRj95/acmJG5IwHl49lifCjzkWWRN/Xqg3i2nll+Qzxjcskpbuc1
+# jiKUMSoRV8LMenJ1vDrjgPGPYJEbjDXNZ9Jo9a3LJDlmm7fngyBdyqBtXQJ9yPr9
+# PZ6XvwGGDfpQCWSWVjkurZdI8TSb9vxeQcNAk7afOV8tGTIi+4QokOkngYnx9LsV
+# lRZPHha1ro3VZwVqwf8Gedgkb5GpQxKtuKYgZRz6lP+bwC14qkybwxI5VK24m1dv
+# nh1Y/FX/FzDIHn6GGCNZ8KrGWOJ3rsX/vxMW3IrJ9Gbb6bWCR8tpM+elJ1AeT+yq
+# Z7OxLuiffsaStIZhhkpP1PoFX0XA9T+Xy/VYQujSqjABx2MDYs5H6ykUIrYeNHOa
+# KJNwVUXs6JvfAVSLqNFwZI4sfMEQkRR625lJiwedtDx/UtijEKnk2YULjU3M
 # SIG # End signature block

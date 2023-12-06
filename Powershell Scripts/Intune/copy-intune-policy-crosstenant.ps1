@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.16
+.VERSION 6.0.17
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.16
+  Version:        6.0.17
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 06/07/2023
+  Updated: 06/12/2023
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -84,7 +84,7 @@ Creates a log file in %Temp%
   Change: Fix
   Change: Added support for App Config policies
   Change: Update to work with SDK v2
-
+  Change: Fix for custom policies with Boolean values
 
   
 .EXAMPLE
@@ -3428,14 +3428,19 @@ function getpolicyjson() {
         
              $policyconvert = $policy.omaSettings
              if ($null -ne $policyconvert) {
-             $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty isEncrypted, secretReferenceValueId
+             $policyconvert = $policyconvert | Select-Object -Property * -ExcludeProperty secretReferenceValueId
              foreach ($pvalue in $policyconvert) {
              $unencoded = $pvalue.value
-             $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
-                $pvalue.value = $EncodedText
+             ##Check if $unencoded is a boolean and adapt accordingly
+             if ($unencoded -is [bool]) {
+                $EncodedText = $unencoded.ToString().ToLower()
+            }
+            else {
+            $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
+            }
+             $pvalue.value = $EncodedText
              }
-             $policy.omaSettings = $policyconvert
-
+             $policy.omaSettings = @($policyconvert)
             }
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
     if ($policy.supportsScopeTags) {
