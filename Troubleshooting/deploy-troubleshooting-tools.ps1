@@ -25,50 +25,22 @@ None required
 .OUTPUTS
 None required
 .NOTES
-  Version:        1.1.1
+  Version:        1.1.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  03/08/2022
-  Updated Date: 03/07/2023
+  Updated Date: 06/12/2023
   Purpose/Change: Initial script development
   Change: Added logic to stop running outside OOBE
   Change: Added command to auto-launch tools.  Thanks to Flo @ sunrise-it.fr
+  Change: Fixed string output
 
   
 .EXAMPLE
 N/A
 #>
 
-Function Get-ScriptVersion(){
-    
-  <#
-  .SYNOPSIS
-  This function is used to check if the running script is the latest version
-  .DESCRIPTION
-  This function checks GitHub and compares the 'live' version with the one running
-  .EXAMPLE
-  Get-ScriptVersion
-  Returns a warning and URL if outdated
-  .NOTES
-  NAME: Get-ScriptVersion
-  #>
-  
-  [cmdletbinding()]
-  
-  param
-  (
-      $liveuri
-  )
-$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
-$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
-$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
-$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
-if ($liveversion -ne $currentversion) {
-write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
-}
-}
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Troubleshooting/deploy-troubleshooting-tools.ps1"
 
 ##Create a folder to store everything
 $toolsfolder = "C:\ProgramData\ServiceUI"
@@ -129,7 +101,7 @@ Invoke-WebRequest `
 ##$string | out-file $file2
 
 ##Create powershell script we are launching
-$string = @"
+$string = @'
 # Send Shift+F10 key to open a command prompt
 $WscriptShell = New-Object -ComObject Wscript.Shell
 $WscriptShell.SendKeys("%({TAB})")
@@ -140,7 +112,7 @@ Do {Start-Sleep 1} While (-not (Get-Process cmd -ErrorAction SilentlyContinue))
 Start-Sleep 1
 Get-Process cmd | Stop-Process -Force
 start-process powershell.exe -argument '-nologo -noprofile -noexit -executionpolicy bypass -command C:\ProgramData\ServiceUI\tools.ps1 ' -Wait
-"@
+'@
 $file2="C:\ProgramData\ServiceUI\shiftf10.ps1"
 $string | out-file $file2
 
