@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.3
+.VERSION 2.4
 .GUID 9cb596f8-e4f4-4fbb-bf0b-8d5c227af59c
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Intune groups via command line or GUI
@@ -34,14 +34,15 @@ Deployment
 .OUTPUTS
 None
 .NOTES
-  Version:        2.3
+  Version:        2.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  26/02/2022
-  Modified Date:  30/10/2022
+  Modified Date:  12/12/2023
   Purpose/Change: Initial script development
   Change:   Switched from AAD to Graph Module
+  Change: Switched Autopilot from -contains to -startsWith
   
 .EXAMPLE
 N/A
@@ -376,7 +377,7 @@ $project.Add_Click({
 switch ($groupname) {
     "Autopilot"{
         #AutoPilot Group
-        $autopilotgrp = New-MgGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled:$false -MailNickName "autopilotdevices" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -contains ""[ZTDid]""))" -MembershipRuleProcessingState "On"
+        $autopilotgrp = New-MgGroup -DisplayName "Autopilot-Devices" -Description "Dynamic group for Autopilot Devices" -MailEnabled:$false -MailNickName "autopilotdevices" -SecurityEnabled -GroupTypes "DynamicMembership" -MembershipRule "(device.devicePhysicalIDs -any (_ -startsWith ""[ZTDid]""))" -MembershipRuleProcessingState "On"
         write-host "Group Autopilot-Devices created successfully"
     break
     }
@@ -426,8 +427,8 @@ switch ($groupname) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBeVUX3HKPGF7zG
-# /5pD+hqzjFSc3viTqi6JrUOZaJdIjqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCqrpzQBlK5/x+8
+# GQnvo5loV6sotP17PJTrbRwpuOqZZaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -609,33 +610,33 @@ switch ($groupname) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGAfEQRGaN5NvU42SUzVxllsr1qjdWYMjCBa
-# /lRUjZs1MA0GCSqGSIb3DQEBAQUABIICAKIlHttGya+2ocmyzx6bNA/0Afzixcoc
-# zTpBL0qrTylNI8I8u1GpXwu5YLWIQCWvwjISk97qhSvsaAUjOgCl0zAO+pisO+E9
-# EVe6n/GwsRDtHOvbxC4XaVorxGObNrAfpqmqVsLNNPmN7N+JsvZWf/vDh3/+sBbi
-# +SZYiAOc539X5m7rzJ/i5OW9jRj6EMRNCw9MbU026yupY5UNTrKw/CCjetS/VzDV
-# B0t8xhL4T2CcYrvKwjFXHpTNxRabsAO7R2VUG0gKdsMgqP130anSwBMLuKDlPPFD
-# zwzlvGWWX6rpOzJ9R6SZInaWD1AeplNvwQgICWbJuiIoXt5FpVt6vc8cHnQFn97T
-# s4yFvAzxAhjDmk8CGSLQx7gUH7jVgC6SrVgysAgcNB2VEWJCKky9tMvRm37dBckf
-# I5Tf+GHdeLBxiW24GCFCAoxGhvT3OoZ9Fno10RHPwXaxd1GdBJdsgf3vfstQ363I
-# L7QxMgvra3nNMvfhljG0Km0PYVQ92qG3W1ZikN67KFnFOKcSgMCVaoINSqAGfPlg
-# dPMLV/I2iF6yeUxF9RZRQuPMiIYp9jSqNYi1M/OA8jzlALjZC2Ot3LOgGCslpEGZ
-# X/iOZ/Q7QTTiWb6fBfgD6/AZ7geKEIEE2o4cQlgWbNodiQ6w2ZHlWTwFwhaPK3CM
-# zxQVZvbmSx0boYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEGukNyMeWAAzoS8fr6OMW6rJn0qUtP8KmVv
+# WFPBGK2bMA0GCSqGSIb3DQEBAQUABIICALLNbjy3+U5E6Hr6FzV0rmKij8tkzYzD
+# v3byydNa8ghLq468454+ubhWVixSUUp2Lzzb7ResYJ8H63HKVtVCc2qnCNWU3XdB
+# zw1yQQj7e6cJFkIWaIWMgUBCy+z2e99GD2C80bwyFeYpfBYAS8tYkqOY5YRH/HA3
+# 7vGyxX4ku16R/0ikNKm6KJGBACwxdKAtF0ubK23BpB0e5z7E14aNv4qU6UfygUGx
+# 719UxE+81NzzVbeb65VrKYfQuHVu6yQu4eo7CisLUMc/LfJw3aXx8kFHHr5hcOXi
+# MZah383oQOYly3eCBgyTGwPrmgTQKdhGXu4YcotHyhUD+8S1X95nbJMikLjtRZZe
+# ogjM2bGOVuQSEVH48rs0QfiULfd9/thyVun6q6RHvKQYdb/+eWfa8S1kRXJyUuJp
+# 8uiD3IOK4e7OYKNjh4s2HDK1DfYCvtoVQdmBfEdIhjgrzexGb4RtpZUiswW5NANy
+# nTn2bHowq8OhwUzf5pHk4zdmRexKWRR0E4W+jR0kULfi1oKoqYs5QW8AMbeodu6j
+# 9yxbIWBacVmUWCDoPaw3lkHkYPIj4TUYH63ZzTnuYssrNqJDKVGjTh/czqGsd0w9
+# B6+Z9/uaK2fckDqvT1cTsJRPDgHgibijh+eqt4fa5p9OjoOtSPjE06bs1lOl90lo
+# 5br2BjJVBXreoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDY0N1owLwYJKoZI
-# hvcNAQkEMSIEILV1RdMlhVxm4oRXrNqdtUG4TpVMeJViV6JRH1qc+bqoMA0GCSqG
-# SIb3DQEBAQUABIICACosJ/SU5gSCIaDB+Nbzms5s0i7ome2m2V4yrmxGCgZSVzRB
-# /Zk7Pne4gVs072janTYCUOkSfYFwKOxtdEm3uTwmvaUOKbK727EiRHdhSNJTz/Mk
-# WqXSJgUph2ECgfpEgIwSxW97eXEc/QktNWkYIifOrBxAsoMt3f67JVi0AodvcYDx
-# Vjnj4kPBBP0MV83nsP8mSb4lpjFlRJQWdTyUPaoWobhickpmzzzTwD4lmdNlulVd
-# JAOgeFIpVuUpARfWTQleEdREXpNbDpCqZxsoLBFcNpTVayep7ZSRMPN+ZyVVx3xt
-# QELAfhDUjbaEQD2jTN1pIoPSNfjmSnVLA5T5nZSvmbxmWWDGZzwTNFwST8lQThKU
-# D+w56xfjUH8YbFWXzSpws5cZIeFOFKpnOX8x2O+xZ/uD3VDilLFnbYcIUlMbrAp8
-# iqxgz4uOKCnM85+mw70Zp5SNwWM+9KCUpQq7+Ax11IQVfso5bMlF5ZyeCWyb2Y16
-# vufF75g2bX+1owxsItrmvGGO1kiBFK5tpfVZRuEou1AzTbcsNR6QQSaRF6+n7vK6
-# MU+2PKRruMcDOLHsHzcIAai+H3p6GWRL8r0qfrsTWHirVEJkGHy4h2bO0DNLQ4/Y
-# ZTsp/twYOAALktKpy2eOZ+aUQm8XmpieUwhi99v3ZQxgEmG1d9LHhA8fHpkQ
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIxMjA5NTcyOFowLwYJKoZI
+# hvcNAQkEMSIEIE8K92RiYDLBfqU+Fp4mG1iGxYDEfRATDz9SncG7TriWMA0GCSqG
+# SIb3DQEBAQUABIICAC8d3i+j/8tMweDPDVkWKvC2ddE+KI7GX7ZrwTgh9OG8yDXZ
+# QoVHtjcNBm00WG+4oo/DS5NoPZEvxwBTS+671BNKyFz7DS7t5mqTF74r0yaKDsS5
+# m6CrnRvoXXrHh0c8EarYomDUbXR04KtrmE97SKLNbo8pYX3c6f/h59UtrfzfsDcl
+# vXHObKQcmapNoyjVlCcjI5n8onFu8EdgvV8UnURHkEgRf7US7vtaXopESPYmGCCy
+# R9rocH2X/+lhqvGbVS8X84wi9fApTow+DKp9AuqUz4Uou3alUIB2S6cqiZUOJe9X
+# i0TpyUukeO5kDkM32BKA2Gv0Dlao+tnEOyG21fa73GFejryIDFvWqJfsC6aFNmYk
+# kaeaMbM69rospVoowcG4q49niDTqqGBQ1xJppOkjX8DwH70i5UpUMayDDgcicZCd
+# gesM151ieeo/iian8G4HyI4PqaRbz0jE85Kch5+WY7ubmWYuCoLNpA9Hi6+xvMP5
+# 0hJh0j6JwksnGXIVTxrkid2IiRF3HIlFkBb7XRAfR6PPlGbzXEVGy5snJ8r6KvXU
+# sNKi6khF4wkuCEcSHVOncHvHHFJNCsI4MV9cTFKRM5CuI9l9QfQuxwblAJz2mmuR
+# JKWV19ii76IZoYLQSgbplJ5fCFf241TKKZ1U/XuJKk+s5lMVAi8PSdYYZnu2
 # SIG # End signature block

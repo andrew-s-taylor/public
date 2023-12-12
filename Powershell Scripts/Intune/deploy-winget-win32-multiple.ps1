@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.8
+.VERSION 4.0.9
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.8
+  Version:        4.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  06/12/2023
+  Last Modified:  12/12/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -53,6 +53,7 @@ In-Line Outputs
   Update: Code signed
   Update: Removed sleep from detection script
   Update: Added support for Winget PowerShell module on PS7
+  Update: Bug fix
 .EXAMPLE
 N/A
 #>
@@ -1336,6 +1337,19 @@ Function Get-IntuneApplication() {
         
 }
         
+
+##Check if running PS5 or PS7
+if ($PSVersionTable.PSVersion.Major -eq 5) {
+
+    write-host "Running PowerShell 5"
+    WriteLog "Running PowerShell 5"
+    Write-Verbose "Loading WinGet Functions for PowerShell 5"
+    WriteLog "Loading Winget functions for PowerShell 7"
+
+
+##################################################################################################################
+####################                WINGET FUNCTIONS FOR PS 5                       ##############################
+##################################################################################################################
 Function Find-WinGetPackage {
     <#
         .SYNOPSIS
@@ -1463,17 +1477,8 @@ Function Find-WinGetPackage {
 }
 
 
-##Check if running PS5 or PS7
-if ($PSVersionTable.PSVersion.Major -eq 5) {
-    write-host "Running PowerShell 5"
-    WriteLog "Running PowerShell 5"
-    Write-Verbose "Loading WinGet Functions for PowerShell 5"
-    WriteLog "Loading Winget functions for PowerShell 7"
 
 
-##################################################################################################################
-####################                WINGET FUNCTIONS FOR PS 5                       ##############################
-##################################################################################################################
 
 
 Function Install-WinGetPackage {
@@ -2777,7 +2782,13 @@ if ($appid) {
 else {
 Write-Progress "Loading Winget Packages" -PercentComplete 1
 
+##Check if running PS5 or PS7
+if ($PSVersionTable.PSVersion.Major -eq 5) {
 $packs2 = find-wingetpackage '""'
+}
+else {
+    $packs2 = find-wingetpackage ""
+}
 
 Write-Progress "Loading Winget Packages" -Completed
 $packs = $packs2 | out-gridview -PassThru -Title "Available Applications"
@@ -2991,8 +3002,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCeE8IUTTi33mvD
-# MEcxdRLZiUCchVcuwARfYmZyaUsTpKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCi+nedqnlAgNPv
+# LqCZnF1CY6M35qzrn9EMiNdItAYepqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3174,33 +3185,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJomj4YJGRTrR+0NBI6GXK4m++7qjCG9h/rK
-# OmOgg18iMA0GCSqGSIb3DQEBAQUABIICAMMkMxxz/WY7pqmsmxaB97SoOeSOC3ED
-# SMg/ARNgNoZohWF7psKYnGhJaTTcRIl0sS94TRyp13MYhqGH5f5Zx4ZbuCwfXdUJ
-# dsKkEnNv2lS+X9GJurhXmgNtqBmGsKTz8xISfuiuHg8szgwQqo3rP4jYiXhe5SeJ
-# NxGoWR0T/P8bvifiFw27gF9MrFkLPwSdmdsuaxSXDEPo2DPkxfFWLlAegOvAsvPc
-# aAMedngNKXLyp/a+6348naSFIPRouJK5LFJd1RbLpWf6xC6p6O92LCwvrBSg3YJG
-# SuNTIPekgg3oPZP3BFfavWLlm/CBWzE7wtRBR86Z5AuGzRp9O522jUwSQ+Dnu4bB
-# 1pl6bkgnCyNzorGkyEzliB18JCrBlas7O39fer6qK/2h1Yf8T86f6XSNuJvLcKYY
-# zFDEyTXdLZnvxD4Lp9hCXNdPoKpItHkxpXJlqFCik3LIrN98neRO5QBtoAF9LgWT
-# BpCsD5BuLaBzCISTIoxGfAXPAUhTEaPWlk4rrSzk23LzoqcZRa6bmdKHQ2IT2tHX
-# PjLWU/QPNycYED4A6cSp8DME1KAoMV4UhIOCB2duWSgaZ3ytVNNcJvmPIWujVweV
-# t/uJhqwhrvlk+cI4GG8cILpGFi6/zQkjoWffoMBXecFzIxeRmAakUYF68IpfM0aM
-# bijC+CKqh0DvoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEII/Yo4dbQ8KI6HqE0brezHSK/KWc3ssWldlF
+# fhKmNxt2MA0GCSqGSIb3DQEBAQUABIICALGafAz/rVVvAkRTNwo6nBfptl+9Ogjl
+# qUhu9G4KLmTjeAaUjKJeKK/O/34Lfhida7JXNv06vciUpw99pw6auMMBA8uLUDla
+# P937+zLbW/FUh8guP/q2EgJhSsQ+x/tk5OVaEhLjo4NVVI4S08nNVW1HgYk69xH9
+# PEvOqzL5MTDOpTsSpISwlddK1h3MLBvdE674ffwqCADhXuAvfcQudzJCAehF9H1r
+# zfVvjIm55SxpAL8LnJiW31OFu5W9j4kdpUY7PjdQoDT46Y4RMFnKZQpcWUdQDSiI
+# CgaJWnGQmhpbMXF4mRNSCW7liAcCld7AZaUlp+mmVLhSpXi+OE+7xlhuIJNLNBNX
+# SOi+0vmCKaXUo+We531C38f61zxfFmEnZuGolaSiizRGuWeBKedHV7yehdXHQT+J
+# LmjPRbMagbNgkKCo6bBhIU2FF6S/wn8ADLD/2/9gxizjw16046UqEvHY34YNns7T
+# 9nPsys6ZYOCSI46P/aJfYtFmlktZIMbTsS2IvMQqDy3Pn8njK/qy2mdGJgNY/pym
+# 4h8i0WZV9iyXZ4ffLPghZcQNwCNm8A8nZWiDno67tgHLqkK+cHzx9lSRlJsZ33bu
+# bmVwAHHwoYDNV3WCMvN0NMT6hpgDkXW5b1DyeDa9/IWLnKvgfaX32Etk+akEjFZl
+# Us2HSO4PmrN/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIwNjEyMjE0MFowLwYJKoZI
-# hvcNAQkEMSIEIFV82l7cqbV9cQscifrcGSJcVIuQ/ExsIAZOWomBd07qMA0GCSqG
-# SIb3DQEBAQUABIICADmyWQEA+u0siu1tW5D1r1m7m53oTk6yT9GUii0QCEti/usb
-# g2K9Oc0Z4Rn7bd+PiQOa6wcZ9zPaU/qL5pSHIr2uuVn3GDiu7btjC77bDchK6C6g
-# BbMlBhOFlZMWkL9wIW3FdAqspkroNeWAFI3ENZrnm8/YrRoqMUOLngN1Og7+XvMr
-# DIzCaFt7M7sj2SNt7QvSWuBzgoGNVFVV3ckTb4UFJOE5HPjKiYH6aaGzIlGPzItU
-# hLPUJhLX9ZJlhRj95/acmJG5IwHl49lifCjzkWWRN/Xqg3i2nll+Qzxjcskpbuc1
-# jiKUMSoRV8LMenJ1vDrjgPGPYJEbjDXNZ9Jo9a3LJDlmm7fngyBdyqBtXQJ9yPr9
-# PZ6XvwGGDfpQCWSWVjkurZdI8TSb9vxeQcNAk7afOV8tGTIi+4QokOkngYnx9LsV
-# lRZPHha1ro3VZwVqwf8Gedgkb5GpQxKtuKYgZRz6lP+bwC14qkybwxI5VK24m1dv
-# nh1Y/FX/FzDIHn6GGCNZ8KrGWOJ3rsX/vxMW3IrJ9Gbb6bWCR8tpM+elJ1AeT+yq
-# Z7OxLuiffsaStIZhhkpP1PoFX0XA9T+Xy/VYQujSqjABx2MDYs5H6ykUIrYeNHOa
-# KJNwVUXs6JvfAVSLqNFwZI4sfMEQkRR625lJiwedtDx/UtijEKnk2YULjU3M
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIxMjE1MDcxOVowLwYJKoZI
+# hvcNAQkEMSIEIB6vm5I2dp0pLW6qklQuHJ81sAIR4HHIERyifuyrY4AUMA0GCSqG
+# SIb3DQEBAQUABIICAKMMj8HH1Qly2h60UIFHi15T61z/vIBmdxC+HOs57Vr3VokL
+# /Jc44AAPEa1Zg4H6Fs4pHsRLGIO86bT3V5kjV+ElyCsZ49uTPPDf8caRMNvJBHb3
+# KvrIbRIjvNiFCS/PVI5viVhrZvGELRtwYpcW38vP5xFPd0i6xqcCnG1i2ePvkRNv
+# qBg0aCWfTfiOZPjyNxuOhEit3ACnrdckT/3Z53BcnmO8Z8tFI2KbYSCn3/LgIRQx
+# GQQzQzTAoN3KFBebnc2StkV1mLhGWVlux9/1NWZpaU6vr+ZVNm5RrKrbS9ZHWKCb
+# kb0aCWwrIbLqCfu08lAqSTaGs36sVvt1VU8BIS2ssF7vJxB9fd/WLSS/YaAPvqLd
+# x39o37SNAFw0INp/hlJLcOk81VPSM5wYMkUl2PTHC4aAsKLTKBPuSo5XSDzx4VE/
+# N2TbTDSAxqhhLRnLTUytLAmxoreD2qhvAL3UW+6qDA7owSFzDi6GSPw+WAlS8rRB
+# awB0bLVTm6U6FRWxj1utZDTdpwjULlm3k+PGqcIWKD19gR01OZc9UvwTgUHnHgEi
+# H2dax4sFGpvaOFT/9vlqNk8SY53CGyOU7udeEOY43oqsRrQ0rNclAhcU/uUGCw28
+# Xh40341xeS5MCN3U69A7CRtgVqXO1aIiOAd19IwflGoYE/AOFyAXyRkthW2R
 # SIG # End signature block
