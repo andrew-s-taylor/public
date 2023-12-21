@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID 26fabcfd-1773-409e-a952-a8f94fbe660b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Bulk Run remediations on demand
@@ -25,12 +25,13 @@ Device ID and Remediation ID (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  06/09/2023
   Purpose/Change: Initial script development
+  Update 21/12/23: Scopes fix
 .EXAMPLE
 N/A
 #>
@@ -155,7 +156,7 @@ write-output "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Connect-ToGraph -scopes "Group.ReadWrite.All, Device.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, GroupMember.ReadWrite.All, Domain.ReadWrite.All, Organization.Read.All"
+Connect-ToGraph -scopes "Group.ReadWrite.All, Device.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, GroupMember.ReadWrite.All, Domain.ReadWrite.All, Organization.Read.All, DeviceManagementManagedDevices.PrivilegedOperations.All"
 }
 Write-Verbose "Graph connection established"
 
@@ -257,8 +258,8 @@ foreach ($device in $selecteddevices) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCdE42SPY0xPLgv
-# STD3OwFwIHZFJdema6JHkPmVpL1ZNqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDgvLxUj/dni/3W
+# nrP/2147LHgJjnzvHJdHVCgnj38eN6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -440,33 +441,33 @@ foreach ($device in $selecteddevices) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEpWT1lZfS4N1Zl/VfgVCLOzMaiTVrWPyzWo
-# +1UYkY9qMA0GCSqGSIb3DQEBAQUABIICACLJgsJh9cuc/2zjQy+uMcrPLhB2LA2H
-# eruGSWU8YDnadrS8cMfK7592MBPU7TO4v1RSIwCFV1G+7WdM1XSh/E8nCCauyIHu
-# tUIpOhgtE1hOV35SFel1JmCwZYUGw4Cs1JuXYjLaDV5StoDx8BZ2jw7HjeJUh2Gp
-# a7/vpSjE06bKT6haxP4vGSmooNBUaSgqIXyNDrzivpGCTIHvybBuWYGdRF0KElYi
-# vN31SnP3s9rCj2X16i/9B9HR+hhlR1MA7fWMFD6yG5A38XRK9RkFbKFC7oXv8zoI
-# ErPVXd2lpTAzZLfQSkHFBPvdaPMZ+HJQP3051q5mUXr1M8AGrk3t9v//wXJy2Gl7
-# lc8DUYIS8YDoXyn5uEtueo3pU8G2scRgxLIiIeXOLgLzvU2udx+PXKdl/2/peuNK
-# ySgApbEW+sPhemXSXw58PuWPznzjsGrGXSyOvuE7unG64tkoQvt3NIORwabMVGLU
-# HcJnFZFhb9cHmv1TA2M0U9Lp/7IZmZcJ8lK1lz2N1fzkcDoJFyIKQAaPXVrFSqoQ
-# WWRCogpXw+hR4QjuaPNz21vRdC27Tl3o2bFmFQ1Bg/KEkWFcEYjcT+r+esxnPE9g
-# a+YmlqcFxGLJJuRpQjLaTGYlbksDvoV8GaXtKhKvx0pCh2xhDdWsaC1A+79+WIAa
-# EBEj81/rhHejoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJZwRgKUJDN4ScKeuKE8lArjtB5THOIjI2SQ
+# 9XjMzH+AMA0GCSqGSIb3DQEBAQUABIICAH7CCXtQFBe14cjoiYmHjaKE3Lc28j9o
+# qg2pTDqIYq6BoG1dmihKGHFqcMu3TDxtBdm/jIcgvzNb7JmVNvEsFW0weNjb7XcW
+# mVai4qaawtKGtNBWHW6fL79tSKFMPV80fotjkwaSbHNrm5PonLlJNFr4EG+L0AdJ
+# 9oQBJ+ic1evz80xK6DYYG+9zhTb2GYF70QBt9WZHQF7+m96jNAOlluzPNV9jxnF/
+# XiD2ONA5udwA2O7ZkoojI8aB9AeA6EqgZ34tAQVvbF+5YoAd/Q1rhNiwEjHPuAIv
+# 2WiAFsoSYvZFKZ4FWeP76BlVocZdUezQIRH1Mo5idjepKiojYc0T/4gxbJOZoS5W
+# wvT4SqZBxT5me97SIBfZvABHlCN8bx2CFs+PY6cg5Z6rfF6I92ySAjtvlVnRAAnH
+# w9a961sBksh//MPHbMnnQEbXqMTnBkiR4OKm2Lpv4eiPOrK9I4ygZKxh7DLPbms0
+# tasB41Cd328jMrgbjBIcgrsVT5kB2dgaEODjtEHIGiGtgikpt60rPBNj8Mo9hqGF
+# NooRvyiL17N94yVdB9ua0V3DjkiGyPLICPbt6TudGO2gPbdrwEEJzLRfqzvKG4uo
+# bom8PW+CwyYVCJgf1Ncofba0V2TtwUSNBffx/f6EZxjcMKshIHqvgehhMJLX8hKr
+# Z/rt2b46CTHfoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDYzMFowLwYJKoZI
-# hvcNAQkEMSIEIND8BdyX4z3+uLMW9oFpShDYm35F2ufYueo9HS6mQrmtMA0GCSqG
-# SIb3DQEBAQUABIICAIjZm7MtCup0f47gmptKt2cWxI4BmB7w7K7Ut4/xzomD8qCR
-# Z3kJY5zzcD3O4xyVtMkPcYescSOQZh9FGE4ki9p0PzodRT7+mYgZkhkYA6Pb4M4X
-# lWsVCUi5yC+EPnJFqbThVsGDQwoqoB/28mlGKrmsY6zmWG3EdtNwxebZKTxB2yyC
-# HquvLKh5tPrDvKJjVWScEIdLDPk4G9UgPTi59OIBqOd7qXWiW28sTXLcHISitZ23
-# Fq4DPdRK3FCoKryGBKCku2B7+BjE0SNxqsak/LUvS24NjzPYsJMJDG53OBRd29bE
-# vMT72elvjer8o2asrzzDQWXEJXzTOCZdw5fMFVykockYUYUVd8TmD8w+apz7yQ8W
-# PuCgCPp+JHlvApJJn1kFGYBc2r4fFBYaQgR7G1KAfjL/Yqkfy9oashTo8rAP0tYh
-# TyBjLdRoX91kd3RLPOB6idSkzcR3h+FxxLPQu6IhCRiqOjV59ngBliS9Y9pUk2od
-# NgSwC4jGY6tAmEtbqE+SgoPL0CduS45LxzKwHAam9R59JiyNEAn21mm2/K76omPB
-# 6690+yJNIcpYTm/1+McLygA1ZwBziq2DU0WTqWKawvWxebvFqKYL91MRTFb0g7b0
-# Ugp6Zb2CKVP/9Tu8e3AkTte0tOoIhkQO5dHSQlFpY1unOOhsAPowq05AZsN1
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIyMTIxMzUxMVowLwYJKoZI
+# hvcNAQkEMSIEIFN0vE1S8wb+Rd2XCq12x0D+okw9JX/p362CVNmXTUEzMA0GCSqG
+# SIb3DQEBAQUABIICACkkNstM87MdyGgUzYwtv47uGnLOdG298RihUtBl6d7JGYGV
+# fwyB3uIwLblc2rdKo4+YH71cxtvVLSNDTx6jc4IkzrOtCqko+r34ZLriL8CdSnDj
+# 9dHP1m0CxTbFWwarzqFv13uO9bMebcLr+3ycdI92l0NzKWbx1srTE9xI5oSDd12q
+# CmhXDJVhywrvsDCcuaiKImbcfKJG6YJzUyOGx560uR5eUMEr0MT9eZ6HPekY7OVa
+# x58wkVbJEhFG/Xl2JF3mLH+0c7bc2tAtLsjGBEnVhpmraB3DhoVreLtkEX6xPy2/
+# nDhOf+NBha5ie+v7TxN+99iC71g5KqAABx534SDTvRPu2tP6FPKQyq3xHJwfAUrU
+# bMfBwGg4bABkQL3NG1E1/y512OBlYanMXhNIAiJDZQD3d0IiAIFbPn93S/3/uxtm
+# 4uBIZMoGXHYuFoCdFM48iQBcQnXQ/9f3u10/J0GrFwsKVCLyxcPY7jaT+YTtpyrn
+# 43NxdiRT9e5N8eV2dTadr7xxOhyaqWZfxmuPaCAqNTavkzP0OcuhwzPu/0E3F4eQ
+# xb04oDWplcNW5lKrM9EWzS8QyT1BrwkgQi0rsA37V6rE+ketxTnQ1ewAGyhvgrdD
+# rVms1MBMrVJM8kk1YcHFsq9hLnlXx48hDgFiJ7BcyEX1LDA0n8N0UNhfaCUo
 # SIG # End signature block
