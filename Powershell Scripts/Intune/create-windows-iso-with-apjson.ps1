@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0.2
+.VERSION 3.0.3
 .GUID 26fabcfd-1773-409e-a952-a8f94fbe660b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
@@ -28,12 +28,12 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        3.0.2
+  Version:        3.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  02/10/2023
+  Last Modified:  27/12/2023
   Purpose/Change: Initial script development
   Change: Amended to grab latest supported versions
   Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
@@ -42,6 +42,7 @@ In-Line Outputs
   Change: Languages fix
   Change: Added support to select version
   Change: JSON update
+  Change: Region fix
 .EXAMPLE
 N/A
 #>
@@ -190,7 +191,9 @@ if ($oobeSettings.hideEULA -eq $true) {
 if ($oobeSettings.skipKeyboardSelectionPage -eq $true) {
     $oobeConfig += 1024
     if ($_.language) {
-        $json.Add("CloudAssignedLanguage", $approfile.language)
+        $json.Add("CloudAssignedLanguage", $_.language)
+        # Use the same value for region so that screen is skipped too
+        $json.Add("CloudAssignedRegion", $_.language)
     }
 }
 if ($oobeSettings.deviceUsageType -eq 'shared') {
@@ -676,8 +679,8 @@ write-host "ISO Creation Complete"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAjfxpHiQRWE+8y
-# BNM6tvyfmFGyeKwUcKB94llxvdbqn6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD/qzL2y4hUOrMT
+# bhTAgDnFERwQV/sKjRtKitd65jLiiqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -859,33 +862,33 @@ write-host "ISO Creation Complete"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEINvaLS5HncWjuTt5MiAzYIclR9ABU6+17nSZ
-# v2FbSM0/MA0GCSqGSIb3DQEBAQUABIICADU18btXWhVxg+ac+zjBPgj+2iZ23GvQ
-# My1iM2YO7lFGxTekV3RArPIT944yriC8KIOaoUCbX9xH9wxWkR3zkdPK1fiAl5SN
-# I8El0e0rG8Yegvu7yu7DpApxVMWkaj36x3UI9y+cYIgR0JTAFdz3JYE9RWc7zOIV
-# II6UqH5epdoxN96Lj69gciaLXiIc4haLon6soDl7g/iZfyRN/NBqoBrto8eE5WBl
-# 5wIS3UEESWMhenYzfdf760SvHsz1vCEJNGG/bIl35Mw73vnEydI9rp6R/lPZhhcR
-# WD5kGbE/12DImcksEq7cBKP25h4utHdS0cDNscRzBpZig3VaJIkZ8JA4yldKL1ua
-# nlKznmwUaisxto//U/aS/dSqATklUnFX4dtAAgkBlvXPmhYOtoqumupTI1cqMg2J
-# sIqzeb19RojaQwRe9o7XR8jXWu3pem2wMO02KEdJLPhRNirl+ARWFaVJU1mh7j9a
-# GiuqlI6s98D6GcEb6rjnbq2u6jYxR6QCmIhEzNqKD8lkSwBrbVLhDn9bIh471tY2
-# MCK2YvhDL9iIzTSwzVteVZkfzv443ZCi0D/cx8DxUqWYhPgazoWtev6V2HAxX59A
-# 0yEhpmbM/TnZK3TSYZ3nfaUl58sGHwG76IJwprrvAjsOKbr++fdMdrY5ZeLVZfRd
-# RF1DW1iPMMoioYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHBdzXCNBQIfWAadQ1bW9YdAvIPqRb/BrlN2
+# ReToAY9lMA0GCSqGSIb3DQEBAQUABIICACg99vYP83hSvCjNQYPneD82vP0yGFLt
+# WCgpWJECVPT2zJGyqTQQYwfhkj9TPmWvPpVACCWqNrY+7eqBMFcatuQsOAUPrL2K
+# iwI/Z3FFWv5v41NpctLdM+Gqn9T8yHAL7hb1yWDuahFE5/67SKvXKg+6OLEwmc4A
+# sX+BWCgygUGNt0rOXQiPB3vK7i6C0noEIqqRy/OP0a2wqBDfP9kwxvVuBnxHYXGM
+# R9Kn2Vz1OtgNaB1vweSG5LRe6qdefFYlDwK8hxa/Q+9jIZf5WlBivwBFISbXRmwu
+# w9u5UmyQHVqzoPCWYUe1gfpPN9h5LwTaIv0HpqWeF4zFn+AUKht3fFqQDFXB00Tr
+# FOAx78XJo/JnTj3XFRwCFOTRRI6YGvGBitR+jF7a7GnXpGwnvLk/RsuT0II47yxh
+# V/re9XvMlK84al7ymW1kA2ildW4ukE56wwd8YvvhFYd4JJ3WTRlw6C1BmS/n6sRa
+# blf1mAP2JrkbFMw2/RgES9XTaU/1+y0GQAzU1dt2Hlkz7RKWYYwuAXkWrGEHz2lX
+# dpfCegcxARKBVSjE+WBqr/WVwLWhGN5icSYUsVKO3GfsKMc+2zxe8EMmsGKqWA+c
+# USFffrS+W5U9oOEbuqWmxC/qNqKhyVjlxlMmRzcfeWRNk1vmONAnEj/nbdy2HV4M
+# +ibgC5n6baoGoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDY1OFowLwYJKoZI
-# hvcNAQkEMSIEII+NCbOBmsS1cADHTP/3lh1qMp9u3QLD+MaO4oUroitGMA0GCSqG
-# SIb3DQEBAQUABIICACh6UjJVOSBPelDTnHY8mXUw9hdGm39H51JATvH+y/DLH39a
-# 4Ep86mJixOtl7bu+OUXx+mzEbKcieOxFUvnlH+o0AgGVyEVpECfNAjh9CtYd15/J
-# LZTDpvzqEv2nXM967nM7C2L0izPncUz4c/l1OV8Y/0rOScuJ6WOumL3z7Buk0wQm
-# nBNiIwgnWMMYknGqxzmyDx8wUn1d7xUXHXpMfnqAsn/CmWl7nheMSwG1W69yfdzl
-# rVg1dXac48xlyQsxXFSPLrjM73NGNst6xtRkiW4vUwgR9YNJQayI5FgRMnjB7foj
-# J/2F43CDu9Z3OuaHzaWqCRQM8rIqIClQ83ffpM4ZAfi90KjBWPYmq38fu61DscJI
-# R7Orct+zCSw1r2rSBxKr/V80Nrfhs+KRgAR2u65Z4RYi1to4JlA6CokIujNhdhY/
-# XzkwvZ+po4duc8SZuMK7u/6uqPHVUnWPp2qQ+4ac4X6ARQc7k/qFrvg7y9O5PfvY
-# WcnIi1SzqRKJMHCUt9DsP7zWJilVYqZc1t7RlyVAiHqNvaiilqudhYlsapnHRbcc
-# xkA8J+eXzw9IJzAg60Ah0NEqiKXim1bYfb8unSUU7cyySqsME+LJCumORW64W3ud
-# b01hNBtkeM/XU4GBzmIAPQfH4yvbbkhK/upnsljRdTwEzYCGTcNJDK/e/0eK
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIyNzExNDUyNVowLwYJKoZI
+# hvcNAQkEMSIEIKYbtrzNhomcReJVARwo/BwcDT4DkprVLxmk8oSOHBzXMA0GCSqG
+# SIb3DQEBAQUABIICAH36TFT7D04tc84i0YemE723WkaA9S2Q8RLmmW0qH86EpG4o
+# f2ZSW3xaYwbF731VH9U9oAXN9c6xWhqnevl0RzU9fWYEsB1Deva/vtRbu7Kx1Zqp
+# STc38ir+YWBXOE9D9MFchPSz3UExJZlDaGs+47Q1Vu7ul/vqy61yP9t3OIdLfVb1
+# gfEirQGVQtUlcJ2Auze/4OlgjNGH+OSuLUR1jjae1wMTRRoiOdeY0ChHKIX+zjVF
+# YgB2TznXjtsTP6Zl5SgPjIsb7+kg/IY7FuDHE8cKMU2kNbz1JrPJU5IfZ/pC/5f3
+# PZZjYYlc1orkZQH3GK/+JfnpLvFXEOZ4ltwf4ctLe6S32i+NzEW3E37lNBaOsqVE
+# FAD3W6jpNvnwg9M3nNUR2UcZw7tAGsnEBclmytAOHPETQQHIk0aff0lVm1Fh8Mss
+# i5ifjuraHoRQBpibNvxfKDFi0HDBm1UI7w3MOZiSR3AKphkcJLQD1N9mfFkCOCol
+# 2io/9Wfq1vlZxyQCp2RwTjhnUCUrRMuuEUqYvYJlVINY3FeEmnbv6HyzUFMdBPwu
+# k+m9ZkhcxmirIx2csbF1iX+JZIx7kDPLx870YL7f3h2y8nqrxO+6Cib0YEAw35WU
+# 2C4k+LOFGffC1AHSJKaESNAbywmcfGnsYVSa0cxJQekSkD03cpejwtJD13tB
 # SIG # End signature block
