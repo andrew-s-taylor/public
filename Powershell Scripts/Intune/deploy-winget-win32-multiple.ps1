@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.9
+.VERSION 4.0.10
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.9
+  Version:        4.0.10
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  12/12/2023
+  Last Modified:  28/12/2023
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -54,6 +54,7 @@ In-Line Outputs
   Update: Removed sleep from detection script
   Update: Added support for Winget PowerShell module on PS7
   Update: Bug fix
+  Update: Issue with PS7, added logic to relaunch in PS5 with params
 .EXAMPLE
 N/A
 #>
@@ -144,7 +145,15 @@ Add-content $LogFile -value $LogMessage
 }
 
 
-
+if ($PSVersionTable.PSVersion.Major -eq 7) {
+    Write-Host "PS7 detected, re-launching in PS5"
+    writelog "PS7 detected, re-launching in PS5"
+    Stop-Transcript
+    $params = $MyInvocation.BoundParameters.GetEnumerator() | ForEach-Object { "-$($_.Key)", $_.Value }
+    $paramsString = $params -join " "
+    Start-Process -FilePath "powershell.exe" -ArgumentList "-Version 5", "-File", $PSCommandPath, $paramsString -Wait
+    exit
+}
 ##########################################################################################
 #$cred = Get-Credential -Message "Enter your Intune Credentials"
 ###############################################################################################################
@@ -318,37 +327,6 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
     }
 }    
 
-Function Get-ScriptVersion(){
-    
-    <#
-    .SYNOPSIS
-    This function is used to check if the running script is the latest version
-    .DESCRIPTION
-    This function checks GitHub and compares the 'live' version with the one running
-    .EXAMPLE
-    Get-ScriptVersion
-    Returns a warning and URL if outdated
-    .NOTES
-    NAME: Get-ScriptVersion
-    #>
-    
-    [cmdletbinding()]
-    
-    param
-    (
-        $liveuri
-    )
-$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
-$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
-$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
-$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
-if ($liveversion -ne $currentversion) {
-write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
-}
-}
-if (!$WebHookData){
-    Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/Powershell%20Scripts/Intune/deploy-winget-win32-multiple.ps1"
-    }
 
 
 ###############################################################################################################
@@ -1338,13 +1316,12 @@ Function Get-IntuneApplication() {
 }
         
 
-##Check if running PS5 or PS7
-if ($PSVersionTable.PSVersion.Major -eq 5) {
+
 
     write-host "Running PowerShell 5"
     WriteLog "Running PowerShell 5"
     Write-Verbose "Loading WinGet Functions for PowerShell 5"
-    WriteLog "Loading Winget functions for PowerShell 7"
+
 
 
 ##################################################################################################################
@@ -2278,23 +2255,7 @@ Function Get-WinGetPackage {
 #######################################################################################################################
 #################                           END WINGET FUNCTIONS                                #######################
 #######################################################################################################################
-}
-##Else if running PowerShell 7
-else {
-    write-host "Running PowerShell 7, importing module"
 
-    if (Get-Module -ListAvailable -Name Microsoft.Winget.Client) {
-    Write-Host "Microsoft Winget Client Already Installed"
-    writelog "Microsoft Winget Client Already Installed"
-
-} 
-else {
-
-        Install-Module -Name Microsoft.Winget.Client -Scope CurrentUser -Repository PSGallery -Force 
-
-}
-    import-module microsoft.winget.client
-}
 
 function new-aadgroups {
     [cmdletbinding()]
@@ -2782,13 +2743,8 @@ if ($appid) {
 else {
 Write-Progress "Loading Winget Packages" -PercentComplete 1
 
-##Check if running PS5 or PS7
-if ($PSVersionTable.PSVersion.Major -eq 5) {
 $packs2 = find-wingetpackage '""'
-}
-else {
-    $packs2 = find-wingetpackage ""
-}
+
 
 Write-Progress "Loading Winget Packages" -Completed
 $packs = $packs2 | out-gridview -PassThru -Title "Available Applications"
@@ -3002,8 +2958,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCi+nedqnlAgNPv
-# LqCZnF1CY6M35qzrn9EMiNdItAYepqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBPDsoPg9nfFq0g
+# oW+LLXNMgitHxXEeHGApWeVPMP2+EaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3185,33 +3141,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEII/Yo4dbQ8KI6HqE0brezHSK/KWc3ssWldlF
-# fhKmNxt2MA0GCSqGSIb3DQEBAQUABIICALGafAz/rVVvAkRTNwo6nBfptl+9Ogjl
-# qUhu9G4KLmTjeAaUjKJeKK/O/34Lfhida7JXNv06vciUpw99pw6auMMBA8uLUDla
-# P937+zLbW/FUh8guP/q2EgJhSsQ+x/tk5OVaEhLjo4NVVI4S08nNVW1HgYk69xH9
-# PEvOqzL5MTDOpTsSpISwlddK1h3MLBvdE674ffwqCADhXuAvfcQudzJCAehF9H1r
-# zfVvjIm55SxpAL8LnJiW31OFu5W9j4kdpUY7PjdQoDT46Y4RMFnKZQpcWUdQDSiI
-# CgaJWnGQmhpbMXF4mRNSCW7liAcCld7AZaUlp+mmVLhSpXi+OE+7xlhuIJNLNBNX
-# SOi+0vmCKaXUo+We531C38f61zxfFmEnZuGolaSiizRGuWeBKedHV7yehdXHQT+J
-# LmjPRbMagbNgkKCo6bBhIU2FF6S/wn8ADLD/2/9gxizjw16046UqEvHY34YNns7T
-# 9nPsys6ZYOCSI46P/aJfYtFmlktZIMbTsS2IvMQqDy3Pn8njK/qy2mdGJgNY/pym
-# 4h8i0WZV9iyXZ4ffLPghZcQNwCNm8A8nZWiDno67tgHLqkK+cHzx9lSRlJsZ33bu
-# bmVwAHHwoYDNV3WCMvN0NMT6hpgDkXW5b1DyeDa9/IWLnKvgfaX32Etk+akEjFZl
-# Us2HSO4PmrN/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK+j5ivcLXXasHKzUGZ7oX24qnlapcVeEhFf
+# unQFT4UbMA0GCSqGSIb3DQEBAQUABIICALlDOl0hrhia5YoaICmw5H4aTtENG4XH
+# lhs8QFTmRgycB019zoJjmX7KbW3Dwsh42UXEMW3zZmPr3eRbliVrQEW1okWm3k9v
+# S9KwmMgwVLllHGdFpIi7pN00zc2AIfMpSUgJwQjLoQIkMnLNYA6+In8A3OSsKeMT
+# IkxUKBeB7cGuMQ1NllVILqJBGMj4BfVjc7XSyoyVUbLNdolvj1ESizIIR6OZa30V
+# flvWmgSf0jAdNjLLsaYi+8pGH8MMeSG1H8addM47AehVpCYkMJWNGFUntd5pVZfA
+# V+Dh6eyhZShjRG2Tjc8kYDF2xntuTjcXg2mMwnM1n8kTdmOW3xOMaRFysudC9RV3
+# CfQifbB/H5KAg7xlLSQWFrkZn5Aza4BmGkLFXxm3IGxMzF877KprZ1guR6Q5Lj0s
+# eYjgcfU+f1LFKhE9OhlEAwFIX/ff8J7G9TBBs4xBp/9LRXSSK4nSTTwhb+LG0oB/
+# KyV2wB/XjfUJH1WiwSIkkFycoD0UH88Rmf020Q0sE/K9+12/6/XUWHQhd5Vb1SXw
+# MXlFE8C0E0t+voGO8oXfDB2k4zYQ1GBfDdiqCPRGgrxk+nSaLcpFa/PK6E2L71fF
+# zap+tOxflEN6C1hrRpgHjKy5arrf2faViRfbsr67pBuR7dWAcBnQ04h+6yFdf8KB
+# EnFyHoGtvXr1oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIxMjE1MDcxOVowLwYJKoZI
-# hvcNAQkEMSIEIB6vm5I2dp0pLW6qklQuHJ81sAIR4HHIERyifuyrY4AUMA0GCSqG
-# SIb3DQEBAQUABIICAKMMj8HH1Qly2h60UIFHi15T61z/vIBmdxC+HOs57Vr3VokL
-# /Jc44AAPEa1Zg4H6Fs4pHsRLGIO86bT3V5kjV+ElyCsZ49uTPPDf8caRMNvJBHb3
-# KvrIbRIjvNiFCS/PVI5viVhrZvGELRtwYpcW38vP5xFPd0i6xqcCnG1i2ePvkRNv
-# qBg0aCWfTfiOZPjyNxuOhEit3ACnrdckT/3Z53BcnmO8Z8tFI2KbYSCn3/LgIRQx
-# GQQzQzTAoN3KFBebnc2StkV1mLhGWVlux9/1NWZpaU6vr+ZVNm5RrKrbS9ZHWKCb
-# kb0aCWwrIbLqCfu08lAqSTaGs36sVvt1VU8BIS2ssF7vJxB9fd/WLSS/YaAPvqLd
-# x39o37SNAFw0INp/hlJLcOk81VPSM5wYMkUl2PTHC4aAsKLTKBPuSo5XSDzx4VE/
-# N2TbTDSAxqhhLRnLTUytLAmxoreD2qhvAL3UW+6qDA7owSFzDi6GSPw+WAlS8rRB
-# awB0bLVTm6U6FRWxj1utZDTdpwjULlm3k+PGqcIWKD19gR01OZc9UvwTgUHnHgEi
-# H2dax4sFGpvaOFT/9vlqNk8SY53CGyOU7udeEOY43oqsRrQ0rNclAhcU/uUGCw28
-# Xh40341xeS5MCN3U69A7CRtgVqXO1aIiOAd19IwflGoYE/AOFyAXyRkthW2R
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIyODEyMjA1N1owLwYJKoZI
+# hvcNAQkEMSIEINdtp5oMTnNKLFhJdi27TzwZhorgKenB4J7nBSKO0jL4MA0GCSqG
+# SIb3DQEBAQUABIICAH0FGvhTT7UmL1i+UDn/lAEkQGh4NMIU6NYw1Zn6nVCPHd6E
+# 8McV4giYzBShsBWS3962p6jCkvZZJm5iLR6mIXjpvPfNUQL3sckGjQu5lm4DS4CE
+# lBuccNRLT7Rnq5Nkk9ASzjSFDKlGUCdchSqyzjakaaCXLC7o3FsdntigL3cbkuD8
+# n2LiBWy7dfmghU3Pt4E0g5DX3wo0hEk+6TLTfNFLl1mGq2U8gHRJYlhYtbuzG6LF
+# Ggh5o5QU8qYYyP7nQ4+v94jBAG1Mbyfe4L6LmkRXXk/lvykvspKPJLjd3pz/32vl
+# kNJ/XfMZlowRWcorHFt5Qfkm1bJtKAOjamnf1NdJccZMX2ZHjSuwBTqGNF+ZwE6X
+# 7leBOjOKNIhz+bUUmqXn1Bl03XQVL9VsA/1HWoPOlCaiom0z+PMgLSC/tdTdMOQq
+# FvoGFqIYTCShC9P1ymz//ATPbtYZN+elOKBsa6kKu+Wi686LItFLJVkoQgBVaOh2
+# jufHx5gHpJKo5X/0eGvOup+TjKJ8GKcsMCOQxtyWPdpCzWgCLC3rRQ4HJ2F9z1jU
+# vHczZRIKQJuFzQwQZsCgdZLUaAVP0Zl9BlbCCvnBc8DYZs57RgqKDyo2WkdOllD9
+# t4tCjlQtldMLxCBJl9u9M5dTSSZCkQFQfczOYKZ5Av2kKxPQhrA58vCw8XXI
 # SIG # End signature block
