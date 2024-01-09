@@ -223,6 +223,27 @@ addserial -deviceserial $serial
 
 Invoke-MgGraphRequest -Uri $uri -Method Post -Body $json -ContentType "application/json" -OutputType PSObject
 }
+
+###############################################################################################################
+#####                                      AUTOMATION CHECK                                             #######
+###############################################################################################################
+
+##Check if parameters have been passed
+if ($tenant -and $clientid -and $clientsecret) {
+    Write-Verbose "Tenant, Client ID and Client Secret passed"
+}
+else {
+    Write-Verbose "Tenant, Client ID and Client Secret not passed, grabbing from paremeters"
+
+###############################################################################################################
+#####                                       UPDATE THESE VALUES                                         #######
+###############################################################################################################
+## Your Azure Tenant ID
+$tenant = "<YOUR TENANT ID>"
+##Your App Registration Details
+$clientId = "<YOUR CLIENT ID>"
+$clientSecret = "<YOUR CLIENT SECRET>"
+}
 ###############################################################################################################
 ######                                        Graph Connection                                           ######
 ###############################################################################################################
@@ -235,7 +256,7 @@ write-output "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Connect-ToGraph -scopes "Group.ReadWrite.All, Device.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, GroupMember.ReadWrite.All, Domain.ReadWrite.All, Organization.Read.All"
+Connect-ToGraph -scopes "DeviceManagementServiceConfig.Read, Domain.Read.All, Organization.Read.All, DeviceManagementConfiguration.Read.All"
 }
 Write-Verbose "Graph connection established"
 ###############################################################################################################
@@ -309,8 +330,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB37804UaSe2a9E
-# B152FfLklWdp68/IW+KrXFuw0syEB6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC51VOuZmF+JxBj
+# FRPgHLYKrL3q2X1iWMPwJq2EB2FpU6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -492,33 +513,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBu7B2LcTw8gkvnvYXOQvO71YuOb5DCj43Wn
-# 9hGRfEILMA0GCSqGSIb3DQEBAQUABIICALjImGGLsxgcqENbnGoq4QWFLOeW4bVC
-# Hqck6moA9eOcboKvoSbobQGdVm828rrcB4c5gIoIhg/kiBm0tL7oiqS1+Wy7crxv
-# RKUUesvS+uzzxKJne/XIpav4+7GneUdqMKIWJT+56CiAcwK6nYIoHNSGF3da2ARJ
-# jwrFdHDHG0F5vGRoyXzcrWDuFerleu0oW4fR1HiDDUX7k13TEj/6Hok3NfCfYlpX
-# A0kkpq7i016UWqLkLu0FzS2npsUAL+gPENvScQkdqipV050jfgLnMx9QR4H6aG10
-# 46NnZxHF0BatMKPR5csVAKpRnqNcsjK/wTSTQFFOC0ipG3c2dhLJRzs+981Ft+cx
-# NwALbtJ+x8Vj5RxGrkmHRh5BN148/NkaYLGXF9dELy4sj7lJAewoeHSAxd2pGgP/
-# tBTMPofq7M7HS/JzQnqymvDcI08KNLogZpWWAuSIfRwxsnMi2pqZ1BYr/oFKdA4N
-# 8xG7t6rL3AlUJ3MTVJyXicYpVIDTgvWwN37YLqMgT4/j19KhcscTAFPkFNpZyLmR
-# hsBQszpV4wvZ7HXE2YTU+EqsMrjQ015DJ+17281zOs+CdT3mfho9i9cQbtYpwMrJ
-# yvf7lvCiftR0Knx33+Lquu7xeZPYk6KA/pdUG7XRMdph79MBcEVaLq5eMMdG3AGG
-# Pt1E/To38TuaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFyRIOgJ9u3Lyvktin9862ohVZhMlR1EpAyS
+# tUlvgC2KMA0GCSqGSIb3DQEBAQUABIICAE1JBTV6PraYW3o6FdIzRdQRw884TWSB
+# ni4ofCz/pG0RacBNISZpM91VtxxOeeWALAmFVBturqgXZ9Ta+DCP32QBWUuKl8K1
+# euPVUk9NHgWEAbIVbfPP9hd+Ooq9h14/OkLdHpihdZ5YtRgh73go7z/guEXJ2XtV
+# CvfGN12+HtfkE9XgD+KoRRQnZ4AP17q0ieNUFioWe3mVnspBZgZ9ysYDXhaxEcfx
+# toMjBBVP4FHZzGFvqUnEq+sJjWaM1C+RS7jS0YTfHa1Z8En0LtwWfheWltAzmPr7
+# ePgxVbOfbUa0sCtIkE9XdHGycKOIz1nz/aOJHYg+ejGoQ2pcqbCOFeAtKss6miCI
+# iLSDGGoHK7R4nffQJKeu20R+y1+5Q/UQWYd+y+rKV9Ra1DqAB6bsv4NXddSUVmeY
+# uZBp+gddaAAdAAnRfrNlTa7JrsFfcHairmSE9JuYjdZuoxAwyNuoC/JIeSQatj5x
+# 2S0VWx+RHiCnOZqjPRv/P3OFjL0/WXV3keUyxDZ0UsIg7tX+m73iyuz65H5ulmP1
+# i3YyEqSVtAu+5JGCJXQJCe74zLmCKzkUZWZlKR0ge3dTVEhYDUFPMupV++1X/pFK
+# BgklXbgWt1CTKj1dW5W92Mro2dBYs4PcCPDqdvxqZlGotrDd/pykJXFRXl36GzuW
+# IZdTaw1D1h8SoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEwOTEyMzA1OFowLwYJKoZI
-# hvcNAQkEMSIEIFPIWLSWpdTQmDzJcQ4x9eB1MVZJn0Z5nZtI+v554iS1MA0GCSqG
-# SIb3DQEBAQUABIICACO3+imi5ROwn7AoY8pQGYK+NtLsxUl7CoXNfJ+PAjyJqIjO
-# z0sBf6HRMeBjxSt19arQiuRcckXjcwIy1ccdbBgJ7R7xXdM6CYBYbZyfrRx7Z+9Y
-# Ts5desH67s0z8k+U9s/i985CA1msNSh4tCOpoB2sJvXU7G9U/UB9XVno1gDgv81g
-# 1I4YPucSlpF0TfwCZk2o78Cgv52FwZEpoi1zwy5ebNXNQMHyYL9WV5X7I2YAzFSu
-# uN+smqu86U98AEd9dmREog1WTJPrWCvDcWJJXotkw5vM1mcXB3w4lLFmu4LE/VgU
-# /ThhQT/uw386LsSxeQ3bDVGhubHNjCEYJZSFVFq1dBwbYuFb25037afOv8gq5lfH
-# L2uNGT0U6ceu31o+MVnJs0M2YSZ0xCu+S396P9utIDUjO87Lm6B2/gVXyjUHohZL
-# XgW2WI84F6IWsraLrw5pEgGuDAdzWWK+8xF/QLZ2hW8Q7O1cXL1s1fm/EMxNnNLU
-# wucTvvoISqW7Po2qtfPsPe3+KYsnWmnW8YL+QKXTGr82zZtr5oqhaB+KU4OvraxZ
-# 0XCD3yzAFUwVG5IYFhmpxHZBML32EDPNQUNxc+/Wl2sK32VIr9JlcNCK1bAzj1eB
-# ohfGnL6RUR3Y0syKzcDNF2xRbFBG7nqLDW3vC+s9nRtnDGIXuX1BBliNI9ng
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEwOTEzNDgwN1owLwYJKoZI
+# hvcNAQkEMSIEIFk5wC8U2tU1qzjOrfHSkvsTs1axGGLm2s8uHT1T/r5hMA0GCSqG
+# SIb3DQEBAQUABIICAETp+tnRfWN9Msj3NpARnENIxBG/y4hD+hB6WU7JWnO1O7yx
+# 13E1ZpjVsVqzRpJDTDXn4QDjd+Bcidtsy9XcAMzyVnwiQvVz93LBLDh2PjifeuJf
+# dlYalBXLkO2B06E/hgCVegqoDKYWd/FtoQDLNdP9pd7xh+3VsVKxGpStsGaHH9qj
+# MYdcFPxvILfZBz5QJAxmUy4atMXtFKbyzrChuRZEcXjzc1WNGAvhhJGIE5G9GZZ7
+# b0WQLlIP1UHYAogA2hA/mIdhnG8aEZ6365LSwp59OuVCF7pxYYE1t9OfBUkfHB5w
+# b09A+u057WFn/ADm5BagrpAwkEs0zA3f38ZPMG7aNVLHqFl/8SuI2mMHMGxL2ZYK
+# U//dIljnXoBBmX0+rB1AXdG/NDGfPwTDdHWwkgMgNr4ambi2ol8DhiC7Y7T1i0iJ
+# u84j72521xZHveKa+se2uWTWoRUqa62pRvzrgHTSgsEFvZ3PUM+1l2HLIO05a3A1
+# cS6U8BwIhzOityBYz93ExKLeRCYbUO1VKIHm9blqp2nx4wJA+PIWePtfGp8NRpXc
+# D1QuUcWmadUVgXECBBUJI7vhXOYfKtDpL4eCH5ht9LVOTaznb2yohScnZs1e9xEI
+# IBZE9ZyceGnzAuq2qUp8Zff5Q6LZLgBVCoEe36j0XrHaC0vMbKuERJ+MTsED
 # SIG # End signature block
