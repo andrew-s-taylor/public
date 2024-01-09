@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0.3
+.VERSION 3.0.4
 .GUID 26fabcfd-1773-409e-a952-a8f94fbe660b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates a Windows 10/11 ISO using the latest download and auto-injects Autopilot JSON
@@ -28,12 +28,12 @@ Profile and Windows OS (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        3.0.3
+  Version:        3.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  27/06/2023
-  Last Modified:  27/12/2023
+  Last Modified:  09/01/2024
   Purpose/Change: Initial script development
   Change: Amended to grab latest supported versions
   Change: Now uses Fido (https://github.com/pbatard/Fido) to grab ISO URL
@@ -43,6 +43,7 @@ In-Line Outputs
   Change: Added support to select version
   Change: JSON update
   Change: Region fix
+  Change: Added ISO path parameter
 .EXAMPLE
 N/A
 #>
@@ -56,6 +57,8 @@ param
     [string]$clientid #ClientID is the type of Azure AD App Reg ID
     ,
     [string]$clientsecret #ClientSecret is the type of Azure AD App Reg Secret
+    ,
+    [string]$isopath
 
     )
 
@@ -337,14 +340,20 @@ $selectedprofile = GrabProfiles
 $profilejson = grabandoutput -id $selectedprofile
 
 ##Set filename and filepath
-$isofilename = "$path\microsoftwindows.iso"
 $isocontents = "$path\iso\"
 $wimname = "$isocontents\sources\install.wim"
 $wimnametemp = "$path\installtemp.wim"
 
+##check if ISO path has been passed
+$isocheck = $PSBoundParameters.ContainsKey('isopath')
 
+if ($isocheck -eq $true) {
+    $isofilename = $isopath
+}
 
+else {
 
+$isofilename = "$path\microsoftwindows.iso"
 write-host "Selecting OS"
 write-host "Finding latest supported versions"
 $allversions = @()
@@ -534,6 +543,7 @@ while ($download.JobState -ne "Transferred") {
 }
 Complete-BitsTransfer $download.JobId;
 write-host "Download Complete"
+}
 $isofilenamewithap = "$path\windowswithautopilot.iso"
 ##Mount the ISO
 write-host "Mounting Windows ISO"
@@ -679,8 +689,8 @@ write-host "ISO Creation Complete"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD/qzL2y4hUOrMT
-# bhTAgDnFERwQV/sKjRtKitd65jLiiqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAi4wPQTDa+pSfP
+# wnB6juDpg652GU0VOJ5Q++R9Q0o/2aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -862,33 +872,33 @@ write-host "ISO Creation Complete"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHBdzXCNBQIfWAadQ1bW9YdAvIPqRb/BrlN2
-# ReToAY9lMA0GCSqGSIb3DQEBAQUABIICACg99vYP83hSvCjNQYPneD82vP0yGFLt
-# WCgpWJECVPT2zJGyqTQQYwfhkj9TPmWvPpVACCWqNrY+7eqBMFcatuQsOAUPrL2K
-# iwI/Z3FFWv5v41NpctLdM+Gqn9T8yHAL7hb1yWDuahFE5/67SKvXKg+6OLEwmc4A
-# sX+BWCgygUGNt0rOXQiPB3vK7i6C0noEIqqRy/OP0a2wqBDfP9kwxvVuBnxHYXGM
-# R9Kn2Vz1OtgNaB1vweSG5LRe6qdefFYlDwK8hxa/Q+9jIZf5WlBivwBFISbXRmwu
-# w9u5UmyQHVqzoPCWYUe1gfpPN9h5LwTaIv0HpqWeF4zFn+AUKht3fFqQDFXB00Tr
-# FOAx78XJo/JnTj3XFRwCFOTRRI6YGvGBitR+jF7a7GnXpGwnvLk/RsuT0II47yxh
-# V/re9XvMlK84al7ymW1kA2ildW4ukE56wwd8YvvhFYd4JJ3WTRlw6C1BmS/n6sRa
-# blf1mAP2JrkbFMw2/RgES9XTaU/1+y0GQAzU1dt2Hlkz7RKWYYwuAXkWrGEHz2lX
-# dpfCegcxARKBVSjE+WBqr/WVwLWhGN5icSYUsVKO3GfsKMc+2zxe8EMmsGKqWA+c
-# USFffrS+W5U9oOEbuqWmxC/qNqKhyVjlxlMmRzcfeWRNk1vmONAnEj/nbdy2HV4M
-# +ibgC5n6baoGoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIPFdxodymQzO9oVV1EuQCCDm9fFeGufDv+EO
+# oUgIDQUIMA0GCSqGSIb3DQEBAQUABIICAL2acGlx97k4UYWw2mj2u0BhnPEblMk9
+# 6KMkGYQyj1cobTpLJ+qYw9z/bYatwCzyu+Ve5iXUHuQvRlg0fzdkgbd2nHi7nPvd
+# Vm0haUETfzQqqCxuSUfTnUiuyOe/kD3szEVRa7DwaHl/bDzTpIT5DIrbSNP4F9Nr
+# 9AdYJY/bLr+2HDJXKHs9S0+vNbZbVrEkAciTd7ppjXyiV7onlV8+NjSj+jUUbasx
+# aJ0v89BqAO8kd81U15Y36yzFIru4gcnEZSLSVJ/Nj+2/O/FbeiVvMIvdgvluWhj4
+# yNkYTEZwuctg2ZllhhXzwUBtG/rrEvObvFG5U3P+1b8JIEjbZvMw0DFMAFI1n2iY
+# HehUo48hocu53itplKMW26dYe4yvHNtmGQnMaT0ynjXI+CS/tlyLio1QUwzS2lZT
+# x2LrA9CcW+8teUyB7yhLYQzNfQ1frz5uDS1v3ABp43vCcH0bYhxh44XX1XXI9AuR
+# kUCzGUWtvJP351vLn9TA13KHHvSgethKYiATiULi5c4RVIM43osGNr6jOmV0bHuV
+# QA4TBoV3SbnMEEuVSuX6ssyFNQczzeKmENzK34wH7yn36Vebs5xka/KBvAg1kdMc
+# gHNEcDzCuNSK1ADf/AUVLRlUTRXKJOUl0ynOyO4WpgDcVYFgkgbfVoq3ZjgeHym+
+# TNMipQC3PkE2oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIyNzExNDUyNVowLwYJKoZI
-# hvcNAQkEMSIEIKYbtrzNhomcReJVARwo/BwcDT4DkprVLxmk8oSOHBzXMA0GCSqG
-# SIb3DQEBAQUABIICAH36TFT7D04tc84i0YemE723WkaA9S2Q8RLmmW0qH86EpG4o
-# f2ZSW3xaYwbF731VH9U9oAXN9c6xWhqnevl0RzU9fWYEsB1Deva/vtRbu7Kx1Zqp
-# STc38ir+YWBXOE9D9MFchPSz3UExJZlDaGs+47Q1Vu7ul/vqy61yP9t3OIdLfVb1
-# gfEirQGVQtUlcJ2Auze/4OlgjNGH+OSuLUR1jjae1wMTRRoiOdeY0ChHKIX+zjVF
-# YgB2TznXjtsTP6Zl5SgPjIsb7+kg/IY7FuDHE8cKMU2kNbz1JrPJU5IfZ/pC/5f3
-# PZZjYYlc1orkZQH3GK/+JfnpLvFXEOZ4ltwf4ctLe6S32i+NzEW3E37lNBaOsqVE
-# FAD3W6jpNvnwg9M3nNUR2UcZw7tAGsnEBclmytAOHPETQQHIk0aff0lVm1Fh8Mss
-# i5ifjuraHoRQBpibNvxfKDFi0HDBm1UI7w3MOZiSR3AKphkcJLQD1N9mfFkCOCol
-# 2io/9Wfq1vlZxyQCp2RwTjhnUCUrRMuuEUqYvYJlVINY3FeEmnbv6HyzUFMdBPwu
-# k+m9ZkhcxmirIx2csbF1iX+JZIx7kDPLx870YL7f3h2y8nqrxO+6Cib0YEAw35WU
-# 2C4k+LOFGffC1AHSJKaESNAbywmcfGnsYVSa0cxJQekSkD03cpejwtJD13tB
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEwOTExMjEwOFowLwYJKoZI
+# hvcNAQkEMSIEIHqewnrYI/AmBCsslGHvw8RUmPSH0iMrfvFWRrUW0tUzMA0GCSqG
+# SIb3DQEBAQUABIICAA28vml4nYqQMF3nbSsqxfFlfntknPMdvnOcwj6lBkQRl+Q5
+# TcHqQ/NjOc9n2Rm0X7XLIezNDVtexoosdc15uy6B/g9CDiWqHW9kHpCDEgLtdjnI
+# XmX11ZonYNS9RjWUIZgtBqis8m3x3LryhXoPEk1MHw7fTl56v7a9RuBu7RypxfAA
+# bkB3jmfelxT8iBrOVzSQfMxAiUhSwACPUUKXB0mIU9gebj9KFnF0bF77LKg9R6z9
+# +ZUaHcbMwkhhTOdg9JRgadDttjT/R1xPQPxAgs2wLzwg6FH+iyYqYJe7z9NbHnEr
+# s5fqHfi24xSvLDVX8Xk/xXukYH2tqkJkvkeiTD8YMHNqqRL04LLfmgRrQj5mHfl5
+# tNIQwfJPNGHWKLyHK8+tYFBQiME097FDWHCT493H+nHWtzO+HBy8jWwv9wOkw//J
+# XxisXpRkhbE3tvyq9xuN2JA5zHAgZ7pi/KGC5Ci6L8NsAJbfsZ8hG0Z/HqpRFFjW
+# 1lnlCQCD1/aqYvsXmWdGPd9zGazTEWYpP57opUAODjWRPntQNO0Rkl/GF7h+HRZN
+# /FrASgWgtLcQvIPQg97/mNRK75tE/u9k8dQWAac/+k/syd3EGqhWOZFA5lXReH1P
+# MZ8N83o2BzXICcvOSSvZ2KLatOrI77hIWiazI7sp94zKFz2xiPTHi66+iCEm
 # SIG # End signature block
