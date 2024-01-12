@@ -1,6 +1,6 @@
 #[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Scope='Function', Target='Get-MSGraphAllPages')]
 <#PSScriptInfo
-.VERSION 6.0.17
+.VERSION 6.0.18
 .GUID ec2a6c43-35ad-48cd-b23c-da987f1a528b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Copies any Intune Policy via Microsoft Graph to "Copy of (policy name)".  Displays list of policies using GridView to select which to copy.  Cross tenant version
@@ -26,11 +26,11 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.0.17
+  Version:        6.0.18
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2022
-  Updated: 06/12/2023
+  Updated: 12/01/2024
   Purpose/Change: Initial script development
   Change: Added support for multiple policy selection
   Change: Added Module installation
@@ -85,6 +85,8 @@ Creates a log file in %Temp%
   Change: Added support for App Config policies
   Change: Update to work with SDK v2
   Change: Fix for custom policies with Boolean values
+  Change: Added support for name change
+  Change: Fix custom URI when dealing with integers
 
   
 .EXAMPLE
@@ -113,6 +115,8 @@ param
     [string]$appid #Destination Tenant
     ,  
     [string]$appsecret #Destination Tenant
+    ,
+    [string]$rename
     )
 
 ##################################################################################################################################
@@ -128,12 +132,21 @@ $desttenantcheck = $PSBoundParameters.ContainsKey('desttenant')
 $automationcheck = $PSBoundParameters.ContainsKey('automation')
 $appidcheck = $PSBoundParameters.ContainsKey('appid')
 $appsecretcheck = $PSBoundParameters.ContainsKey('appsecret')
+$changenamecheck = $PSBoundParameters.ContainsKey('rename')
 
 
 
 
 if ($idcheck -eq $true) {
     $inputid = $id
+}
+
+if ($changenamecheck -eq $true) {
+    $changename = $rename
+}
+else {
+## Change the below to "yes" if you want to change the name of the policies when restoring to Name - restore - date
+$changename = "yes"
 }
 $ErrorActionPreference = "Continue"
 ##Start Logging to %TEMP%\intune.log
@@ -3420,7 +3433,12 @@ function getpolicyjson() {
      $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
      $policy = Get-DecryptedDeviceConfigurationPolicy -dcpid $id
      $oldname = $policy.displayName
-     $newname = "Copy Of " + $oldname
+     if ($changename -eq "yes") {
+        $newname = "Copy Of " + $oldname
+    }
+    else {
+        $newname = $oldname
+    } 
      $policy.displayName = $newname
 
      ##Custom settings only for OMA-URI
@@ -3432,7 +3450,7 @@ function getpolicyjson() {
              foreach ($pvalue in $policyconvert) {
              $unencoded = $pvalue.value
              ##Check if $unencoded is a boolean and adapt accordingly
-             if ($unencoded -is [bool]) {
+            if ($unencoded -is [bool] -or $unencoded -is [int] -or $unencoded -is [int32] -or $unencoded -is [int64]) {
                 $EncodedText = $unencoded.ToString().ToLower()
             }
             else {
@@ -3467,8 +3485,13 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceConfigurationPolicyGP -id $id
         $oldname = $policy.DisplayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -3487,8 +3510,13 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceProactiveRemediations -id $id
         $oldname = $policy.DisplayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -3512,7 +3540,8 @@ function getpolicyjson() {
         }
         else {
             $newname = $oldname
-        }        $policy.displayName = $newname
+        }        
+        $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -3532,8 +3561,13 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceManagementScripts -id $id
         $oldname = $policy.DisplayName
-        $newname = "Copy of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
             # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
        if ($policy.supportsScopeTags) {
            $policy.supportsScopeTags = $false
@@ -3597,8 +3631,13 @@ function getpolicyjson() {
         
         #
         $oldname = $policy.Name
-        $newname = "Copy Of " + $oldname
-        $policy.Name = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.Name = $newname
 
     }
     
@@ -3606,8 +3645,13 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceCompliancePolicy -id $id
         $oldname = $policy.DisplayName
-        $newname = "Copy Of " + $oldname
-        $policy.DisplayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.DisplayName = $newname
         
             $scheduledActionsForRule = @(
                 @{
@@ -3641,8 +3685,13 @@ function getpolicyjson() {
             $intentSettingsDelta += (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/deviceManagement/intents/$($policy.id)/categories/$($templateCategory.id)/settings").value
         }
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy = @{
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy = @{
             "displayName" = $newname
             "description" = $policy.description
             "settingsDelta" = $intentSettingsDelta
@@ -3657,45 +3706,75 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AutoPilotProfile -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "groups" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-GraphAADGroups -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
         $policy = $policy | Select-Object description, DisplayName, groupTypes, mailEnabled, mailNickname, securityEnabled, isAssignabletoRole, membershiprule, MembershipRuleProcessingState
     }
     "deviceManagement/deviceEnrollmentConfigurationsESP" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceManagement/deviceEnrollmentConfigurations"
         $policy = Get-AutoPilotESP -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceManagement/virtualEndpoint/userSettings" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-Win365UserSettings -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceManagement/virtualEndpoint/provisioningPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-Win365ProvisioningPolicies -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceAppManagement/managedAppPoliciesandroid" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies"
         #$policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
         $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -OutputType PSObject
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
          if ($policy.supportsScopeTags) {
             $policy.supportsScopeTags = $false
@@ -3716,8 +3795,13 @@ function getpolicyjson() {
         #$policy = Invoke-RestMethod -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -Headers $authToken -Method Get
         $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/managedAppPolicies('$id')" -OutputType PSObject
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
          # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
          if ($policy.supportsScopeTags) {
             $policy.supportsScopeTags = $false
@@ -3742,16 +3826,26 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceAppManagement/mobileApps"
         $policy = Get-IntuneApplication -id $id
         $oldname = $policy.displayName
-        $newname = "Copy of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty uploadState, publishingState, isAssigned, dependentAppCount, supersedingAppCount, supersededAppCount
     }
     "deviceAppManagement/policySets" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-IntunePolicySets -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
         $policyitems = $policy.items | select-object * -ExcludeProperty createdDateTime, lastModifiedDateTime, id, itemType, displayName, status, errorcode, priority, targetedAppManagementLevels
         $policy.items = $policyitems
         $policy = $policy | Select-Object * -ExcludeProperty '@odata.context', status, errorcode, 'items@odata.context'
@@ -3760,66 +3854,111 @@ function getpolicyjson() {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-EnrollmentConfigurations -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceManagement/deviceEnrollmentConfigurationswhfb" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/deviceManagement/deviceEnrollmentConfigurations"
         $policy = Get-WHfBPolicies -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceManagement/deviceCategories" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceCategories -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+               $policy.displayName = $newname
     }
     "deviceManagement/assignmentFilters" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-DeviceFilters -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty Payloads
     }
     "deviceManagement/intuneBrandingProfiles" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-BrandingProfiles -id $id
         $oldname = $policy.profileName
-        $newname = "Copy Of " + $oldname
-        $policy.profileName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.profileName = $newname
     }
     "deviceManagement/operationApprovalPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-AdminApprovals -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceManagement/organizationalMessageDetails" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-OrgMessages -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     "deviceManagement/termsAndConditions" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-IntuneTerms -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
         $policy = $policy | Select-Object * -ExcludeProperty modifiedDateTime
     }
     "deviceManagement/roleDefinitions" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-IntuneRoles -id $id
         $oldname = $policy.displayName
-        $newname = "Copy Of " + $oldname
-        $policy.displayName = $newname
+        if ($changename -eq "yes") {
+            $newname = "Copy Of " + $oldname
+        }
+        else {
+            $newname = $oldname
+        } 
+                $policy.displayName = $newname
     }
     }
 
