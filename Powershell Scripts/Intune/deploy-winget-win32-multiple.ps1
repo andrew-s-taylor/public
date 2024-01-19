@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 4.0.10
+.VERSION 5.0.0
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        4.0.10
+  Version:        5.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  28/12/2023
+  Last Modified:  18/01/2024
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -55,6 +55,7 @@ In-Line Outputs
   Update: Added support for Winget PowerShell module on PS7
   Update: Bug fix
   Update: Issue with PS7, added logic to relaunch in PS5 with params
+  Update: Changed from IntuneWin to PS module from Stephan van Rooij (https://svrooij.io/2023/10/19/open-source-intune-content-prep/)
 .EXAMPLE
 N/A
 #>
@@ -241,8 +242,19 @@ else {
     }
 
 
+    if (Get-Module -ListAvailable -Name SvRooij.ContentPrep.Cmdlet ) {
+        Write-Host "Microsoft Graph Already Installed"
+        writelog "Microsoft Graph Already Installed"
+    
+    } 
+    else {
+    
+            Install-Module -Name SvRooij.ContentPrep.Cmdlet  -Scope CurrentUser -Repository PSGallery -Force 
+        }
+
 
 #Importing Modules
+Import-Module -Name SvRooij.ContentPrep.Cmdlet
 Import-Module powershell-yaml
 Import-Module microsoft.graph.groups
 import-module microsoft.graph.intune
@@ -366,10 +378,11 @@ New-Item -ItemType Directory -Path $path
 
 
 ##IntuneWinAppUtil
-$intuneapputilurl = "https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool/raw/master/IntuneWinAppUtil.exe"
-$intuneapputiloutput = $path + "IntuneWinAppUtil.exe"
-Invoke-WebRequest -Uri $intuneapputilurl -OutFile $intuneapputiloutput
+#$intuneapputilurl = "https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool/raw/master/IntuneWinAppUtil.exe"
+#$intuneapputiloutput = $path + "IntuneWinAppUtil.exe"
+#Invoke-WebRequest -Uri $intuneapputilurl -OutFile $intuneapputiloutput
 
+if (!$WebHookData){
 ##Winget
 $hasPackageManager = Get-AppPackage -name 'Microsoft.DesktopAppInstaller'
 if (!$hasPackageManager -or [version]$hasPackageManager.Version -lt [version]"1.10.0.0") {
@@ -387,7 +400,7 @@ if (!$hasPackageManager -or [version]$hasPackageManager.Version -lt [version]"1.
 else {
     "winget already installed"
 }
-
+}
 
 ###############################################################################################################
 ######                                          Add Functions                                            ######
@@ -2444,8 +2457,8 @@ function new-intunewinfile {
         $apppath,
         $setupfilename
     )
-    . $intuneapputiloutput -c "$apppath" -s "$setupfilename" -o "$apppath" -q
-
+    #. $intuneapputiloutput -c "$apppath" -s "$setupfilename" -o "$apppath" -q
+    New-IntuneWinPackage -SourcePath "$apppath" -SetupFile "$setupfilename" -DestinationPath "$apppath" 
 }
 
 function new-detectionscriptinstall {
@@ -2958,8 +2971,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBPDsoPg9nfFq0g
-# oW+LLXNMgitHxXEeHGApWeVPMP2+EaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBfJnwDrSLz18kc
+# 5kW/bznyN7T82PEiJTcURwnw9mu8RKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3141,33 +3154,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK+j5ivcLXXasHKzUGZ7oX24qnlapcVeEhFf
-# unQFT4UbMA0GCSqGSIb3DQEBAQUABIICALlDOl0hrhia5YoaICmw5H4aTtENG4XH
-# lhs8QFTmRgycB019zoJjmX7KbW3Dwsh42UXEMW3zZmPr3eRbliVrQEW1okWm3k9v
-# S9KwmMgwVLllHGdFpIi7pN00zc2AIfMpSUgJwQjLoQIkMnLNYA6+In8A3OSsKeMT
-# IkxUKBeB7cGuMQ1NllVILqJBGMj4BfVjc7XSyoyVUbLNdolvj1ESizIIR6OZa30V
-# flvWmgSf0jAdNjLLsaYi+8pGH8MMeSG1H8addM47AehVpCYkMJWNGFUntd5pVZfA
-# V+Dh6eyhZShjRG2Tjc8kYDF2xntuTjcXg2mMwnM1n8kTdmOW3xOMaRFysudC9RV3
-# CfQifbB/H5KAg7xlLSQWFrkZn5Aza4BmGkLFXxm3IGxMzF877KprZ1guR6Q5Lj0s
-# eYjgcfU+f1LFKhE9OhlEAwFIX/ff8J7G9TBBs4xBp/9LRXSSK4nSTTwhb+LG0oB/
-# KyV2wB/XjfUJH1WiwSIkkFycoD0UH88Rmf020Q0sE/K9+12/6/XUWHQhd5Vb1SXw
-# MXlFE8C0E0t+voGO8oXfDB2k4zYQ1GBfDdiqCPRGgrxk+nSaLcpFa/PK6E2L71fF
-# zap+tOxflEN6C1hrRpgHjKy5arrf2faViRfbsr67pBuR7dWAcBnQ04h+6yFdf8KB
-# EnFyHoGtvXr1oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFn5f/3HuZKuUySYp2oah1GAXbg1nwQw217r
+# imxG4/i8MA0GCSqGSIb3DQEBAQUABIICAHWkMoLG53jR3kNby5RWUSZuHYVPsR6/
+# RwG5eOJsDlfWJvPY7Gt8Ttaqa9xmOAM5956ZHW078c82RA41AOxC6/q1v6K5FYzK
+# B/xVoVP+DxQjII4YaD4lX35rFfd9T3deyLQEkTgEDfWOt63uvYGvoEMz98oykJ7i
+# 0SQI5kRQR1dVVM71ttR2A/L3sWgpiF/vJOfJ+DXHJ3R5J664ijeZ4mNHArE+xRH7
+# X0EKAZz0sGpmfLLrKv9KeSUSTwzkUB3QYOBA5EKbqjQ4wSKBQSRgRaPKPfcP2Q7Z
+# yG/5Hx2B80Tf7pY4oIv4ZCrWAGgsJ2VU2eH5lnDYoVwAmYruVs54VVMGTBUqd3o/
+# OBTka5ow70jpJN08ytcz+7NQhQtv46aqbx4CyVVq5NR13N8vrkUxmx9AGUW1BCdk
+# K7rgCS4e02ArkqxmxEDgyFl2IbL6J25WgU5rVQaDnUlQLs0maR7SUcmruqk10Uq6
+# 6GqfsuLWAyhQuGyYpwLisINbMKvlP+Ti21zyQH/AVptZX0WROanQUufuBi8qbjwq
+# 3Tn93U3w5Hc8yG0/aYo55R5eEh5sFM9zueCHIYxJxsIRySMMGc4aUt5Z8JI1mLOp
+# X9yJAuDFfD+gtBg4kXNaQdlBfi3ppGnpuJlVzxM7YMfU7qlHaQcnOKbvqMTBqLoC
+# DmFr3eQ86yugoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTIyODEyMjA1N1owLwYJKoZI
-# hvcNAQkEMSIEINdtp5oMTnNKLFhJdi27TzwZhorgKenB4J7nBSKO0jL4MA0GCSqG
-# SIb3DQEBAQUABIICAH0FGvhTT7UmL1i+UDn/lAEkQGh4NMIU6NYw1Zn6nVCPHd6E
-# 8McV4giYzBShsBWS3962p6jCkvZZJm5iLR6mIXjpvPfNUQL3sckGjQu5lm4DS4CE
-# lBuccNRLT7Rnq5Nkk9ASzjSFDKlGUCdchSqyzjakaaCXLC7o3FsdntigL3cbkuD8
-# n2LiBWy7dfmghU3Pt4E0g5DX3wo0hEk+6TLTfNFLl1mGq2U8gHRJYlhYtbuzG6LF
-# Ggh5o5QU8qYYyP7nQ4+v94jBAG1Mbyfe4L6LmkRXXk/lvykvspKPJLjd3pz/32vl
-# kNJ/XfMZlowRWcorHFt5Qfkm1bJtKAOjamnf1NdJccZMX2ZHjSuwBTqGNF+ZwE6X
-# 7leBOjOKNIhz+bUUmqXn1Bl03XQVL9VsA/1HWoPOlCaiom0z+PMgLSC/tdTdMOQq
-# FvoGFqIYTCShC9P1ymz//ATPbtYZN+elOKBsa6kKu+Wi686LItFLJVkoQgBVaOh2
-# jufHx5gHpJKo5X/0eGvOup+TjKJ8GKcsMCOQxtyWPdpCzWgCLC3rRQ4HJ2F9z1jU
-# vHczZRIKQJuFzQwQZsCgdZLUaAVP0Zl9BlbCCvnBc8DYZs57RgqKDyo2WkdOllD9
-# t4tCjlQtldMLxCBJl9u9M5dTSSZCkQFQfczOYKZ5Av2kKxPQhrA58vCw8XXI
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDExOTExMDM0NVowLwYJKoZI
+# hvcNAQkEMSIEIKdSCji0uUE5NM+l3iW+NzMeNfAYLubfTt3EpN06FTVSMA0GCSqG
+# SIb3DQEBAQUABIICABpumezTdmn18LdtCphbOd/l+Dh30nrwplXlhiKJF/9NVZcw
+# ABKzw+Y4VFmTYaB/nDTFoDSr8P73RLVKnlE48l61SBn1G9OZMipwq+gKHJmKej5N
+# nYbf0fz36cb2iyrgxMTN0bGUcF59iG8M7V739FDilOmzqs6s9ujLJ3aB989k2wFq
+# XWlo2Cvlmx1e2VHsVcjKnImq9pY1UJ+8mcQE1UtcDJCjP+tMFQq7+GkBkqcHDwpv
+# 24B7DxcqIyQsPLdo3qD3CL0RopdyzWTbUOMy85PJgurE2fml5oJ3nn+vAKhDDMbR
+# /PzwzapkjjDOT0V9fMvdz6n8iKOdDQrjRks28zPqzVhNa38SIXyfobJOvbKPaO8c
+# eCt3qI4uHMy/2q8MN8GVQ8xggJO9QTzcbwDdqfuSYjwOeag6O4guLjEXG4fdJTTc
+# Gj9fvcf4ZbFUZ32DIKObqmselKy/QBT6OkuDuZBodc0tObCDmOxGbSNWq0bMlZsT
+# Rix2jE5wp78V18uxlO7/LL4PpmfzaxZhIS3kmoG3eWcv1u5R0UWYUV4leBE7xt5X
+# l8itfYNrylLPwciosfg9pIN6+T2bm2Zn/3uySwBd7gTQ1GLxjI8YgP7IvebSJdNP
+# wRl10NoXoS3Rxv1BaoF8VN4c14AsPMPV2hyF0BXd23JR7j3oMDD+HQ5W2jTf
 # SIG # End signature block
