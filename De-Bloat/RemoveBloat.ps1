@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.1.2
+  Version:        4.1.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -66,6 +66,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 02/12/2023 - Added extra logic before app uninstall to check if a user has logged in
   Change 04/01/2024 - Added Dropbox and DevHome to AppX removal
   Change 05/01/2024 - Added MSTSC to whitelist
+  Change 25/01/2024 - Added logic for LenovoNow/LenovoWelcome
+  Change 25/01/2024 - Updated Dell app list (thanks Hrvoje in comments)
 N/A
 #>
 
@@ -1313,13 +1315,35 @@ $UninstallPrograms = @(
     "Dell SupportAssist OS Recovery"
     "Dell SupportAssist"
     "Dell Optimizer Service"
+        "Dell Optimizer Core"
     "DellInc.PartnerPromo"
     "DellInc.DellOptimizer"
     "DellInc.DellCommandUpdate"
-    "Dell Command | Update for Windows"
+        "DellInc.DellPowerManager"
+        "DellInc.DellDigitalDelivery"
+        "DellInc.DellSupportAssistforPCs"
+        "DellInc.PartnerPromo"
+        "Dell Command | Update"
+    "Dell Command | Update for Windows Universal"
+        "Dell Command | Update for Windows 10"
+        "Dell Command | Power Manager"
+        "Dell Digital Delivery Service"
     "Dell Digital Delivery"
+        "Dell Peripheral Manager"
+        "Dell Power Manager Service"
     "Dell SupportAssist Remediation"
     "SupportAssist Recovery Assistant"
+        "Dell SupportAssist OS Recovery Plugin for Dell Update"
+        "Dell SupportAssistAgent"
+        "Dell Update - SupportAssist Update Plugin"
+        "Dell Core Services"
+        "Dell Pair"
+        "Dell Display Manager 2.0"
+        "Dell Display Manager 2.1"
+        "Dell Display Manager 2.2"
+        "Dell SupportAssist Remediation"
+        "Dell Update - SupportAssist Update Plugin"
+        "DellInc.PartnerPromo"
 )
 
 $WhitelistedApps = @(
@@ -1590,7 +1614,8 @@ foreach ($program in $UninstallPrograms) {
     if (test-path -Path $path) {
         Start-Process -FilePath $path -ArgumentList $params -Wait
     }
-
+$lenovowelcome = "c:\program files (x86)\lenovo\lenovowelcome\x86"
+if (Test-Path $lenovowelcome) {
     # Remove Lenovo Now
     Set-Location "c:\program files (x86)\lenovo\lenovowelcome\x86"
 
@@ -1599,6 +1624,19 @@ foreach ($program in $UninstallPrograms) {
     invoke-expression -command .\uninstall.ps1
 
     Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+}
+
+$lenovonow = "c:\program files (x86)\lenovo\LenovoNow\x86"
+if (Test-Path $lenovonow) {
+    # Remove Lenovo Now
+    Set-Location "c:\program files (x86)\lenovo\LenovoNow\x86"
+
+    # Update $PSScriptRoot with the new working directory
+    $PSScriptRoot = (Get-Item -Path ".\").FullName
+    invoke-expression -command .\uninstall.ps1
+
+    Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+}
 }
 
 
@@ -1772,8 +1810,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD+zEN8IsBuobXU
-# zPrI5opi+/VBLo8ALCRQ9//uVWUNvqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDnlDTlkfBMyL0w
+# FZeNJpr3PbFe5yHctKq3HekOJJxux6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -1955,33 +1993,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIClRWmntwsSXoiMZ/isPTvba3K6B4OH3O27W
-# 8CeUILPsMA0GCSqGSIb3DQEBAQUABIICAGwzpwOPeIhFtR+97a2uRP5bsWJM0MDO
-# TCSATBJElKSI0PLaGPSrTnqdzIBts5GKyrQ8wA5MIjjzrIEoIaHIDIK/L05RWKoO
-# THRGRcqTq1+eJwOnOaiKhafXV2PWxZQvJcBUSCJKUN5S7T7AwPB/sPhAjTC39QGQ
-# RIAyafMoMXTjpliCV+/HBOLjI8Apsemd8fZj6TzIzVYvXfRvi8V1R+OFUAq4e9c5
-# PtZwmyGenmPQ8bbyX+c+hqHlOGlk3JXQoQj/B8ZcffIxHq9oMX8LjTz/m9vz2ZiX
-# 23SpO7kV5DwrU27RwYLnpIu6tGv6CeY3qWxK5cPwKVPB3o8qPsTEQOPMjW0bF4py
-# OZYtaweLz2Nz/P0XFbgLadCk6SzJ8hQePQ+wPN8yCQY6FD6m6Aq5v9+WT5Dd4z17
-# RCO9HqzHjwF7f7ying2BMIvXsHZ1AAzVXmPfFGs2XkO+gMoADU3gnxoETAgmmKFb
-# fXyeT+dz7i6fZ5p6akAStPXvx7TR5/OCvtHWrFCJFFc0XZGrhSn9aCA/n8/2wO8l
-# E7sK0yi/IXqKP0O033Bi+RF9S/O09k3/piH9SXOLeNkddZ8uzAz9/sv1cBatvk8s
-# fNYXraHUlh5xyOrIbFN0NsgMy0pFdCDGqPhTRzTQSiKZwr7kisF/7UsuvnbviG7o
-# b7s7DXj/YzbJoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIIeNlO6shIZvjnkNoYVWPa9uWpMcN7RSl8bY
+# +VtZGMoIMA0GCSqGSIb3DQEBAQUABIICAIfpk5u/NduR2tMO0gbxioZlbgVey6Yi
+# 0xCYZY60gW4r/iyaIZESoGn3cHWcL7N5ZbD9gBITnB2d2Zs+a83qvEniMOCIBTIY
+# RgDB+p5hTtSzCn7Q3r0rrcvqaZV3SH5vIIPKCxkWeNzxSTqRg56GXHZB63ubYAEz
+# sMeKu3d5iSzbP1txn0aOmiPSAVx3+KIB6jM2Ay/1oLRyb0LUCLOV6lFIycm0M4Om
+# /ZeynZd9Yp5dpyT2rR6qrZGf+Qcwed+L2Xm/lS1iFvdAVtJH2R8VPGWlBWIou6Sw
+# cgV8+DcVJwk3i7Etn19NK4Dtd4xSCDm87ZA6KH3wy2UNwVYT0ggb4a+MLYCMEiSN
+# Xh7SBAiLAOFbCvDPmAL5a9f/iHm3/Pb6Yl/HUZqlFZV+Sg90IiWE57llAKj0ljIW
+# NOOR1yOqM+a4lGVGZ+KtgoF5We28grow3xy2rw9zdpoliWQlrc4cz0tU1bfBOMGV
+# dtbIdZOjAodela1J3LVVlQ/DOKD/MHq0Hba/P0GAYXGkyQgpJ6tELqTZXq5ramTB
+# PAcE3pJHXD2B7h9OXhltZV567sW9mLnghkFX74GZlZ7GAzAKAMH3lYCZoA9CKw4g
+# c6MWAqZ87iMdDKBGZg/8/paassrCHodYNX1Dx0l4bCu5SPY3DCMseDHOD3u0mmv4
+# ST5xO4gEVN+UoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEwNTE0MjUyNVowLwYJKoZI
-# hvcNAQkEMSIEIFbjQbHyy7KFOklwWkIS1YNKo2qhHQxOB1gtdoW/fcm/MA0GCSqG
-# SIb3DQEBAQUABIICAF4O3v5sQkddR4khfViRZBD4Vao+vTpJ9yyofyB+XA9fWBmv
-# 79OZUg2OdSq4INezWYAtsrCceV78TCZ912SjaeP0NarYJio3kywxMKGzaWH2BEFo
-# Kp3MNtYaRUm2CW3xqG97t9NZc/ylXnXKp1vTCM7VNByI2vM/657n6nPuaXrXdsiz
-# +Nsfx1pJPDlgxCqA5I34BniKgV8lp8Yyj9kZAESa05jyaEB+Js646tV1a2jHk3nu
-# OitwbDsdiVMewdoVm+kj6yflkKbsJP0Ia4SGBGRetdPjux2EOnghPbwGTUoqhiZ8
-# kMjM0Tq5UHE+ClMUcfw2pNeyAgyAcVwpKaWZSLV3OByWw2Gy3WSXqAmgOlE2DqV6
-# XMzTzsTbX9BR+oU7U1grx+Erp8PGHrn7tBeOnPlZxYmQkcdTTGKxm5/0tRXcTDqE
-# B+f46ZOoq+LTGB5wtJ5bKaMu5H29TPGet/G09LiVDRzJpUFQBVFFr+AmdAbyL1pK
-# f5tENUuZiwyMsCGM2Qu+yuk5CL1h8zWlYQ/KTDdpD9/1lBGfM9ACa5tFewfFwOH6
-# NUqv6fswhSehwXHjNJ2SpvYt56BG/yQiPnFEQoj4+R6devLe1709rqqiztuH7aWg
-# A7ZP5ywZbaLD0UgfaTnEhEHpy+5k83ALEmSp1yhGSJQIm+TUT7b5fCm5GkWj
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEyNTE3MDYyN1owLwYJKoZI
+# hvcNAQkEMSIEIIs708mA9Jymg3sc23jTxh8YsJHxCd3dvDHuxiUJ/NhUMA0GCSqG
+# SIb3DQEBAQUABIICAAlcrki5axFKRqqjO7ojoqp2rrPjPbHbZKd2j8A7vqMlhK/W
+# Zgwh9sgtobo+HQWnOXW6dW+8PaXdKUIyf9zrzbP+kdmLfnE5paY+AlewRqcXGus8
+# e1F1Bd7HgSm4NrJDaJp9aikLBd0i5Ogp4usqtiDUFPA+rNSUTlVIFhU3MB4rB0/N
+# BJY7CyZtzN9Ff7r3yp58dAH2SPCmS8P4WH+jW0Dzbw7Ub48R4UfjxqeksnDcorx+
+# JqGuX6lc9BurbF2AZLCB9tmm1NfdcrY+nuhge9nG9dF0xd9NIb7vihNIE6D96F3+
+# cOoYdnQSjac+XdQ8wZnukTIUWcbfGoZDA8RAlGrOJkz0X8eZD/aSD7HpG1GvI8C1
+# sd/ZiAPZNFu+BbQ0Ld5wsLDVCk/+ZLG7+iVST4VKdlvGJKhHabrooOc0z0EAttfJ
+# p276LLJMCHpPj6ifWpEaSf2x+xCjbXJD+n5PNU5YzqukSUK0R45ikZmVcfUe5Fd5
+# 1aMRD/NYlku+OH/80XUk7iyb4HANKoSQSYJqRJkdk1A8gOJhYYofZXU19T7EajO1
+# y7VVhMs0dnJiTMsq7QG4dVMCzziruHRZw/r/lf6DdvwA04YVc4e9zv1HGxdO20L1
+# WKC+Bq5WsPL49hzo5dCNnKi6X6fEZC/1XyQ6uqTEQv55y5O4JDxXi9u0CMYP
 # SIG # End signature block
