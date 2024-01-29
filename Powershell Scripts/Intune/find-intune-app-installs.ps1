@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.0.3
+.VERSION 4.0.0
 .GUID 71d4d716-70bb-468a-9322-a0441468919b
 .AUTHOR AndrewTaylor
 .DESCRIPTION Lists Intune apps and shows which machines have it installed
@@ -25,17 +25,18 @@ None required
 .OUTPUTS
 GridView
 .NOTES
-  Version:        3.0.3
+  Version:        4.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/07/2022
-  Last Change:    28/10/2022    
+  Last Change:    29/01/2024    
   Purpose/Change: Initial script development
   Change: Added CSV output
   Change: Amended to only show Installed devices
   Change: Added logic to bypass 1000 device limit
   Change: Switched authentication to MG Graph
+  Change: Added pagination support
   
 .EXAMPLE
 N/A
@@ -46,12 +47,12 @@ N/A
 ##Install Module
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph.authentication) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.authentication -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
@@ -134,7 +135,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
     }
 }    
 
-import-module microsoft.graph
+import-module microsoft.graph.authentication
 ##Authenticate
 Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
     
@@ -202,32 +203,53 @@ Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementCon
     }
     
     
+
+    function getallpagination () {
+        <#
+    .SYNOPSIS
+    This function is used to grab all items from Graph API that are paginated
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets all items from the API that are paginated
+    .EXAMPLE
+    getallpagination -url "https://graph.microsoft.com/v1.0/groups"
+     Returns all items
+    .NOTES
+     NAME: getallpagination
+    #>
+    [cmdletbinding()]
+        
+    param
+    (
+        $url
+    )
+        $response = (Invoke-MgGraphRequest -uri $url -Method Get -OutputType PSObject)
+        $alloutput = $response.value
+        
+        $alloutputNextLink = $response."@odata.nextLink"
+        
+        while ($null -ne $alloutputNextLink) {
+            $alloutputResponse = (Invoke-MGGraphRequest -Uri $alloutputNextLink -Method Get -outputType PSObject)
+            $alloutputNextLink = $alloutputResponse."@odata.nextLink"
+            $alloutput += $alloutputResponse.value
+        }
+        
+        return $alloutput
+        }
     ####################################################
 
     ####################################################
     
-    $Intune_Apps = Get-IntuneApplication | Select-Object displayName,id | Out-GridView -Title "Intune Applications" -passthru | ForEach-Object {
+    #$Intune_Apps = Get-IntuneApplication | Select-Object displayName,id | Out-GridView -Title "Intune Applications" -passthru | ForEach-Object {
+
+        $Intune_Apps = getallpagination -url "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps" | Where-Object { (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp"))} | Select-Object displayName,id | Out-GridView -Title "Intune Applications" -passthru | ForEach-Object {
+
     
     $thisapp = $_.displayName
     $thisappid = $_.id
     
     ##Loop through devices
     $devicesuri = "https://graph.microsoft.com/beta/devicemanagement/manageddevices"
-    $devicelist = (Invoke-MgGraphRequest -Uri $devicesuri -Method Get -OutputType PSObject)
-    $Results = @()
-    $Results += $devicelist.value
-
-    $Pages = $devicelist.'@odata.nextLink'
-    while($null -ne $Pages) {
-
-    Write-Warning "Checking Next page"
-    $Addtional = Invoke-MgGraphRequest -Uri $Pages -Method Get
-
-    if ($Pages){
-    $Pages = $Addtional."@odata.nextLink"
-    }
-    $Results += $Addtional.value
-    }
+    $Results = getallpagination -url $devicesuri
     $appinstalls = @()
     $appinstallsgui = @()
     ##Foreach device
@@ -297,8 +319,8 @@ $appinstalls | export-csv $filename -NoTypeInformation
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBnoALlycNjxD0W
-# o6YzIhRvy98CEhrdWr28MJroNqAw6aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBRTIYVRBRMpQsU
+# jfNFIFWYGxg80g3HZlqOaxbGd8bAiqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -480,33 +502,33 @@ $appinstalls | export-csv $filename -NoTypeInformation
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEINun2epkjuhCwlRM2WfYsVCxRgNpe9wUDndR
-# Wuz7efS7MA0GCSqGSIb3DQEBAQUABIICAJ9yIgRDmpcrCsHBkgHcFwT54IxcGFmg
-# QIPOPFwt41oSvVPBBPyxnWU4vg26Ecouy6wG+mkYl/OysYUkvO5P7btMCM2S3kGr
-# HlSPCZ8clfhWuP4u7PVYn6DxXX75zpMYvi5/fOy/Uikl5kubIoL2ORVGUnYBBCJe
-# tEZcgVT0DpnR2/HAi4WwtkYe488tmtFlD+juNjbUTUOTulcSnpKHNwBTiu8tQcP3
-# itfbzR945cPDf7ieXJmLAKJGQ2fiyrpLvsKDgqxUtzaVKPRP3bJOM4mkFtorkRyA
-# JRcupuXZbDKiCSlAdvc39/UW3AUEtA3HLuX6O0aINjZ8ecDx1OGP5quW+DJriyUv
-# Ud77oZ2yALvQXsmv2gveBjFskM6TvtCm1tdc0BglITq22xcA4IPDX3ZwiN6GTHYD
-# LyakQrTZHr2j0UKETo78LE9t5gZ5JbY+4HJ+7cMLZoRelPXw0yVor6zlPsKESrCM
-# z3Ayk+G+xeKJZa+vCzUuSAUYTkuC+FCkDr3i4jcHuS8BFZAfAk/W1W1ZGFxZ2PCH
-# /h71HAlC8SKnHsqTp39/RTR5p+8t2mIS50TDHEYY9VK5JGn+hGg7T/hzfqOAXF+/
-# LTTh/83IcfojvPMdWBNzt2XS6S9zbjhoiUN92VUAVsL54zlsLNqWbfp6RjcqJzVK
-# 3Y6FDqRcMa5hoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMWlqaauQccP6fMevudvvTJi3AXM2pIQwMdF
+# qO7U3KWkMA0GCSqGSIb3DQEBAQUABIICAHnfE0Tj+QQbP6lBPFC/isWG9TuuePz3
+# WQPrXVA/5r8SSw9G1n8Zut3nkfrs9Zl7v7ArH0YTSFjBFDBVWefJwd3NlD8ZjC51
+# L7EsqI7p3IsbHtNsqjmeH0UMIpbjtK4TNFsZUt8tb7pxYSamPn2FtMIRAdpSOtZP
+# sB7ZU5pzgZZ6Sxvp4WCiS5WyWBRPWe7lYe62HzI9ktEKynaujoQKwZVjPb8llE0g
+# Va+YurlER0xfzYuWmXNH3WSLJm6OnEfgeH2TAELINyLHcuwuf6oUmJdJCEeXiQWI
+# /5yYti8Z84WlTNU6e7c8I4mFYbgaFrh6/UMxNPbe3910lSndstEHVzZuYXyS+Wx2
+# hyDuin65QN/Pz4dTMTim/rBIAhQgk7ae1ZtCtaa6i5/qYui8GiOCzVfNKqvQ8chG
+# sqpZuPOrcN2I8sG0LYetysy1UXci5Iu5wJnmYUW3ma28N3tKVCQYcKeLhLiXMO+D
+# hT343+L0OtkfpxIJhSkm47h/Egms8hAZcGMX0ZWLhXsjtASNygzEiKERpA9txOj6
+# cyX5ZzCM44VxYK7hTcjRvW3UQj0mOM1XhEY97z3q+YMMXHlaShvgx8dcjlIbFvtL
+# pjoGFGhGNIioTMlwjH/eR9S7BLDWew/uWEiE4XhSL8qP55sLEvwmaS8ZLosP1gc9
+# HAsHQo8Dxe9YoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDcyNlowLwYJKoZI
-# hvcNAQkEMSIEINmKY1BOPrtSTxZH4kqPJYWq6ilInYPclI7X4ttvMjliMA0GCSqG
-# SIb3DQEBAQUABIICAIPgOlAmHmaROqsZBICYRmmxoom7DKDPP98vfCRM3bGXsGxF
-# o3s7neWx41DvB93bRRRDHYmCOGocrlGX6ndO+4Aemxe7AL/2cuZFpdo3SscGECE1
-# Iyeku0+Kb3Ta0NMEwM4e8GsZ52GXT15wJmR5kTEevr15zOGmxn9I7P89bKDTzGU3
-# ouOO+HmtzQXq170pk/fUEWQMui+4jYr5yBstH1JBhXzsQLxJPbeXfL40FnWEvLIb
-# 0gnCyA1vgHFxN3XBZcG3hiE/+7sGMVulxkP27YjYYQlmSKRox737WzBfVCbY6luL
-# IMLAGxJ94GGyhA5bjmbQ9Mspjh93+5qzEekS67uXigF5mYhG9BqZFNJjrrqYU/tW
-# r4AXY4AEgUvQUZzrmYjTKEto41B0WqtdbzV8ykvksH08lL1bD10o0QnrVCJ6uRhE
-# Ad+kaQci3N3idE6KuqapNlViEEysVemOrS35voAv/9z0L37f9B51qY5nwiZICMTN
-# 1ZK59CyFoPOSc1VphMOqNQMN37Xfh+FSAcP2nhLUlxjbb7d+nHaokenWHSpQ9h04
-# vShXehWT7uYxZZuEd7QO0X27zrmhmdcCOWHIm3EQWUXJswHey9cU43TZG29g44K1
-# ACcaxA+lyf/BRQqolZpqnHUtW/r6AG8Gjjq5FlhgPetUmuf9T10ZS1gcK9CF
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEyOTE2NTU0OFowLwYJKoZI
+# hvcNAQkEMSIEIMaOi/6uqnUx49awSkdfoWNkiIIf8jfeElM/o/DVq9N2MA0GCSqG
+# SIb3DQEBAQUABIICAFr1O3B657P82WXYANJEoMoorltrnNPMMWFBtbFsD4oyszdU
+# WuV298MIYZ34+LEnudQ9NN3tTeftqgRKd+YohGtgtujwAUrX3SkemTCSpDQOK836
+# d23qq2dMdRKPZxarbS+jT8lPLV0yBuSINeFlIe1SOf6L5UbMo7Uz41Nir5CqX4Mo
+# vtxsNYkDBYmzhBGnNkXBSprliOtxWB4O9CTFEgk5aAkTm/A6sgG4Tybtr/CJfiI8
+# B3zjJxwmFaZdWQh8vOBjPRLVtITfBnFvtXosHkGTiStvtXBLuDZSpr63fg+5PB4g
+# RhqJDxTWDjQ/Zjhm7vmxlXYUGwqdAUVYC4Ubx3Kl+MdGs/QZvUp21KMcIEBZspW5
+# rwzwBV/QjIUR+V2xkzJZKveFIjbtnP/f43P2mn4auf4otCxGxWeyAJyn+ylmAqvk
+# h9LU5rC9wz0oNySWfBB9Al6Wwo+/RTFu3aPx8ya5nU0+D3xUUbcmZWADNZ/S1soi
+# iRz0yUk3MdbOvo7nYvGwiZx1LBCeJp5B4cm3Iad6sH0qjTsBVCxxqw9sqBw6akHN
+# ArllGFN515Sooxp2+Ijuivvr2f8pDe0W9K3Esedzt9AtITMkWMILdXlKn8lgv7ge
+# Tfs2Fz35tDp9zQgqMQlu0D1KrIEIjq0PSF4MhwDXPb1cU8bu8/F9MiPFSFsY
 # SIG # End signature block
