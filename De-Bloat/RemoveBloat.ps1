@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.1.4
+  Version:        4.1.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -69,6 +69,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 25/01/2024 - Added logic for LenovoNow/LenovoWelcome
   Change 25/01/2024 - Updated Dell app list (thanks Hrvoje in comments)
   Change 29/01/2024 - Changed /I to /X in Dell command
+  Change 30/01/2024 - Fix Lenovo Vantage version
 N/A
 #>
 
@@ -1611,6 +1612,11 @@ foreach ($program in $UninstallPrograms) {
     if (test-path -Path $path) {
         Start-Process -FilePath $path -ArgumentList $params -Wait
     }
+    $path = 'C:\Program Files (x86)\Lenovo\VantageService\3.13.72.0\Uninstall.exe'
+    $params = '/SILENT'
+    if (test-path -Path $path) {
+        Start-Process -FilePath $path -ArgumentList $params -Wait
+    }
     ##Uninstall Smart Appearance
     $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
     $params = '/SILENT'
@@ -1813,8 +1819,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAgSMEh4hubNbvN
-# iJHYdeMIEdHEFldaUZGwgfQSVRRfQKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAFDq2vezjQ/I8r
+# wbVFwvnRrKuFj/l7M99grySvtwdSv6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -1996,33 +2002,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK7RvWGj0hpjzbXw3r8wAOxz7AiDVzOkjp6b
-# 4bL7K2XaMA0GCSqGSIb3DQEBAQUABIICAGPgFMpKmkzVdr8W4yw9HjSQ5GRNCOHu
-# GqnKj1KwMoBjnJmWpvGWfCTSHtHQoNnamWLZ9Gc9ajp1JKaGFFb0ByuRETi4ouOj
-# ZXiwyZNMhz/8LvuHYAZCQ+HD63REWfYj0v8xHnlexmFnKmqundL9Cz36IWsjxZBF
-# gWuWmAR13WWUyZbcAfoHnozT/mDOfqUO6JTMcxveou1m5cPgnzhevynE/aaOVMj8
-# zjqMuS0CAOGjtxSXqf2RgFPFKyxGy1UdgSASKEIQOGm93T7oTSDVhBnPAIR4yVQV
-# qc9K9r5egzwzI3rsOBJ7bPqbLIAPQPuf20SA4+3qcNntwalno/muBAgWrA/RmaP5
-# qJr6mZ2UBntFTyUcfy15P6TF4t+ZQBInAg1vhFad3Q7OHn9VgnShhnEWVK54OZTz
-# Rs4OGYKkYs88wDiKEVLb3GRPyohktFz8ECKMM8jbIubYa3JbUryRyk16yyJGL/Y2
-# dT2/5eHWXXMfsj9nGOwBXw/UlNdiegAI4mjVdfzDPneIg2zxOw+GGEAKfFJTyjbq
-# p3SX+JoU16OVBMnnDSuYh2wMCN47N8Y81UIYw4FnbYks5Oj9zrdXWOBlEkQn/dJL
-# kdCYPdaSUsNnLYpwFcu3+DYjdvxAnqsUq3uhrQ32//SpLrPG2J3h/5Da1FoWBgtZ
-# ooWB1N13YeiwoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK5uN7QGNTRdpuxyFLwlejehxbjZ96k5ywA7
+# rlysVYZlMA0GCSqGSIb3DQEBAQUABIICABSwYdLa+o882rNmqLgYcSAHuY1nLn2n
+# z1T68bnzDTUfUZm4h6K50VQnY63pt1nZrleChmEfbTIdhgAHB16h2uC/jbiArU1g
+# BzKXydjJbnOvIhYAlTogYwOGqg0PJDu3y7c4uzg0Bo69UpQBlkqzJs2mSC/ronUc
+# BLKxUNlEFrUcHskCH5JROPKE7Lh1KERRRRMwApIjBjJY7WctFm260AvIfzHRaviQ
+# tj4iyTQe46lU2t3ayVwp7xxOuAff+b5CbYtFpLa2kyOF0JYtM+O6UX56SDJCdeoe
+# tol7bDMTHBrJVmKEdgsn1YTxapNRbmZ8C18V2BESrHi1YKyBfcHO/yPUEcIrHYcc
+# C7RWk4z+LJZt55YJO9zalUdwW29VBZDSy+kTuSLXT/W8FRijDrloyCqeb58nLJRy
+# p6sMmzhUmH+ot2+XPvFv0iivDjgXdH1gepgQ2yyV0MO8Jt8nLzmXDd3ubVS3U8BZ
+# e0vFW+8IZ+g/lQEwTTwCLAZL46OZLkiVIV/pDoxyogxq+IlX6KHPK1RESFR3+os2
+# 6D/dqieiVRyKelZ5oC0GbBGiGQs7s0jORAu038fm/a4a+PV0gh9C5muNFhvxZ5J/
+# RQIecbG7alScjMGBhJYqPVMjh2vH9s4OUGGACvuiKeCvxzqdGbce0RetqzUp4PAj
+# sFNaZjYvif5qoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEyOTEwMTExNFowLwYJKoZI
-# hvcNAQkEMSIEILpDJDvAroMMBE/aNMA6ZwNFMzkqj8Intt669nXH2tWhMA0GCSqG
-# SIb3DQEBAQUABIICABqIM0LolZPAU+2l2kJN+4zJFnhOvzokAEmsH5aOSFDo1gTb
-# pf9EVmdDOG33r8GlXrGVEnwFepyIZumgCCnF4DvwYKMyxRAc9HjD3oE+bL44J/kx
-# chRKwEDrolxYK+evRA7V6KQyPu29K3ibDh88Oqs1TzuzsJak7D6yKptfUi+w3DEl
-# eu90uGzlb93fgJuEGnBLDOTyjOjLzcpsPpX1D9Xcqo+K/GQNofzZAq+3zE/E/drM
-# x8KM6hnZ+0SfwYD7wyHt5A9Er5p/ri9TWbfj/h9aJuE+XIEfW5qb7G5MAjITFXeX
-# yI8cyElZMYegbJd66+ACl26LZ+3QLvkWCfvRD0o8LLUTr3956QI3dp3bxy2+JhUM
-# Aqv2iAjC1wQVsolWs5GAiWFq1tg/on2c/JXHRW2VrCEvEgOzluoogHJ1Is0/4y50
-# 4T5D8LKmKNKgRM49LaajCTdGyaLik5kpWOOBSU9YEZzBVgezlqkUl2Tb6+h4HoiF
-# 0JNIV6PUnRzfcHV5m1SH7iNoYbft7gIGRAcMAFWWgD49ZqgnLPjUUuSinXguhGpX
-# jcfFRuarr+0m1r3+Yb8CJCqCcHzpMTcGHPGDOhPC3gMpHOmA8opSNV224t49cgG7
-# YPEoEwtpS1Wt2zUf4PF/gc1Qq4Jmp8WaOf3dAGclxU+z7zGaBnrS8R17Xa7U
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEzMDE4NTY0NVowLwYJKoZI
+# hvcNAQkEMSIEICDPdRW6ASsTt/0qXEqqkHOT1d7sDajd74TK2drXBF/1MA0GCSqG
+# SIb3DQEBAQUABIICAFVgZkJkOutrDXExbmwhm6McIXnoduZ/5fpJBQu/UpTm6ist
+# nO0/8LYFiyQAT/V731FYMCIU/I2MkoqjL6LSOBvsQsLf3XLvFyvJdbPP2IzUAbOL
+# 2bxfTOS9jFxA2Fa+AtYNinW74ukBWbqXOFDE0MKyjhzHinvpttiZ0Z6Rq7Cc8q2W
+# g6KdDknZBbCwfVLHrxykeTF4sxhNLGfWJt780CD12+yKaMGTdBzEz8XAKspJqmKj
+# LC/BI2SxbUrnB3VnB7gFWpIRsrOct1pu9hZurhPT8qFWvLZTwdEU4pZfi41MLlxq
+# aiDgqztrh8xBesep2mxhCdoyWtxk6OoHLAyLAuuJe5uDXWZI1DYlpom3RhjXfow2
+# wDDN3KRIU5ozMZFPmtzxhTer7xsXnoXRHPrRRjDMYRpFPg84gCmhEEl0CBbpf0Pe
+# 8+NNsmjc7Ru4kC1Jkc2/8St/s5qTGyXGDHzbcxRkDhIeA7OGD7jWhlw8AZZLoo7H
+# DhbRyi+hdp8EG1CvN0rPrYPUdVoItqNLARhr/0PE5poNYRWtleDQUZUK3Vkm/w5J
+# ZNKJ10Ylf/IXEV3mpAlqDFN5CrHYYbtHuVBwD/5+VVTbdpvqTXbdVugFOiGvZExS
+# YZQZvxt7EzU1yf+BDDgnlWrVKXUHhTtjFW7A0iJMH3FcZFxj02eNtGna4A8k
 # SIG # End signature block
