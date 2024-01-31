@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.1.6
+  Version:        4.1.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -819,8 +819,8 @@ write-host "Removed Teams Chat"
 #                                           Windows Backup App                                             #
 #                                                                                                          #
 ############################################################################################################
-$version = Get-WMIObject win32_operatingsystem | Select-Object Caption
-if ($version.Caption -like "*Windows 10*") {
+$version = Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty Caption
+if ($version -like "*Windows 10*") {
     write-host "Removing Windows Backup"
     $filepath = "C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\WindowsBackup\Assets"
 if (Test-Path $filepath) {
@@ -838,8 +838,8 @@ write-host "Removed"
 #                                           Windows CoPilot                                                #
 #                                                                                                          #
 ############################################################################################################
-$version = Get-WMIObject win32_operatingsystem | Select-Object Caption
-if ($version.Caption -like "*Windows 11*") {
+$version = Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty Caption
+if ($version -like "*Windows 11*") {
     write-host "Removing Windows Copilot"
 # Define the registry key and value
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"
@@ -940,8 +940,8 @@ write-host "Clearing Start Menu"
 #Delete layout file if it already exists
 
 ##Check windows version
-$version = Get-WMIObject win32_operatingsystem | Select-Object Caption
-if ($version.Caption -like "*Windows 10*") {
+$version = Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty Caption
+if ($version -like "*Windows 10*") {
     write-host "Windows 10 Detected"
     write-host "Removing Current Layout"
     If(Test-Path C:\Windows\StartLayout.xml)
@@ -970,7 +970,7 @@ if ($version.Caption -like "*Windows 10*") {
     
     Write-Output "</LayoutModificationTemplate>" >> C:\Windows\StartLayout.xml
 }
-if ($version.Caption -like "*Windows 11*") {
+if ($version -like "*Windows 11*") {
     write-host "Windows 11 Detected"
     write-host "Removing Current Layout"
     If(Test-Path "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml")
@@ -1622,16 +1622,13 @@ foreach ($program in $UninstallPrograms) {
      Start-Process -FilePath $path -ArgumentList $params -Wait
      }
     # Uninstall Lenovo Vantage
-    $path = 'C:\Program Files (x86)\Lenovo\VantageService\3.13.43.0\Uninstall.exe'
+    $pathname = (Get-ChildItem -Path "C:\Program Files (x86)\Lenovo\VantageService").name
+    $path = "C:\Program Files (x86)\Lenovo\VantageService\$pathname\Uninstall.exe"
     $params = '/SILENT'
     if (test-path -Path $path) {
         Start-Process -FilePath $path -ArgumentList $params -Wait
     }
-    $path = 'C:\Program Files (x86)\Lenovo\VantageService\3.13.72.0\Uninstall.exe'
-    $params = '/SILENT'
-    if (test-path -Path $path) {
-        Start-Process -FilePath $path -ArgumentList $params -Wait
-    }
+ 
     ##Uninstall Smart Appearance
     $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
     $params = '/SILENT'
@@ -1867,8 +1864,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBkWfToK8BUAbtb
-# v24PSsZQHBTypGQ39Er4nJAcazW9/KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBik6J5mLAy7yoJ
+# dr8c+Hi1FXd934Y6Q5cOiaRtAgVGMaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2050,33 +2047,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIC/5lcKyUeKTqLwb8qDY0JKqUXkkFS7PQ+ro
-# Ftqi0MF8MA0GCSqGSIb3DQEBAQUABIICAFxln7D4trR6HmBE43BouPXiDNmBIf0P
-# MBOotGH5ecm2hSLC9v4ADSDRTXtq9Dgd0uXzjgjqUXrsGjBR6iV1b5+YgIboO3qx
-# Vuq212bxt2/UkxTPdop0dMPD+2S5j/hEg0QYJ6PFMGw5J26/um7LuY079kvULK56
-# Ee2fh2BUwa0X2RnVdD87ad2fY9qnNDP4YeKNr/cMejgBekRyrdbKSJD2g0lM3Fhi
-# u5ZbLQj1/WZmGsu1bNlLuGr4Xj+qb+MUWGxxSJPoSVOu8zzkRpCIynSPmXqk4Oc5
-# Bpc6qBrwSIsv8sCKRTcTO/pYWdwE0UQk9AN43H07pcU7JfqzO+uqd2kZUNPuoP6b
-# 238WJ/H4xR/TUAoyZL5azWHp5uAXn7ib5xjC6O/6Pb2IUDSSlFQDpLohjv+4pzwn
-# n4nSRr9OLcChCVzcwf16jXQGLnEdl78uEflpGj/9qL0QPG5DRLqeuZfqRW863snO
-# B82Vod2YlogA4S5YW0xCsGq5tXxXvGn9mCywA1k4yh9EGhNh14aGbx4DqF6E2Hwh
-# Rdde7DvUg7cZ2tbbeAS+sbGRNhcgAPsIxkohMOZkQlpHd4g3CxRqgO8iBFGpcKNC
-# wnnyZJEAAhE4FSas5dgQmpDPOB2N8zgk+aC5Q1n53hJnT6ULE/MJpp/b2XJelUCJ
-# N/YcX0ltqEe/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOA/96C/HpobKSHD4ae8aFN1LY31CHAbuVpK
+# azGL29H8MA0GCSqGSIb3DQEBAQUABIICAD3FitvA+bnCcjEdr+61HHFBAPzSZ0KN
+# 3E4mOwo0MCS1SsHjts7SbB9EkODcoe/knWZh+6sA06gM/6u4nTP2ikEbQgJE8UJE
+# YHJBVZCmXfEZZrI7xY9uK2ukKKZRU1OahdyG6GEmCflrYOt2cg2E8GjuWST1LDMw
+# u9Bt/4b/zhfAZiI/N/pKwZBVjwprfWU8IY7dFInuBHb3iJ24yjhHARCOvDeAuEA/
+# qjrQyUu2ZDC8G6y5H95MwfG2es7LbCEjUF/hDnSR6cMxptGWU9pXDDFpn8wpeYHP
+# XwG5YQSCA7jM/lZdoThkOspWZ0VptVrvubz4ird0VAYfZLATp2MbL7UNdXG/J0Tr
+# wCopPEVumbVf6ze4AJDpMPFhzcwkwRtX6u7PjpzbnPsB/8XZaxaqIhzxqvi6O4HH
+# T0qxL5aI25do8BHaYdNvL6ZKgDqTasmjvBUczy6kh/pkx2ykI3VWfOyZnFSKKYvY
+# B17Nw2HB6wpGmAi5fVaw4VGZ/bJXzgp85p3/mrPIWmU/Pvly8P10oVS7jCjN2oun
+# 0+n27XeidpRX6E94oERtHb1mPdNOZQ71MFy+XUitXNYeoYp0en7jlUHleUYeXo3c
+# XvasFenLwjokn4nuIg7egrnpfTe9tlpazOPPmkx83xeCY8EhW1dMePfZ6kuV3FyG
+# grASZYzTnt7woYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEzMTA5NTQzNVowLwYJKoZI
-# hvcNAQkEMSIEIHLEHuHs8f550gFdAnl4Ao7ZFvbOjtRVeje2UrHcAZ6bMA0GCSqG
-# SIb3DQEBAQUABIICAHk1GCW0tuM1EgJlYJQNR+tOzYvk3jeM6u+pfXLYqlBzLRsA
-# kXtwPyU6AILGTR53sx5iSlYAPD1z43umpJZCpxz6hNjfs5zwa4l/oZlflFmUbOQm
-# 2qJZgRj+QYpqKuSnIqpOkK4+AYYHI64CN8mUBulbeyvFbpUEecy/R1TtEMNtqdSK
-# 0xCUm/Er1rffsgJ1gm1F1Amq9+TVBlpKcG8ax5tuS2qAJbJ2IMaGmJs++u1GaeFQ
-# rn1jldnkn2M1qgu6EhObAd7r3XwGfc5aVIbEsjSNEVnDp1Bkd/TLei8p0ATxDJyf
-# dWpuCCH8Xlw1mem7TdNHydSzMpIV/c+dn+oTcKKjopG1LMiuK/hHzOzFVIBdQXip
-# 1stua6egQ/H3P+oFM72scTRnrNi0Lusxom5AAd+qDvM3GL5wd2js1o/RlfWCM+c2
-# 0dWdj3ETCgraMt24nSfPLlI6b3k6D5IxUEeVjDEDIb6tVmkOmBCU7OpsW03ESDpH
-# zoUK9CBWil5bcNg0xAlXcaCwbSUNzOp1YXmz2uOmV98gBdy7K2uNoL8sSGbGTLH/
-# O6/mhwxd7tSU+ra0U7UnrEkLDsbyBL5vLAKvBNpLE9X4XjFybSNYWTl+p2K9Z/4o
-# +WSShIkqe5M+ly1yedWyfpAuLCZ6jJ3x2DfmeDk8w5Ud9Jr/8bYL47YKRbES
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDEzMTE0NDkwOVowLwYJKoZI
+# hvcNAQkEMSIEIJSJJIPPFCC4wU78nj4U0jvNVw87TMTQ1hrVFVTrNVHMMA0GCSqG
+# SIb3DQEBAQUABIICACzk266cW4HvFbznxxo56/akP8k8j/f8R2nwaGNHOiVUEMrG
+# s3haelM2w1LcvGSm0Sp1zGt8Dq5ieadA7xikM0gCcWE1qyh8BrvpJuTRCqY/I1zR
+# n2dNcKbpgyixDJ2aJwyZsFoxhC0i2kzvQ0DwV/lQ4UElnnGufppjBgT3O2P2QbHt
+# NMI8yB37QiOoiAuDcFh7IXSHZV49a+GC+b42Mi4WPLk13WZegfLh4nC2k7V6pP3l
+# yivoSRg2WHCk2Jm+eA9jMW1zZrAWZp0ifyC+97KjWvwpfFUOJvmxhcZFj3VO/Iih
+# Yed2eZAFGAVqacIn+c1VOZmv7DbdDfEmgIhp9ufBHmptuEUEW6xO89rsrzPa6rsb
+# AAji2xpvwi8AtBlvYt0tXLE8OjDDfsWaQS0uewc5JQAqIR0lbzHJA+sJppVBYfCC
+# Aj62FBYdCWVBa+H5LVlqHD2+gnCHVk2kib3ivSq6rLpHov2etI02EYHFr7mOs/Oe
+# 2Fdhd/qY8bsVzq/3JZHyKvmoI3ySAH85aQ0fHsB0l+zhSPs0dbb7MyMra4u0sqrK
+# Kt3BjwTF9fkRkXMqlbgkQInQeItQIGCUOve/JXFlTk0BeBV0/9by5aoVtY/XdLNn
+# lbqp+AXCbPVYPa0C3+1dzOG9YK4SK84ivQIJGrxb8y2d0AMfHL5Rspt+s9cR
 # SIG # End signature block
