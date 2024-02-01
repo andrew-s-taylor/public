@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.1.8
+  Version:        4.1.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -72,6 +72,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 30/01/2024 - Fix Lenovo Vantage version
   Change 31/01/2024 - McAfee fix and Dell changes
   Change 01/02/2024 - Dell fix
+  Change 01/02/2024 - Added logic around appxremoval to stop failures in logging
 N/A
 #>
 
@@ -404,12 +405,20 @@ switch ($locale) {
 
     )
     foreach ($Bloat in $Bloatware) {
+        if (Get-AppxPackage -Name $Bloat -ErrorAction SilentlyContinue) {
+            Get-AppxPackage -allusers -Name $Bloat | Remove-AppxPackage -AllUsers
+            Write-Host "Removed $Bloat."
+        } else {
+            Write-Host "$Bloat not found."
+        }
         
-        Get-AppxPackage -allusers -Name $Bloat| Remove-AppxPackage -AllUsers
-        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
-        Write-Host "Trying to remove $Bloat."
+        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
+            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
+            Write-Host "Removed provisioned package for $Bloat."
+        } else {
+            Write-Host "Provisioned package for $Bloat not found."
+        }
     }
-
 ############################################################################################################
 #                                        Remove Registry Keys                                              #
 #                                                                                                          #
@@ -763,22 +772,21 @@ Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage
     write-host "Removing Windows 11 Customisations"
     #Remove XBox Game Bar
     
-    Get-AppxPackage -allusers Microsoft.XboxGamingOverlay | Remove-AppxPackage
-    write-host "Removed Xbox Gaming Overlay"
-    Get-AppxPackage -allusers Microsoft.XboxGameCallableUI | Remove-AppxPackage
-    write-host "Removed Xbox Game Callable UI"
+    $packages = @(
+        "Microsoft.XboxGamingOverlay",
+        "Microsoft.XboxGameCallableUI",
+        "Microsoft.549981C3F5F10",
+        "*getstarted*",
+        "Microsoft.Windows.ParentalControls"
+    )
 
-    #Remove Cortana
-    Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
-    write-host "Removed Cortana"
-
-    #Remove GetStarted
-    Get-AppxPackage -allusers *getstarted* | Remove-AppxPackage
-    write-host "Removed Get Started"
-
-    #Remove Parental Controls
-   Get-AppxPackage -allusers Microsoft.Windows.ParentalControls | Remove-AppxPackage 
-   write-host "Removed Parental Controls"
+    foreach ($package in $packages) {
+        $appPackage = Get-AppxPackage -allusers $package -ErrorAction SilentlyContinue
+        if ($appPackage) {
+            Remove-AppxPackage -Package $appPackage.PackageFullName -AllUsers
+            Write-Host "Removed $package"
+        }
+    }
 
    #Remove Teams Chat
 $MSTeams = "MicrosoftTeams"
@@ -1875,8 +1883,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDhjfF3d563UknF
-# Rz3EhbviEIMziMAGb2MDJtmRq233PqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB0sMpOD0mGi9v3
+# laAxjbym9mtKa1Zldr5zRAVYEk92aqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2058,33 +2066,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBf+o28hNDJiU5Tvxpj/VPBR2QxQm9UHUnTp
-# eOSIE+ePMA0GCSqGSIb3DQEBAQUABIICAHou+sPetZYIxFl1w6cbjsASeyBa72gL
-# 7hgDrpjsGPo/g/EcZv1xX/4EWLXxzptH0Qyqs5XHB6Je1/UcRZo7vAR2cUAzeexD
-# fDvVjfSzX/cHmwdHKFsBGJuOJ+JMuRkA/Tw7GQVAH9SiQivKJn1xJbth1OyE01Du
-# qM4s8TWHXE61p96QvqSmWo7q1I23aEq15YekDsibJInTkuyNbnEFvewHI4ffWzlM
-# ensSBzGM19/pVKtiMnvjmtyvbMtaKyXaRp3Qj6p8Ki1C5PfRJ5yFjShdX+oRZkAc
-# 184CZ99LhbZrDWrvmV387UWQp2yFhHV+QXeo1rwVOiDZWpTbINVnOw3WRUBuK5Nz
-# nCx0XCAPtmsKtyYMC/15BAXRwlC9U7Q8H2d0osHBS82VCaGiYhEZYZ+eI2d/ITBV
-# fSCCs3rdWo2dgjU1wcpbqFSCf9fKTZoD+h0ffytC2FJX+pr9Q4cYahhCA+AoF5oj
-# sJQqzMCc+/CZdleBTkMf4f61mIBDqbV53eGk57nerEwjT8S5tVPoRc1O/UnrxgFw
-# kPkY0VH1e0MRBSZEsN87Bg0IrReqeMuoFG1ks6M4P/ygfOUWok73CxGHGrqD6nB1
-# pAu+a65FYPZPM37exR82uO/Z10JXO8+VraAQAjQiijkseXwJyCsgezWfuhzmjrVi
-# qEc078Wc4fPFoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKsTDBTuUL2Chk7VSAkIXdz65uTA3cYwgjv3
+# ttv//MdnMA0GCSqGSIb3DQEBAQUABIICAF39MaREZbG/6m3i5ihzH7EQABPouyl9
+# YspaipmTXiWMpXs9IzDB6N96cKhIpecy37UTO4l9xGk3zy1k5pZYrOYXVUD1FKHc
+# RxEQ/NulBzlnfe2+7xGWlMpZ9ypBZKJztO0mArtL/2garGV7O9fhDy2biCh6uChs
+# d9+wS+U0sDhlpZsBBmSLwZCG/IIuhV/RNjSZoWAhl0213QziUFJM2w2zVzz57O0Z
+# dN0Qp5tAHfJGnOTck5mMjczHUSbW6/KvyXuOsnfr8AMORx9aK3JYA7iMwrufSHFQ
+# l8pWyo4UerW4nz8kM2svqhK5n6p/jJoSvgSaXcYUw84qaeBzJX7vsRm5o6my5KiA
+# 4Ux5ZJl3zK0el1NNHnXd2mPEmCeJSrFy3NHnEW5VANrMgFuPxWHg6imlirFHLAdo
+# 2SoP9FVA1NcWj3ZsxISYXiPU+2hlD2cMrjVrIhi6qJO4w4bqjmkRGSNlNzhaIFCc
+# d8Vhg3/X6jszbD44pEhn3LMN8XZeCthdEMUctT6vMNtsxMcr7mZcdxbZR4zoZ0iU
+# j7EmIlbcuDauauEYNTecdoiY/VkLSeULi91Kpf6mu/0HJsuwMA2X2NRs3IxKrInX
+# gcI9rP5Q897YMl03KXv5Z72cqITvKTK2pzxAJw1ONjmP4oQKSDVu3suqVIJrBVmb
+# +2psd0s7593zoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDIwMTA5MjAxMVowLwYJKoZI
-# hvcNAQkEMSIEIJxAbVdu8kwReOyxl1DLplqfVv8Eel3f5qKQuATuXf7RMA0GCSqG
-# SIb3DQEBAQUABIICAARyd+n/5IB064hlJcuArZDJSYBuU3OkFTRkPiQMtQDFrLDD
-# eu+39FrbQwzA+MpVJzuTBs0zqffjqDo+VlfEPT0FQW76tvt07Q6GAhEZMNG0+A2k
-# aSbr4tPbm4C6PCjt+clL5GRI7l8ASqdPwruRVm+HIy/R4XiI/Ymfg/T0QvPM1vwc
-# R5PBfL6zCgJFkgquP0Zvt+KpHiXTmt3WN98gJ/P8Y9t3yh2Te9wH1ItBsRrbDU4M
-# w4RwEXt/ap9AvisKv6bv8wk7qP/cWIWIuRdGZbywjSnz0wTRb58C/OV74BDv2rUa
-# WiSRzNqnkKmQTo9u+VF3FHCeymmPquNmTtQgy+jyLLAI3iAHIRMwDH2LigtxOsTj
-# /WxSHMNwFShhfLqZAdzso0s3uu6kxzivARKn3D7iqRBvMaXPrGnXqbXsunB/JrTe
-# M1W0O2zJu79Ug2P+oDlWWCl38Rff6ngC/B8UQNBymhU3uy6C38oGFmQlcILT8Dz3
-# H6wIl1QsjwTMETP/0Wk6gDos74wqts8a7UGF1ySpeFwsd3YaCXn7HNbwQzFV5Wjm
-# oSiPuiuSSjwLqdAxm0KnyDUG3jIjJ3ZRVniSq2wn1YkYBfryBr+pAvV5pRYXI4tr
-# eD/z7uFlbpwdFmZof6VSBaZ66HJO8z3MQDXANn+7TpEatWcfNMEprWTUElbx
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDIwMTE0MjYxOFowLwYJKoZI
+# hvcNAQkEMSIEIM/EBpvP92vEoqR1vaREafAiNBk+c+Afc+N6SNd3K/+gMA0GCSqG
+# SIb3DQEBAQUABIICAA2NGBZQTzuCVXYCFb6VBLaAtIBtUDrOjzvAoI7YyAVjubpQ
+# zaMv1za4rjptEMDB4Z8/9ylNq84IpWgn8QwpKXC1eIvvptIh+3wXa/cdfQT0JfHS
+# b/oohPDiSLsVVoOfPINv7NH4yWQVFsfIG0lQL5OktFHYH1RGZTIdhj+fAFZjnFOv
+# fCJugPTwnxXoS3SZKuhfBwUdfwyBfuHea1GaAKxZm02/AmoXqTk+kEA7MmwqnTTa
+# 4SssEp6GpJC8CkRoaDI2CPARjbsyaSa0Jtl7aFHSJFd65FGBJkcaazd2CE84Q8tB
+# nfE/4zH3STuhJ4yDUYFTzaedag5YnjL72WJNnYDgTPj5xNwA2NXSInTePFeU7cnp
+# Waj/DxQerupG5bmQlwkfmlLuFrfYyb5Jl+5TC5YPH/UPnhkTcxlY19RI21PwYz6o
+# z6GRNmt8lyS0zq22ZdUtUWAOd3itLIoRulMv2IiEXedlOJvMApyz5FC9LV2auCF9
+# v4L5UDcmSWSIeXBTqGoziWmC0dj3yAe3xmAwgaBYyBrNsZ8HsPBjudPeje6iUR5y
+# pYflk5vdmC0WOprJ4Ft87NSZ5eA4Rj5zur/31vjKWGEZ1Ai8CrrnY/UA1bfRkpG4
+# OTmg0Jr/k7tyvv+tDmyjSKZi8YjrY6w6AoLKvf23cvK0UXIzkq7IpWbnwMEM
 # SIG # End signature block
