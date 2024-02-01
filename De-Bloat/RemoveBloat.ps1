@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.1.7
+  Version:        4.1.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -71,6 +71,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 29/01/2024 - Changed /I to /X in Dell command
   Change 30/01/2024 - Fix Lenovo Vantage version
   Change 31/01/2024 - McAfee fix and Dell changes
+  Change 01/02/2024 - Dell fix
 N/A
 #>
 
@@ -1432,12 +1433,22 @@ foreach ($program in $UninstallPrograms) {
 ##Manual Removals
 
 ##Dell Optimizer
-$uninstallcommand = "/X {1344E072-D68B-48FF-BD2A-C1CCCC511A50} /qn"
-Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+$dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell*Optimizer*Core" } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $dellSA) {
+    If ($sa.UninstallString) {
+        cmd.exe /c $sa.UninstallString /quiet /norestart
+    }
+}
 
 ##Dell Dell SupportAssist OS Recovery Plugin for Dell Update
-$uninstallcommand = "/X {517FF73B-E045-4AA4-B0DD-61C65B510B2B} /qn"
-Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+$dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -match "SupportAssist" } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $dellSA) {
+    If ($sa.UninstallString) {
+        cmd.exe /c $sa.UninstallString /quiet /norestart
+    }
+}
 
 ##Dell Dell SupportAssist Remediation
 $uninstallcommand = "/X {C4543FDB-3BC0-4585-B1C5-258FB7C2EA71} /qn"
