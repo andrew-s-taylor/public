@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.1.9
+  Version:        4.2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -73,6 +73,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 31/01/2024 - McAfee fix and Dell changes
   Change 01/02/2024 - Dell fix
   Change 01/02/2024 - Added logic around appxremoval to stop failures in logging
+  Change 05/02/2024 - Added whitelist parameters
 N/A
 #>
 
@@ -80,6 +81,9 @@ N/A
 #                                         Initial Setup                                                    #
 #                                                                                                          #
 ############################################################################################################
+param (
+    [string[]]$customwhitelist
+)
 
 ##Elevate if needed
 
@@ -92,45 +96,12 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Start-Sleep 1
     Write-Host "                                               1"
     Start-Sleep 1
-    Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+    Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`" -WhitelistApps {1}" -f $PSCommandPath, ($WhitelistApps -join ',')) -Verb RunAs
     Exit
 }
 
 #no errors throughout
 $ErrorActionPreference = 'silentlycontinue'
-
-
-Function Get-ScriptVersion(){
-    
-    <#
-    .SYNOPSIS
-    This function is used to check if the running script is the latest version
-    .DESCRIPTION
-    This function checks GitHub and compares the 'live' version with the one running
-    .EXAMPLE
-    Get-ScriptVersion
-    Returns a warning and URL if outdated
-    .NOTES
-    NAME: Get-ScriptVersion
-    #>
-    
-    [cmdletbinding()]
-    
-    param
-    (
-        $liveuri
-    )
-$contentheaderraw = (Invoke-WebRequest -Uri $liveuri -Method Get)
-$contentheader = $contentheaderraw.Content.Split([Environment]::NewLine)
-$liveversion = (($contentheader | Select-String 'Version:') -replace '[^0-9.]','') | Select-Object -First 1
-$currentversion = ((Get-Content -Path $PSCommandPath | Select-String -Pattern "Version: *") -replace '[^0-9.]','') | Select-Object -First 1
-if ($liveversion -ne $currentversion) {
-write-host "Script has been updated, please download the latest version from $liveuri" -ForegroundColor Red
-}
-}
-Get-ScriptVersion -liveuri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/De-Bloat/RemoveBloat.ps1"
-
-
 
 
 #Create Folder
@@ -311,6 +282,13 @@ switch ($locale) {
     $WhitelistedApps = 'Microsoft.WindowsNotepad|Microsoft.CompanyPortal|Microsoft.ScreenSketch|Microsoft.Paint3D|Microsoft.WindowsCalculator|Microsoft.WindowsStore|Microsoft.Windows.Photos|CanonicalGroupLimited.UbuntuonWindows|`
     |Microsoft.MicrosoftStickyNotes|Microsoft.MSPaint|Microsoft.WindowsCamera|.NET|Framework|`
     Microsoft.HEIFImageExtension|Microsoft.ScreenSketch|Microsoft.StorePurchaseApp|Microsoft.VP9VideoExtensions|Microsoft.WebMediaExtensions|Microsoft.WebpImageExtension|Microsoft.DesktopAppInstaller|WindSynthBerry|MIDIBerry|Slack'
+    ##If $customwhitelist is set, split on the comma and add to whitelist
+    if ($customwhitelist) {
+        $customWhitelistApps = $customwhitelist -split ","
+        $WhitelistedApps += "|"
+        $WhitelistedApps += $customWhitelistApps -join "|"
+    }
+    
     #NonRemovable Apps that where getting attempted and the system would reject the uninstall, speeds up debloat and prevents 'initalizing' overlay when removing apps
     $NonRemovable = '1527c705-839a-4832-9118-54d4Bd6a0c89|c5e2524a-ea46-4f67-841f-6a9465d9d515|E2A4F912-2574-4A75-9BB0-0D023378592B|F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE|InputApp|Microsoft.AAD.BrokerPlugin|Microsoft.AccountsControl|`
     Microsoft.BioEnrollment|Microsoft.CredDialogHost|Microsoft.ECApp|Microsoft.LockApp|Microsoft.MicrosoftEdgeDevToolsClient|Microsoft.MicrosoftEdge|Microsoft.PPIProjection|Microsoft.Win32WebViewHost|Microsoft.Windows.Apprep.ChxApp|`
@@ -323,87 +301,92 @@ switch ($locale) {
 
 
 ##Remove bloat
-    $Bloatware = @(
+$Bloatware = @(
+    #Unnecessary Windows 10/11 AppX Apps
+    "Microsoft.549981C3F5F10"
+    "Microsoft.BingNews"
+    "Microsoft.GetHelp"
+    "Microsoft.Getstarted"
+    "Microsoft.Messaging"
+    "Microsoft.Microsoft3DViewer"
+    "Microsoft.MicrosoftOfficeHub"
+    "Microsoft.MicrosoftSolitaireCollection"
+    "Microsoft.NetworkSpeedTest"
+    "Microsoft.MixedReality.Portal"
+    "Microsoft.News"
+    "Microsoft.Office.Lens"
+    "Microsoft.Office.OneNote"
+    "Microsoft.Office.Sway"
+    "Microsoft.OneConnect"
+    "Microsoft.People"
+    "Microsoft.Print3D"
+    "Microsoft.RemoteDesktop"
+    "Microsoft.SkypeApp"
+    "Microsoft.StorePurchaseApp"
+    "Microsoft.Office.Todo.List"
+    "Microsoft.Whiteboard"
+    "Microsoft.WindowsAlarms"
+    #"Microsoft.WindowsCamera"
+    "microsoft.windowscommunicationsapps"
+    "Microsoft.WindowsFeedbackHub"
+    "Microsoft.WindowsMaps"
+    "Microsoft.WindowsSoundRecorder"
+    "Microsoft.Xbox.TCUI"
+    "Microsoft.XboxApp"
+    "Microsoft.XboxGameOverlay"
+    "Microsoft.XboxIdentityProvider"
+    "Microsoft.XboxSpeechToTextOverlay"
+    "Microsoft.ZuneMusic"
+    "Microsoft.ZuneVideo"
+    "MicrosoftTeams"
+    "Microsoft.YourPhone"
+    "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
+    "Microsoft.GamingApp"
+    "Microsoft.Todos"
+    "Microsoft.PowerAutomateDesktop"
+    "SpotifyAB.SpotifyMusic"
+    "Disney.37853FC22B2CE"
+    "*EclipseManager*"
+    "*ActiproSoftwareLLC*"
+    "*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
+    "*Duolingo-LearnLanguagesforFree*"
+    "*PandoraMediaInc*"
+    "*CandyCrush*"
+    "*BubbleWitch3Saga*"
+    "*Wunderlist*"
+    "*Flipboard*"
+    "*Twitter*"
+    "*Facebook*"
+    "*Spotify*"
+    "*Minecraft*"
+    "*Royal Revolt*"
+    "*Sway*"
+    "*Speed Test*"
+    "*Dolby*"
+    "*Office*"
+    "*Disney*"
+    "clipchamp.clipchamp"
+    "*gaming*"
+    "MicrosoftCorporationII.MicrosoftFamily"
+    "C27EB4BA.DropboxOEM"
+    "*DevHome*"
+    #Optional: Typically not removed but you can if you need to for some reason
+    #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
+    #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
+    #"*Microsoft.BingWeather*"
+    #"*Microsoft.MSPaint*"
+    #"*Microsoft.MicrosoftStickyNotes*"
+    #"*Microsoft.Windows.Photos*"
+    #"*Microsoft.WindowsCalculator*"
+    #"*Microsoft.WindowsStore*"
+)
+##If custom whitelist specified, remove from array
+if ($customwhitelist) {
+    $customWhitelistApps = $customwhitelist -split ","
+    $Bloatware = $Bloatware | Where-Object { $customWhitelistApps -notcontains $_ }
+}
+    
 
-        #Unnecessary Windows 10/11 AppX Apps
-        "Microsoft.549981C3F5F10"
-        "Microsoft.BingNews"
-        "Microsoft.GetHelp"
-        "Microsoft.Getstarted"
-        "Microsoft.Messaging"
-        "Microsoft.Microsoft3DViewer"
-        "Microsoft.MicrosoftOfficeHub"
-        "Microsoft.MicrosoftSolitaireCollection"
-        "Microsoft.NetworkSpeedTest"
-        "Microsoft.MixedReality.Portal"
-        "Microsoft.News"
-        "Microsoft.Office.Lens"
-        "Microsoft.Office.OneNote"
-        "Microsoft.Office.Sway"
-        "Microsoft.OneConnect"
-        "Microsoft.People"
-        "Microsoft.Print3D"
-        "Microsoft.RemoteDesktop"
-        "Microsoft.SkypeApp"
-        "Microsoft.StorePurchaseApp"
-        "Microsoft.Office.Todo.List"
-        "Microsoft.Whiteboard"
-        "Microsoft.WindowsAlarms"
-        #"Microsoft.WindowsCamera"
-        "microsoft.windowscommunicationsapps"
-        "Microsoft.WindowsFeedbackHub"
-        "Microsoft.WindowsMaps"
-        "Microsoft.WindowsSoundRecorder"
-        "Microsoft.Xbox.TCUI"
-        "Microsoft.XboxApp"
-        "Microsoft.XboxGameOverlay"
-        "Microsoft.XboxIdentityProvider"
-        "Microsoft.XboxSpeechToTextOverlay"
-        "Microsoft.ZuneMusic"
-        "Microsoft.ZuneVideo"
-        "MicrosoftTeams"
-        "Microsoft.YourPhone"
-        "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
-        "Microsoft.GamingApp"
-        "Microsoft.Todos"
-        "Microsoft.PowerAutomateDesktop"
-        "SpotifyAB.SpotifyMusic"
-        "Disney.37853FC22B2CE"
-        "*EclipseManager*"
-        "*ActiproSoftwareLLC*"
-        "*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
-        "*Duolingo-LearnLanguagesforFree*"
-        "*PandoraMediaInc*"
-        "*CandyCrush*"
-        "*BubbleWitch3Saga*"
-        "*Wunderlist*"
-        "*Flipboard*"
-        "*Twitter*"
-        "*Facebook*"
-        "*Spotify*"
-        "*Minecraft*"
-        "*Royal Revolt*"
-        "*Sway*"
-        "*Speed Test*"
-        "*Dolby*"
-        "*Office*"
-        "*Disney*"
-        "clipchamp.clipchamp"
-        "*gaming*"
-        "MicrosoftCorporationII.MicrosoftFamily"
-        "C27EB4BA.DropboxOEM"
-        "*DevHome*"
-        #Optional: Typically not removed but you can if you need to for some reason
-        #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
-        #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
-        #"*Microsoft.BingWeather*"
-        #"*Microsoft.MSPaint*"
-        #"*Microsoft.MicrosoftStickyNotes*"
-        #"*Microsoft.Windows.Photos*"
-        #"*Microsoft.WindowsCalculator*"
-        #"*Microsoft.WindowsStore*"
-
-    )
     foreach ($Bloat in $Bloatware) {
         if (Get-AppxPackage -Name $Bloat -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $Bloat | Remove-AppxPackage -AllUsers
@@ -779,6 +762,12 @@ Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage
         "*getstarted*",
         "Microsoft.Windows.ParentalControls"
     )
+    ##If custom whitelist specified, remove from array
+if ($customwhitelist) {
+    $customWhitelistApps = $customwhitelist -split ","
+    $packages = $packages | Where-Object { $customWhitelistApps -notcontains $_ }
+}
+    
 
     foreach ($package in $packages) {
         $appPackage = Get-AppxPackage -allusers $package -ErrorAction SilentlyContinue
@@ -1233,6 +1222,12 @@ $UninstallPrograms = @(
     "RealtekSemiconductorCorp.HPAudioControl_2.39.280.0_x64__dt26b99r8h8gj"
 )
 
+    ##If custom whitelist specified, remove from array
+    if ($customwhitelist) {
+        $customWhitelistApps = $customwhitelist -split ","
+        $UninstallPrograms = $UninstallPrograms | Where-Object { $customWhitelistApps -notcontains $_ }
+    }
+
 $HPidentifier = "AD2F1837"
 
 $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {($UninstallPackages -contains $_.Name) -or ($_.Name -match "^$HPidentifier")}
@@ -1357,6 +1352,12 @@ $UninstallPrograms = @(
         "Dell Update - SupportAssist Update Plugin"
         "DellInc.PartnerPromo"
 )
+
+    ##If custom whitelist specified, remove from array
+    if ($customwhitelist) {
+        $customWhitelistApps = $customwhitelist -split ","
+        $UninstallPrograms = $UninstallPrograms | Where-Object { $customWhitelistApps -notcontains $_ }
+    }
 
 $WhitelistedApps = @(
     "WavesAudio.MaxxAudioProforDell2019"
@@ -1526,6 +1527,12 @@ if ($manufacturer -like "Lenovo") {
         "E046963F.LenovoCompanion"
         "E0469640.LenovoUtility"
     )
+
+        ##If custom whitelist specified, remove from array
+        if ($customwhitelist) {
+            $customWhitelistApps = $customwhitelist -split ","
+            $UninstallPrograms = $UninstallPrograms | Where-Object { $customWhitelistApps -notcontains $_ }
+        }
     
     
     $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms))}
@@ -1887,8 +1894,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCGOHAXmSdDP7er
-# A4y3TUH95IUa7iLxmh3SF7CIQ+pYIqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAeC0foY3GKzb8F
+# 38zJihwzZs0pFs/wFBiWKH3499hbdqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2070,33 +2077,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGdNnpgw68/G8ecmL0h/H5ZzfkAZTUD9HXQr
-# dbXLM0GBMA0GCSqGSIb3DQEBAQUABIICAIKn259RMPYnJf/ONkdxpROqIdHSxhEL
-# Sj2P5jb7C6dEyhrsf+0pBd/yemE4902Tk+Y8KP/KzpCwFxb+lJ7hm4tbJq8wOCD4
-# vvJOfb6d8nvKK8ykrfXCyFNOPvG12Q5cxEooGZmvX7FQHT42m9jpVJ7BBUVSebcp
-# pJMVZQAEaTBXW6wDpFFbP/fdBTUgONiM15S9asXK9sNMBfMVxZxu3HK+OAahAXUk
-# 9JQKTMQpL+3oxfZr3awBpuaXE6Vb96Ibkz4DuP4nasJaJZYd2O05WjWtkGyAfGsA
-# VuABew/uMbMMj/QMha8qUUWRAkZCRbmpGIHlfDVdLnIjgCq7GqjATD0MA+IXu90B
-# mgxtdsFLkxWqVzfTlvZZWiyjHg3rI4evZ82ce64mUhGNZYb8RZ6K4leiz4kxz6CI
-# rqJYGKYIltmRgESFG17+PUaifsgvXMvUmHN8kvJGhmNk87olYt+NgvBJv+Kb2dMR
-# IltvrJZellGnefQx567SssmPAkvmalqcr/ybquWSSP9bG7uVvbuuf/79dGBpR0+O
-# xHWkBe3F5mgAPiVKelHxsH1oRq4CPr+Y6WQjrTB/4nAp3nAXlwgjKtOa1cHGzFdc
-# yKP0Xt58rRfdE2lRVi0uWPunEoGq5yXTpng8IZkCQWpRRK1zcKI+/zxAGuHWXWma
-# zvDVH8SzMngFoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJrwqbbNkHpAQdwYHcN1GfK/6ZJRFItAjRg0
+# OJ8Ymde+MA0GCSqGSIb3DQEBAQUABIICAGMUFMUu7MUJADoO+5Z74TIgNXYpc87o
+# g/pXiEiZvn1sCJ8SPGdATTuWrGAhOY84x8GSsUsNp8X21xKXcaCotz4KTXHvGuoP
+# hMwx6jNwxKsuG9pH9qaeJ0MoF9s5MbukoafoNi1/iRXmM51oR8dd7sbNiAZQsZih
+# WOKxNLR84buYZBtqtfud/ziTcn2D22y3oxkEdvXHKnt1LTlMV4jomO98dLsNIcEp
+# W6vNHaYLrpsWUHX3uef1tEX94gOdQBquVt2yPKwRFn+hQ4rAgJHebqI1QPBP3JTX
+# 2uX0wPnQYeKjNEmaWrDWbGxe3Vbrqvqo2j8UkQK301tUu8iRT3bvqd/EBe8lIX96
+# rwg8gGpcApdVG7YjM+7zjNJkQlfCYigIQHLxGByHdItauRjOsrA/TiIPsF/piOEG
+# sE46Bky8lhYbU199idxz8OZFwSjg96U/4SDDNffwRcRlMcPfeP6UcBxFso2Lq8DR
+# lOYSTsborNT6lN0PKZ2eFMJDqjowCXuVE5n/9kt9n2Zf8dpR80X0Rfs720WQMct/
+# esi7ocCXOMyBdL20ggpN9l4ghCB5QwpIoFIYwjTWjZ+cF01b8ligpRqefUy7lpNl
+# cp6kIc4UqDs0stvYuyhmCLkGj00CMO49oCVB7/76dZPXAgBCSu8DBN4MQw8a3ehy
+# TGS/NSfIySeHoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDIwMjA5Mzc1MVowLwYJKoZI
-# hvcNAQkEMSIEINcJn7aQRGQ65C3TBgZS5VCnjfMntgz9uo95WqW+J7DPMA0GCSqG
-# SIb3DQEBAQUABIICABMrjFmk6uuBJSx1/e1jR1AGEd8S9lcMjBHuke09Nh9Lif7w
-# 9TiT2cQ1Id9SUmqFoW2MhS+BwsMMOhM0reSQ69AbGyP3hrTLJYWv98oQG/332BFQ
-# jOTS1FjQFVV4Rhkw9RJQ+IrpdP+SxEQGnhth1ilCLcBBiGan3A9T7gu4l05zo5Zb
-# 4jMHzileXw0VOw7BISe235+91WhPlJ42DGizrMK77qPJQDe3RifMeRfmREnllIuF
-# p/3ZwQW5RGAHRTl5wo8OqVblb2Kz3gIg9sVzR7A71sNCdPNyJOeVKx2ncJ0ArrpG
-# WVOCvUdjghrrgujH9tEiymogIz/IWi57ynHs1wmSCHy/q6l2CFYliEmur5K/I064
-# cOgpL68KiULoHR4gERFj3R1I19vDRGwUclWtW2ou0rMOkQO7f63cWkjjfAGFPcAw
-# YTUV9mKcEBkLnxWCfPittcyBAKLrXH+1ePowMi3F3Fu4lg18tqKMOUQBSEoqDj4N
-# CJZuVhMhZAEIP3tW9xqw6M/ubCkh1VbWln378TCJrSyA5MwBt5JoHkATZAUdNbSo
-# lNmZX+Ch6FQcWOLOvXpEI5vWkdxaCu9py/NJhnIPRnHamyWu8yGJa1TRFRsSWdVQ
-# BHzepTYY5FMRxoSdwfMPS6wq3+Q4tOIls5Lo/L9yLUbLY7WLj+S35BvgQbeG
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDIwNTIwMjEwOVowLwYJKoZI
+# hvcNAQkEMSIEIFIpqsUa/7YmMESgHIRnAeuyDcmnQMAbeaNvLLk6kWKbMA0GCSqG
+# SIb3DQEBAQUABIICABnvCDykPxD+DaMBMbyZGTTxWxJuxsLqhaQDncWI9C10x5C3
+# t1Z8AQ+CdPvsji+HW6bnsg9ncS16j45p07m9IOHYl952b5ZBbYDTUBVlhQqjlTbO
+# MYjO4qjAW60mG0R2WmYufE4IWyfG4siQawHEO+Hy3Nm6Tl4Xs1vc2Q6ZvGj2TuEZ
+# MpGzxRL/1zhpp+uf8eagNw+J4BmuHL1BTU/aotihMYZz7CEXL4/pGdClZCoTLKmv
+# TgojMGAI0uIWrJGIveoQ6LnbVNP0auOanPeL6ovu/s9i8qSa7RTeTZoYaB1cbRbq
+# wYU45m2VXkq6rU7vbEhVkmEpxjlUbIYDOg6tcOYK+OzkI27XO77pHgi8h/XJtYT4
+# Vw1nmk3txhyIq0qSBzvcPguYerlQ8e7apFXswQ+YHPhcM9EwWhC7C+JFrxBRlVAo
+# eRlwtuPbarJpXlfGVwIR/ja5Tc+nNqH9tqJ9kVW2X0AuzsR63jBXLSgxgp3ba3jY
+# Ytp4IlKF6UlWg2LhX6//MvslHsGuORSS5fDXtFTs22ej0oNl9AE4xidCdmha2s8I
+# SgcflEoVtD5Tp5UATNzmp6SCyQHQstmn9VNNvWmMKq02U3E5359kEAIh8GCegtYU
+# qzXzqksLJsTVqgZoRHVVrXpTvDImyC7o2/1J6L3/q2NmSrw0vXfO8mcFLUI3
 # SIG # End signature block
