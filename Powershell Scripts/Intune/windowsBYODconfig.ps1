@@ -15,13 +15,14 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        1.0.1
+  Version:        1.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  25/07/2023
-  Updated: 25/07/2023
+  Updated: 15/02/2024
   Purpose/Change: Initial script development
+  Change: Fixes to policies
 
 
   .EXAMPLE
@@ -29,7 +30,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.1
+.VERSION 1.0.2
 .GUID f5a19f87-32c5-4758-a7b5-c99ee7f7f155
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -441,9 +442,7 @@ $json = @'
 	"conditions": {
 		"applications": {
 			"excludeApplications": [],
-			"includeApplications": [
-				"All"
-			],
+			"includeApplications": ["Office365"],
 			"includeAuthenticationContextClassReferences": [],
 			"includeUserActions": [],
 			"networkAccess": null
@@ -527,14 +526,7 @@ $json = @"
 			"browser"
 		],
 		"clients": null,
-		"devices": {
-			"deviceFilter": {
-				"mode": "exclude",
-				"rule": "device.deviceOwnership -eq \"Company\""
-			},
-			"excludeDevices": [],
-			"includeDevices": []
-		},
+		"devices": null,
 		"locations": null,
 		"platforms": {
 			"excludePlatforms": [],
@@ -562,14 +554,12 @@ $json = @"
 	},
 	"displayName": "Windows MAM - Require App Protection Policy",
 	"grantControls": {
-		"authenticationStrength": null,
-		"builtInControls": [
-			"compliantApplication"
-		],
+		"operator": "OR",
+		"builtInControls": ["compliantDevice", "compliantApplication"],
 		"customAuthenticationFactors": [],
-		"operator": "AND",
-		"termsOfUse": []
-	},
+		"termsOfUse": [],
+		"authenticationStrength": null
+	  },
 	"sessionControls": {
 		"applicationEnforcedRestrictions": null,
 		"cloudAppSecurity": {
@@ -597,8 +587,8 @@ Disconnect-MgGraph
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCfP9UasOsW8URv
-# QUNA5+xTjTazG62AkfHARnqqRFjPj6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBYZYvw8UglAmR4
+# d6uEfJ8iP2sSYF1CI4pE2jLII0ivTqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -780,33 +770,33 @@ Disconnect-MgGraph
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEINHfkvlMaj2iCxHK/pAZ+RQUx2dHtU/6SiBS
-# mac0BhxhMA0GCSqGSIb3DQEBAQUABIICACpJs+yypNNLQCBsIDoM6xFV+quWHrkb
-# 7qdpfbE+qgSfsr8PgnjpbTou9XLSg1rDk0+4vPaA71U2C8aihxdx1jVopMkVbJlS
-# mMFeMCHKcwZ1N2Bpq14tB0rtv7kH0zC+H0v4XIOfrREtzJx3qwXO4AWAco+zFmmE
-# 9IGvr09JIPNcYkUOgT17drwNagJEDfGthsVNXeHISjkp6HCzxFDQS1B+gtgt8LrN
-# HvwCh0ozhhBHDH1SBEV4QT94nyC4WfK4fM4B5X5VVXBQkkdUCRO0vK7rLokeAfBI
-# wVg+uEc/8F4X8mYXA40hTYYIpmefOL5t5UKStQMgg38yI0R2p37gXsZeeyGTuGeW
-# LVsnfAu1XJxw5O7SLaj68gkX/uELDKaf+QGpYJSlZQq3jRFyBUdPYTAHGc0OPnDK
-# Sjwj9apAg3UeBQIVmiIciUCvSuAOAvQVTRLj0FXtvl4SOBCA4Bf3kLwnnaLSyIj5
-# 4BufuFFEd7pwS691+RyCcAmhVUKS2WSwu6Lzym27UDqbJIKlzTJXonhardFHVvJd
-# M5CVgbtUxIrv2NxY18YX5XLjp1GV4QBPfOmK3kUQwUuQY7fxq412DlKN7KhJfREr
-# OdjpUAIOlHJHmj1UMyjHuPEYAoDT6NKvgE+FgZXGLwpBxpnjLDMyRY5u0yzhkHsM
-# y8jVBEf/pPR/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHFyNpOXpGIjkeFug7LHfLi3y2GJaK/r7DSU
+# v02ad3Q4MA0GCSqGSIb3DQEBAQUABIICAKbHv+P1sL+r4buNwDXJTOCObLDy5wmp
+# QDlzgH3h6RdWMfCKRxU9lWp175QotqLq2bHIccFsArOb1ma9mtjKN2ELSnQl6qVI
+# w2h9YkfAWBIiXZhIy0ywEOC+qydXvQiZUF/J6Mv4+HQtyDyBOT7ckEG0ztwEo2uQ
+# 1MpuqN4cY0NNegrfBt7PhQpY9t5ZtAIaWJM+mggCG5/5iooVJ5tnIKqUeANWWJjK
+# rSnPa4MdWSxgXbXkBfbq5dgYvxIZPhrqNT7OnfTyvSz52vwUQRuXoELf8kXGR0ps
+# 7uDuOJ8ZS9kWfqbaPM3Uwa/0eHKcJ1nH3nM8Dkiv6sUDNkZFXVlF5g4FXl0GaXJJ
+# y33E9aQ66dyh43o9eAsVs7T4kooeMHuE0YWiYTFaIHlXAMmnEz3AjiKLqdzid6LG
+# v8QzwRgOzMrJ6R2gv54KyEgnr9101MwI14ugVvwH0GsXzsld1pu0yvc5TdibHCxc
+# AH4Z83lSVi+ipNf5uJBvbGPBqE2w4WqfCIHEXDUDoKX2yykMM7QZcCZlOuAR5cuO
+# wHq3PP8G69USjKvP8BP+PH1QCKxzxFdPD73tCmEPZxAt7u7zMOOx3m/3XpZ+gKJ0
+# wD7UXPbUtnY8WKJ9xXOsXhllsepbcVZeynTJIWd9nJRWsnJemkxd2x5akhZAk2Qn
+# IASnVgrUEU7AoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDgxN1owLwYJKoZI
-# hvcNAQkEMSIEICss8GcHplxuzNv9lm71gSkjdzoAuhjjBjhzNDEASTpLMA0GCSqG
-# SIb3DQEBAQUABIICACC6YpWKl7cEu/8CMGqJ9ASyiiWW2DwvSqlST3leCJqivcK9
-# wADE58D2mBgkmJK/Y/a3hNSHTpael77Q7NdKyp8C5tVYX4BVs8IdQIepUWFhq+6Z
-# GGm8mwf+zqZkumxRrlh5Fb0lJuJ/VEvQ9iH2KyqgqOQFtE5jjf4hqAUh0wQroIsb
-# dPYoG7lI6ZV0XPKWcitKV3RqUtggz/Wo50DJBOhHkPpH/eGRE186xlgYaqgPG+Wk
-# 30GsaDRyYqnSUa7b2Bx0p9wp9LgM1O8bPjKxZdebnqS1kWM63GnsjZfbF2CdoeY7
-# 4uLEe0jLyRor4CPL/zY+dsfXjw9MzsoQMLgNDHqISOj0JrCuTPulZb1wbTZPmq7R
-# MlAzW1F046kohoNPFvQhpWq1YoAGiLwywMvrcNS8HmtxjtxHP7ZNfYmyDPjHznei
-# hf3lXJ+DA+MK9qWkTW1LpsDSJlKoAT5De9pU2IUC5kjE1Vwew9qVMr6vdF7JC7yC
-# +RYHRpYRPXcZJoNmHVqCtejB8DWlqspkIwyx6UkclVkLgeRI766Earv4Ru0j5NQJ
-# cQt5HzIg76GOkDsw1/Oy0mrlGXzROHKpzwxZ2yuZt3AuPpmzMBYAxYoj9JJE8F4s
-# jOkxbRbfGjtz/M/5PY2QukZtjsZ4ALPW4HqSdCl3W69qpNGJhAIBhK5E1e7i
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDIxNTEzNTkzMlowLwYJKoZI
+# hvcNAQkEMSIEILuvMSGe/0gtiNp2BnyiCdQ627xjEiKNhvJuw2p8MFWuMA0GCSqG
+# SIb3DQEBAQUABIICAHtOnHmM63ekZ1sUhkQbnjycTiFbhk4tuN3ixcCFkMa4rXKN
+# FVhT+xhSJOLldBaSzP1tue1/tqazYRkxVoeJd9E1uzEW823SLoeMnZirEfjhm9ZB
+# 0m91BmxsXZVURx1AMoBZxCTyRVU/cree1CYgfkYOiJ3IxAzkzQgHjcj50eqJtDRv
+# 4cByURV2p/IEw/Q/xlo7AIFVz6h+rWWloatdQfyC6WKD4hmwfIz5IyKLycUxDBdc
+# qUmut1PRjT7I74ALgsj5cm9pZJjrCXm/wnhNxzxF3D3M1NZ5CKTyDwZsiA91wORR
+# Yd7giL6P3c498+ICIEXat05q+OdEBqdeq/qbjuV3kK2RRJw/L8pyo2GkJLHWCF/z
+# TAsNhLcpfaX6nsJnS0BFJEm1qt1Ju2swzrpSty4VFzIcgPxSV3lwdkoegiS6opqu
+# HSLUpGGTBRXXKCuudqBUx7gomvRf83PG82deMF4nLfzaqQgmN+i72CRWv499Oixe
+# aaBEMRi45h8LLqoyJXuozSaaJxie9SF9uymQrCZg7C8dzVBSeJ3e13e+q35rvS42
+# Ce33ssLlhTIVy5Vh4i927UCQpNaww1SeUxr7yjkI5QN4Q2kvXTAR1t+UvRxO/yRx
+# XxENBx11VBwH2x27aXo3T/KmxQm5t0kIyvSwvCJb2troEM7hh+tfIoJLWM/s
 # SIG # End signature block
