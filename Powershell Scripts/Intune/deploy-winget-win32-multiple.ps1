@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 5.0.0
+.VERSION 5.0.1
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        5.0.0
+  Version:        5.0.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  18/01/2024
+  Last Modified:  05/03/2024
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -56,6 +56,7 @@ In-Line Outputs
   Update: Bug fix
   Update: Issue with PS7, added logic to relaunch in PS5 with params
   Update: Changed from IntuneWin to PS module from Stephan van Rooij (https://svrooij.io/2023/10/19/open-source-intune-content-prep/)
+  Update: Path fix
 .EXAMPLE
 N/A
 #>
@@ -1411,23 +1412,23 @@ Function Find-WinGetPackage {
         }
         if ($PSBoundParameters.ContainsKey('Id')) {
             ## Search for the ID
-            $WinGetArgs += "--Id", $Id.Replace("…", "")
+            $WinGetArgs += "--Id", $Id.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Name')) {
             ## Search for the Name
-            $WinGetArgs += "--Name", $Name.Replace("…", "")
+            $WinGetArgs += "--Name", $Name.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Moniker')) {
             ## Search for the Moniker
-            $WinGetArgs += "--Moniker", $Moniker.Replace("…", "")
+            $WinGetArgs += "--Moniker", $Moniker.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Tag')) {
             ## Search for the Tag
-            $WinGetArgs += "--Tag", $Tag.Replace("…", "")
+            $WinGetArgs += "--Tag", $Tag.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Command')) {
             ## Search for the Moniker
-            $WinGetArgs += "--Command", $Command.Replace("…", "")
+            $WinGetArgs += "--Command", $Command.Replace("â€¦", "")
         }
         if ($Exact) {
             ## Search using exact values specified (case sensitive)
@@ -1435,7 +1436,7 @@ Function Find-WinGetPackage {
         }
         if ($PSBoundParameters.ContainsKey('Source')) {
             ## Search for the Source
-            $WinGetArgs += "--Source", $Source.Replace("…", "")
+            $WinGetArgs += "--Source", $Source.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Count')) {
             ## Specify the number of results to return
@@ -2216,23 +2217,23 @@ Function Get-WinGetPackage {
         }
         if ($PSBoundParameters.ContainsKey('Name')) {
             ## Search for the Name
-            $WinGetArgs += "--Name", $Name.Replace("…", "")
+            $WinGetArgs += "--Name", $Name.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Id')) {
             ## Search for the ID
-            $WinGetArgs += "--Id", $Id.Replace("…", "")
+            $WinGetArgs += "--Id", $Id.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Moniker')) {
             ## Search for the Moniker
-            $WinGetArgs += "--Moniker", $Moniker.Replace("…", "")
+            $WinGetArgs += "--Moniker", $Moniker.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Tag')) {
             ## Search for the Tag
-            $WinGetArgs += "--Tag", $Tag.Replace("…", "")
+            $WinGetArgs += "--Tag", $Tag.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Source')) {
             ## Search for the Source
-            $WinGetArgs += "--Source", $Source.Replace("…", "")
+            $WinGetArgs += "--Source", $Source.Replace("â€¦", "")
         }
         if ($PSBoundParameters.ContainsKey('Count')) {
             ## Specify the number of results to return
@@ -2455,10 +2456,11 @@ function new-intunewinfile {
         $appid,
         $appname,
         $apppath,
-        $setupfilename
+        $setupfilename,
+        $destpath
     )
     #. $intuneapputiloutput -c "$apppath" -s "$setupfilename" -o "$apppath" -q
-    New-IntuneWinPackage -SourcePath "$apppath" -SetupFile "$setupfilename" -DestinationPath "$apppath" 
+    New-IntuneWinPackage -SourcePath "$apppath" -SetupFile "$setupfilename" -DestinationPath "$destpath" 
 }
 
 function new-detectionscriptinstall {
@@ -2863,8 +2865,8 @@ foreach ($pack in $packs) {
     ##Create IntuneWin
     Write-Verbose "Creating Intunewin File for $appname"
     writelog "Creating Intunewin File for $appname"
-    $intunewinpath = $apppath + "\install$appid.intunewin"
-    new-intunewinfile -appid $appid -appname $appname -apppath $apppath -setupfilename $installscriptfile
+    $intunewinpath = $path + "\install$appid.intunewin"
+    new-intunewinfile -appid $appid -appname $appname -apppath $apppath -setupfilename $installscriptfile -destpath $path
     Write-Host "Intunewin $intunewinpath Created"
     writelog "Intunewin $intunewinpath Created"
     $sleep = 10
@@ -2899,7 +2901,7 @@ Disconnect-MgGraph
 if ($question -eq 0) {
     $VerbosePreference="SilentlyContinue"
 }
-Write-Host "👍 Selected apps have been deployed to Intune" -ForegroundColor Green
+Write-Host "ðŸ‘ Selected apps have been deployed to Intune" -ForegroundColor Green
 
 
 if (!$WebHookData) {
@@ -2971,8 +2973,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBfJnwDrSLz18kc
-# 5kW/bznyN7T82PEiJTcURwnw9mu8RKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBLX+bQGJKR/nzG
+# 9skWAmr/0OyXcwK2KPJGOSgIyjE2iKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3154,33 +3156,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFn5f/3HuZKuUySYp2oah1GAXbg1nwQw217r
-# imxG4/i8MA0GCSqGSIb3DQEBAQUABIICAHWkMoLG53jR3kNby5RWUSZuHYVPsR6/
-# RwG5eOJsDlfWJvPY7Gt8Ttaqa9xmOAM5956ZHW078c82RA41AOxC6/q1v6K5FYzK
-# B/xVoVP+DxQjII4YaD4lX35rFfd9T3deyLQEkTgEDfWOt63uvYGvoEMz98oykJ7i
-# 0SQI5kRQR1dVVM71ttR2A/L3sWgpiF/vJOfJ+DXHJ3R5J664ijeZ4mNHArE+xRH7
-# X0EKAZz0sGpmfLLrKv9KeSUSTwzkUB3QYOBA5EKbqjQ4wSKBQSRgRaPKPfcP2Q7Z
-# yG/5Hx2B80Tf7pY4oIv4ZCrWAGgsJ2VU2eH5lnDYoVwAmYruVs54VVMGTBUqd3o/
-# OBTka5ow70jpJN08ytcz+7NQhQtv46aqbx4CyVVq5NR13N8vrkUxmx9AGUW1BCdk
-# K7rgCS4e02ArkqxmxEDgyFl2IbL6J25WgU5rVQaDnUlQLs0maR7SUcmruqk10Uq6
-# 6GqfsuLWAyhQuGyYpwLisINbMKvlP+Ti21zyQH/AVptZX0WROanQUufuBi8qbjwq
-# 3Tn93U3w5Hc8yG0/aYo55R5eEh5sFM9zueCHIYxJxsIRySMMGc4aUt5Z8JI1mLOp
-# X9yJAuDFfD+gtBg4kXNaQdlBfi3ppGnpuJlVzxM7YMfU7qlHaQcnOKbvqMTBqLoC
-# DmFr3eQ86yugoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMKwHn7dGkLZWHNjg+JGbCW/h/qASWwSHPNY
+# quxyGjCxMA0GCSqGSIb3DQEBAQUABIICABXUvZQBic/6at1JKwC8rQ1oIJef2qIb
+# 6cJutqTDNus0pWKTgg5K2E9/yerTfwOV69CHa5ZpEO12yXnHPbdgAvvoW55UWWtE
+# i0ZMYZDZ4Z7hP8TFph1LKBtdDYcsQSf96lkftistDkgzL5ZSCVPJHAIlImETZ+/d
+# L7fGxHaCN4oNktHWaV942/tpFJS3eBdCI3Ukc40B7cAdRJcS+MGhbChCTw96V+j6
+# /oQhbcBQ1Nutoz7eORsdkFDZNU3n3Y0NHA5y+0O9YGLksw1yOqicSJC2MT4bzfh+
+# Jz9ujHn5dSSrvzVGD7LWUXuf61B6a5QT7m+UvL0iWSFS6yJTtVbGBSAPGUWnV+Wl
+# YJDRpkoNbrBaE2Pke3cI/yRPDLOEZl8gbs+AFm3pxuzkJYE37kKs3qKEK8XFzV2k
+# yhImJL4ETrJEifoZHJNZeasEPSbJ6bpJylQ9RK7vo94Op36YCwvLSVNgpjaoNWQp
+# +xuz1a6eWj8q9HaPcoXFcXqSVZ/UW1WXGUyykzWFsiYFxWTPjrYVQsJHrhGs6XKM
+# pvAcWDsBxPl0pogcmcGETdPCvCBWv4tEbpT9t/O0hHTWhi+yMV/iDu7RUYHFaviv
+# PcFIe1PBVq3FwCRl53Bwe9mIhUsLIS8wLKAeVVm1fLtcg6BsfLmfZp1NbmzBMqFA
+# AH5ZXfS/+UnsoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDExOTExMDM0NVowLwYJKoZI
-# hvcNAQkEMSIEIKdSCji0uUE5NM+l3iW+NzMeNfAYLubfTt3EpN06FTVSMA0GCSqG
-# SIb3DQEBAQUABIICABpumezTdmn18LdtCphbOd/l+Dh30nrwplXlhiKJF/9NVZcw
-# ABKzw+Y4VFmTYaB/nDTFoDSr8P73RLVKnlE48l61SBn1G9OZMipwq+gKHJmKej5N
-# nYbf0fz36cb2iyrgxMTN0bGUcF59iG8M7V739FDilOmzqs6s9ujLJ3aB989k2wFq
-# XWlo2Cvlmx1e2VHsVcjKnImq9pY1UJ+8mcQE1UtcDJCjP+tMFQq7+GkBkqcHDwpv
-# 24B7DxcqIyQsPLdo3qD3CL0RopdyzWTbUOMy85PJgurE2fml5oJ3nn+vAKhDDMbR
-# /PzwzapkjjDOT0V9fMvdz6n8iKOdDQrjRks28zPqzVhNa38SIXyfobJOvbKPaO8c
-# eCt3qI4uHMy/2q8MN8GVQ8xggJO9QTzcbwDdqfuSYjwOeag6O4guLjEXG4fdJTTc
-# Gj9fvcf4ZbFUZ32DIKObqmselKy/QBT6OkuDuZBodc0tObCDmOxGbSNWq0bMlZsT
-# Rix2jE5wp78V18uxlO7/LL4PpmfzaxZhIS3kmoG3eWcv1u5R0UWYUV4leBE7xt5X
-# l8itfYNrylLPwciosfg9pIN6+T2bm2Zn/3uySwBd7gTQ1GLxjI8YgP7IvebSJdNP
-# wRl10NoXoS3Rxv1BaoF8VN4c14AsPMPV2hyF0BXd23JR7j3oMDD+HQ5W2jTf
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMwNTE5NDEzM1owLwYJKoZI
+# hvcNAQkEMSIEIEBtkvYrIlMXsavXuc0upTKskEXCqs/Xbvvpo9YBwIhiMA0GCSqG
+# SIb3DQEBAQUABIICABcLsCfNygUsDYVV+lzxW4bspaULUDDFa9x8U9PC/DGGTvJB
+# F1WTWeINUHCNt6vKzs99zl2h3sCVCFa3u6IywCFaO+945R2giypfzWJZ1VYlO+x6
+# ZPoYvrg5EwCGbrbBx7o1vw5SsP8MwwaSSxADdwCFOsyL2SkYoK+pQQFZYZYXAHtt
+# oyOxAlx0Vxkah0Wj7JpQVFHw5ZCDDZh9GnluTFXHpZohq4BfCRkwC5iZ4O8TPx0p
+# O73ZiMGK6dGuIdmrdHzBUmuuAYsIPWjY/8BH3REaveIvKywt3KNLxCS8urJhnBzI
+# bSJmV6ESiVBneXfJRjHPAzeHCWXHrJUJCn8FbhCpPEsIFfENekdbIWSjWZ4VQd+N
+# V1xTHfINYwgYlOTK4YbjZ3NiNeY2n5Zj1jTf1DL1ZmsEB3BYqlXvp8EgjaH8rXxJ
+# UJNWExvd2/bXgFDVM3lW4REAx4f5Nhgjj8PsrRcrjFwZCo2PUOpTiw+MtelQ7lf/
+# fYVpV4DeUEIF+0weikL1Kpi3NeA8GknUA9+gYQGMqOAj+up7IjRztMy1fd1q/LeC
+# 1a5cOjP1yIoM3I2oupXsz3me+TLCdw2CVZpGkYD1g4Tc7lUQte3L2Larjkqm1hKn
+# HrfWdLxGqJVjI3l+DyXPcMY3Vh1i5yNuvAwNXjCxTEF6JdwzVTABIJXuSj7i
 # SIG # End signature block
