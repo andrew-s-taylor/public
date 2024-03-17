@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.5
+  Version:        4.2.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -78,6 +78,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 23/02/2024 - Added Lenovo SmartMeetings
   Change 06/03/2024 - Added Lenovo View and Vantage
   Change 08/03/2024 - Added Lenovo Smart Noise Cancellation
+  Change 13/03/2024 - Added updated McAfee
 N/A
 #>
 
@@ -1762,6 +1763,26 @@ write-host "Removing McAfee"
 start-process "C:\ProgramData\Debloat\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
 write-host "McAfee Removal Tool has been run"
 
+###New MCCleanup
+### Download McAfee Consumer Product Removal Tool ###
+write-host "Downloading McAfee Removal Tool"
+# Download Source
+$URL = 'https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/mccleanup.zip'
+
+# Set Save Directory
+$destination = 'C:\ProgramData\Debloat\mcafeenew.zip'
+
+#Download the file
+Invoke-WebRequest -Uri $URL -OutFile $destination -Method Get
+  
+New-Item -Path "C:\ProgramData\Debloat\mcnew" -ItemType Directory
+Expand-Archive $destination -DestinationPath "C:\ProgramData\Debloat\mcnew" -Force
+
+write-host "Removing McAfee"
+# Automate Removal and kill services
+start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
+write-host "McAfee Removal Tool has been run"
+
 $InstalledPrograms = $allstring | Where-Object {($_.Name -like "*McAfee*")}
 $InstalledPrograms | ForEach-Object {
 
@@ -1935,8 +1956,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB5dfQr7Vw3M6bi
-# U635O25V/ri5OGyg1MBH12pC9jpiYqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDD4Xfgb+y5i+5w
+# R+EtZMqFB+2y036vXT4dvumV9fL6s6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2118,33 +2139,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIPeISQgPy5ZDhBHEs8HsNjTHZl5nhhvGu1Wu
-# Gv4/98dqMA0GCSqGSIb3DQEBAQUABIICAEPUd2h8cNnQleuQrO+RHyNcTclDe0sz
-# V4gdKrPF5o0P0TNm/mCv2kpo9hNSe7EZZx17kzo5A4VmhcAjKjQQ2jATGWLyE5zd
-# kSpOricuvbSEQbiZ/n04QOAzgL345ykI/0tfjQZW49rLNnP+faI33+xHllI2eH8g
-# FNeaCv9+uwImqkxMl6vlmEsFVq8F1mbmIGKW753DS04Anb3iigcLzqr5cRwdeZSK
-# smsLZEHOZqW2Zmi+EmlA8Isvb/7ICOPsTzKllpxOcj4nl2mbQcmI+9amSXAEa8gr
-# ARDgdgF72iQrfERfCwZCn/bTUJlsJ7ivmfYfid8+O3gxBdL2tGZyCm8nis5mhJCZ
-# 2kqb12VKBOqk+cQa/Cf7VZuUJZ8IYsoR67+pu25F9Xoin08T6h7efRTy98TI7neV
-# 6I+NVJidHQ4kRNV1ZQ7TKOyyPZQKNdGQQpIc8VO5oQx5yV8ucKVBkp+xnWoSONvj
-# 7HfuDkRsMI4es5vSmyzIi7QktN1KDSp1PclgC7P+V5GPqkPUqUHZDubZpP7EoOmb
-# YQSU2BLjYpgxg/J4s3GxxqERtELR3YyjAgtprgtRt/F0Shz7r2AlgV0zahUlXfEN
-# N8NRACZ5FhO/uwyfB99h5BXFRakmuLHXCm0jWeVR8Ub/USzoM/FWsy6rcsGc12YS
-# z6sioTF3zQncoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHuhZ8y6MWVK7KSfzqmX1HHTiE76MtEkuN84
+# AblxoWdfMA0GCSqGSIb3DQEBAQUABIICACDQpiJMsHVM2j3ybs6nZYJIGivuYF6b
+# hvx2yvm/c37qgACay15gBCOAW3V9TLr+E/fqKns2mzzUGHW4p1tkyNfxvy7QXjZe
+# ZLSZYJo63Ssohq94mjK2oLW18TA2Ie+6g6bIu6v0MsWRTHvjBYkXDuXoy4tZSGt4
+# 3F6xRXh3+DGZhdx8b2BF1yEvDTsQtRQA9nIOy5q4l43ZtVsTtuXcfTvYckR1I0B9
+# Apv5LwcouVnhVqR3fp09npitJhwJ4ZNhY+2aa/zGywceRidcqkEatRyjI1v+89V/
+# jVShvfIDAyxRCiZEaVQRPjjy5nUKUNgrY3QvHaeKzPBB5HB5UgpDhhQ7iBLNKatT
+# bhSJ5hn/ODLUGu8YgWQKJLbxv45IIg4hEUNDR+bRGV3SBl5+6t8GBXpZrsjAq+fb
+# 4xUSfQFwdpoL4HNeoUsVpb6/nLF9ocNVclpnYTIn5Mv12COPnFqB+04uX3HoxvMp
+# J7w6CucI75IRmJB5NnEUOG0Ravu6Lwm3X2tLpV//q5/UxHdvx1YxbOlpCO/7JXfl
+# epZ4XdWITXWXm66bTDgCiQdlSmaw9oCUB5SrE+yFtkE+6CcFG3PcdxRGropIAicO
+# vYgLgLuE98FK7ORKpo8HAbvlrqBAP2G2vJCzM3mw4jy/fS4uZBi+OJCLV3rBt9eQ
+# /pGwgTuvcBrtoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMwODE2Mjg1MFowLwYJKoZI
-# hvcNAQkEMSIEIMQy6tIKnpCc39XPomt77XeCEtzlBraoBr3sZLk38WH1MA0GCSqG
-# SIb3DQEBAQUABIICAIvycXH8PDD97sX+45tMz8M/MRnWk95i2AnTw2xn2HU5XQ8n
-# dRI3e4FN2MJJ4oayul5LOaIkJF19MoMehCeDt4OQXHwQoJeH8fWv0zb9b4D+qHqv
-# eHBOnADj8MpGX9z9bkff+g2hapwWHd/aTcfUgM251iWKEvZ7P5lx9ppQAdltfHx8
-# fjGsvgQawKpiiodRo3DCyJxdDAcrzpmVeoDOYEOKBU4BRjiw2MYJ/Fa5pVNKcq/E
-# NLOytPYYRNJMpCDjVSa9LJJEuz1MsGcJb7RdMc948ZhvHTVw8bPFsJnswIqEh9WI
-# iBi19JlhltwXPclvmAQ1MK4vGqwrhgUuRh5QbMQ0cTvDqlvsKoRFuRpzPJoGADhc
-# 8kifTMa7lL7r2WJv05fsq6j7i32Qe581FawhNKBIa/9n3HdMIeEW3WlWnnqV99Ct
-# dT1EbUqt1WnQRxxszjp1OcSi5iCv8f3Qm6qvfXPagRXj7hcDqZ5cBMlNoACMihSI
-# t6KK0gUUc46Tjlpg1eUlkFpOZ9fw+r72aM7Hp8QBiEOpf2OlrHe8T23utQ4SoaWy
-# zkbRXekLJ7jBM3thXzwqr/+3ljPJlnHkXRe6FvwZYHbGxa39weML5TVJ+QGrB1DB
-# asnq6xuSKEokChwaGGqjscrgW2bREUfZh8VuOdYBO1EbJGFhBRUwlN3gm1FV
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMxNzE2NDA1MVowLwYJKoZI
+# hvcNAQkEMSIEIGR9P8kum0jsZpBl2J1EGQXthfkU7BMFjWewTtRqdpq3MA0GCSqG
+# SIb3DQEBAQUABIICABAZQAD/R6oVBYWAwMrbxRU9eJbkR8cOw8tsPQWmuGdKjd6d
+# MG4mTksS64zXHXb/ZR89gNokG7M9ss2Zda9AXgIyjabVGWdG+T/oiF6aQYSHfwhe
+# EBAOJLJgBN7ky3SZciwiKHbn8lfxfrC8vMBMn6dBWoMFQiC9/R31C8hQGrdXr6X6
+# T+vuxwF8pjLhK5CiHDIpDqN/hy1LeywJkz08hldVxzdupWbJS8ow/mal7+SO1Ttn
+# LqDJ0UYEq3SBPBHG2vIHEhRjG+RHrOmk2gMMC82dkeRylpasnMweBTMR8OA6EV0J
+# QW4GadMvfrKF98FozGM7lEPoHnOBaFa1mOM5zeB1fB7aK+eIeEpRd+0qH50Ie8Id
+# kqb8JWkhQ3Arnoha7ZHq12F2JN39lx/uQD3Y0C1OEVvY5kJBu5184xInmNqyjRp9
+# 6ti3g3xvUfPtNRQayyxubJ5K43Bzd4mh4SKwkrbpd4Yp8+ee3IATj6QCDfKH0tyV
+# ug/zIk1R5DHATHT7ULNpMrfUMG+XfMkyEgVrG93KBD6jgBcOhRFUIaawCbo0a8NJ
+# kq0Dk3xzpRvBee080WMhKvx4UIKOX9ooYf51sHmmRMPJ4/qCPAOZ6G0O3mjV8zhl
+# sFeGmA3aQFq/CUepBRlB80/rhXUk2WdrRMCuAzqEQzOP4yoPzJ1X4K5vK01R
 # SIG # End signature block
