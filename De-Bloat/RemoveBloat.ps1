@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.8
+  Version:        4.2.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -79,7 +79,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/03/2024 - Added Lenovo View and Vantage
   Change 08/03/2024 - Added Lenovo Smart Noise Cancellation
   Change 13/03/2024 - Added updated McAfee
-  Change 20/03/2024 - 
+  Change 20/03/2024 - Dell app fixes
 N/A
 #>
 
@@ -1431,7 +1431,7 @@ ForEach ($AppxPackage in $InstalledPackages) {
 }
 
 
-$ExcludedPrograms = @("Dell Optimizer Core", "Dell SupportAssist Remediation", "Dell SupportAssist OS Recovery Plugin for Dell Update")
+$ExcludedPrograms = @("Dell Optimizer Core", "Dell SupportAssist Remediation", "Dell SupportAssist OS Recovery Plugin for Dell Update", "Dell Pair", "Dell Display Manager 2.0", "Dell Display Manager 2.1", "Dell Display Manager 2.2")
 $InstalledPrograms2 = $InstalledPrograms | Where-Object { $ExcludedPrograms -notcontains $_.Name }
 
 # Remove installed programs
@@ -1507,6 +1507,36 @@ try {
         Write-Warning "Failed to uninstall Dell Support Assist Recovery"
     }
 
+
+
+    ##Dell Display Manager
+$dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell*Display*Manager*" } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $dellSA) {
+    If ($sa.UninstallString) {
+        try {
+        cmd.exe /c $sa.UninstallString /S
+        }
+        catch {
+            Write-Warning "Failed to uninstall Dell Optimizer"
+        }
+    }
+}
+
+
+    ##Dell Pair
+    $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell Pair" } | Select-Object -Property UninstallString
+ 
+    ForEach ($sa in $dellSA) {
+        If ($sa.UninstallString) {
+            try {
+            cmd.exe /c $sa.UninstallString /S
+            }
+            catch {
+                Write-Warning "Failed to uninstall Dell Optimizer"
+            }
+        }
+    }
 
 }
 
@@ -1978,8 +2008,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB5UQaO9QMnnmPm
-# dRqGUa6+wRFX3VEhv2/gYVpHfHTfOqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBgdFfMIfmPHzQ7
+# 9ENUkCDfdbJHaD8fhJl7Fx9Wes49XaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2161,33 +2191,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEICSrU1r69k2Pq6Zw5h6NYuQZKtIocBlsI40U
-# pP9Spf30MA0GCSqGSIb3DQEBAQUABIICAAx3V0+5x5lHeAbTaVpet4NBzH6n9Nz/
-# alFY34mdnhEHkIs+aZeqNJ6g1lGNOP4bC+a5FbpQqw894x4taQaCBS4gd8IUoDBp
-# xJ3caALZEzNLydY44zTB+OBdrY7dsf8iNRJ1yv0UttjiVsQ0HP3Ue/bbvEQg4OFI
-# xWz7hN0A9zUxO3YC/jlWNd8d88669c+WSNNXkUF81lbE/S5puPpC1JkHV1zpHYT6
-# 6HdtSLT9xTpYmhSfqSmDG90eRv7RtP0rLIZ2ro4foKlP77l4TtWu6JNUUbZ7yIRc
-# tpwHhEHv/eiFkh8S8x76uhjEA4PT+Am2L7ptiSb4bbS3sGNAvThk63KkcWN5jT7a
-# kjuOXgVP059z91wd59F9VVOFG6WrjjvyVpWHvaO0F7ccHqi6ni2TldLnC2sSc8Z+
-# rCMJWlqcAv0IpZRWqtWDe0LhEDYt0i0sloQrwF90xPb8NhggCvHstzYeuRRrTOAB
-# qkuwzFbUnTlEN0DU2fNKl4ZT/e7xrImmN5FE5SiwMjYuxupyonULtz/nd90yfDej
-# iB+zj0JIidS+ewLJdALp5h+z50ka5MMu49R5l5L744dBrRwjY58qBRWIc/GnEd81
-# QobkKO7ru8HSqV0dKVFoy60em0jfWnJmIa7zo1onImGKKBdMMbDyDj6r7EDLfhsV
-# 52In68tR4x1joYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGBEwbiatkewagjrB1ns7gQKCjxoDKETN8Ny
+# 6eRetc/qMA0GCSqGSIb3DQEBAQUABIICACC+39HPeuguKv6fdSE+BHkKKiwky0n6
+# ETjTmDouv1CNyVd0zer9EOFt+oUExlNSQejNLuPsdt3pGuumwExnXsOxiCEJEHmv
+# 7toBBx7jgoB3/AKzGxlTTgJjz6UoSPxw4QtO4/XTZ3VWjZITl1AxTba0gZr6RdeK
+# zRqRS5qwLEic6f27+CGcUek3aDogv5OnyRxpNAmx+hfEvLQspVSECU/896sUBiaP
+# 1MAvYk8RzSaxctGHtKFZJHTe7ElZIGLTgvd8g00HTTq+Kv1HuIgWPJy/K3ftB2qS
+# XIGi6xX4kOKPtNcyJXkKs4vfl31AfX6VSoAX72bFjXwfGLhJGQWME/BALkC1UUzA
+# TqYSZVwSTcNmV0ss7xIgQoMPa74cabF3qU0uJw+6Dc+Yv1eCTc1XS9Be7I9czmvo
+# E3HoYUhYjF59OgzM58fud9KiDxkDgonAsV4iclUMjZG2eZbgV+C3kOJAL+EcSo7+
+# xOhilEoW5aUzDGUwgu/2O0HkNaJZWwJShx25A1C4ACVzdN6/A/LI1Sa0Go6oDAvU
+# tPCSE7rXT0A9pz/xd5z2o0oARXwSckpobKIldpuGCXcAGjmz4hyXVw5CnR0g0pGl
+# 6HD8c9miQQbgd05sxl5vQlUFE0/+ndM0CQCh4i9tjmcJJOc7ykh6D28ICHp/91Kb
+# G6mix9WLK6XgoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMyMDE0NTM1NVowLwYJKoZI
-# hvcNAQkEMSIEIObMrTgq6ncrOeB0bdFGHwwjnFteRhaHyMYXjm6ri6r+MA0GCSqG
-# SIb3DQEBAQUABIICACH7rL8ATO+l5G/qQl/a4aU/LxjjPuYZqx2jsEcmoTXHR4ri
-# bvIAlt5H6ESXJzFeBMHiEOfflBOAaKoIk6tqeTo97Znb+QuIiW4qvI+Yh3hZ/CtR
-# 1nmM3Uj+BAaSZjPVJovFaOQF7t5CjrjI+eumxfiZcnuysYc2KuAcmSBFsyJE1vbk
-# 77OeDn8Ub2VnuCisWwJ8qM8yUPhDiJoPVuCh2HnDlbq18aInICjbXGdEWyJjOdxg
-# M4EZVIdtV/xjZ8nYAdLN9J30JXMXl4DyQ+uAcBhlga0JxCgAolNDV07T3+qUdP7T
-# K2vzyimf7kxCIxwu6d/AnzpF2hclix3Y4ypLhMIox4CpecslqHgGSeZqz6a0FkWI
-# AFFJZWb9XjD3AeATOYlCvcosNCIL/48twI8YNpE4ODZcu0p2V7lRy/OSpidBYh3l
-# OgfaoAkRVJqTqnTJwF4QwF3Xc3S1YUe3xWkgXBLP4eXe8fRNlGMs81lIv1mZxUgz
-# DaSFrmFZnBanYxX6Gj1VXWVZ2TCXN9e5Ie0UhRzjVM1W/3WOkjI36RIdRHlWSxQn
-# wvxXxLgPx/ez5p968q88B7yaxdWxm4SFyWbQN9wwsnONdel5pH/sxYy2kouwlkKm
-# xAWaOvKiDaemPp9v2JKL6Az8Q9Gx2kQCMas6uUYWV1rFfXmPzx+cypm/269q
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMyMDE5MzIyNlowLwYJKoZI
+# hvcNAQkEMSIEIGe2dI3u6hzoWeg61F42uEFL4BqOui5SPf1AfN2HI3tEMA0GCSqG
+# SIb3DQEBAQUABIICAJS1XtIDvJM/zSK/QLmKwNPCwzjItYY4ctYA9CWDYkdp4dm7
+# xecrZr9FrujmBQ5035Ljrv9diOmBE8B36rEmC2CZh4jUCaxN9S/IrHHDXnBtXf0r
+# QQgzGg+zmeZZp+lq4Kz29m/5uZUp9+r0SWg2cykZXo/J2kiIStoOchoe/BNsq34k
+# nekY1Mfy5TQDW7FG7IzdoT/yFBB6HnxQHZ6P/drUoqY/WQpPz18Ax9mXWD0A+NsO
+# xGUKTBxitQ3EooADWJumAZH+Qx6Yw+OREe10yFjqOzKALuCnQcU6qvU+Gu1ENQaN
+# HPPGEs0m9kMbM6qmU35/xVZTJXumyrrTi/+ZAIcGzVWIqH0JtIGTIB/HbtDOpU7f
+# qY45Lf+wE4Nt80BU39MSiLqTqmmLKV8CVbnPndq3Cg/R5xv7mCx274bLRgTxoxA2
+# 9MIDQZbvGMlTtRLc+Jc+tCbU5DbXn6scUqyQAPhIhqO3X4ToE8VAZ7XAqHdmgxQh
+# bZPo+K9BjsWubroFw+bm6LmXS/et8EIeV7vKLxJofHbzY9/Hn84Pw/ZCjqrDG78T
+# ac/Pf0Edj+JdidsWy7fxkOi18/QaJRw3XMTLMeztfbEqUjmdi8Pc3AKdMd16UvyJ
+# KZSw0HbITnUQg8+Qy4BenqwfnXm0/N0eh6aGyRLIu4Qz6UkDlQUlTU7VCqH1
 # SIG # End signature block
