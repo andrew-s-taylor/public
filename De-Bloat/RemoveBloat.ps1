@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.6
+  Version:        4.2.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -79,6 +79,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/03/2024 - Added Lenovo View and Vantage
   Change 08/03/2024 - Added Lenovo Smart Noise Cancellation
   Change 13/03/2024 - Added updated McAfee
+  Change 20/03/2024 - 
 N/A
 #>
 
@@ -1469,7 +1470,12 @@ $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Un
  
 ForEach ($sa in $dellSA) {
     If ($sa.UninstallString) {
-        cmd.exe /c $sa.UninstallString /quiet /norestart
+        try {
+        cmd.exe /c $sa.UninstallString -silent
+        }
+        catch {
+            Write-Warning "Failed to uninstall Dell Optimizer"
+        }
     }
 }
 
@@ -1478,13 +1484,26 @@ $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Un
  
 ForEach ($sa in $dellSA) {
     If ($sa.UninstallString) {
-        cmd.exe /c $sa.UninstallString /quiet /norestart
-    }
+        try {
+            $uninst
+            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+            $uninstallcommand = $uninstallcommand + " /quiet /norestart"
+            $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
+            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            }
+            catch {
+                Write-Warning "Failed to uninstall Dell Support Assist OS"
+            }    }
 }
 
 ##Dell Dell SupportAssist Remediation
 $uninstallcommand = "/X {C4543FDB-3BC0-4585-B1C5-258FB7C2EA71} /qn"
-Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+try {
+    Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait    }
+    catch {
+        Write-Warning "Failed to uninstall Dell Support Assist Recovery"
+    }
+
 
 }
 
@@ -1956,8 +1975,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDD4Xfgb+y5i+5w
-# R+EtZMqFB+2y036vXT4dvumV9fL6s6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBFkWE4XccFu55U
+# rKovzn8EeRc5R4UEi7bNkYmgubjJVaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2139,33 +2158,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHuhZ8y6MWVK7KSfzqmX1HHTiE76MtEkuN84
-# AblxoWdfMA0GCSqGSIb3DQEBAQUABIICACDQpiJMsHVM2j3ybs6nZYJIGivuYF6b
-# hvx2yvm/c37qgACay15gBCOAW3V9TLr+E/fqKns2mzzUGHW4p1tkyNfxvy7QXjZe
-# ZLSZYJo63Ssohq94mjK2oLW18TA2Ie+6g6bIu6v0MsWRTHvjBYkXDuXoy4tZSGt4
-# 3F6xRXh3+DGZhdx8b2BF1yEvDTsQtRQA9nIOy5q4l43ZtVsTtuXcfTvYckR1I0B9
-# Apv5LwcouVnhVqR3fp09npitJhwJ4ZNhY+2aa/zGywceRidcqkEatRyjI1v+89V/
-# jVShvfIDAyxRCiZEaVQRPjjy5nUKUNgrY3QvHaeKzPBB5HB5UgpDhhQ7iBLNKatT
-# bhSJ5hn/ODLUGu8YgWQKJLbxv45IIg4hEUNDR+bRGV3SBl5+6t8GBXpZrsjAq+fb
-# 4xUSfQFwdpoL4HNeoUsVpb6/nLF9ocNVclpnYTIn5Mv12COPnFqB+04uX3HoxvMp
-# J7w6CucI75IRmJB5NnEUOG0Ravu6Lwm3X2tLpV//q5/UxHdvx1YxbOlpCO/7JXfl
-# epZ4XdWITXWXm66bTDgCiQdlSmaw9oCUB5SrE+yFtkE+6CcFG3PcdxRGropIAicO
-# vYgLgLuE98FK7ORKpo8HAbvlrqBAP2G2vJCzM3mw4jy/fS4uZBi+OJCLV3rBt9eQ
-# /pGwgTuvcBrtoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIPrM/1z8Dra+0pr+AfEzuDkEAPBdcyGXM5IP
+# nmzb3qZ4MA0GCSqGSIb3DQEBAQUABIICALsYR7ql5ZV2v3ySoPJ/7S0bDwq+ge58
+# doU27EWkUiT1YKcG6DcZk2enOqHiPPej/JBNF3zolbpf8TZb5j7Q3rIUKfE5nLo4
+# 9Nb3qldd1ZGjEJ18IEyjUTURAt2po8STyLPhczYtvV6K7PchHYQYsP/SnvDtfMIQ
+# 52CoYlZQT1WX4S8PcgMFGXuL8feP6bWDcNyRL7ZZ2bQeEucP/H+tBi+EZrTgOwMT
+# +XVY+uY9L9KIOfX4VW16lzdOpW4q4b1IFrbCkB/tblPU0zOdJpFP1vxOG1LhyKjr
+# 8V1OBJdV67RKAsIVJLje2Vz2+Adh/ZLF43JtVqbx9J211nOE3+Wm8ahAJTBem+1b
+# +fE+O3qckv4z2s5oBh9VHZMjsnR+r/QuExLYf2RNqHAN2YX9hu6+KpUjwUS0GQN9
+# +uvxw05l5eDKQ+JL5wEUxqoTSydfbvBCNhkyG3++63RUTmInvPazhJP2xXq9//o8
+# RCS6KM3iKcLWqs27+VUYGG+FCpE3DpYffUGAt3ZBeGwihDqyfTh0SzStib4gu2j5
+# HIwO8so5yc/PCSufgm16G5AaG8yohcTw0bbAUQ/n+Xz2q0HMbRpiFrrcuonBK2bc
+# uEOhi58WPA3vnqQrf6rKQbT3iEwVkS7phZwY11+caaih7cdiMb5niFCPwMuV8YE5
+# JhnaX5JkDTDqoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMxNzE2NDA1MVowLwYJKoZI
-# hvcNAQkEMSIEIGR9P8kum0jsZpBl2J1EGQXthfkU7BMFjWewTtRqdpq3MA0GCSqG
-# SIb3DQEBAQUABIICABAZQAD/R6oVBYWAwMrbxRU9eJbkR8cOw8tsPQWmuGdKjd6d
-# MG4mTksS64zXHXb/ZR89gNokG7M9ss2Zda9AXgIyjabVGWdG+T/oiF6aQYSHfwhe
-# EBAOJLJgBN7ky3SZciwiKHbn8lfxfrC8vMBMn6dBWoMFQiC9/R31C8hQGrdXr6X6
-# T+vuxwF8pjLhK5CiHDIpDqN/hy1LeywJkz08hldVxzdupWbJS8ow/mal7+SO1Ttn
-# LqDJ0UYEq3SBPBHG2vIHEhRjG+RHrOmk2gMMC82dkeRylpasnMweBTMR8OA6EV0J
-# QW4GadMvfrKF98FozGM7lEPoHnOBaFa1mOM5zeB1fB7aK+eIeEpRd+0qH50Ie8Id
-# kqb8JWkhQ3Arnoha7ZHq12F2JN39lx/uQD3Y0C1OEVvY5kJBu5184xInmNqyjRp9
-# 6ti3g3xvUfPtNRQayyxubJ5K43Bzd4mh4SKwkrbpd4Yp8+ee3IATj6QCDfKH0tyV
-# ug/zIk1R5DHATHT7ULNpMrfUMG+XfMkyEgVrG93KBD6jgBcOhRFUIaawCbo0a8NJ
-# kq0Dk3xzpRvBee080WMhKvx4UIKOX9ooYf51sHmmRMPJ4/qCPAOZ6G0O3mjV8zhl
-# sFeGmA3aQFq/CUepBRlB80/rhXUk2WdrRMCuAzqEQzOP4yoPzJ1X4K5vK01R
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMyMDE0MDY0NVowLwYJKoZI
+# hvcNAQkEMSIEIDD/tTt5+sM4yKe+UhKe9xft+drTWlbXZaDIh3gMbX8fMA0GCSqG
+# SIb3DQEBAQUABIICADNxTmvJadhWAo7W9NI+SaBuZmdkeX27Xwbxld0UltR6A4Ze
+# AFML2eSY9NKAxQZpjBT2YMMZ10i7KRNV/RQMnRIoXRN3Z8Ju7K4HHSdFk0NODGBb
+# bme50ksfXQ7Tzm0AgYQv3YAxqCK+k83cVVzTKWhKRR0LvyYC4/MlHO0fNZJ/ydbm
+# aVRjXF/ZjxeEB9kcdGJAiyeNc3roxCNX8IGEy5xCCEHM+CjsjpOsBZ9Sy54xJNoa
+# Z2EPzTcPfZsIVXcWZDmEbxI7sU4e661C/JrkokgMqDMAHPmSUIUADUx/rNBRbTWq
+# SSvGLGDoaDo4qaXkhAw8WhD0M6uOUVFq9f16o3qPfnPYAdc8DLomqbVim6slQiHM
+# Z4wss5lMYJW24iVvGav+HRUYlnAZN/1gG0FRfBPFFSDQ/WJzGAf2Igi0h7vVOqQu
+# aC6idEQ4Fx8aTvFJN3jgFwI8Lhy0NJPU/ogjpQLk7dox37EQmvsCfH1I9cvzfmYe
+# tALMsYjZxkTPEHJtcXXNE9f1zoCaEJxwuUY68aOxOv8SoyMLKvmHj8bgvSrL62r5
+# pRU0FQiqYJixTv9bhZmYxxG/XJYC4+5kuIKXE2AOJFUiQAgSq6otrICOf2d2SaAF
+# e50HNNgRo0uIVaE+ulqr2fWigvvGsfR5Dbr6kdq1ARLerqc1cNRIMSYLqOMZ
 # SIG # End signature block
