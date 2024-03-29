@@ -10,7 +10,7 @@ None
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.2
+  Version:        1.0.3
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  28/03/2024
@@ -21,7 +21,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.2
+.VERSION 1.0.3
 .GUID 95fa53b6-3fd3-4d6f-9138-7f055145ef62
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -280,9 +280,12 @@ $deviceinstalledarray = @()
             $deviceuri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices/$deviceid"
             $device = Invoke-MgGraphRequest -Method GET -Uri $deviceuri -OutputType PSObject
             $deviceobjectid = $device.azureADDeviceId
-            write-host $deviceobjectid
+            $entradeviceuri = "https://graph.microsoft.com/beta/devices?`$filter=deviceID eq '$deviceobjectid'"
+            $entradeviceobject = Invoke-MgGraphRequest -Method GET -Uri $entradeviceuri -OutputType PSObject
+            $entradeviceobjectid = $entradeviceobject.value.id
+            write-host $entradeviceobjectid
             ##Add deviceid to array
-            $deviceinstalledarray += $deviceobjectid
+            $deviceinstalledarray += $entradeviceobjectid
         }
     }
 
@@ -316,6 +319,9 @@ foreach ($device in $installeddevices) {
   }
 "@
 Invoke-MgGraphRequest -Method POST -Uri $posturi -Body $json -ContentType "application/json"
+    }
+    else {
+        write-output "Device $device is already in the group $appgroupname"
     }
 }
 }
@@ -355,6 +361,9 @@ foreach ($device in $installeddevices) {
 "@
 Invoke-MgGraphRequest -Method POST -Uri $posturi -Body $json -ContentType "application/json"
     }
+    else {
+        write-output "Device $device is already in the group $appgroupname"
+    }
 }
 }
 
@@ -371,8 +380,8 @@ while ($n -lt $allrows) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAGRQKe4uufo6jg
-# DYRGQvTB3rlq0+YW/eQsAyNiwol6GaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD7Xa118Drg91/w
+# td8I2qZ3EGZDL0NibrD/+spJXm3usaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -554,33 +563,33 @@ while ($n -lt $allrows) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFBMgtnKKjxCHzUUHU7TZcJSTzjFTBinbRY0
-# MsBJJ18QMA0GCSqGSIb3DQEBAQUABIICAD2rNg1CgmISKnVFOlrt6ONxqjOniJbK
-# aw8RGN9PzzoNuLA2xRrMjLQTAIW80vNSkAc4UbqWvXkBXZ3Y3rQEB8tyzf7kuL9v
-# B83zdo0Na8wwhW8on/oaSzSZ8ABfu6DnbS7BhkDioNOdVemQJ13pi1EgXx+i4vFf
-# 9Dz+tI6P5as1AWqIJL87s93nxOeAEkPTqhAW2bSoU7oQp9by4RjJbYRmx0ie0lGw
-# yFuw6ZHQrWzDnlMGl8FWTn+8drn+/Z4Tl2I5mqNFv1uuUQeKZHk0p/ZsfAi8Ejds
-# IaiXk5ne/KACvH91Jk7PUW9co4kyGF/z3BwJq24JX+uYo2KSBABck4dqlN3HVz2J
-# nZv41JS5Zmw6693rp4/HUiOYQ8JA0gyAJ5II8IdClJLweNhfFAOqUIy9K9pvYJDM
-# k7MRWxoGBFL6ukp61piTzSkP8EiavADcTEiI45cK6db8SZtSPqSYM6C8CEr2xSky
-# ODBjgT4AM3S/5FdMYmXNpidbtsYK19+KJWXeCFwhYCdqTPeS845S+CODYLvrSOnE
-# hcyo2i9/r7cEubQC6JU46WkllO6obH/7GB5pMU2zMTb9Rfhg9swXubFnJpxFBqyD
-# PNfIArI5WnNZdH/AaiVaqi2XyCDb+7HXUhCQnFzQnQm+Z6WDtTIf/diQJfu7NVxB
-# S30jY+LhZaMcoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJgvrByB0okoOAo5Jye4lcMOOKQzerStgPrm
+# ZX5VxLguMA0GCSqGSIb3DQEBAQUABIICAIa9fxa0jtFU4Ejj8BANuJqf6bMh+sf6
+# 9jSrBmu3oMPGM9WZ4ZTjqM93wpzPhSFPmch4kLTWEDz3vEquqYlUU+bPygiuR1kD
+# U0CPUkKo0bw/wa9PkXCs4Neo63CxzlPh97QUMJuQHNh6liqR2f8JwdI96k4b1OIt
+# Pyp/1y0NfMhjw9uOEyjKH7QzoUp9eLd3hafrW3SC9coNy1m74B0zsHhejGjdX2bG
+# boqwqZtw/s3Ia52dwCQL42hCgTpMzQFioJB+Y3Jz6PWTD28vaofgm2QI9gh84IN8
+# JSjFC6da8/BW84od2/FBGbryHSP9RqG/MHGApQFv4bqduckwx3s6oXwaewBZnoVy
+# PVumn66ytU18Wod6c6AEmVRphCQEdGwcabF8xxPSp5WBf1Z7+GnDD+R16Ax71DNG
+# X1HPAWFeYWf9B0oikUnC09rUmnJqx29DiNbSthH9/gJxGqvik7PI9PFDrSsD8K5d
+# HN/B2QPUc0dzkArzMv3Iypez03GslWOW2EhSDVZWXbUpO33xabkTnC6ujgDl2lGi
+# /jdsfyvvB3mPjOm2dQXby6al8vzsrbTw1uCm22jL5guBe3NTwbeE6RAno+9PmtNT
+# 3XU/MDWLQ+5Rl6eUU3eGzUAqLwm+194e3pJiwIZL3xJgHejjJ15K6UOmPIoThovy
+# ZEkK5eKyPENqoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMyOTE0MTEyM1owLwYJKoZI
-# hvcNAQkEMSIEIET0xNfYGK/4X2cbGsWZbeYd+n35AHLgdT1NDxU9QLJwMA0GCSqG
-# SIb3DQEBAQUABIICADMKGv3Rn+uAiNXuV3F0f0rzaSPOUIP7EbKS8mM7OmTp1ptW
-# NNQBxwT6VHEUArwKQ46UhCaaK9N4Fo4XGnPsztzPAYdedwkC98YU/hekizNcWASC
-# Yl7UXLyqA2eHxpGcTEv21bZtLhNQf/yGmAXR5vX2PBpTWGDGP/TdTxcIavUZNQ7M
-# JV2Ue2nEq9wND8MoLNKGseW38lvcO82ZtQwFxrbS+uERYUvPEgksWPAB0x2Yl2rf
-# yKaCilcixb3PHdC6CXokPcMx4NoNn8/W/XW6DkNABfFf76OYhy0I+vXtEIyMULgF
-# w3Qr74V1uPMkwZhDEeyPVp025eSC24IoCUDAWWHVhk7gLVMwr62hTEqT9gXeMrpV
-# a1w5ghCtxrpYn6Ocg5AmumtS2/KLOKaoWJn+4SenxTVoz4LozbuTw71MAHGiQNb4
-# ktqZOP9SXIGacdPPRBVcasAgpSbDgZQYiEUg65VuTu9h+fZs2jtH7UJ8AvUVgpG4
-# 12ZDSrCDT7GHmt3XTCVQqeV59vFLLyGIWtqp7GpipFF0kfrZNu+BS2fzaaYuMTam
-# MeTABvpMpbr/DuvrDlyz+eYuTLPCB+KwLJl0wWhqibsPN00Sjtmu9PpcpJiNVwjb
-# IOQSRT6hGrGq1bHlfdOJ2S1FObmWYQPE/5SNsouP/jYDGLvA7sS+OAMqhjC/
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMyOTE0MjkyM1owLwYJKoZI
+# hvcNAQkEMSIEIB3jjU2Tu6hTmsdnnXYhNYLn73UE20Ph/YH83CT0iAp6MA0GCSqG
+# SIb3DQEBAQUABIICABmDNatke71VGgc+IiDbpjIBaSTpeLHhYwJtXv3EBogkNFiS
+# AfZzpUrhbCpN4ed7d7I0gpwHTKBIqtpn5GQ0EJfZxcoz0L7OJz2bO9s+SDL9USP8
+# z4l1Cm+oyTMweRfVisnxz007MeBn4QwLw9Q6992ChtF5EPv3+DPY7fVBV8SRIroU
+# KQx+8JHbw/pdDUjHeKJb5bZTB0Stp3owbb5NwkqNNPBofxSW+ZowW3h5bRj5p/Eh
+# y25cSJ1lmykwWVzEySJ/lVZpJRqNgSIRVl4tNFGOXqvXLr55yMSfzc4QmvSB6Kvs
+# MJLrjHVUrpbFbFFYLkdy/IiThsSW1gN4HecmwtECHi3MtbEQnreKaX+cYQ0oOvwx
+# 3ZGTyBXuZcFOaDWgYTSlUOWsW3ou0cYOV5reU3vvEOqN3s25qGoWPwvhYOW4nLiS
+# +kbi+byvDI6VXooBvR63+dMViJG5/0iNmTPtoiJsZSNdNeXdUJEv5UfSjXHx558d
+# 9MSJGwGdCJvH9VMCmWklxRCEiz70LwR99Li6eJlsBFjS9nkuH0UaL523x22ID5To
+# u1GhpZZfynzV1oIzKJ5++uLXzpkTj/5xfODNB52kqX61J5tNjC48b4E+k/E3UFRY
+# CiGMHgDuIwIwbbkYY+SnF0kYdQRXk+ikxuv7t9q8CDDCl7Iid/IY2vkpqz/w
 # SIG # End signature block
