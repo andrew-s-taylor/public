@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.11
+  Version:        4.2.12
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -80,6 +80,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 08/03/2024 - Added Lenovo Smart Noise Cancellation
   Change 13/03/2024 - Added updated McAfee
   Change 20/03/2024 - Dell app fixes
+  Change 02/04/2024 - Stopped it removing Intune Management Extension!
 N/A
 #>
 
@@ -1913,14 +1914,14 @@ $whitelistapps = @(
     "@C:\WINDOWS\System32\mstsc.exe,-4000"
 )
 
-$InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+$InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
 foreach($obj in $InstalledSoftware){
-    $name = $obj.GetValue('DisplayName')
+    $name = $obj.DisplayName
     if ($null -eq $name) {
-        $name = $obj.GetValue('DisplayName_Localized')
+        $name = $obj.DisplayName_Localized
     }
-     if (($whitelistapps -notcontains $name) -and ($null -ne $obj.GetValue('UninstallString'))) {
-        $uninstallcommand = $obj.GetValue('UninstallString')
+     if (($whitelistapps -notcontains $name) -and ($null -ne $obj.UninstallString)) {
+        $uninstallcommand = $obj.UninstallString
         write-host "Uninstalling $name"
         if ($uninstallcommand -like "*msiexec*") {
         $splitcommand = $uninstallcommand.Split("{")
@@ -1939,12 +1940,15 @@ foreach($obj in $InstalledSoftware){
      }
 
 
-$InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall"
-foreach($obj32 in $InstalledSoftware32){
-     $name32 = $obj32.GetValue('DisplayName')
-     if (($whitelistapps -notcontains $name32) -and ($null -ne $obj32.GetValue('UninstallString'))) {
-        $uninstallcommand32 = $obj.GetValue('UninstallString')
-        write-host "Uninstalling $name"
+     $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
+     foreach($obj32 in $InstalledSoftware32){
+        $name32 = $obj32.DisplayName
+        if ($null -eq $name32) {
+            $name32 = $obj.DisplayName_Localized
+        }
+        if (($whitelistapps -notcontains $name32) -and ($null -ne $obj32.UninstallString)) {
+        $uninstallcommand32 = $obj.UninstallString
+        write-host "Uninstalling $name32"
                 if ($uninstallcommand32 -like "*msiexec*") {
         $splitcommand = $uninstallcommand32.Split("{")
         $msicode = $splitcommand[1]
@@ -2014,8 +2018,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCByM0TDLUVeFS9a
-# o5yoCIYUKuCEPholeiMuDOiA1FAPOaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD61B31QscJSo7E
+# /FAo3sICcD+IGQjt+9Ny10XHFOKlSaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2197,33 +2201,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKjsHN0JMjJ59AYXBd7sNcB3Xtz4fTkcuv6u
-# dseSFKWNMA0GCSqGSIb3DQEBAQUABIICACZBtqE36b07l0dwAfUZGkw1jycLiLs9
-# bISTirO6/R/wzK0xhfpVVxIku+wpxds9AtDYX8OIjPvtS/M1k20sEOZepu7ScBEp
-# WMHL37tSaVHjglLWsbENpLwZ3A6vvBpQVNp83CbJbcKuhHTmM0U5c7WAgz0xE4YZ
-# tBYTYKHPfjhPXy6uLKQsWcjxb5i45Lpj75CyBfxkoCRh9rrCcMTMWOKS4C3dJo03
-# uhJ1swg1a8H2CIBCGkDjwEnVEAiiqvBYniy9H+JciWbZ8CCFrIeXcHQY/zQyS74V
-# 15nyB/FF5Pl7Z3NfElACWCX9c/f7MFZIm0L7UoZ/qmv1k3xxO0SXBchmWlHIhyj2
-# 8LRG523D5I+Hd5kUy4bybXHvl9mkZzTYNp1EgvKWzevMBuRwhIVSOpRlygbeoGQf
-# ujLIn3jk6ncIDssas2kNxML+EYPaKro9CALAxi1l2RfqqyXZFuvbqX8nKRON/OVR
-# WqKc32IvxsMjnlRdiwmqXwl4lp5cWfD8GmMfqMBkzFqdqaCHO5oKbKdgmZYkdeBI
-# v64PD/uDPXdZ2WozJUkxySL0LFGxo7qEYslUFPtKHRJUd4xHEJNtMOzFMD2wUklb
-# /iI3kzWVb57k/509yWYw8nmNZBdQEjTrQcEznjFupsjJT8FlIjENre9cHgtfAnQC
-# I9LzU5KC3u3DoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEINKjb1vIh7PGC8NDu8DnJxB1CTW6QbldjnZq
+# orNoJXBQMA0GCSqGSIb3DQEBAQUABIICABXAnJWV7ECl7YvaMHTsI4SCRlB2cgGz
+# obn81U8eOOPlas/TSDj+ntL86+bXUiGl86JymURdBqwfBzAXLoK22FHQDhgXw4bI
+# ftFf+bdI69ogmszdoOuBw/0Blc8goyEKDwC2Pk4ZlkDqxyox0Uxbn1mQNb742RKR
+# brXqddkghPZC3qFL9O7KYWb8f7YxnTQj6n+OGV46E7Q5HSrkl/vdUVhJV/GAkpjp
+# hVfKLKHyc+JDp7Ro0rPMya+mmBY2lyo90A6TkE5GbUQMFl8ii9MDymIXkGHs9AcE
+# qi0gBdPJN4JJqhrYj5e0cIykiJAGqNdLHKvmjFIxUZ228WwUt+G9qEKySk2LG1C0
+# +AhjsuLdeyzbpshRzi0zEeoUV0KIglGyAB2svznW9LQ44Tv4E0zI7TP50r4Z7vcl
+# YXMyCJqEjYglheJz3MmoSwr4aWErEp7qk6evv3KltMbvKLzd0QXQA48z0Xv+QmWV
+# rm8DIJsD1CU8e2q8hFfbozvv0WKSx46y5D1xmUhS0aTctpuL29F/MUBPtHHgNB5Y
+# EGBni0pRKP4bN68ssWoX5hvUVZmftlLoIC6mOFCFZr6uEiBdj4kXzFrXwKl5LtrS
+# ZjI2x0JPFC+al7xuFL5CJIVZYWxREZeyecrmoASnzRiQZdpJquY8+ugEFgDMG4lz
+# dGu7fcEoHxb1oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMyMTE0MjU1NVowLwYJKoZI
-# hvcNAQkEMSIEIMKYsG77jB8pVhbfWfefjjtEh2peaxb01tcppes/w0rFMA0GCSqG
-# SIb3DQEBAQUABIICAIdDiEPUG/UUniT7I9tjhGI/n8XNkEtg2zDlIcwRu3H2AnK1
-# iOf4jEm7GmaRr5o8nfCp5bohpJlWrcwQzU4FzSe/gusrA9lBt1E1cNMihRh010UL
-# muFxTGmF8Iux7EaNZhwh2S07PeQfkHZw1G/vH/h9CpV9GcV6lRSFBYdyqtPJvRjr
-# +OmQ/big+XUlgjtVlyfaHXQAJIf6ZAXCne/7/+tfMTo61kKhXtqBmW/Bj4E3wGrj
-# qPSGynd7tao1rQIWbcELq+XLgZwut04hKFdCpvC7K5UUNQ05NIwmy+fW+4ovamQt
-# I1I7IaKr9DjdreLru7yJcIeWLjYiNRXtXfULCsYY2N35ULRUZr3dz+OTyBWf+vjX
-# 7QoQM0fme48vxrvOadc/Ga5/pfmxscHcyrBJfWatqFnFnEwkxCialhUL62YMQZyu
-# 5zGaS8G1kYpmUVPbppWpxTiqwr+pJIsl0zHmCc2TB0b6EWVEdcWDZbNXTr9ixTDr
-# wWvalcq3FaBSVlJqAAqPChL33Ur/vpkgt9VokLzXHPqmClojUsPLVgjjUKnvgvDu
-# R3jYzqvQWn+yGEM0dJ8PKdCNJCB9fC8vMUHU0L6q407TQRiF8cNo998/HRo+1Wf2
-# Oy3urjo6Dv+J9Y1espPxwYbhYOU28o2xZUSglqLObPDqOuT8KjkkKA1FP25y
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQwMjEzNTQxOVowLwYJKoZI
+# hvcNAQkEMSIEIEvLdvCBucUPsvsb3xIxwU38RLPsfk6ejmnVQnEOi5spMA0GCSqG
+# SIb3DQEBAQUABIICAHMtb4gzb3fe6PqUI6IxY9iIwch/VAsHh/bUKruZDn1rk4e2
+# pyeCKcWcRFhnDl9fdxfPdRHjsP+pLy13eX1ntEIZ6Zr3LlVhBzCGA8ypdLjcJjZW
+# dRFOinbYDhTWCRVVfWl3qqDRIXz7mqK/iMLQ3yu0fxXTnfpcPhZPYRkqSliHtHYi
+# ECsGuAM1Y8pWN6pJqvDfVIzw9YKivxeQ+dq3m5/DHtCMtzcJc2aYSl/Lu9julrg7
+# JqyqHEPCkqNQ8wQuRwk7AwnAJY4PpzfE4SfUSuh715IxyqoUN8B9bTYWm49Fate2
+# TYbQXPv0/VwjW5DWOD+s5CHXGZ16k1lNh7hHNKOQ9yEuTYxaNabR1ATG6wyuPKdk
+# 2j9yndmgx6Qw/RbO3sN2FDI/nnpa2BAEJoL8HC/+HWnt7yzJd2DWSTMzXQCT35iM
+# T623Q/I4FS/GN5jIm2Fev1BB7Ni2f+2AEbMuj2eGPoGLNvUL9JbLfTk55xpARd4C
+# G5HRNf2yIU+rq5f515F1+M+3Wjca4o5Hx168l4u4Prgpi5njJCDs/YqCAO2Hxgy8
+# PvtRWF6I+gnSJm2Gw4pDc6rd+Hfh5XtkgZYSVhSoFERadNYRU3eAgilyXG78CS1y
+# 09yj8H3y7U+qCuZkwk9uhAQTGCjt0VV5RgnC7reUUqYdRYUNdZkDcUTXbjSM
 # SIG # End signature block
