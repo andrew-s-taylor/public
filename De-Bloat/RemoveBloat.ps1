@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.12
+  Version:        4.2.13
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -81,6 +81,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 13/03/2024 - Added updated McAfee
   Change 20/03/2024 - Dell app fixes
   Change 02/04/2024 - Stopped it removing Intune Management Extension!
+  Change 03/04/2024 - Switched Win32 removal from whitelist to blacklist
 N/A
 #>
 
@@ -1897,71 +1898,62 @@ foreach ($user in $userprofiles) {
     }
 }
 
-if ($intunecomplete -eq 0 -and $nonAdminLoggedOn) {
+if ($intunecomplete -eq 0 -and $nonAdminLoggedOn -eq $false) {
 
 
-##Apps to ignore - NOTE: Chrome has an unusual uninstall so sort on it's own
-$whitelistapps = @(
-    "Microsoft Update Health Tools"
-    "Microsoft Intune Management Extension"
-    "Microsoft Edge"
-    "Microsoft Edge Update"
-    "Microsoft Edge WebView2 Runtime"
-    "Google Chrome"
-    "Microsoft Teams"
-    "Teams Machine-Wide Installer"
-    "Microsoft OneDrive"
-    "@C:\WINDOWS\System32\mstsc.exe,-4000"
+##Apps to remove - NOTE: Chrome has an unusual uninstall so sort on it's own
+$blacklistapps = @(
+
 )
 
-$InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
-foreach($obj in $InstalledSoftware){
-    $name = $obj.DisplayName
-    if ($null -eq $name) {
-        $name = $obj.DisplayName_Localized
-    }
-     if (($whitelistapps -notcontains $name) -and ($null -ne $obj.UninstallString)) {
-        $uninstallcommand = $obj.UninstallString
-        write-host "Uninstalling $name"
-        if ($uninstallcommand -like "*msiexec*") {
-        $splitcommand = $uninstallcommand.Split("{")
-        $msicode = $splitcommand[1]
-        $uninstallapp = "msiexec.exe /X {$msicode /qn"
-        start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-        }
-        else {
-        $splitcommand = $uninstallcommand.Split("{")
-        
-        $uninstallapp = "$uninstallcommand /S"
-        start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-        }
+ $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
+ foreach($obj in $InstalledSoftware){
+     $name = $obj.DisplayName
+     if ($null -eq $name) {
+         $name = $obj.DisplayName_Localized
      }
-
-     }
-
-
-     $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
-     foreach($obj32 in $InstalledSoftware32){
-        $name32 = $obj32.DisplayName
-        if ($null -eq $name32) {
-            $name32 = $obj.DisplayName_Localized
-        }
-        if (($whitelistapps -notcontains $name32) -and ($null -ne $obj32.UninstallString)) {
-        $uninstallcommand32 = $obj.UninstallString
-        write-host "Uninstalling $name32"
-                if ($uninstallcommand32 -like "*msiexec*") {
-        $splitcommand = $uninstallcommand32.Split("{")
-        $msicode = $splitcommand[1]
-        $uninstallapp = "msiexec.exe /X {$msicode /qn"
-        start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-        }
-        else {
-        $splitcommand = $uninstallcommand32.Split("{")
+      if (($blacklistapps -contains $name) -and ($null -ne $obj.UninstallString)) {
+         $uninstallcommand = $obj.UninstallString
+         write-host "Uninstalling $name"
+         if ($uninstallcommand -like "*msiexec*") {
+         $splitcommand = $uninstallcommand.Split("{")
+         $msicode = $splitcommand[1]
+         $uninstallapp = "msiexec.exe /X {$msicode /qn"
+         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
+         }
+         else {
+         $splitcommand = $uninstallcommand.Split("{")
         
-        $uninstallapp = "$uninstallcommand /S"
-        start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-        }
-    }
+         $uninstallapp = "$uninstallcommand /S"
+         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
+         }
+      }
+
+      }
+
+
+      $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
+      foreach($obj32 in $InstalledSoftware32){
+         $name32 = $obj32.DisplayName
+         if ($null -eq $name32) {
+             $name32 = $obj.DisplayName_Localized
+         }
+         if (($blacklistapps -contains $name32) -and ($null -ne $obj32.UninstallString)) {
+         $uninstallcommand32 = $obj.UninstallString
+         write-host "Uninstalling $name32"
+                 if ($uninstallcommand32 -like "*msiexec*") {
+         $splitcommand = $uninstallcommand32.Split("{")
+         $msicode = $splitcommand[1]
+         $uninstallapp = "msiexec.exe /X {$msicode /qn"
+         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
+         }
+         else {
+         $splitcommand = $uninstallcommand32.Split("{")
+        
+         $uninstallapp = "$uninstallcommand /S"
+         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
+         }
+     }
 }
 
 ##Remove Chrome
@@ -2018,8 +2010,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD61B31QscJSo7E
-# /FAo3sICcD+IGQjt+9Ny10XHFOKlSaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDN3idbnQVapCcd
+# ta1i7bD+gDrObsZJ8uoa7/eoW0XNc6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2201,33 +2193,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEINKjb1vIh7PGC8NDu8DnJxB1CTW6QbldjnZq
-# orNoJXBQMA0GCSqGSIb3DQEBAQUABIICABXAnJWV7ECl7YvaMHTsI4SCRlB2cgGz
-# obn81U8eOOPlas/TSDj+ntL86+bXUiGl86JymURdBqwfBzAXLoK22FHQDhgXw4bI
-# ftFf+bdI69ogmszdoOuBw/0Blc8goyEKDwC2Pk4ZlkDqxyox0Uxbn1mQNb742RKR
-# brXqddkghPZC3qFL9O7KYWb8f7YxnTQj6n+OGV46E7Q5HSrkl/vdUVhJV/GAkpjp
-# hVfKLKHyc+JDp7Ro0rPMya+mmBY2lyo90A6TkE5GbUQMFl8ii9MDymIXkGHs9AcE
-# qi0gBdPJN4JJqhrYj5e0cIykiJAGqNdLHKvmjFIxUZ228WwUt+G9qEKySk2LG1C0
-# +AhjsuLdeyzbpshRzi0zEeoUV0KIglGyAB2svznW9LQ44Tv4E0zI7TP50r4Z7vcl
-# YXMyCJqEjYglheJz3MmoSwr4aWErEp7qk6evv3KltMbvKLzd0QXQA48z0Xv+QmWV
-# rm8DIJsD1CU8e2q8hFfbozvv0WKSx46y5D1xmUhS0aTctpuL29F/MUBPtHHgNB5Y
-# EGBni0pRKP4bN68ssWoX5hvUVZmftlLoIC6mOFCFZr6uEiBdj4kXzFrXwKl5LtrS
-# ZjI2x0JPFC+al7xuFL5CJIVZYWxREZeyecrmoASnzRiQZdpJquY8+ugEFgDMG4lz
-# dGu7fcEoHxb1oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKgIz6FRIyGCUbfwhQRI3yrbKWW46bYlWQ48
+# Xuj/iVzkMA0GCSqGSIb3DQEBAQUABIICAHluQ9BTbqpcT3DnDnMRzei8ud2rgH9B
+# 1I8jrexHhUo2dHqz/sIx0hc14PTgb5RxFarVhosrOaNbD3Y8zI2g0FtnzkSRG9qh
+# lqbRdcnS2tCJGzmeBmadObeZfERUSXZ2xNMOx5q9p87z4JuzUBCF4yDoXbrSIk/C
+# XAuVtpWg0q/2/jqM1dH9ok5W+mQGBaA9RnmiUaS5bCRXakGJPDqCMBgZLn+9skfL
+# mGa0+zSgkhcGuJB1kJTVVVA9wy4Wmrut+oqqgKNYPjTvRD4FGtLtO9TYhEbmKWBX
+# v/Z9E5e8xr3KFAvb3UGdvM0ULuf/CZDa95tH5qthWdD4kCXoDSM8nukda3aJE4Dx
+# j+oLYG2Gr6I9g4kXOScGJ/wsBeL32epS/JKSkbxml1OdnosajP7wOOxvEav65GmE
+# r+GJx6u8Cvlbg6eG0HRzq4BDTjKlu7n9guStQahjuAWRJTL+f4bCs84lYCnpcxwK
+# bGHLRbVlO73izzYPYmwv+EhI3AZvd2AmbMJSZYUGIXVWw2zJy0vQztutIYj+oI2B
+# 7sGl5H/mqNhroGZ/rdeXuy1RkjVgdTvPW6l1Nva2d40xzA+Ef19sBX1+4+lOOQCe
+# KYdoKr6vr1u3lZAovTaRykJOCcGL3XnQFumJAexDZ50eOAituRcWNDQHtjZm+FF4
+# tsL+Ldf/sSfwoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQwMjEzNTQxOVowLwYJKoZI
-# hvcNAQkEMSIEIEvLdvCBucUPsvsb3xIxwU38RLPsfk6ejmnVQnEOi5spMA0GCSqG
-# SIb3DQEBAQUABIICAHMtb4gzb3fe6PqUI6IxY9iIwch/VAsHh/bUKruZDn1rk4e2
-# pyeCKcWcRFhnDl9fdxfPdRHjsP+pLy13eX1ntEIZ6Zr3LlVhBzCGA8ypdLjcJjZW
-# dRFOinbYDhTWCRVVfWl3qqDRIXz7mqK/iMLQ3yu0fxXTnfpcPhZPYRkqSliHtHYi
-# ECsGuAM1Y8pWN6pJqvDfVIzw9YKivxeQ+dq3m5/DHtCMtzcJc2aYSl/Lu9julrg7
-# JqyqHEPCkqNQ8wQuRwk7AwnAJY4PpzfE4SfUSuh715IxyqoUN8B9bTYWm49Fate2
-# TYbQXPv0/VwjW5DWOD+s5CHXGZ16k1lNh7hHNKOQ9yEuTYxaNabR1ATG6wyuPKdk
-# 2j9yndmgx6Qw/RbO3sN2FDI/nnpa2BAEJoL8HC/+HWnt7yzJd2DWSTMzXQCT35iM
-# T623Q/I4FS/GN5jIm2Fev1BB7Ni2f+2AEbMuj2eGPoGLNvUL9JbLfTk55xpARd4C
-# G5HRNf2yIU+rq5f515F1+M+3Wjca4o5Hx168l4u4Prgpi5njJCDs/YqCAO2Hxgy8
-# PvtRWF6I+gnSJm2Gw4pDc6rd+Hfh5XtkgZYSVhSoFERadNYRU3eAgilyXG78CS1y
-# 09yj8H3y7U+qCuZkwk9uhAQTGCjt0VV5RgnC7reUUqYdRYUNdZkDcUTXbjSM
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQwMzIyMDIwM1owLwYJKoZI
+# hvcNAQkEMSIEILcchLCp+CoP0+h+GgCjCkphIhbbDicRgmPfhq3GVZ0UMA0GCSqG
+# SIb3DQEBAQUABIICAFCFQ8ebZ2+hJzklq5e46ArJDzzcjVRSZp4d7YmO40LWJd/x
+# W1KYSlREj1Ef179sis7WzBFoYe3sEXhlHb3LvU26qLfjfuTDUWBi4LBjXOkPRLZT
+# f7og+zzloBwQd9zCrOAv14r+dLC6uuwwFLRAYYOPff8utECCO6FGBFFW8tZWBJec
+# 87m05M9JIph9qzJPDkjNqet6izbNrr80ZmyYioatx7oXf8M+s60nxwbBjSt3kOr0
+# +9PAz25wMTdSK+uWFcjYMoAEZ4PCbMdbMkQ4iU7EhxAlc5KIEg6VxJz/VxHA+I97
+# bJPQvmVHm3Jf9Myfa+ysODNGDwTy80hqzCBZxIbatn2vno1Zl8NtXBB42sfdrrp3
+# sabAGz7RDuPif8JSKi7DUhDEwBKeeRwUlc9kbYWsRf/bVC+zozTz8UXFYUCfCPUj
+# 9NAB5vnoCb/35nSqtIF2DxjEjoF+3XPbGlsaFa2rRziGMYTFReePgCPyaYFZWrhR
+# lSuj6zFzMIHDcm+m3kYXxvHreXyfhtdWVat+RJ66yWrskg2S5hxVe9PCTpanHGAj
+# uzUHJ/LO9KqszfsGFMsF8DTGUgdFBlW63ewFC6JLDerx1xjsDVNGeQcXi0Gc6rQu
+# nSltKb5gLYPiW0+7LI9kjU4QrNeQRa3jeYwpsvijMZ/JiczupA6cuFipp3Zj
 # SIG # End signature block
