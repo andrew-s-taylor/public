@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 5.0.1
+.VERSION 5.0.2
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        5.0.1
+  Version:        5.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  05/03/2024
+  Last Modified:  05/04/2024
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -57,6 +57,7 @@ In-Line Outputs
   Update: Issue with PS7, added logic to relaunch in PS5 with params
   Update: Changed from IntuneWin to PS module from Stephan van Rooij (https://svrooij.io/2023/10/19/open-source-intune-content-prep/)
   Update: Path fix
+  Update: Added logic around Git logging
 .EXAMPLE
 N/A
 #>
@@ -2909,7 +2910,7 @@ if (!$WebHookData) {
 }
           
 
-    if ($WebHookData) {
+    if ($WebHookData -and $repotype -and $ownername -and $reponame -and $token -and $project) {
         $backupreason = "Log on $tenant"
 
         ##Ingest it
@@ -2973,8 +2974,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBLX+bQGJKR/nzG
-# 9skWAmr/0OyXcwK2KPJGOSgIyjE2iKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAiw3rU50SnzM50
+# 8usiSvxHvn6+S83JohYLqp+HATsv+aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3156,33 +3157,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMKwHn7dGkLZWHNjg+JGbCW/h/qASWwSHPNY
-# quxyGjCxMA0GCSqGSIb3DQEBAQUABIICABXUvZQBic/6at1JKwC8rQ1oIJef2qIb
-# 6cJutqTDNus0pWKTgg5K2E9/yerTfwOV69CHa5ZpEO12yXnHPbdgAvvoW55UWWtE
-# i0ZMYZDZ4Z7hP8TFph1LKBtdDYcsQSf96lkftistDkgzL5ZSCVPJHAIlImETZ+/d
-# L7fGxHaCN4oNktHWaV942/tpFJS3eBdCI3Ukc40B7cAdRJcS+MGhbChCTw96V+j6
-# /oQhbcBQ1Nutoz7eORsdkFDZNU3n3Y0NHA5y+0O9YGLksw1yOqicSJC2MT4bzfh+
-# Jz9ujHn5dSSrvzVGD7LWUXuf61B6a5QT7m+UvL0iWSFS6yJTtVbGBSAPGUWnV+Wl
-# YJDRpkoNbrBaE2Pke3cI/yRPDLOEZl8gbs+AFm3pxuzkJYE37kKs3qKEK8XFzV2k
-# yhImJL4ETrJEifoZHJNZeasEPSbJ6bpJylQ9RK7vo94Op36YCwvLSVNgpjaoNWQp
-# +xuz1a6eWj8q9HaPcoXFcXqSVZ/UW1WXGUyykzWFsiYFxWTPjrYVQsJHrhGs6XKM
-# pvAcWDsBxPl0pogcmcGETdPCvCBWv4tEbpT9t/O0hHTWhi+yMV/iDu7RUYHFaviv
-# PcFIe1PBVq3FwCRl53Bwe9mIhUsLIS8wLKAeVVm1fLtcg6BsfLmfZp1NbmzBMqFA
-# AH5ZXfS/+UnsoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJP1g0cyoAUO8jsidle5jYbXMVi6hmyxoVh7
+# eJyEoDUiMA0GCSqGSIb3DQEBAQUABIICADbGGJ2y5AJr176eD4h989iV/8ex2jv4
+# mVFBpsQLWThOSSbt1aB0m7NRYf6RubyuK3arhDvls5V73BexJ/4qpTmTw7WNetdm
+# kC3InnBaE2jQmhYUQvrsDusEErWb2MwG+VNFzAe104uaBw1rqdM56VCVGCOqZfi8
+# xDLGeidrVEElfdYwEi1ySEE1E7jv23MRZJPS9YdaIdtR1xjcR3MkSbpEbvhIO3VD
+# UPH2UVTRkzyHirUAKVruk3YfIyJTtskK9KDM6cQC0z0FFcGfnyBzK+4r840Ur8NJ
+# Tzk+YJlz22h47KmWbpeXSFPKrshx5TOYz+HO4CdtuT29pvDLleRY1+RBxSUX5Xhn
+# yvHnIkR8PRSZZ0GJwwJgnhzRkSE3nYEvxSGp1T7Fhwm3Z/K2zcxAIK8wPZyuSuz5
+# +H9Z0UjLmp9rXxU8pzTWW1AHFR9F3EAWLPuCNuMrRTCmEqagq8+hc4AJqtb90HYH
+# +izi5JwyFD0TUAkYlLiDMkOGq/Ey8SOw+CYwgYtnIWg8jb6qcGngde3E4M3BHVav
+# ti4R9HtEp3AaL/7E1G3ZV+Thhrnv7WrpkTDrhPtpdbsOkKtuZlXwJOYAYh+tPqyw
+# fVbkjReP2Px8U9eZ2zkbuQF9fR0k80Ub+OlOwBfJxAr8foGIbdIgWljst0eC6Pa1
+# DPs0lUGwiwKroYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDMwNTE5NDEzM1owLwYJKoZI
-# hvcNAQkEMSIEIEBtkvYrIlMXsavXuc0upTKskEXCqs/Xbvvpo9YBwIhiMA0GCSqG
-# SIb3DQEBAQUABIICABcLsCfNygUsDYVV+lzxW4bspaULUDDFa9x8U9PC/DGGTvJB
-# F1WTWeINUHCNt6vKzs99zl2h3sCVCFa3u6IywCFaO+945R2giypfzWJZ1VYlO+x6
-# ZPoYvrg5EwCGbrbBx7o1vw5SsP8MwwaSSxADdwCFOsyL2SkYoK+pQQFZYZYXAHtt
-# oyOxAlx0Vxkah0Wj7JpQVFHw5ZCDDZh9GnluTFXHpZohq4BfCRkwC5iZ4O8TPx0p
-# O73ZiMGK6dGuIdmrdHzBUmuuAYsIPWjY/8BH3REaveIvKywt3KNLxCS8urJhnBzI
-# bSJmV6ESiVBneXfJRjHPAzeHCWXHrJUJCn8FbhCpPEsIFfENekdbIWSjWZ4VQd+N
-# V1xTHfINYwgYlOTK4YbjZ3NiNeY2n5Zj1jTf1DL1ZmsEB3BYqlXvp8EgjaH8rXxJ
-# UJNWExvd2/bXgFDVM3lW4REAx4f5Nhgjj8PsrRcrjFwZCo2PUOpTiw+MtelQ7lf/
-# fYVpV4DeUEIF+0weikL1Kpi3NeA8GknUA9+gYQGMqOAj+up7IjRztMy1fd1q/LeC
-# 1a5cOjP1yIoM3I2oupXsz3me+TLCdw2CVZpGkYD1g4Tc7lUQte3L2Larjkqm1hKn
-# HrfWdLxGqJVjI3l+DyXPcMY3Vh1i5yNuvAwNXjCxTEF6JdwzVTABIJXuSj7i
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQwODEwMTc1NFowLwYJKoZI
+# hvcNAQkEMSIEIH2HuIcxYes2jZN8FDHmKIa0I3yQuf2J77XoZJZXGBGLMA0GCSqG
+# SIb3DQEBAQUABIICAC4nMm/oLwLNkTu+syiPiQddi6urxzVroTueGY6qv/KpoZsB
+# EHeOS79jxMYE7kALAPKA+jaKL5oLvCTPMK7oxS46ejvUpnixoBYUvkJ/Ocr1wZvh
+# u0Eu3EIs8kHRS2R1K0sln8eempKaeIHSjuuKhq6J6REcIk4FeijuBMR2+JSLL7go
+# Z7aHKtcYvQB8E/l84cEXOzqAN+dcW/gXPxoX2l42o6kp13X2DUZ5snjcP1rZiDrJ
+# aFUgkFws3geXzkU8tnboN1gJe/ydB9xuxNowW5DJcvA9Uo/Pl8rcIbZV33rsp9PZ
+# CoO/33GQgFANfXq4aCBGmPZbrQHlx4/lbPJmOToEvya67heeSnaPnhWebfpHxbyZ
+# eLUpZAqQaeQNiH+G3HB5zL/HHUCYqXTO+PqknFFV+15og7MoBoUMl3JB02dsS2Xy
+# bVS6GDC2vm6B5eAGhkeyJYFgTpqm95EPPrPucyAOyartxoxwzLxG6N7MQUReTYJj
+# JpWVUjH21R8r9iAAYcbQdqpV2RSO3iSeD57beU3dq8LZfk0uHuF5M9ngi4mnQFKR
+# kRfVa72a6T/d+3h1GGXmy4Nihgkn8a5EX9Bd3QZH9SKysEot7Ykh9XNCLe+iobZJ
+# 2tLpCqwZGddyLrgB0oxsoNeubtEZVrVsRQ4KPcSmC1HPsg8p8UWHNl3jCyFh
 # SIG # End signature block
