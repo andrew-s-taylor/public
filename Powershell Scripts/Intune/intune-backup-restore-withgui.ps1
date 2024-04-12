@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.2.4
+  Version:        6.2.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 06/12/2023
+  Updated: 12/04/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -69,6 +69,7 @@ Creates a log file in %Temp%
   Change: Added support for template creation
   Change: Set connection to use basic parsing for runbooks
   Change: Fix for Boolean custom policies
+  Change: Added feature and quality updates
 
 
   .EXAMPLE
@@ -76,7 +77,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.2.4
+.VERSION 6.3.0
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1560,6 +1561,94 @@ Function Get-Win365UserSettings(){
    
 }
 
+
+Function Get-FeatureUpdatePolicies(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Feature Update Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Feature Update Policies
+    .EXAMPLE
+    Get-FeatureUpdatePolicies
+    Returns any Feature Update Policies configured in Intune
+    .NOTES
+    NAME: Get-FeatureUpdatePolicies
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/windowsFeatureUpdateProfiles"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
+
+
+
+Function Get-QualityUpdatePolicies(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Quality Update Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Quality Update Policies
+    .EXAMPLE
+    Get-QualityUpdatePolicies
+    Returns any Quality Update Policies configured in Intune
+    .NOTES
+    NAME: Get-QualityUpdatePolicies
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/windowsQualityUpdateProfiles"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
 Function Get-Win365ProvisioningPolicies(){
     
     <#
@@ -2886,6 +2975,104 @@ Function Get-Win365UserSettingsbyName(){
    
 }
 
+Function Get-QualityUpdatePoliciesbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Quality Update Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Quality Update Policies
+    .EXAMPLE
+    Get-QualityUpdatePoliciesbyName
+    Returns any Quality Update Policies configured in Intune
+    .NOTES
+    NAME: Get-QualityUpdatePoliciesbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/windowsQualityUpdateProfiles"
+    try {
+
+    
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $W365User = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $W365User.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Win365 User Settings"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
+   
+}
+
+Function GetFeatureUpdatePoliciesbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Feature Update Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Feature Update Policies
+    .EXAMPLE
+    Get-FeatureUpdatePolicies
+    Returns any Feature Update Policies configured in Intune
+    .NOTES
+    NAME: Get-FeatureUpdatePolicies
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/windowsFeatureUpdateProfiles"
+    try {
+
+    
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $W365User = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $W365User.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Win365 User Settings"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
+   
+}
+
 Function Get-Win365ProvisioningPoliciesbyName(){
     
     <#
@@ -3563,6 +3750,20 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-FeatureUpdatePoliciesbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
+$check = Get-QualityUpdatePoliciesbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-Win365ProvisioningPoliciesbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -4074,6 +4275,67 @@ Function Get-Win365UserSettingsAssignments() {
                                                     
     }
                                                     
+}
+
+Function Get-FeatureUpdatePoliciesAssignments() {
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Feature Update Policies assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Feature Update Policies assignments
+    .EXAMPLE
+    Get-FeatureUpdatePoliciesAssignments
+    Returns any Feature Update Policies assignments configured in Intune
+    .NOTES
+    NAME: Get-FeatureUpdatePoliciesAssignments
+    #>
+    [cmdletbinding()]
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/windowsFeatureUpdateProfiles"
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+
+    catch {
+    }
+}
+
+
+Function Get-QualityUpdatePoliciesAssignments() {
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Quality Update Policies assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Quality Update Policies assignments
+    .EXAMPLE
+    Get-QualityUpdatePoliciesAssignments
+    Returns any Quality Update Policies assignments configured in Intune
+    .NOTES
+    NAME: Get-QualityUpdatePoliciesAssignments
+    #>
+    [cmdletbinding()]
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/windowsQualityUpdateProfiles"
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+
+    catch {
+    }
 }
 
 Function Get-Win365ProvisioningPoliciesAssignments() {
@@ -4762,6 +5024,36 @@ $pvalue.value = $EncodedText
 
         $assignments = Get-Win365UserSettingsAssignments -id $id
     }
+    "deviceManagement/windowsFeatureUpdateProfiles" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-FeatureUpdatePolicies -id $id
+        $oldname = $policy.displayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+
+        $assignments = Get-FeatureUpdatePoliciesAssignments -id $id
+    }
+
+    "deviceManagement/windowsQualityUpdateProfiles" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-QualityUpdatePolicies -id $id
+        $oldname = $policy.displayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+
+        $assignments = Get-QualityUpdatePoliciesAssignments -id $id
+    }
+
     "deviceManagement/virtualEndpoint/provisioningPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
         $policy = Get-Win365ProvisioningPolicies -id $id
@@ -5102,6 +5394,12 @@ $configuration += Get-IntuneApplication | Select-Object ID, DisplayName, Descrip
 ##Get Win365 User Settings
 $configuration += Get-Win365UserSettings | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Win365 User Settings"}}
 
+##Get Feature Updates
+$configuration += Get-FeatureUpdatePolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Feature Update"}}
+
+##Get Quality Updates
+$configuration += Get-QualityUpdatePolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Quality Update"}}
+
 ##Get Win365 Provisioning Policies
 $configuration += Get-Win365ProvisioningPolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Win365 Provisioning Policy"}}
 
@@ -5200,6 +5498,8 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $scripts = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "PowerShell Script")}
     $compliancescripts = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Compliance Script")}
     $win365usersettings = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Win365 User Settings")}
+    $featureupdates = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Feature Update")}
+    $qualityupdates = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Quality Update")}
     $win365provisioning = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Win365 Provisioning Policy")}
     $policysets = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Policy Set")}
     $enrollmentconfigs = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Enrollment Configuration")}
@@ -5242,6 +5542,8 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $intuneterms = Get-IntuneTerms -id $id
     $intunerole = Get-IntuneRoles -id $id
     $whfb = get-whfbpolicies -id $id
+    $featureupdates = get-FeatureUpdatePolicies -id $id
+    $qualityupdates = get-qualityUpdatePolicies -id $id
     }
 
 
@@ -5553,6 +5855,42 @@ $assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgro
 }
 $profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
 }
+if ($null -ne $featureupdates) {
+    # Feature Updates
+write-output "It's a Feature Update"
+writelog "It's a Feature Update"
+
+$id = $featureupdates.id
+$Resource = "deviceManagement/windowsFeatureUpdateProfiles"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
+}
+
+if ($null -ne $qualityupdates) {
+    # Quality Updates
+write-output "It's a Quality Update"
+writelog "It's a Quality Update"
+
+$id = $qualityupdates.id
+$Resource = "deviceManagement/windowsQualityUpdateProfiles"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
+}
+
 if ($null -ne $win365provisioning) {
     # W365 Provisioning Policy
 write-output "It's a W365 Provisioning Policy"
@@ -6295,8 +6633,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDJPg9FGe8BqpOU
-# pL3V5eHHp7nxmmtepMT7Zx2TwEfPe6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBNrOk6tIDrViYe
+# IVyr7GOMGsmZYZVpWSW/AirhzmAQcqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -6478,33 +6816,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIG39/L+gUIFsk9QzC7+YaiAQ5qlzkzeLHEnc
-# MgV8mexKMA0GCSqGSIb3DQEBAQUABIICAEw3at9Eeb4ouj+jC7y4sQOkHfDMlOlT
-# KLCE2178w9H6XBa7w+c/27CZGm4V3pXZk1VUZYe1XZRIXenJuSeqi2eUaSvl0BlQ
-# ywtx4V7Y7+9YF5cDRaZqseAbfx1kzEt0ZLHlCOvPaJOCi8DfcL3QXwoB9XOMHJwo
-# etiKqPhfmtPH5rDZ4rXQgblsFkZOexDyuiFpMxncdmroe+OSLWMa77AbNmMtTjpU
-# J8nk9YVqzY8PKyFaTCllv0ZbqvVZvST6bkOG5q/FaDpUqYNc5GTonmF+uLaOZtRt
-# bRv+bdExQ3HdPeMyUKVf5Z7e6x/t/EqJtOecNgDpVOZwl0DzevqVtP9jV+K2WJgQ
-# y8PDtLBkNQ0sFsO+SRfYpGudIglzOpbGcItGf5uKtyU9B9HU8rzhhMvcDfxzaDut
-# kdGxcpqnZvUijZ5Dyj/U60+7kKNEDEZkDsvB3KOObC1rii+gpEIOjWyA2QTpJG5k
-# 8df78uOXFKPFqUTtLksdGwGMU7tUDExPVYO9T2Pl6aZrvpvjfuqE5SqrcuotPqQQ
-# 0Yd01PEToqIHENVRhHiuRcd9y9lX7UBjyh1LxSOV5sJ/zGeDnsF+f2j+VOLQF5A9
-# 5130SlNgjBkIIxJZyXkahPuW99AZfEGwPw2X9nSVfyGZBvfYjxYjY8VBHM8sGKsG
-# PyaG3HttMcmToYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEGF6ZsfV5MoHmGYPSKHnMSvpfcQg/anyTTq
+# T/jYtcSlMA0GCSqGSIb3DQEBAQUABIICAHuyf5b/aoI3oBPMao3PPH4Cfr5xhlDA
+# SdkH4rSvesh78YUgZLP/OetKrI31iz23YPxQEF8CW+owfzsqCgFLci0GCVD/rnfK
+# WXth34aESZK/TfDap0CwqX9r6hbgpMGtEGws8XuFOC+MUv2T0RJKPNqlBH/v+MPj
+# hy26/i2QmrZOTxwiiFHqT6zFtjrU2pXmpYmNYWZF4Jxf2sV7iTXaaOUA+7A/VcDi
+# UD1wHpY/5/y00d7pzLemWViGLF+3pUq135+ug7TwHdIicrUV11SzSSQdPFc/z3OG
+# GF5uCc0BAwuSGA9XTciJT2dm2SIbHxh38Nn6BYC0Fi9YqcBa63GkeY/00WCiAgTq
+# HHEz9h0ZaAKEfB6BHghmWBAHV2Ctns/r4QmmOTkk1+LElbbF/bHJrEfCUsloyr1V
+# Sa/6FtDhD06AeUbG7kUZr15BkzGJ5sFxvbglrAwpWSJhbYAtp3RfAdS8eae6e+/v
+# Ihito4e7T591mu9LoSvcgeXnO+qOZuFJ2xA8th4i5N0URKFEAuHfrKpvNr2py2/O
+# TWs/04t/uxqu9ZrOppgH4Kdo0kDtOGjJ3PUmLQGuhLbqm9c3rfNeA9V2qPpAAqhe
+# zzjQLKxKvtvDs9MVjaZGlOpS56GYRNEkcgu7gfot+cx6rnLmpxRoCY6kw5rsaP7i
+# cGlD10RfAimdoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDExMjE1MTY0NFowLwYJKoZI
-# hvcNAQkEMSIEIBka6yPphMDbDhWGft1DmwaYfyR3IBdRMR1C++Hq2kAEMA0GCSqG
-# SIb3DQEBAQUABIICAB/ZS0pdsO4Cm28nzdXPsxkP3kXWlvgcxphZr9cYplkplSqI
-# B1WPC40FdP8mxOZUedC/FoQp3jC4eRqbj4CZMv3zau7+2TvCeWs/RK9pi9b9O4qn
-# 1LH0WxEdL0N6LyZNSBtEqkbWCnXc9HQFIkVJTJsruQ+t93xp1+4zAWI23R2dZjp/
-# Gdt6W9TwbQ+jJdW/r4FIl1SR694lllca8IrJLvWi6mT9j8DLeR4F8wADlcCERPDB
-# z0qMROL6q4/29Dx9D8hTqWI/gfeA3SiYETQVF52HedoMFTGXo1uolKKm8tO9njuv
-# mwAUDwUXHJL8SQeW/x1KWiZtIgNOqq4I88pVJ2noyMmv7bSBjQCcEaNvZktCaON3
-# ks9TedSU0WUD5h3g9yo+7a0iHTGwtSTtLmm6mxzq/kpE+vpXk1jGBNe67QdSMBor
-# hJuX7yXCajefjJ9bgGdVF+1ffxvjTB0s3/a/7ndixHxLQplckdP9qvYm/e17VBef
-# BpfyuNfTSKseyUQJ6TPnM+3fpIg7kA1UUumWzfhj/nSeX39xRbiwPeuXuBnF4317
-# eK5W27X6FDbmAyZdHeScNV01UcXqDSlZtXqL1N+fq1qHVSkE3M27sWRPUhW4F3sB
-# 2JqJ/tX5xhlMpQeskJWWQfVp41ItsN6tWUKEqeoTRJCENl5ANScozdqGV6Ld
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQxMjE2NTIxNVowLwYJKoZI
+# hvcNAQkEMSIEIFOQH18iLhn+NwIh6ZI7T0UJSuRGGoCRC9fxh/puwFGiMA0GCSqG
+# SIb3DQEBAQUABIICADj+54xa3e3PvJxPRtprGgPbVCquZF29i2QN5ddhkbSnbsfx
+# jKpVJCuWY0+8NjLDV+XS8oWfsPxuolmTAw/3HOzuxM/oz/zZoKdWhIklSB24MTbJ
+# q3t/SehaY/ikpWGGa/lZ1j2j6ppC8Y/gbSyb5g3XKin6NOKIJyQmn58T+ndxv2RP
+# 2K5VW/M48Bxb5bF6Z8G+9GbRROzRfXl3fnOQjfi5O54XoDdTn/5OCD6sZyA8y8Or
+# 3i5DsA77/W4G2RRdyDZxjy66FQwQL5Sr3sLE74flmL6y3pfIpqknhlCCZIew4FQi
+# bqhPY6BJt3ICBepVf9ZzbWWcBdo7C5uYJvOhAcU7GmGuntZJYDyA52ZvaxGbFbaL
+# Io3D6Yhl3MA3mx9M86vDVBoN0cJzDJRQALEznX+bXuN2Dw2tSlt715QWwcp5Jar2
+# uMggZePL75JlyktCOqYs5F0vZyvuVyIPnZ0enbffd8sAQ9cBNtw0zXq7zYE/ugEz
+# K0Rz2ZUtzdG58fSI6kW3ySHhABSEr1kfTJCpATwVgJ1Y3f8E8yiUkLgJuYqoJAB3
+# GKnjBSpE7X6+u2m/iOpKoLsiPSXAwM0OekNDc9eeqCaUFbggCzOttPiKI14qzmcf
+# Eiw1BmkeknK1NXaBuUryQRkO6hfZOm2eD66LdOvPIbqJOU0W+unLfe9E9hgu
 # SIG # End signature block
