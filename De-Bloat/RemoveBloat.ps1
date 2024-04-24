@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.19
+  Version:        4.2.20
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -86,6 +86,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 11/04/2024 - Added Office support for multi-language
   Change 17/04/2024 - HP Apps update
   Change 19/04/2024 - HP Fix
+  Change 24/04/2024 - Switched provisionedpackage and appxpackage arround
 N/A
 #>
 
@@ -401,6 +402,14 @@ if ($customwhitelist) {
     
 
     foreach ($Bloat in $Bloatware) {
+
+        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
+            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
+            Write-Host "Removed provisioned package for $Bloat."
+        } else {
+            Write-Host "Provisioned package for $Bloat not found."
+        }
+
         if (Get-AppxPackage -Name $Bloat -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $Bloat | Remove-AppxPackage -AllUsers
             Write-Host "Removed $Bloat."
@@ -408,12 +417,7 @@ if ($customwhitelist) {
             Write-Host "$Bloat not found."
         }
         
-        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
-            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
-            Write-Host "Removed provisioned package for $Bloat."
-        } else {
-            Write-Host "Provisioned package for $Bloat not found."
-        }
+
     }
 ############################################################################################################
 #                                        Remove Registry Keys                                              #
@@ -1254,9 +1258,9 @@ $UninstallPrograms = @(
 
 $HPidentifier = "AD2F1837"
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "^$HPidentifier"))-and ($_.Name -notlike $WhitelistedApps)}
-
 $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or ($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notlike $WhitelistedApps)}
+
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "^$HPidentifier"))-and ($_.Name -notlike $WhitelistedApps)}
 
 $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
 
@@ -1403,9 +1407,9 @@ $WhitelistedApps = @(
     }        
     }
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
-
 $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
+
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
 
 $InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
 # Remove provisioned packages first
@@ -1636,10 +1640,10 @@ if ($manufacturer -like "Lenovo") {
         }
     
     
-    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms))}
-    
     $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms))}
-    
+
+    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms))}
+        
     $InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms))}
     # Remove provisioned packages first
     ForEach ($ProvPackage in $ProvisionedPackages) {
@@ -1774,7 +1778,11 @@ if (Test-Path $lenovowelcome) {
 
     # Update $PSScriptRoot with the new working directory
     $PSScriptRoot = (Get-Item -Path ".\").FullName
-    invoke-expression -command .\uninstall.ps1
+    try {
+        invoke-expression -command .\uninstall.ps1 -ErrorAction SilentlyContinue
+    } catch {
+        write-host "Failed to execute uninstall.ps1"
+    }
 
     Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
 }
@@ -1786,7 +1794,11 @@ if (Test-Path $lenovonow) {
 
     # Update $PSScriptRoot with the new working directory
     $PSScriptRoot = (Get-Item -Path ".\").FullName
-    invoke-expression -command .\uninstall.ps1
+    try {
+        invoke-expression -command .\uninstall.ps1 -ErrorAction SilentlyContinue
+    } catch {
+        write-host "Failed to execute uninstall.ps1"
+    }
 
     Write-Host "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
 }
@@ -2029,8 +2041,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB1RKh0kRYNAn1g
-# 6bAY81NNEPCwJSUM2RjOjBZ+qtc4waCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBvWlAp73lHRL4d
+# 8uPMXrly3LLRwfJurSu7J47wPw+0w6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2212,33 +2224,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJjqzDr35w3/BZ5ieCPi9d4iFtwP907oGtvA
-# 1qgQzHjdMA0GCSqGSIb3DQEBAQUABIICAGn620Yyfy++e34E5upFx1qkqQlteofs
-# M7Q9Aqk5NfxiD6w75nGL4fBEWUQKqXWBIuxIFrJGazqd6lnGDV2KcV3e2u2+cWic
-# muRzKTfrLZEaW2FJmXwafpIYQROnGQ4koqFDvMBML5cxLbArmjAFQCMauPxMXUhE
-# +f0dwouwYQ6btnq6QGQm0uYVUpEVj7AFBjZSdYkX2/uO6bkllHlS+eGsKjBY7X5S
-# UHZ7dmsif4GHzr+O0XsGwKOB0PR/f5txgvBTGvHjp233Nm0+zWE7zZdNetQstEbx
-# 4VMAsBWK8PLeVRXZ0P5CQuK3lIrSvhmItJFdzFiBR3ESQcVs9COGU8LGHk22o0Q7
-# m0O1RdXMWVwkB7+xqjS+rHtVfTUEm152PTOpC8vEmRydACBwxyiSGZHAEwU657RE
-# Amy9mPgxOlZsCENVKOGdhjKy+8+nTim3Ohg//5AhEfcpQiRJboauyDgyBPRFD/Zv
-# tEovgqy9An5UjIRKbF03YI8lI7Yv1NSkbZLJdg0IDeA7fHIfPEpDNdHzXZiKGRn0
-# gfiFTM2G3i+QRVmFT1hezVd+q+eygqbAl48GEuOOziivdgps9jzV9fxmyH+Ybvn1
-# 0MUZe8PNt6MEHRJY8AsoW9UZ4whlfKBWN2gfMFtBwLkTqdm/SNBE3DGJB1yw0rE1
-# WO+ehnHwPA1yoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBACVW5l5qrOoJJZM2zPFN9lg1EbHF8fidNq
+# 1AIV2sWoMA0GCSqGSIb3DQEBAQUABIICACUMhtlssN5WnhS7262qoONs/RIDlnuF
+# /gwvyLGWK6sx43ubS8xTOyDi6EljE2iolwOsk4AICPNK0kCFp+ijL+wyYe1p3tsa
+# t2yCyhf9goPNZOzavMmBzZrC3lG1l0R8w4ueizgb6IJA/vq2mvlnilSgOiNrG3yL
+# 7A0lej5rcugKNfMt5ZLlzCR+Tao/lBghBA6+GsH/orBuoVhf4Opvm5OLlMFkFdEf
+# 3gUflyxujuOhKVyVsd84dEn5ph3/F9yl9/k7f0DhaBq/ayf0FbAnGY5HyFJS7wIj
+# svj2KUcQpMMhSOlMC+O8QuFeOqfSujfMM57NkxsIC/JLCJQTm7kVoAqgosPZ+WsT
+# hsEtbPiRwN+sn/FoN4rteldt+ISgaD/rcIdnYjovPfVW42cbQ/bMq1SIz9isZ24l
+# dfG3Sp1lW+OUQCZLhv4g1Gcr7GhiSdxZUcodSREFpYrO6zoHT20WaxmfEBYZu+7g
+# 11y/Y/DKKW7xVes8npoBOiKJvoqkXGr2+uaRXv75jU4n/KbAY0jYoWgVtGHN7Zw/
+# A6SaFvOtSXoKQuGTQxxCtP6NT0Mcb3WzEPlyIAHEa7q7dZQIlttbpiWDWja/frRw
+# 7eaM5cPi8QVFs42HeMxsIoqVauhgp6XQVVsXq5bJKBCsoh6ljDpHRbWChvQ+Zued
+# mLaOcMttCbl/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQyMTEwMjcyNlowLwYJKoZI
-# hvcNAQkEMSIEIE5HXATH2c3vTd5BmN0JMqjrK7rlgx985Q0vMMju0E+FMA0GCSqG
-# SIb3DQEBAQUABIICACjM2T2vSpcGFwPAsBRHMSOSEAto+X5R7Q01yRh9W5GqnQFs
-# VAlR7zWQyTciB1nZG67bZjzlXxBw5pd0SZcuESULsVMcmMsmlFFimzcSRXwOIOrI
-# /LjSYW13I4PdpGjgwswpSqTh2LsahzHLObq2RCldsgIuUaMGLR7zgFS96eFSlAKB
-# LexMWvtJ4F7OEy/4oMTJtenUpHVs1kSdc+mkHxC1/AcfoJo5HaCkFwFUBkDqcZnl
-# uw22dyMYQ4mnRdUSYX7RJOM03RKIyM8Mmsws+6wrFipg1to5WQMiC5cxSKZcps2T
-# TREZYUG6Z7km+wUG0tdRnuwmDwwhViAZr6B5yKklMVxPeCnEfOMg0kj7+6v/7p/G
-# /FhrXbBRLw7/9I/HJ6PR1q2ohmYI0ZBT2kHaHwn7jbGFt+T4V7vtpp0ElPZ4DmPO
-# r+NRFyeL+WBmsUcpwt3gUS9zupfDhMN+vjT3z9H9dS1CO26spjs0lXSluhf7+gRU
-# 3HGOv9wcRICm4B88z7rK/ae7ShYO0DVuE9S1PG0ijN1QzRrQOV0s9DcXHPLG08Zq
-# dgskCuJv2YI+Kno81Ey52pBRv71FR/BXKadn/1yreEbhsjxu28gz0REpCgbiwMjb
-# LrjuwWZisQ4/jMTP6Lff7dr9x12kNIumZ6nCx5zthabuk11srv0eXYQd5Bpz
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQyNDIwMTkzOVowLwYJKoZI
+# hvcNAQkEMSIEIJpOFMGA1/GcI26XTEPdXtTo/ar0RSfFdB3lFi/pto/5MA0GCSqG
+# SIb3DQEBAQUABIICABCz2BP4g4o2SPmLD30fjPLSkdZkdRnWn5eZuGNU9O4Rl4BM
+# v0lfzmgdRVKHsFnge9/urt03WYP25Wp5avu9iMC6Oxma60ktSwwuwfbHJ4TEeX3Y
+# r5Q5ajueNarDSSTJvPDMv9ohyhr9ClYRVxl4VH5oiZLnJcpsJYScVROJx1q2ALXH
+# 6GtPqX+P/o6Rf9KR4x1zQqW3CQTvCdwlUMnmnlJMKv30heK5JK2E5OVZA9iwas2N
+# dzlpjuQVJ1ySP/H8eexoyM4QswnGKoi2b4+eGxF9aYtbmCt5o3DCf3jewYSGaAGC
+# Bm5uKkGN+sl7hBkSYyYJYjrsOFr2fN15FJKspk2OwlsNCLnTvphhoQYsVFi6FZFD
+# AtZCVWWmAYwmFjy/gstbxWVXmrRE4vrXbXUnWZXNPboIT7kM9o06JIAOzZ8EWV9d
+# E6oGQ8WgW7Vc5h19IaG1XZTJXfi72lbePPBA6Mc4mbwgoNXSSHYKvHXp9sGYMfoU
+# ZiQBZr9AJ8TLfZoNgSXp7aKVbJquBo0yZxKNn9iVDRHG/bcX/knPNGnGrZX66KBW
+# w49lsoga4VGQD+dRqZf6PXNd2tXAHP4CxMiO1Sdu3hu/5yWAFXuK0FC2rAy67bZR
+# lv+ayevBiRn1nTR2N7UTvk4WK+94u6snvaRoog/H/1Hh1hlhW8aHJiVCaHBs
 # SIG # End signature block
