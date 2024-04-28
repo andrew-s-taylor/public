@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.2.0
+  Version:        6.3.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 12/04/2024
+  Updated: 28/04/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -70,6 +70,7 @@ Creates a log file in %Temp%
   Change: Set connection to use basic parsing for runbooks
   Change: Fix for Boolean custom policies
   Change: Added feature and quality updates
+  Change: Added support for Git pagination
 
 
   .EXAMPLE
@@ -77,7 +78,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.3.0
+.VERSION 6.3.1
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -6183,8 +6184,25 @@ if ($repotype -eq "github") {
     write-output "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
     writelog "Finding Latest Backup Commit from Repo $reponame in $ownername GitHub"
 
-    $uri = "https://api.github.com/repos/$ownername/$reponame/commits"
-    $events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
+
+    $uri = "https://api.github.com/repos/$ownername/$reponame/commits?per_page=100"
+    $events = @()
+    $page = 1
+
+Do
+{
+    $response = Invoke-RestMethod -Headers @{'Authorization'='bearer '+$token;} -Uri "$uri&page=$page"
+    
+    foreach ($obj in $response)
+    {
+        $events += $obj.commit
+    }
+    
+    $page = $page + 1
+}
+While ($response.Count -gt 0)
+
+    ##$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
     $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"        
     ForEach ($event in $events2) 
         {
@@ -6223,8 +6241,24 @@ if ($repotype -eq "github") {
         write-output "Finding Latest Backup Commit from Project $project in GitLab"
         writelog "Finding Latest Backup Commit from Project $project in GitLab"
 
-        $CommitsUrl = "$GitLabUrl/projects/$project/repository/commits"
-        $events = Invoke-RestMethod -Uri $CommitsUrl -Method Get -Headers $Headers
+        $uri = "$GitLabUrl/projects/$project/repository/commits?per_page=100"
+        $events = @()
+        $page = 1
+    
+    Do
+    {
+        $response = Invoke-RestMethod -Headers @{'Authorization'='bearer '+$token;} -Uri "$uri&page=$page"
+        
+        foreach ($obj in $response)
+        {
+            $events += $obj.commit
+        }
+        
+        $page = $page + 1
+    }
+    While ($response.Count -gt 0)
+    
+        ##$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
         $events2 = $events | Select-object message, web_url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"
             ForEach ($event in $events2) 
             {
@@ -6633,8 +6667,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBNrOk6tIDrViYe
-# IVyr7GOMGsmZYZVpWSW/AirhzmAQcqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJD+0bHqWtDFm5
+# 7hW8tvUOS/6C/2bgJsnPPfovE1Yo1KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -6816,33 +6850,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEGF6ZsfV5MoHmGYPSKHnMSvpfcQg/anyTTq
-# T/jYtcSlMA0GCSqGSIb3DQEBAQUABIICAHuyf5b/aoI3oBPMao3PPH4Cfr5xhlDA
-# SdkH4rSvesh78YUgZLP/OetKrI31iz23YPxQEF8CW+owfzsqCgFLci0GCVD/rnfK
-# WXth34aESZK/TfDap0CwqX9r6hbgpMGtEGws8XuFOC+MUv2T0RJKPNqlBH/v+MPj
-# hy26/i2QmrZOTxwiiFHqT6zFtjrU2pXmpYmNYWZF4Jxf2sV7iTXaaOUA+7A/VcDi
-# UD1wHpY/5/y00d7pzLemWViGLF+3pUq135+ug7TwHdIicrUV11SzSSQdPFc/z3OG
-# GF5uCc0BAwuSGA9XTciJT2dm2SIbHxh38Nn6BYC0Fi9YqcBa63GkeY/00WCiAgTq
-# HHEz9h0ZaAKEfB6BHghmWBAHV2Ctns/r4QmmOTkk1+LElbbF/bHJrEfCUsloyr1V
-# Sa/6FtDhD06AeUbG7kUZr15BkzGJ5sFxvbglrAwpWSJhbYAtp3RfAdS8eae6e+/v
-# Ihito4e7T591mu9LoSvcgeXnO+qOZuFJ2xA8th4i5N0URKFEAuHfrKpvNr2py2/O
-# TWs/04t/uxqu9ZrOppgH4Kdo0kDtOGjJ3PUmLQGuhLbqm9c3rfNeA9V2qPpAAqhe
-# zzjQLKxKvtvDs9MVjaZGlOpS56GYRNEkcgu7gfot+cx6rnLmpxRoCY6kw5rsaP7i
-# cGlD10RfAimdoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIN0FFvSQi3Dvb8s3Bmez+3YDfo2JjSYFj5qE
+# kzt0JKvnMA0GCSqGSIb3DQEBAQUABIICAHH9vG+w6pDpGxqTFciKVe3JNEMKE90Y
+# t/nTqmHmZu3bztM4il2Czxm+Nqtl1YIPi9YXbfvFTqMG6uR+4scaY4cyrfGZzcEL
+# 6kPwejTvOfp6uJlCYcK3+4x/iz/vhKyMOotS7HGGHzAjxyzz/XZLjagE30UBNGr1
+# OF9I9Mw48iEtsFyVe/woehrcubIBWQ4zJzB0yt6cTFYcX1nMw91kxDY9cY3MA2wi
+# DWSuKW3v3bC7xvrKDHrk1r4IvoPFLxEDRsQVVfRr/Dr3a6a6kvhJqTcpvlEO9wMy
+# e75zlEGU/+bL+O3ERxwrhA96YXj4nOui8f7A19lOoXv5u0dAPqN/Fl3C862vE2o2
+# o/X+R3M/3cdP1OkL2Nt6UjISWnFMNE2EYNmQunpRMhDdrrPlrOw+//kimqZE9cnw
+# LQ/blhBpkQ9oUrpkQ6m8bFBXTmvbUjM2x9hY8zF81cvPi0ozKY+IPPpDFi3ORVvv
+# I02/K2dQ68kTufN0lQnuRElKszsgLY63uC2MNi5I8lXj9564VaJux/ZfcmCy3+D3
+# HwusBaQAWPXrdossCI/Q1TuuYn4wC7Eq1jA/yoRsxMXWxWgT1BSuPlxJMm3fWwWe
+# WF7g670OJpuEUvPEnTuT32Ii7MYqhNfL/+DsAVfKlCir82qmy80T2Cc/T7L8ro48
+# Vw3IEeCiuyHHoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQxMjE2NTIxNVowLwYJKoZI
-# hvcNAQkEMSIEIFOQH18iLhn+NwIh6ZI7T0UJSuRGGoCRC9fxh/puwFGiMA0GCSqG
-# SIb3DQEBAQUABIICADj+54xa3e3PvJxPRtprGgPbVCquZF29i2QN5ddhkbSnbsfx
-# jKpVJCuWY0+8NjLDV+XS8oWfsPxuolmTAw/3HOzuxM/oz/zZoKdWhIklSB24MTbJ
-# q3t/SehaY/ikpWGGa/lZ1j2j6ppC8Y/gbSyb5g3XKin6NOKIJyQmn58T+ndxv2RP
-# 2K5VW/M48Bxb5bF6Z8G+9GbRROzRfXl3fnOQjfi5O54XoDdTn/5OCD6sZyA8y8Or
-# 3i5DsA77/W4G2RRdyDZxjy66FQwQL5Sr3sLE74flmL6y3pfIpqknhlCCZIew4FQi
-# bqhPY6BJt3ICBepVf9ZzbWWcBdo7C5uYJvOhAcU7GmGuntZJYDyA52ZvaxGbFbaL
-# Io3D6Yhl3MA3mx9M86vDVBoN0cJzDJRQALEznX+bXuN2Dw2tSlt715QWwcp5Jar2
-# uMggZePL75JlyktCOqYs5F0vZyvuVyIPnZ0enbffd8sAQ9cBNtw0zXq7zYE/ugEz
-# K0Rz2ZUtzdG58fSI6kW3ySHhABSEr1kfTJCpATwVgJ1Y3f8E8yiUkLgJuYqoJAB3
-# GKnjBSpE7X6+u2m/iOpKoLsiPSXAwM0OekNDc9eeqCaUFbggCzOttPiKI14qzmcf
-# Eiw1BmkeknK1NXaBuUryQRkO6hfZOm2eD66LdOvPIbqJOU0W+unLfe9E9hgu
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQyODE0MTUwMlowLwYJKoZI
+# hvcNAQkEMSIEIFq1LJtfG5/reH29BnjYObPeJkw6CDZfJJ1s01jy+GD3MA0GCSqG
+# SIb3DQEBAQUABIICAI5dmLg08xRh2KiTM/Mtw4Mkfm/5BcEMzsDL+4PBRYIOHkDb
+# pPvSZuNTYT4b4XFDpqZXFDtPyadB+sQ8dPQE45ST5krKeVGT86WJuLjKy0aHonTK
+# dEkH7tKkC9NHrlXQ9EaM+CTofQUa+l5Sgay+J8w9pw1IFUXDddg61YZFb3bP/nj5
+# nxzBqbkQri2xKPfYh5k7iLREvNI2EaeY6tKPEtYxhCxeH+yesYTRuPGp0uEKCPtU
+# 0Thwtplt/XCwKmm1RESWcUGs0TE3VokfTfcw0zm+IrP5gNqdI2/RUz2/opRrvwVs
+# dS0v6JxwhtQDs4Evf9qdEHqVpuBTlFS3vD4uUIYR7YrbXQZsiNC7HA1js40XtlOo
+# dxxb1GyBsztRGhbErOcw34JtwWW3ErtpbEmNkAgPjCtu7qgsFM2AMJoBUc/8RepT
+# oGgXTxSAv90PtzRyH4H/6l893hyJzO1uZflHz56fkInnCb4gnk8snieRLWHh5QeV
+# ZGCq5aq9HXILKPC79puAQsBFCfHfZfTXGw/6M8OKsCbJEJCyzEzxj8ngG14lyDqt
+# uS39q3OuH91wkQM5mYztbHU9+PV0HkcRssugLZlIbCLKuaN0wPPLh/w0C7FbtqRA
+# sbn7E5hzGAu5yOxNtNyITe1U2LQsaxjML+gjLOcmd4ig5gh4TLHc/GdcguP4
 # SIG # End signature block

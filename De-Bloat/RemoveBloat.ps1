@@ -1407,12 +1407,12 @@ $WhitelistedApps = @(
     }        
     }
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
+    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or ($_.DisplayName -like "*Dell"))-and ($_.DisplayName -notlike $WhitelistedApps)}
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
-
-$InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms) -or ($_.Name -like "*Dell*")) -and ($_.Name -NotMatch $WhitelistedApps)}
-# Remove provisioned packages first
+    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "*Dell"))-and ($_.Name -notlike $WhitelistedApps)}
+    
+    $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
+    # Remove provisioned packages first
 ForEach ($ProvPackage in $ProvisionedPackages) {
 
     Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
