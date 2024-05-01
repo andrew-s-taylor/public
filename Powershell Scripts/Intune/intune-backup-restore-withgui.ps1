@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.3.1
+  Version:        6.3.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 28/04/2024
+  Updated: 01/05/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -71,6 +71,8 @@ Creates a log file in %Temp%
   Change: Fix for Boolean custom policies
   Change: Added feature and quality updates
   Change: Added support for Git pagination
+  Change: Added Driver Update profiles
+  Change: Group creation fix
 
 
   .EXAMPLE
@@ -78,7 +80,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.3.1
+.VERSION 6.3.3
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -1606,7 +1608,48 @@ Function Get-FeatureUpdatePolicies(){
    
 }
 
-
+Function Get-DriverUpdatePolicies(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Driver Update Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Driver Update Policies
+    .EXAMPLE
+    Get-DriverUpdatePolicies
+    Returns any Driver Update Policies configured in Intune
+    .NOTES
+    NAME: Get-DriverUpdatePolicies
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $id
+    )
+    
+    $graphApiVersion = "beta"
+    $DCP_resource = "deviceManagement/windowsDriverUpdateProfiles"
+    try {
+            if($id){
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)/$id"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    
+            }
+    
+            else {
+    
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+            }
+        }
+        catch {}
+    
+   
+}
 
 Function Get-QualityUpdatePolicies(){
     
@@ -3010,7 +3053,7 @@ Function Get-QualityUpdatePoliciesbyName(){
         $myid = $W365User.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
-            $type = "Win365 User Settings"
+            $type = "Quality Update"
             }
             else {
                 $fulluri = ""
@@ -3059,7 +3102,57 @@ Function GetFeatureUpdatePoliciesbyName(){
         $myid = $W365User.id
         if ($null -ne $myid) {
             $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
-            $type = "Win365 User Settings"
+            $type = "Feature Update"
+            }
+            else {
+                $fulluri = ""
+                $type = ""
+            }
+            $output = "" | Select-Object -Property id,fulluri, type    
+            $output.id = $myid
+            $output.fulluri = $fulluri
+            $output.type = $type
+            return $output
+        
+   
+}
+
+
+Function GetDriverUpdatePoliciesbyName(){
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Driver Update Policies from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Driver Update Policies
+    .EXAMPLE
+    Get-DriverUpdatePoliciesbyName
+    Returns any Driver Update Policies configured in Intune
+    .NOTES
+    NAME: Get-DriverUpdatePoliciesbyName
+    #>
+    
+    [cmdletbinding()]
+    
+    param
+    (
+        $name
+    )
+    
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/windowsDriverUpdateProfiles"
+    try {
+
+    
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=displayName eq '$name'"
+        $W365User = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+    
+        }
+        catch {}
+        $myid = $W365User.id
+        if ($null -ne $myid) {
+            $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+            $type = "Driver Update"
             }
             else {
                 $fulluri = ""
@@ -3765,6 +3858,13 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-DriverUpdatePoliciesbyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-Win365ProvisioningPoliciesbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -4339,6 +4439,37 @@ Function Get-QualityUpdatePoliciesAssignments() {
     }
 }
 
+
+Function Get-DriverUpdatePoliciesAssignments() {
+    
+    <#
+    .SYNOPSIS
+    This function is used to get Driver Update Policies assignments from the Graph API REST interface
+    .DESCRIPTION
+    The function connects to the Graph API Interface and gets any Driver Update Policies assignments
+    .EXAMPLE
+    Get-DriverUpdatePoliciesAssignments
+    Returns any Driver Update Policies assignments configured in Intune
+    .NOTES
+    NAME: Get-DriverUpdatePoliciesAssignments
+    #>
+    [cmdletbinding()]
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/windowsDriverUpdateProfiles"
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+
+    catch {
+    }
+}
+
 Function Get-Win365ProvisioningPoliciesAssignments() {
     
     <#
@@ -4626,6 +4757,7 @@ function convertnametoid() {
 foreach ($assignment in $json) {
     $groupid = $assignment.target.groupid
     if ($groupid) {
+        $allgroups = getallgroups
     $groupname = $allgroups | where-object {$_.displayName -eq $groupid} | select-object -expandproperty ID
     ##If group can't be found and create is yes, create it
     if (!$groupname -and $create -eq "yes") {
@@ -5054,6 +5186,20 @@ $pvalue.value = $EncodedText
 
         $assignments = Get-QualityUpdatePoliciesAssignments -id $id
     }
+    "deviceManagement/windowsDriverUpdateProfiles" {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+        $policy = Get-DriverUpdatePolicies -id $id
+        $oldname = $policy.displayName
+        $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+        if ($changename -eq "yes") {
+            $newname = $oldname + "-restore-" + $restoredate
+        }
+        else {
+            $newname = $oldname
+        }        $policy.displayName = $newname
+
+        $assignments = Get-DriverUpdatePoliciesAssignments -id $id
+    }
 
     "deviceManagement/virtualEndpoint/provisioningPolicies" {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -5401,6 +5547,9 @@ $configuration += Get-FeatureUpdatePolicies | Select-Object ID, DisplayName, Des
 ##Get Quality Updates
 $configuration += Get-QualityUpdatePolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Quality Update"}}
 
+##Get Driver Updates
+$configuration += Get-DriverUpdatePolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Driver Update"}}
+
 ##Get Win365 Provisioning Policies
 $configuration += Get-Win365ProvisioningPolicies | Select-Object ID, DisplayName, Description,  @{N='Type';E={"Win365 Provisioning Policy"}}
 
@@ -5501,6 +5650,7 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $win365usersettings = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Win365 User Settings")}
     $featureupdates = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Feature Update")}
     $qualityupdates = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Quality Update")}
+    $driverupdates = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Driver Update")}
     $win365provisioning = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Win365 Provisioning Policy")}
     $policysets = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Policy Set")}
     $enrollmentconfigs = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Enrollment Configuration")}
@@ -5545,6 +5695,7 @@ if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $whfb = get-whfbpolicies -id $id
     $featureupdates = get-FeatureUpdatePolicies -id $id
     $qualityupdates = get-qualityUpdatePolicies -id $id
+    $driverupdates = get-driverUpdatePolicies -id $id
     }
 
 
@@ -5881,6 +6032,24 @@ writelog "It's a Quality Update"
 
 $id = $qualityupdates.id
 $Resource = "deviceManagement/windowsQualityUpdateProfiles"
+$copypolicy = getpolicyjson -resource $Resource -policyid $id
+$rawassignments = $copypolicy[3]
+if ($rawassignments -eq "none") {
+$assignmentname = "No Available Assignment" 
+} 
+else {
+$assignmentname = convertidtoname -json $rawassignments.value -allgroups $allgroups -allfilters $allfilters
+}
+$profiles+= ,(@($copypolicy[0],$copypolicy[1],$copypolicy[2], $id, $assignmentname))
+}
+
+if ($null -ne $driverupdates) {
+    # Quality Updates
+write-output "It's a Driver Update"
+writelog "It's a Driver Update"
+
+$id = $driverupdates.id
+$Resource = "deviceManagement/windowsDriverUpdateProfiles"
 $copypolicy = getpolicyjson -resource $Resource -policyid $id
 $rawassignments = $copypolicy[3]
 if ($rawassignments -eq "none") {
@@ -6667,8 +6836,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJD+0bHqWtDFm5
-# 7hW8tvUOS/6C/2bgJsnPPfovE1Yo1KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB6un5ev47ncPjY
+# vsH5ucZPhJGNDRryZ9Uj8q0d6iDuZqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -6850,33 +7019,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIN0FFvSQi3Dvb8s3Bmez+3YDfo2JjSYFj5qE
-# kzt0JKvnMA0GCSqGSIb3DQEBAQUABIICAHH9vG+w6pDpGxqTFciKVe3JNEMKE90Y
-# t/nTqmHmZu3bztM4il2Czxm+Nqtl1YIPi9YXbfvFTqMG6uR+4scaY4cyrfGZzcEL
-# 6kPwejTvOfp6uJlCYcK3+4x/iz/vhKyMOotS7HGGHzAjxyzz/XZLjagE30UBNGr1
-# OF9I9Mw48iEtsFyVe/woehrcubIBWQ4zJzB0yt6cTFYcX1nMw91kxDY9cY3MA2wi
-# DWSuKW3v3bC7xvrKDHrk1r4IvoPFLxEDRsQVVfRr/Dr3a6a6kvhJqTcpvlEO9wMy
-# e75zlEGU/+bL+O3ERxwrhA96YXj4nOui8f7A19lOoXv5u0dAPqN/Fl3C862vE2o2
-# o/X+R3M/3cdP1OkL2Nt6UjISWnFMNE2EYNmQunpRMhDdrrPlrOw+//kimqZE9cnw
-# LQ/blhBpkQ9oUrpkQ6m8bFBXTmvbUjM2x9hY8zF81cvPi0ozKY+IPPpDFi3ORVvv
-# I02/K2dQ68kTufN0lQnuRElKszsgLY63uC2MNi5I8lXj9564VaJux/ZfcmCy3+D3
-# HwusBaQAWPXrdossCI/Q1TuuYn4wC7Eq1jA/yoRsxMXWxWgT1BSuPlxJMm3fWwWe
-# WF7g670OJpuEUvPEnTuT32Ii7MYqhNfL/+DsAVfKlCir82qmy80T2Cc/T7L8ro48
-# Vw3IEeCiuyHHoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKLhq6F871DK4AgFG/IcC5oYP0VAck6UQxjv
+# q/SmpyRzMA0GCSqGSIb3DQEBAQUABIICAC6CnfoIls2OrXlzMkEF6jcA63sbUFzP
+# ds9lPwlhSCaarmDLYT8Y2vQUwHoIML4M8matreVbg/zY/pMUqvAQZIJZe4txpn0R
+# C0F5Hb5jr353O+xLjtJxLAU0PG23Xo2ewrRRD3jjDdRv5s+LEBXAKPRYJMwMqaih
+# A5k9tUjRZKjhlqVVCLtnDcbiCkWdzLfNiqNAvOTtOApOjKArlCEUYFEljsmFgoVq
+# 0SmJFbXFPSpLLsvZXxsn/S96ChznTXTcxR9KiosgGXXH96kHUCBWHX4nltm1kd5c
+# FSD3uCPjEmHMzCQXM89nA1kMwOQUNDJUUaaJsuAU4ihUp6sw3/sPoFiM6ENjPt7M
+# g8RYblk9BAFTpMJZ2SD3SEpYdl2RB9w5fTvQdmTBxdexGsBD9PdG88d3BxQv6UsX
+# pn7DgUufThEWYEuMhDP+6fx+PvI/tf8NraC9SNJl5lf8WDNNHqXhoYdiKDLogZXC
+# jhWnUvxGiFQrcmERNOqw6Vl7gCLXUq5MXVpLqVF9L9fUh+QpIcxaP8Y2lK0Kd1l4
+# eWB7iWTCVIt6bVqXPqGvyf7lgnmZfC69Ag4Q2rJL8faX4Z4Y6EdjfX0dZ7oN1jz+
+# t/bFIDbhqMhitNoMCW1HkrPwP2rhcuw98TF59aQrYTZW7MiFO6dLnAt4iGw/kxgx
+# xYME+bxoVzT4oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQyODE0MTUwMlowLwYJKoZI
-# hvcNAQkEMSIEIFq1LJtfG5/reH29BnjYObPeJkw6CDZfJJ1s01jy+GD3MA0GCSqG
-# SIb3DQEBAQUABIICAI5dmLg08xRh2KiTM/Mtw4Mkfm/5BcEMzsDL+4PBRYIOHkDb
-# pPvSZuNTYT4b4XFDpqZXFDtPyadB+sQ8dPQE45ST5krKeVGT86WJuLjKy0aHonTK
-# dEkH7tKkC9NHrlXQ9EaM+CTofQUa+l5Sgay+J8w9pw1IFUXDddg61YZFb3bP/nj5
-# nxzBqbkQri2xKPfYh5k7iLREvNI2EaeY6tKPEtYxhCxeH+yesYTRuPGp0uEKCPtU
-# 0Thwtplt/XCwKmm1RESWcUGs0TE3VokfTfcw0zm+IrP5gNqdI2/RUz2/opRrvwVs
-# dS0v6JxwhtQDs4Evf9qdEHqVpuBTlFS3vD4uUIYR7YrbXQZsiNC7HA1js40XtlOo
-# dxxb1GyBsztRGhbErOcw34JtwWW3ErtpbEmNkAgPjCtu7qgsFM2AMJoBUc/8RepT
-# oGgXTxSAv90PtzRyH4H/6l893hyJzO1uZflHz56fkInnCb4gnk8snieRLWHh5QeV
-# ZGCq5aq9HXILKPC79puAQsBFCfHfZfTXGw/6M8OKsCbJEJCyzEzxj8ngG14lyDqt
-# uS39q3OuH91wkQM5mYztbHU9+PV0HkcRssugLZlIbCLKuaN0wPPLh/w0C7FbtqRA
-# sbn7E5hzGAu5yOxNtNyITe1U2LQsaxjML+gjLOcmd4ig5gh4TLHc/GdcguP4
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUwMTIwMzk1OFowLwYJKoZI
+# hvcNAQkEMSIEIML7TjDk+No9/vm2Ym+fl7ExWWrD0FtKNity+X6TRq/bMA0GCSqG
+# SIb3DQEBAQUABIICAEcMqsOnXcs40V2WHSX6y0ze/HiyndRPO1lIkfEXakXSk3km
+# D2EFUEqZ5uOkU4rvxNTYH5QZUkHU63u0zQ2EQFBGDRGdI4cHD3gVM6jHbkdeHfcJ
+# q0MUbZtu3n2Dn7HdDLkvUJ4BoxxvpPhB8lwo2/sy2J8yh1c/chPrhRe7q13cp41H
+# mm0ET5WiksUPNC9sfPvKmjmwGfcB2VbsIDak3FA2TniWHWwTigF/iJxoH+8FeYvp
+# e7enQW/T43MHObZ3bSk/SysU2oGgz8UTNMOXtQ9jefl5eE3nyxSm9WsVYBgkz6gP
+# zD67/yvTqMEk6cVg7P9C4q4Za+B88t73Tk8/4oWAIlHpkKolljg84pamEVetG5JD
+# agciNHBfiyJmDbA9kMzaj7wZ6wOsoOqN3qqwC0b/5fDYD0YkNUcTHewJzZa6zSyT
+# 9cW6UoNYgw3NbErEYy8/WIiVIRDlsJaq6NYZG55bU4r8TAccsJoIadSFpCHuSR7O
+# ne96A2syvKvjjtcI1NKFhSgEZ7oWFkkHsAQeLyECKR1QNeps2VNZeXzGSY3+MjSD
+# Akohgul0fuzLSxSWGKmf5tFQkoH/BO1LneiaMyYDf6tIvqux5dVP20bH51qc86NA
+# JoVqR0lbabeWXjRjQoHaJLdrW0Tb6Nb9uCRE73M8KxVPzaIgM7JdwM5NtJ6F
 # SIG # End signature block
