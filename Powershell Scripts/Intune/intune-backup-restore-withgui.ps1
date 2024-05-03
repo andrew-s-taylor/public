@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.3.3
+  Version:        6.3.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 01/05/2024
+  Updated: 03/05/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -73,6 +73,7 @@ Creates a log file in %Temp%
   Change: Added support for Git pagination
   Change: Added Driver Update profiles
   Change: Group creation fix
+  Change: Switched array so groups deploy first
 
 
   .EXAMPLE
@@ -80,7 +81,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.3.3
+.VERSION 6.3.4
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -6372,7 +6373,7 @@ Do
 While ($response.Count -gt 0)
 
     ##$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
-    $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"        
+    $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b") -and ($_.message -notmatch "\bdaily\b") -and ($_.message -notmatch "\bdrift\b") -and ($_.message -notmatch "\btemplate\b")} | Out-GridView -PassThru -Title "Select Backup to View"
     ForEach ($event in $events2) 
         {
     $eventsuri = $event.url
@@ -6428,7 +6429,7 @@ While ($response.Count -gt 0)
     While ($response.Count -gt 0)
     
         ##$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
-        $events2 = $events | Select-object message, web_url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View"
+        $events2 = $events | Select-Object message, web_url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b") -and ($_.message -notmatch "\bdaily\b") -and ($_.message -notmatch "\bdrift\b") -and ($_.message -notmatch "\btemplate\b")} | Out-GridView -PassThru -Title "Select Backup to View"
             ForEach ($event in $events2) 
             {
         $eventsuri = $event.web_url
@@ -6466,7 +6467,7 @@ While ($response.Count -gt 0)
         writelog "Finding Latest Backup Commit from Repo $reponame in $ownername DevOps"
 
         $events = Get-DevOpsCommits -repo $reponame -project $project -organization $ownername -token $token
-        $events2 = $events | Select-object comment, url| Where-Object {($_.comment -notmatch "\blog\b") -and ($_.comment -notmatch "\bdelete\b")} | Out-GridView -PassThru -Title "Select Backup to View" 
+        $events2 = $events | Select-object comment, url| Where-Object {($_.comment -notmatch "\blog\b") -and ($_.comment -notmatch "\bdelete\b") -and ($_.comment -notmatch "\bdaily\b") -and ($_.comment -notmatch "\bdrift\b") -and ($_.comment -notmatch "\btemplate\b")} | Out-GridView -PassThru -Title "Select Backup to View"
         ForEach ($event in $events2) 
         {
             $eventsuri = $event.url
@@ -6504,7 +6505,23 @@ $profilelist2 = $decodedbackup
 $oneormore = $profilelist2.Count
 write-host $oneormore
 if ($oneormore -gt 4) {
+        $firstarray = @()
+        $secondarray = @()
+        foreach ($loop in $profilelist2) {
+            $type = $loop.value[1]
+            if ($type -eq "https://graph.microsoft.com/beta/groups") {
+                $firstarray += $loop
+            }
+            else {
+                $secondarray += $loop
+            }
+        }
 
+        $joined = $firstarray + $secondarray
+
+        $fullist = $joined
+        $profilelist3 = $joined
+        $looplist = $profilelist3
 $fullist = $profilelist2
 $profilelist3 = $profilelist2
 $looplist = $profilelist3
@@ -6836,8 +6853,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB6un5ev47ncPjY
-# vsH5ucZPhJGNDRryZ9Uj8q0d6iDuZqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC2lPh75lPASWVP
+# PuQhS+DLXSZIEwbnXgnvSpWYsPpB76CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7019,33 +7036,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKLhq6F871DK4AgFG/IcC5oYP0VAck6UQxjv
-# q/SmpyRzMA0GCSqGSIb3DQEBAQUABIICAC6CnfoIls2OrXlzMkEF6jcA63sbUFzP
-# ds9lPwlhSCaarmDLYT8Y2vQUwHoIML4M8matreVbg/zY/pMUqvAQZIJZe4txpn0R
-# C0F5Hb5jr353O+xLjtJxLAU0PG23Xo2ewrRRD3jjDdRv5s+LEBXAKPRYJMwMqaih
-# A5k9tUjRZKjhlqVVCLtnDcbiCkWdzLfNiqNAvOTtOApOjKArlCEUYFEljsmFgoVq
-# 0SmJFbXFPSpLLsvZXxsn/S96ChznTXTcxR9KiosgGXXH96kHUCBWHX4nltm1kd5c
-# FSD3uCPjEmHMzCQXM89nA1kMwOQUNDJUUaaJsuAU4ihUp6sw3/sPoFiM6ENjPt7M
-# g8RYblk9BAFTpMJZ2SD3SEpYdl2RB9w5fTvQdmTBxdexGsBD9PdG88d3BxQv6UsX
-# pn7DgUufThEWYEuMhDP+6fx+PvI/tf8NraC9SNJl5lf8WDNNHqXhoYdiKDLogZXC
-# jhWnUvxGiFQrcmERNOqw6Vl7gCLXUq5MXVpLqVF9L9fUh+QpIcxaP8Y2lK0Kd1l4
-# eWB7iWTCVIt6bVqXPqGvyf7lgnmZfC69Ag4Q2rJL8faX4Z4Y6EdjfX0dZ7oN1jz+
-# t/bFIDbhqMhitNoMCW1HkrPwP2rhcuw98TF59aQrYTZW7MiFO6dLnAt4iGw/kxgx
-# xYME+bxoVzT4oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEILZn0Ccnpgg9h3vS3YJZRJQqfWmyBxj8tCZS
+# 18rPDVTLMA0GCSqGSIb3DQEBAQUABIICADkv2mn/BrUf0jSKL7vD7dzxP9z1H6Ox
+# fCSukFDjq3SF2CEEgXPhSnbY/37W4q/oAVWgnobdFR8tXUS0gKrEUaMlkCN6rJE9
+# b2bcisPaq3E/+E6F/2LF7DeQ67L1eY5rXdFVgqWFYkLwRRxX9nOTqGblXY7yk3Gy
+# cH6zZoPw4iyopDsONvxgaKGZgCbaBwsZs1Jd97GbERbRbQ40vKxpnoEeeZG+FpOC
+# aoGtYqKc5SWWAo/kGZd5qrx1565K3SheCpCBVOXHoA1SYSs+VHGN9rmJ0bfeirju
+# 4Gyn7L4jQOj37cEYJv9HsxC4ypbRmtlkUtZx3HGxHQA5AJUkT2lZ+z9gtJ+7DaQS
+# vJiLVuzGV7WS8FteUjSp9tG9S1kOXtacPBHcwyDtkGe8uqnP8vKB82mUMHOkkS9Y
+# DkCaQ3lfm+9nt6+YWK4mffPdXjgnH2yCIF26iqoZx1X5/qUSXPezUYmEbolNJ39H
+# Ars/u3Dj8QvKc8IbP4W+V2OaJ2N6Wvj3gqQOOryeM6TeuiPl5fpEpcddTZcksYXP
+# KPRWlfMWuBlBl/MQz7/Pw4SyfL++CXqzwiLD55/TxNgBiy9QZu+ybxgwsOmhfxqG
+# 5L4evxtDLgTe0fkiCEf26cAd/tRJ7w1ph2v9fMLTwi2EMpm9u+vaGqHLnY1U2WXq
+# YDsW4uvlGn6qoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUwMTIwMzk1OFowLwYJKoZI
-# hvcNAQkEMSIEIML7TjDk+No9/vm2Ym+fl7ExWWrD0FtKNity+X6TRq/bMA0GCSqG
-# SIb3DQEBAQUABIICAEcMqsOnXcs40V2WHSX6y0ze/HiyndRPO1lIkfEXakXSk3km
-# D2EFUEqZ5uOkU4rvxNTYH5QZUkHU63u0zQ2EQFBGDRGdI4cHD3gVM6jHbkdeHfcJ
-# q0MUbZtu3n2Dn7HdDLkvUJ4BoxxvpPhB8lwo2/sy2J8yh1c/chPrhRe7q13cp41H
-# mm0ET5WiksUPNC9sfPvKmjmwGfcB2VbsIDak3FA2TniWHWwTigF/iJxoH+8FeYvp
-# e7enQW/T43MHObZ3bSk/SysU2oGgz8UTNMOXtQ9jefl5eE3nyxSm9WsVYBgkz6gP
-# zD67/yvTqMEk6cVg7P9C4q4Za+B88t73Tk8/4oWAIlHpkKolljg84pamEVetG5JD
-# agciNHBfiyJmDbA9kMzaj7wZ6wOsoOqN3qqwC0b/5fDYD0YkNUcTHewJzZa6zSyT
-# 9cW6UoNYgw3NbErEYy8/WIiVIRDlsJaq6NYZG55bU4r8TAccsJoIadSFpCHuSR7O
-# ne96A2syvKvjjtcI1NKFhSgEZ7oWFkkHsAQeLyECKR1QNeps2VNZeXzGSY3+MjSD
-# Akohgul0fuzLSxSWGKmf5tFQkoH/BO1LneiaMyYDf6tIvqux5dVP20bH51qc86NA
-# JoVqR0lbabeWXjRjQoHaJLdrW0Tb6Nb9uCRE73M8KxVPzaIgM7JdwM5NtJ6F
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUwMzEwMzQ1N1owLwYJKoZI
+# hvcNAQkEMSIEILi6gsNsHN5ZBfmQi5748JtvPEX3xiDgqrdfcStcvIP3MA0GCSqG
+# SIb3DQEBAQUABIICAGPu9EMhajopyWYcsaQ/WQEQp4Obhe/e3JZOd6REvxVTTuto
+# fC86cqyaqLfy8P9+yfK+5ug2W2AvjXKmMAWdgGliq4US2sBaWjJS+tjUSAuwDtV+
+# 0ZmbhaJg/VVM0qgfcY533+5n3GTIFd0gVqSa2vxQQuYoGdqc7pWAP6jeRJG4uNcE
+# qZF+PtZBR75h5qZ/Ku67tHjRhz2ATIeZGzGBmzsW565/8i4nRZRvSra44mcToKDt
+# szixasHw+WgwIG1T3gOOL4YmWdwN7J4E8/Ci201D75Z7TaGCCydEzo5ABeRNsmGj
+# uB4D3LDP1b469+eRJpOFaTpwROLkr4KMKWrUwOvkno4CxK8lj+OoNMF5uHIikc89
+# w1paE8Ca+v0ZpT3ZNWYCxHJxnK9LBJ4RFBjHeK1cBncPvRrcJEFjLZREAwcgCbBr
+# qQbBR72cyfoJZZTYSC+2dcDTgyRggMyyLbjsNGH4jZLbFqNFTkPAhRYx5J1fO80V
+# Odu6hhB+oJhfq+zTkQL1oVX2GkmV9FiGKDD0tUAnkmjTqn8gLVXsqK5MTMcU+U99
+# Y2TLu3Zz3zCmZlNtdxw+y9PPXdiDrAfJ3P8XyzDDGUQ22GU1IXo1vrhIyFhdxjp7
+# gvgpFMgNQlNhzc61uIP/mnb2wjHQHvXSbJRxULMhlYlAlA+nn0ccGKbOYzU5
 # SIG # End signature block
