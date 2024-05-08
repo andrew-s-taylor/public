@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 2.3
+.VERSION 3.0
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates an Intune application from a Winget Manifest
 .GUID ebed646c-ee4a-418c-ac46-0a2af1925016
@@ -27,27 +27,35 @@ Winget YAML URL
 .OUTPUTS
 None
 .NOTES
-  Version:        2.3
+  Version:        3.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  12/11/2021
-  Modified Date:  30/10/2022
+  Modified Date:  08/05/2022
   Purpose/Change: Initial script development
   Change:   Switched AAD to Graph Module
-  
+  Change: Added app reg connection
+  Change: Added web hook ability
+  Change: Creates groups if they don't exist
+  Change: Switched to using content prep tool to lose Windows requirement
+
 .EXAMPLE
 N/A
 #>
-
-####################################################
-
-
 [CmdletBinding()]
 param (
     [Parameter()]
-    [String]
-    $yamlFile
+    [String]$yamlFile,
+    [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
+    ,
+    [string]$clientid #ClientID is the type of Azure AD App Reg ID
+    ,
+    [string]$clientsecret #ClientSecret is the type of Azure AD App Reg Secret
+    ,
+    [string]$email #Email for confirmation
+    ,
+    [object] $WebHookData #Webhook data for Azure Automation
 )
 
 ###############################################################################################################
@@ -65,23 +73,34 @@ else {
     }
     catch [Exception] {
         $_.message 
-        exit
     }
 }
 
 Write-Host "Installing Microsoft Graph modules if required (current user scope)"
 
 #Install MS Graph if not available
-if (Get-Module -ListAvailable -Name Microsoft.Graph) {
+if (Get-Module -ListAvailable -Name Microsoft.Graph.authentication) {
     Write-Host "Microsoft Graph Already Installed"
 } 
 else {
     try {
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Repository PSGallery -Force 
+        Install-Module -Name Microsoft.Graph.authentication -Scope CurrentUser -Repository PSGallery -Force 
     }
     catch [Exception] {
         $_.message 
-        exit
+    }
+}
+
+#Install MS Graph if not available
+if (Get-Module -ListAvailable -Name Microsoft.Graph.groups) {
+    Write-Host "Microsoft Graph Already Installed"
+} 
+else {
+    try {
+        Install-Module -Name Microsoft.Graph.groups -Scope CurrentUser -Repository PSGallery -Force 
+    }
+    catch [Exception] {
+        $_.message 
     }
 }
 
@@ -96,16 +115,47 @@ else {
     }
     catch [Exception] {
         $_.message 
-        exit
     }
 }
 
+if (Get-Module -ListAvailable -Name SvRooij.ContentPrep.Cmdlet ) {
+    Write-Host "ContentPrep Installed"
 
+} 
+else {
+
+        Install-Module -Name SvRooij.ContentPrep.Cmdlet  -Scope CurrentUser -Repository PSGallery -Force 
+    }
+
+
+#Importing Modules
+Import-Module -Name SvRooij.ContentPrep.Cmdlet
 
 #Importing Modules
 Import-Module powershell-yaml
 import-module IntuneWin32App 
-Import-Module microsoft.graph
+Import-Module microsoft.graph.authentication
+import-module microsoft.graph.groups
+
+
+###############################################################################################################
+######                                         Add functions                                             ######
+###############################################################################################################
+
+function checkforgroup() {
+
+    [cmdletbinding()]
+        
+    param
+    (
+        $groupname
+    )
+
+    $url = "https://graph.microsoft.com/beta/groups?`$filter=displayName eq '$groupname'"
+    $group = ((Invoke-MgGraphRequest -Uri $url -Method GET -OutputType PSObject -SkipHttpErrorCheck).value) | Sort-Object createdDateTime -Descending | Select-Object -First 1
+        return $group.id
+}
+
 Function Connect-ToGraph {
     <#
 .SYNOPSIS
@@ -180,16 +230,57 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
         }
     }
 }    
+
+
+
+###############################################################################################################
+######                                        Pre-Requisite Work                                         ######
+###############################################################################################################
+
+
+if ($WebHookData){
+
+    $bodyData = ConvertFrom-Json -InputObject $WebHookData.RequestBody
+    $tenant = ((($bodyData.tenant) | out-string).trim())
+    $clientid = ((($bodyData.clientid) | out-string).trim())
+    $clientsecret = ((($bodyData.clientsecret) | out-string).trim())
+    $yamlFile1 = ((($bodyData.yamlFile) | out-string).trim())
+    $email = ((($bodyData.email) | out-string).trim())
+    ##Convert $yamlFile1 from base64 and store in $yamlFile
+    $yamlFile = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($yamlFile1))
+
+    write-output $bodyData
+
+}
 #Get Creds and connect
 #Connect to Graph
-Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
+if ($clientid -and $clientsecret -and $tenant) {
 
+    Connect-ToGraph -Tenant $tenant -AppId $clientid -AppSecret $clientsecret
+    write-output "Graph Connection Established"
+    
+    }
+    else {
+    
+Connect-ToGraph -Scopes "RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
+write-output "Graph Connection Established"
+
+    }
 
 #Get Tenant ID
+write-output "Grabbing Tenant ID"
 $uri = "https://graph.microsoft.com/beta/organization"
 $tenantdetails = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
 $tenantid = $tenantdetails.id
-Connect-MSIntuneGraph -TenantID $tenantId
+write-output "Tenant ID is $tenantid"
+write-output "Connecting to App Module"
+if ($clientid -and $clientsecret -and $tenant) {
+Connect-MSIntuneGraph -TenantID $tenantId -ClientID $clientid -ClientSecret $clientsecret
+}
+else {
+    Connect-MSIntuneGraph -TenantID $tenantId 
+}
+write-output "Connected"
 
 ##Set Download Directory
 
@@ -203,6 +294,9 @@ $path2 = $random + "-"  + $date
 $path = $directory + "\" + $path2 + "\"
 new-item -ItemType Directory -Path $path
 
+
+
+
 $filename = $yamlFile.Substring($yamlFile.LastIndexOf("/") + 1)
 
 ##File Name
@@ -211,13 +305,14 @@ $templateFilePath = $path + $filename
 ###############################################################################################################
 ######                                          Download YAML                                            ######
 ###############################################################################################################
-
+write-output "Downloading YAML from $yamlFile"
 Invoke-WebRequest `
    -Uri $yamlFile `
    -OutFile $templateFilePath `
    -UseBasicParsing `
    -Headers @{"Cache-Control"="no-cache"}
 
+   write-output "YAML Downloaded, manipulating"
 [string[]]$fileContent = Get-Content $templateFilePath
 $content = ''
 foreach ($line in $fileContent) { $content = $content + "`n" + $line }
@@ -241,18 +336,21 @@ foreach ($tag in $tags) {
     }
 }
 
+write-output "Fields grabbed"
 $icon2 = $icon -split '='
 $iconpath = $icon2[1]
 $iconname = $iconpath.Substring($iconpath.LastIndexOf("/") + 1)
 $icondownload = $path + $iconname
 
-
+write-output "Downloading icon"
 ##Download Icon
 Invoke-WebRequest `
    -Uri $iconpath `
    -OutFile $icondownload `
    -UseBasicParsing `
    -Headers @{"Cache-Control"="no-cache"}
+
+   write-output "Icon Downloaded"
 
 $detection2 = $detection -split '='
 $detectionrule = $detection2[1]
@@ -272,16 +370,50 @@ $description = $obj.shortdescription
 $appversion = $obj.PackageVersion
 $infourl = $obj.PackageUrl
 
+write-output "Publisher is $publisher"
+write-output "App name is $name"
+write-output "App version is $appversion"
+    ##Strip spaces and special characters into $nameid
+    $nameid = $name -replace '[^a-zA-Z0-9]', ''
 
+$apppath = "$path\$nameid"
+new-item -Path $apppath -ItemType Directory -Force
+
+write-output "Checking for groups"
 $groupname1 = $name + "-INSTALL"
+    ##Check if groups exist
+    $installgrptest = checkforgroup -groupname $adgroupinstall
+    if ($installgrptest) {
+        write-output "Install group exists, continuing"
+        $installid = $installgrptest
+    }
+    else {
 #Create Install Group
+write-output "Install group does not exist, creating group"
 $installgroup = New-MgGroup -DisplayName $adgroupinstall -Description "Install group for $name" -SecurityEnabled -MailEnabled:$false -MailNickName "group" 
+$installid = $installgroup.id
+write-output "Install group created"
+    }
 
 $groupname2 = $name + "-UNINSTALL"
 #Create Uninstall Group
-$uninstallgroup = New-MgGroup -DisplayName $adgroupuninstall -Description "Uninstall group for $name" -SecurityEnabled -MailEnabled:$false -MailNickName "group" 
+$uninstallgrptest = checkforgroup -groupname $adgroupuninstall
+if ($uninstallgrptest) {
+    write-output "Uninstall group exists, continuing"
 
-$setupfile = "$path$name-Install.ps1"
+    $uninstallid = $uninstallgrptest
+}
+else {
+    write-output "Uninstall group does not exist, creating group"
+
+$uninstallgroup = New-MgGroup -DisplayName $adgroupuninstall -Description "Uninstall group for $name" -SecurityEnabled -MailEnabled:$false -MailNickName "group" 
+$uninstallid = $uninstallgroup.id
+write-output "Uninstall group created"
+
+}
+
+write-output "Creating Setup file"
+$setupfile = "$apppath\$name-Install.ps1"
 $setupfilename = "$name-Install.ps1"
 ##Create Install File
 Set-Content $setupfile @'
@@ -300,15 +432,27 @@ $filename = $filename2.Substring($filename2.LastIndexOf("/") + 1)
    Start-Process -NoNewWindow -FilePath $winget -ArgumentList "install --silent  --manifest $filename"
 
 '@
+write-output "File created"
 
+write-output "Creating Detection fule"
 $path4 = $detectionrule
 $fname = $path4.Substring($path4.LastIndexOf("\") + 1)
 $fpath = Split-Path -Path $path4
 
+write-output "Rule created"
+
+write-output "Creating intunewin"
+
     # Package as .intunewin file
-    $SourceFolder = $path
-    $OutputFolder = $path
-    New-IntuneWin32AppPackage -SourceFolder $SourceFolder -SetupFile $setupfilename -OutputFolder $OutputFolder -Verbose
+    #New-IntuneWin32AppPackage -SourceFolder $SourceFolder -SetupFile $setupfilename -OutputFolder $OutputFolder -Verbose
+    $intunewinpath = $path + "\install$nameid.intunewin"
+    New-IntuneWinPackage -SourcePath "$apppath" -SetupFile "$setupfilename" -DestinationPath "$path" 
+    Write-Host "Intunewin $intunewinpath Created"
+    $sleep = 10
+    foreach ($i in 0..$sleep) {
+        Write-Progress -Activity "Sleeping for $($sleep-$i) seconds" -PercentComplete ($i / $sleep * 100) -SecondsRemaining ($sleep - $i)
+        Start-Sleep -s 1
+    }
 
     $IntuneWinFile = Get-ChildItem -Path  $path | Where-Object Name -Like "*.intunewin"
     $IntuneWinFile.Name
@@ -319,33 +463,40 @@ $fpath = Split-Path -Path $path4
     # Create detection rule
     $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -Path "$fpath" -FileOrFolder $fname -Check32BitOn64System $false -DetectionType "exists"
 
+write-output "Created"
+
     # Add new EXE Win32 app
     $InstallationScriptFile = Get-ChildItem -Path $path | Where-Object Name -Like "*-Install.ps1"
     $InstallCommandLine = "powershell.exe -ExecutionPolicy Bypass -File .\$($InstallationScriptFile.Name)"
     $UninstallCommandLine = $uninstallcommand
     $ImageFile = $icondownload
     $Icon = New-IntuneWin32AppIcon -FilePath $ImageFile
-    Add-IntuneWin32App -FilePath $IntuneWinFile.FullName -DisplayName $DisplayName -Description $description -Publisher $publisher -AppVersion $appversion -InformationURL $infourl -Icon $Icon -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -InstallCommandLine $InstallCommandLine -UninstallCommandLine $UninstallCommandLine -Verbose
 
+    write-output "Adding app to Intune"
+    Add-IntuneWin32App -FilePath $IntuneWinFile.FullName -DisplayName $DisplayName -Description $description -Publisher $publisher -AppVersion $appversion -InformationURL $infourl -Icon $Icon -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -InstallCommandLine $InstallCommandLine -UninstallCommandLine $UninstallCommandLine -Verbose
+    write-output "App added"
 
     ##Assignments
-    $Win32App = Get-IntuneWin32App -DisplayName $DisplayName -Verbose
+    $Win32App = (Get-IntuneWin32App -DisplayName $DisplayName -Verbose)  | Sort-Object createdDateTime -Descending | Select-Object -First 1
+
+
 
     #Install
-$installid = $installgroup.Id
+    write-output "Assigning install group"
 Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $installid -Intent "available" -Notification "showAll" -Verbose
+write-output "Install group assigned"
 
 
 #Uninstall
-$uninstallid = $uninstallgroup.Id
+write-output "Assigning uninstall group"
 Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $uninstallid -Intent "uninstall" -Notification "showAll" -Verbose
-    
+write-output "Uninstall group assigned"
 
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCz5YLMPvsi72wf
-# +K5swfv2lKiHpuQUiE8GPkCeyLLmMaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBPhbAS3AWXPXoq
+# EBhhOSUfYQ2dMHY1D4X9SRaIHurrdKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -527,33 +678,33 @@ Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $uninstalli
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIB1o+gDTMzx6HIYYcw8SEAQAYi7gJyMsj8rM
-# uFpw1x15MA0GCSqGSIb3DQEBAQUABIICAD69QEkvgScib3RwFcpw4onPKOIXfbE/
-# YrKYCorePSBGYAnl6evbnlt4T/ez2LQejrFBotPArXvsyp59PMSg6ui+SPN/832q
-# OhKdM1ToPHpMdp/tzOcUz1uE38Rsh50vXm+acRRYuydUiN9udmuVi+0JGmks3xiE
-# FntrPQc9mVsaJNYcqsktJJcbf+GLv0NdiNU9iB+XuSRPz8gFb2FWfe1k9zlauU9Y
-# OwZjcij7GZfKqoO4jHTUfIj4XpY1Q8X+NHkGtSP/MT5c8ao9wRXriGaTKnEYB1Qg
-# abDvS+1G/ii7opu7cgCNYsVnPY9HehvtZbH8nrtUBuzieLd+/KwkN7PnrSi5B7hA
-# 2Klb7UHU4684zQV0STy249IiTSWYhLycgGFxwwQOEzR+sEgbBdu3BwaJW8S25YZU
-# DkuE1W4WhOOk11ua3by6lrrnUlxM1x0dM0jQM7KBr1VcXYSaSM5htG2uw3b8Ta4k
-# Shol6+LmalA/Y1YbgmiBInPOxCmGwoQj0GztA6eTiyU/lOj8hj8J80X49HsX+kzg
-# 4PU/D93IdX+485zA65CTrIg74d6lPYPgyfAgF16Tag69NppxvihQr61CogUiYMAB
-# orHQ9dLRi/Apl1rJliTdNxhgpJrjVl7iRQ1IdRHJKCspunlT/rv8qE0rIgQb1YrD
-# Zh4C2ysdqeJZoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBnhmSNMb9PXTfW96hac+yK/ORYgXvcHqGbG
+# q2Otpf9nMA0GCSqGSIb3DQEBAQUABIICAI0mo1OclpuKNWJb6+IspKT3HHQVOr09
+# RFh2ZkVcXIrJyPa+ftOAQUUnWobuENu0Ws6SzZYV/RxY0NrdKl4uUI2PgF0cnaAa
+# ohU02yqKu3A4lMek0zzlLt0usldCNKpaXlBtkAKLwmEPhHAPWL3nWIwpFULcfCYz
+# 21LzECptbpNM+GH6ghWzk3oZ4eo948Bxoxnfgo+507rO7hIJVZtyFk1xJg7plmcF
+# Y8ynmrhx9z/lPQO0u+s1wEUQ3YtqbaoF70G4NIiIBZQbiMYeqE20vLoSbhtL59He
+# AhlZiwjd1bRSg8HrSn8j7HbVF3moFS5n/yX0lQtC4n/g2yWIR7tQdUjXyyeDirgk
+# dmb34x8j/TIYk2jes3WUctAlQDIWtsqGZ5tWZ+Bjcw7IgimPAx0j7RSOgB3J8UOP
+# OkF4jzigq1msvt1dZwu3wmBRko5c3DkxtovFxnHZeZ6nlryH5hpYn0meH2aH+wHY
+# JYnNguGEUm8NDcFotHmOvnO5/UgnDTx6co6gikdsL+IOc2zlZbqF8x0myZ1XGRZ8
+# lJ3xu6AR0nlLYWY3s1N1eirCzgVKyaP1NxstO+KGS+9zlsrHZ6jjwib3bNZSo474
+# y48r53TSgDE2zR7SrxhTDBRe01z0ylDD/VvCO7c5RwuZekJZF2RSefmjNtGmJiDL
+# xgCQHfUIpRVloYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDU1NlowLwYJKoZI
-# hvcNAQkEMSIEIFXdXYqGDg1mIipgdvkjcYcEE33ZLdjIH3ZGOBq/bLsHMA0GCSqG
-# SIb3DQEBAQUABIICAIdCDh3rBl1GtIMMVhzGeNuYB3iqp2TchvOzVozldpWh7S9C
-# jjI2iA8py27VfynCdQ1ei2hZAFGBz5mmBvbqwEc/WHV4DAVgHBv0qsktC3EjpCNP
-# 6HaJc2gOerKjG1G/BpG25GNiakwirGSirAx7f5SxZMveiqUT1VXXniJkr+rgmdOw
-# b7XoYeN9fnjZ2j8zNGC18TVbjpFpMsiANWTEEBakH8qSFstub+2i7/NOoX/Mz+PK
-# rZcOaRSF01jI+SaCtmD2oGrJ0E/QnpPtNJ6S3mnXweIsW/8CLPYNF6nMU7rAvO/a
-# Lz4Y3Y+3GdXpXLEn8uLl8A+6ygh0HHQRBB/ew15UspyBhilxUv8ny/3VzyOTCagQ
-# kQ8k/uCYfUWU84r+nc42+QI+Kea22nBXopyUCzhNwURDv4kLKfaSBC9X5+1WgRHc
-# LWl1zE4xcpRvTY4yDDkNuwpAlX/F7hHFw+cSmqGL3pqTkoM6sz2k4NJfEyX5XPH7
-# 9xgk83TNjbWq34gG4RzgHuIa0yq9+stftNy2abRvitUk8xhTCbrehrgxEhFk38GT
-# kqVTS2yE/fqjjaJJbZfbQTMS4qi5T5xaoDTM/CUst01MG0BpZYnmfu6WPmIXQVix
-# W7DcInw7zyr6bhehWEviD6Q3nuCd/YmimH0B1gih6hZDuSByHAJ/PVxIAI+C
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUwODA4NDk1MFowLwYJKoZI
+# hvcNAQkEMSIEIM6nMqWM+MbPcEUp4sG79sy9n+fSengSg5QKAsPNiOLmMA0GCSqG
+# SIb3DQEBAQUABIICAGI+9zAvVci7FX82xEC8t9DucBGFkLj9oPG2tJFxn0lbZm+1
+# deYG6POsRgYZkZ4Ql7VdWTZYS9GU09WtOT0HrZoourPf+kxI2ujR6pgs9cZdi6BD
+# s6TYmCMj6mNQXOwyeYIZ03SwEfpFMyxezwHsCec0mkJyf2PpYVKLw88KAYHUGQ3I
+# bzcfmCkpuM+Kq2G1ThtyQTAOn2YUaQd1LQKWFlkkiQlEx3IJY2O1bAZ2/Tk8xXmp
+# GbRNm6OCk1OSRYvOkjM/oDHMu0/ms0LDadVCnqUC65LNM3DRY6UXK6XTbcGHHLKt
+# enUDqVx0O/zssbUBKXAdFEmEHgmipOGhX29p6/mj+jT7b+2DHydfx2QEPIVCPlED
+# c11ylJWlEsrwbuMr6qcbXXQN0ITMntqG+Wr7N+dVwxznifyTeT++I+FlZ/6rkfQX
+# MMrwdhRGwSHHnjbD81Q+ENuP9OtUq/cUVGgGMTS1Q1FLaf6nNXOUAYCejRhlH+ET
+# ifWVaEoiUKvUb56GOUG4uBTdAq6T5tzA5LRUG5AZ6ZBHvT84OpUL5xw+T/kQc+Tx
+# F9/wTaL0qW2OEdH8XQNwLkqh21uqMOdhbknPCBgZBS5k10W4n9H5kdnGotDeLTP4
+# swhM+ESbLW6LYsKdQZEvzFUTOzUgblLKUmcpxOYyyMFpL+WwhbFW3xuUV52T
 # SIG # End signature block
