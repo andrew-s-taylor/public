@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        6.3.4
+  Version:        7.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 03/05/2024
+  Updated: 10/05/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -74,6 +74,7 @@ Creates a log file in %Temp%
   Change: Added Driver Update profiles
   Change: Group creation fix
   Change: Switched array so groups deploy first
+  Change: Added live migration support for a tenant to tenant migration
 
 
   .EXAMPLE
@@ -81,7 +82,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 6.3.4
+.VERSION 7.0.0
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -104,7 +105,8 @@ N/A
     
 param
 (
-    [string]$type #Type can be "backup" or "restore"
+    [ValidateSet("backup", "restore", "livemigration")]
+    [string]$type #Type can be "backup", "restore" or "livemigration"
     ,  
     [string[]]$name #Item Name
     ,  
@@ -124,6 +126,8 @@ param
     , 
     [string]$tenant #Tenant ID (optional) for when automating and you want to use across tenants instead of hard-coded
     ,
+    [string]$secondtenant #Tenant ID for destination tenant(optional) for when automating and you want to use across tenants instead of hard-coded
+    ,
     [string]$clientid #ClientID is the type of Azure AD App Reg ID
     ,
     [string]$clientsecret #ClientSecret is the type of Azure AD App Reg Secret
@@ -135,6 +139,8 @@ param
     [string]$template #Used with backup, adds "template" to the filename, can be "yes" or "no"
     ,
     [string]$templatename #Used with backup, adds a name to the template
+    ,
+    [string]$rename #Adds "restored" to restored policies
     ,
     [object] $WebHookData #Webhook data for Azure Automation
 
@@ -162,6 +168,9 @@ $assignments = ((($bodyData.assignments) | out-string).trim())
 $groupcreate = ((($bodyData.groupcreate) | out-string).trim())
 $templatecheck  = ((($bodyData.template) | out-string).trim())
 $templatename  = ((($bodyData.templatename) | out-string).trim())
+$rename = ((($bodyData.rename) | out-string).trim())
+$secondtenant = ((($bodyData.secondtenant) | out-string).trim())
+
 
 $keycheck = ((($bodyData.webhooksecret) | out-string).trim())
 
@@ -234,7 +243,12 @@ if ($idcheck -eq $true) {
 ############################################################
 
 ## Change the below to "yes" if you want to change the name of the policies when restoring to Name - restore - date
-$changename = "yes"
+if ($rename -eq "yes") {
+    $changename -eq "yes"
+}
+else {
+$changename = "no"
+}
 
 ####### First check if running automated and bypass parameters to set variables below
 
@@ -477,7 +491,7 @@ writelog "Graph Connection Established"
 }
 else {
 ##Connect to Graph
-Select-MgProfile -Name Beta
+#Select-MgProfile -Name Beta
 Connect-ToGraph -Scopes "Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All"
 }
 
@@ -5473,7 +5487,7 @@ $pvalue.value = $EncodedText
 #################################                   BACKUP             #######################################
 ###############################################################################################################
 
-if ($type -eq "backup") {
+if (($type -eq "backup") -or ($type -eq "livemigration")) {
 
 
 
@@ -6231,6 +6245,7 @@ $profilesjson = $profiles | convertto-json -Depth 50
 ##Encode profiles to base64
 $profilesencoded =[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($profilesjson))
 
+if ($type -ne "livemigration") {
 
 if ($selected -eq "all") {
 $backupreason = "Automated Backup"
@@ -6311,7 +6326,7 @@ if ($repotype -eq "azuredevops") {
     Add-DevopsFile -repo $reponame -project $project -organization $ownername -filename $filename -filecontent $profilesjson -token $token -comment $backupreason
 
 }
-
+}
 
 }
 
@@ -6326,8 +6341,26 @@ if ($repotype -eq "azuredevops") {
 #########                                                   RESTORE                            ########################################
 #######################################################################################################################################
 
-if ($type -eq "restore") {
-##Grab the groups
+if (($type -eq "backup") -or ($type -eq "livemigration")) {
+
+if ($type -eq "livemigration") {
+    Disconnect-MgGraph
+    if ($secondtenant -and $clientsecret) {
+ 
+        Connect-ToGraph -Tenant $secondtenant -AppId $clientId -AppSecret $clientSecret
+        write-output "Graph Connection Established"
+        writelog "Graph Connection Established"
+        
+        }
+        else {
+        ##Connect to Graph
+        #Select-MgProfile -Name Beta
+        Connect-ToGraph -Scopes "Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All"
+        }
+        
+
+}
+    ##Grab the groups
 write-output "Grabbing Groups"
 writelog "Grabbing Groups"
 
@@ -6342,7 +6375,7 @@ $allfilters = getallfilters
 ###############################################################################################################
 ######                                          Get Commits                                              ######
 ###############################################################################################################
-
+if ($type -ne "livemigration") {
 if ($repotype -eq "github") {
 
     if ($WebHookData){
@@ -6484,7 +6517,7 @@ While ($response.Count -gt 0)
             $decodedbackup = $decodedbackup2.Substring(1)
             
     
-    
+}
     
     }
     
@@ -6492,7 +6525,10 @@ While ($response.Count -gt 0)
 ###############################################################################################################
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################
-
+if ($type -eq "livemigration") {
+    $profilelist2 = $profilesjson | ConvertFrom-Json
+}
+else {
 if ($repotype -eq "azuredevops") {
 $profilelist2 = $decodedbackup | ConvertFrom-Json
 }
@@ -6501,6 +6537,7 @@ if ($repotype -eq "gitlab") {
     }
 if ($repotype -eq "github") {
 $profilelist2 = $decodedbackup
+}
 }
 $oneormore = $profilelist2.Count
 write-host $oneormore
@@ -6538,7 +6575,9 @@ foreach ($profiletemp in $fullist) {
 }
 }
 else {
+
 $fulllist = $profilelist2.value
+
 $profilelist3 = $fulllist
 $looplist = $profilelist3 | Select-Object -First 1
 $profilelist = @()
@@ -6552,7 +6591,6 @@ $idtoname = @()
     }
 }
 
-
 if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
 
 
@@ -6563,7 +6601,8 @@ else {
     $temp = $profilelist | Out-GridView -Title "Select Object to Restore" -PassThru
 
 }
-if (($automated -eq "yes") -or ($WebHookData)) {
+if (($automated -eq "yes") -or ($WebHookData) -or ($assignments -eq "yes")) {
+
     ##Do nothing
     }
     else {
@@ -6853,8 +6892,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC2lPh75lPASWVP
-# PuQhS+DLXSZIEwbnXgnvSpWYsPpB76CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBAfEgjFfONkeXR
+# 1ymB762EJYGLK82aLY//Pcs60hddl6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7036,33 +7075,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEILZn0Ccnpgg9h3vS3YJZRJQqfWmyBxj8tCZS
-# 18rPDVTLMA0GCSqGSIb3DQEBAQUABIICADkv2mn/BrUf0jSKL7vD7dzxP9z1H6Ox
-# fCSukFDjq3SF2CEEgXPhSnbY/37W4q/oAVWgnobdFR8tXUS0gKrEUaMlkCN6rJE9
-# b2bcisPaq3E/+E6F/2LF7DeQ67L1eY5rXdFVgqWFYkLwRRxX9nOTqGblXY7yk3Gy
-# cH6zZoPw4iyopDsONvxgaKGZgCbaBwsZs1Jd97GbERbRbQ40vKxpnoEeeZG+FpOC
-# aoGtYqKc5SWWAo/kGZd5qrx1565K3SheCpCBVOXHoA1SYSs+VHGN9rmJ0bfeirju
-# 4Gyn7L4jQOj37cEYJv9HsxC4ypbRmtlkUtZx3HGxHQA5AJUkT2lZ+z9gtJ+7DaQS
-# vJiLVuzGV7WS8FteUjSp9tG9S1kOXtacPBHcwyDtkGe8uqnP8vKB82mUMHOkkS9Y
-# DkCaQ3lfm+9nt6+YWK4mffPdXjgnH2yCIF26iqoZx1X5/qUSXPezUYmEbolNJ39H
-# Ars/u3Dj8QvKc8IbP4W+V2OaJ2N6Wvj3gqQOOryeM6TeuiPl5fpEpcddTZcksYXP
-# KPRWlfMWuBlBl/MQz7/Pw4SyfL++CXqzwiLD55/TxNgBiy9QZu+ybxgwsOmhfxqG
-# 5L4evxtDLgTe0fkiCEf26cAd/tRJ7w1ph2v9fMLTwi2EMpm9u+vaGqHLnY1U2WXq
-# YDsW4uvlGn6qoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIO7ACaTudBFM8/LY3sNwChU7eGAxN838hnrb
+# sVI8BVbWMA0GCSqGSIb3DQEBAQUABIICAB0a5ISGhVDdybL4cmHnIirKcPTkCLUB
+# vQIT1AQUEB3teTcQfdUPHCb3ibhrcTj9kfyqw7S7EzsNyZxPnAzwbLbazrLzN8mg
+# UPRKz+KRIKHxJTo6ML1MG/QG1zy0WjPYE/22uQw+S2FLTIX48Ps5zwjSCQO4aQx9
+# mZbOAFZkkgLCLt3kGZjObOGai10LhqwKpKsf0pHcDLF7pPjyqfPaAVF81Lsg0VDz
+# p258wdl0iK57WIhEnvi016Yj4uFpfsJKykdduixDYnUEhnGikLy22O6O/nbIpTjK
+# 9eFI+C1zGwe1z3rK7G1gL7+O2M70dSzAEkRci9Mz/6f+p6kLScwl5YBMhqUsepl6
+# WVqMZcwzvfEvhBeM7/QYX2+ALCYrcOSLNl4N0ovbP+adUT4qbPyrynICBuU3nvkl
+# mVYaYgtkp+1ZC0rtUG7gkONPAX0ZSyHPUIIvnS2UohoG8aHSEAQjQ79F6BhSi765
+# zAxp4zNsbFyg2i4wcHULEd6v7lP9sjv/XNr3oAqtKC3811LJ03zsDUwHL539vQSI
+# vGwZ9vF82n3JJDgl5fPuOV5Gt1tJtQLTTWifDrhdQV6y2Lk04BfX1m/DpPREDIah
+# 6IUOM3dziDvj+zJIMVZHUgjN/7vugOYdLzuO5CwVXOrbaHe7ZKNAyTCnx2wg5T8n
+# R+P1KNaKKGDwoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUwMzEwMzQ1N1owLwYJKoZI
-# hvcNAQkEMSIEILi6gsNsHN5ZBfmQi5748JtvPEX3xiDgqrdfcStcvIP3MA0GCSqG
-# SIb3DQEBAQUABIICAGPu9EMhajopyWYcsaQ/WQEQp4Obhe/e3JZOd6REvxVTTuto
-# fC86cqyaqLfy8P9+yfK+5ug2W2AvjXKmMAWdgGliq4US2sBaWjJS+tjUSAuwDtV+
-# 0ZmbhaJg/VVM0qgfcY533+5n3GTIFd0gVqSa2vxQQuYoGdqc7pWAP6jeRJG4uNcE
-# qZF+PtZBR75h5qZ/Ku67tHjRhz2ATIeZGzGBmzsW565/8i4nRZRvSra44mcToKDt
-# szixasHw+WgwIG1T3gOOL4YmWdwN7J4E8/Ci201D75Z7TaGCCydEzo5ABeRNsmGj
-# uB4D3LDP1b469+eRJpOFaTpwROLkr4KMKWrUwOvkno4CxK8lj+OoNMF5uHIikc89
-# w1paE8Ca+v0ZpT3ZNWYCxHJxnK9LBJ4RFBjHeK1cBncPvRrcJEFjLZREAwcgCbBr
-# qQbBR72cyfoJZZTYSC+2dcDTgyRggMyyLbjsNGH4jZLbFqNFTkPAhRYx5J1fO80V
-# Odu6hhB+oJhfq+zTkQL1oVX2GkmV9FiGKDD0tUAnkmjTqn8gLVXsqK5MTMcU+U99
-# Y2TLu3Zz3zCmZlNtdxw+y9PPXdiDrAfJ3P8XyzDDGUQ22GU1IXo1vrhIyFhdxjp7
-# gvgpFMgNQlNhzc61uIP/mnb2wjHQHvXSbJRxULMhlYlAlA+nn0ccGKbOYzU5
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMDEwMzA0M1owLwYJKoZI
+# hvcNAQkEMSIEIDok8awnuyKJNFTfAlYEOr4eC/rAHQ7L4fmYQyS0LlgrMA0GCSqG
+# SIb3DQEBAQUABIICABMUmILcfGIoEXmGnvAmb1beRCMce+WgTlgi3YvTzXiyS05e
+# 9Re3jUK8wURix1/+ZPx6zaSZDwjBozloZzbt+TnvHsxU0cwvhGODBSnmokVX1N7L
+# l0s7U/6/5IVd/uexwnheuUQroB5Z507fDmgRkU0bSZ4Dw9wrBOH2ZCLFJ0sdaOO/
+# QgFcMc0jiqJWkBqADjg2vbKd72GfZwX1EwHi5o4CaGN0FleeSkWdiE3cHbKsFLGB
+# SVlhT30y0ONbol6T5eKy1wOJ6PXH+fWqLVnMWDauTU2SG0Tc3FQazy86/f4lXSEs
+# RCk92GpY6PT8JkXgeYRKe8PmUdmhlkgKDsX/8hZPYpody2EH25OHg1zVMOKUW71Y
+# GEyE2nSmcS+pnefH7j7dVYCQgybIrt+mOuPNizE7FpX6dEafXQeUjr918D4bhzAZ
+# boZJlFY2Td0VuqimhjBp25PN8jPSzohosu1itiswRty439m0+nQIkyWAbfUwxaAW
+# 5hhkgmpVzAy/n9TNES7kjw0i3ln/G7IfDEJiNKKbhOQxB9lxrf0DCM2VndNdI+4F
+# z6TG9LVYDB2olYJEV6OucPO+Cl19Ws2xM2YBm99Zn+761qHV4zmdEd+AGnvVK8I7
+# 2fTK1kg3ZPelpLb+t/K/dC7Y539DkKxq8HzRR4Gk3jbILqGTZUpfyvxOQfDH
 # SIG # End signature block
