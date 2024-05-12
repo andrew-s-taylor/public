@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        7.0.0
+  Version:        7.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 10/05/2024
+  Updated: 12/05/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -75,6 +75,7 @@ Creates a log file in %Temp%
   Change: Group creation fix
   Change: Switched array so groups deploy first
   Change: Added live migration support for a tenant to tenant migration
+  Change: Fixed bool issue on custom policies
 
 
   .EXAMPLE
@@ -82,7 +83,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 7.0.0
+.VERSION 7.0.2
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -4854,7 +4855,7 @@ function getpolicyjson() {
             }
             $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($unencoded))
             
-$pvalue.value = $EncodedText
+$pvalue.value = $unencoded
              }
              $policy.omaSettings = @($policyconvert)
             }
@@ -5182,7 +5183,10 @@ $pvalue.value = $EncodedText
         }
         else {
             $newname = $oldname
-        }        $policy.displayName = $newname
+        }        
+        $policy.displayName = $newname
+        $policy = $policy | Select-Object * -ExcludeProperty endOfSupportDate
+
 
         $assignments = Get-FeatureUpdatePoliciesAssignments -id $id
     }
@@ -5197,7 +5201,10 @@ $pvalue.value = $EncodedText
         }
         else {
             $newname = $oldname
-        }        $policy.displayName = $newname
+        }        
+        $policy.displayName = $newname
+        $policy = $policy | Select-Object * -ExcludeProperty qualityUpdateRelease
+
 
         $assignments = Get-QualityUpdatePoliciesAssignments -id $id
     }
@@ -6545,8 +6552,8 @@ if ($oneormore -gt 4) {
         $firstarray = @()
         $secondarray = @()
         foreach ($loop in $profilelist2) {
-            $type = $loop.value[1]
-            if ($type -eq "https://graph.microsoft.com/beta/groups") {
+            $type2 = $loop.value[1]
+            if ($type2 -eq "https://graph.microsoft.com/beta/groups") {
                 $firstarray += $loop
             }
             else {
@@ -6892,8 +6899,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBAfEgjFfONkeXR
-# 1ymB762EJYGLK82aLY//Pcs60hddl6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB26isI1SVrsyH1
+# crCgzbp94lQTPmmhUHoKKKsdVylA3KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7075,33 +7082,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIO7ACaTudBFM8/LY3sNwChU7eGAxN838hnrb
-# sVI8BVbWMA0GCSqGSIb3DQEBAQUABIICAB0a5ISGhVDdybL4cmHnIirKcPTkCLUB
-# vQIT1AQUEB3teTcQfdUPHCb3ibhrcTj9kfyqw7S7EzsNyZxPnAzwbLbazrLzN8mg
-# UPRKz+KRIKHxJTo6ML1MG/QG1zy0WjPYE/22uQw+S2FLTIX48Ps5zwjSCQO4aQx9
-# mZbOAFZkkgLCLt3kGZjObOGai10LhqwKpKsf0pHcDLF7pPjyqfPaAVF81Lsg0VDz
-# p258wdl0iK57WIhEnvi016Yj4uFpfsJKykdduixDYnUEhnGikLy22O6O/nbIpTjK
-# 9eFI+C1zGwe1z3rK7G1gL7+O2M70dSzAEkRci9Mz/6f+p6kLScwl5YBMhqUsepl6
-# WVqMZcwzvfEvhBeM7/QYX2+ALCYrcOSLNl4N0ovbP+adUT4qbPyrynICBuU3nvkl
-# mVYaYgtkp+1ZC0rtUG7gkONPAX0ZSyHPUIIvnS2UohoG8aHSEAQjQ79F6BhSi765
-# zAxp4zNsbFyg2i4wcHULEd6v7lP9sjv/XNr3oAqtKC3811LJ03zsDUwHL539vQSI
-# vGwZ9vF82n3JJDgl5fPuOV5Gt1tJtQLTTWifDrhdQV6y2Lk04BfX1m/DpPREDIah
-# 6IUOM3dziDvj+zJIMVZHUgjN/7vugOYdLzuO5CwVXOrbaHe7ZKNAyTCnx2wg5T8n
-# R+P1KNaKKGDwoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMAVmGtma4e6dzcr69Mbvbfti89i1E7PCmP0
+# VTsF3qfCMA0GCSqGSIb3DQEBAQUABIICAClhzNENbGHPZ7pPM6UxIS9Mu3XrlIoh
+# SyK0ewUC8+oUF/xdbsBTNY5o819ZwzJkVSKug8PzYTkEq9Co8TUWEdmBPwjYpkbk
+# VZ+2sHhWD6ry9Lf+A5vt4WBEzvMFm2tmhliL3oQzQYqDUNxpgcxzQ30WOTjwIJUl
+# PkVPVE2v1vNvKwwtISTeFcoAl/wGGq5TRdnWJLXMTPhpy28CGL4Ym9lf23Ornqui
+# tVu3LCjD0p/gfCU4aGJ0Ue6CtsxVs9EK75euD9cwUS2Z4eRS6bIlTo/8kCfWHN9y
+# e+vJPrHmdxZwuNj/OHZvfTW5wHYbf5VHHREocjO8m+QAO2FvWlhDK3ceYVnbg3X8
+# 10s+Jt91ZFolve50i3aRM5oZXa4xLB9sFJ2OS50cjasa8/FG3ryPfJE7Wt03tpoy
+# XV1TmzLh2PL6RAgpSe5VnyGkcQMPeJdAY/l5s2cTqTfHTVNo2BEvbTxk01Kme3RF
+# GfzMt+sOa0dCJ+Idv+sCY4LH7vFZJY0eVhwut82DYDLgKGgJvCsKtPyMbvRO9nLN
+# XjV7Wsq5RrBcYDTC2+ZV5TJ+UXsDHYhuuYfD7fz91sjLmdf4aIjeWJhcJyTwXPxI
+# vdLeiMb3Qg3y3gvJLMS+Qgwut2YM1CgwvkrXYBYiEWjieZ6HfmbTv4VemNUjAvef
+# 6TxwCepxr7HaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMDEwMzA0M1owLwYJKoZI
-# hvcNAQkEMSIEIDok8awnuyKJNFTfAlYEOr4eC/rAHQ7L4fmYQyS0LlgrMA0GCSqG
-# SIb3DQEBAQUABIICABMUmILcfGIoEXmGnvAmb1beRCMce+WgTlgi3YvTzXiyS05e
-# 9Re3jUK8wURix1/+ZPx6zaSZDwjBozloZzbt+TnvHsxU0cwvhGODBSnmokVX1N7L
-# l0s7U/6/5IVd/uexwnheuUQroB5Z507fDmgRkU0bSZ4Dw9wrBOH2ZCLFJ0sdaOO/
-# QgFcMc0jiqJWkBqADjg2vbKd72GfZwX1EwHi5o4CaGN0FleeSkWdiE3cHbKsFLGB
-# SVlhT30y0ONbol6T5eKy1wOJ6PXH+fWqLVnMWDauTU2SG0Tc3FQazy86/f4lXSEs
-# RCk92GpY6PT8JkXgeYRKe8PmUdmhlkgKDsX/8hZPYpody2EH25OHg1zVMOKUW71Y
-# GEyE2nSmcS+pnefH7j7dVYCQgybIrt+mOuPNizE7FpX6dEafXQeUjr918D4bhzAZ
-# boZJlFY2Td0VuqimhjBp25PN8jPSzohosu1itiswRty439m0+nQIkyWAbfUwxaAW
-# 5hhkgmpVzAy/n9TNES7kjw0i3ln/G7IfDEJiNKKbhOQxB9lxrf0DCM2VndNdI+4F
-# z6TG9LVYDB2olYJEV6OucPO+Cl19Ws2xM2YBm99Zn+761qHV4zmdEd+AGnvVK8I7
-# 2fTK1kg3ZPelpLb+t/K/dC7Y539DkKxq8HzRR4Gk3jbILqGTZUpfyvxOQfDH
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMjIwMTAyNVowLwYJKoZI
+# hvcNAQkEMSIEIGXvZ9epaKwkajnR9wXAvA+zsTodFfknHjH+ivGM93BAMA0GCSqG
+# SIb3DQEBAQUABIICADCTjElkHkfK7jTOaqCDPXbqypofVPlgyep5Bud5apWksaif
+# irsYGXNaXBzEPmyvuoCOs5v8Rv2Ahmf25t/jchY73Elr5ewks3XGtTdq8ZZrjx6+
+# 3OiGUggMyNHfmJ7iI1Gv03nx2K8LQ8RHlEZ/kUgKhN+WK1cFQvZY6jixPvs/SuPy
+# ubVoq+M3CUjYzPaW8FPV4NP6blH9Spuju8EMHKhmm9EM0NXU5ZOrKL8dYIqQfnxy
+# lc11N2GeJdAlC5CxxuXzSRGklKJDvgye39BYrBafdHvrPrNuWhuYusv/Q1aMFImT
+# +rfin2EgSqtYGTPjgoa7w53Sglhix0R+gJkE9A4uigJiZAytdKrFEay/qa7Qb6Dh
+# HvbSwvfRPPQ9AgnPwqPhSnNVcWrCyycg1Y1BnCSaFarrBZOg6rDnxIiWt3bSCmQg
+# FHtCuZ37S+wEPLKUEFpDVhdsgokJc18qfAnvrPTIVKhrnT02DQbganp4EfnVp73o
+# oyN5eEYWBDeG+YE8pXSNVrvgje1vRjsmSpgwwYJqVLLHa3kHGpZS5O54y0+7EfYc
+# 1Krlf0vWauSst0lYRhmxWMC88pYWkaZxkcW8N05qt2mnm9alvtMzbKDhs5daOmmi
+# kt5rt8d6jB72OSJYyCa5dHTAY9NHPPmELrcWJJ4qC6oBgvU4zZHsQ0DI/PUi
 # SIG # End signature block
