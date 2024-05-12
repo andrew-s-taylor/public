@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        7.0.2
+  Version:        7.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -76,14 +76,14 @@ Creates a log file in %Temp%
   Change: Switched array so groups deploy first
   Change: Added live migration support for a tenant to tenant migration
   Change: Fixed bool issue on custom policies
-
+  Change: Added automatic change of tenant ID within policies when using Live Migration
 
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 7.0.2
+.VERSION 7.0.4
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -5456,7 +5456,8 @@ $pvalue.value = $unencoded
         }
         else {
             $newname = $oldname
-        }        $policy.displayName = $newname
+        }        
+        $policy.displayName = $newname
 
         $assignments = "none"
     }
@@ -6533,6 +6534,8 @@ While ($response.Count -gt 0)
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################
 if ($type -eq "livemigration") {
+    ##Replace the ID of $tenant with that of $secondtenant in $profilelist2
+    $profilelist2 = $profilelist2 | ForEach-Object { $_ -replace $tenant, $secondtenant }
     $profilelist2 = $profilesjson | ConvertFrom-Json
 }
 else {
@@ -6675,9 +6678,17 @@ else {
                 write-output "Creating Conditional Access Policy"
                 writelog "Creating Conditional Access Policy"
                 $uri = "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
-                $oldname = $Policy.DisplayName
-                $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
-                $NewDisplayName = $oldname + "-restore-" + $restoredate        
+                if ($changename -eq "yes") {
+                    $policy.displayName = $newname
+                    $oldname = $Policy.DisplayName
+                    $restoredate = get-date -format dd-MM-yyyy-HH-mm-ss
+                    $NewDisplayName = $oldname + "-restore-" + $restoredate                 }
+                else {
+                    $policy.displayName = $newname
+                    $oldname = $Policy.DisplayName
+                    $NewDisplayName = $oldname
+                }        
+       
                 $Parameters = @{
                     displayName     = $NewDisplayName
                     state           = $policy.State
@@ -6899,8 +6910,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB26isI1SVrsyH1
-# crCgzbp94lQTPmmhUHoKKKsdVylA3KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCRVpTRj6rZEsSG
+# z38wo4Y8yB45bpOAIj9JEpkHoJKCT6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7082,33 +7093,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMAVmGtma4e6dzcr69Mbvbfti89i1E7PCmP0
-# VTsF3qfCMA0GCSqGSIb3DQEBAQUABIICAClhzNENbGHPZ7pPM6UxIS9Mu3XrlIoh
-# SyK0ewUC8+oUF/xdbsBTNY5o819ZwzJkVSKug8PzYTkEq9Co8TUWEdmBPwjYpkbk
-# VZ+2sHhWD6ry9Lf+A5vt4WBEzvMFm2tmhliL3oQzQYqDUNxpgcxzQ30WOTjwIJUl
-# PkVPVE2v1vNvKwwtISTeFcoAl/wGGq5TRdnWJLXMTPhpy28CGL4Ym9lf23Ornqui
-# tVu3LCjD0p/gfCU4aGJ0Ue6CtsxVs9EK75euD9cwUS2Z4eRS6bIlTo/8kCfWHN9y
-# e+vJPrHmdxZwuNj/OHZvfTW5wHYbf5VHHREocjO8m+QAO2FvWlhDK3ceYVnbg3X8
-# 10s+Jt91ZFolve50i3aRM5oZXa4xLB9sFJ2OS50cjasa8/FG3ryPfJE7Wt03tpoy
-# XV1TmzLh2PL6RAgpSe5VnyGkcQMPeJdAY/l5s2cTqTfHTVNo2BEvbTxk01Kme3RF
-# GfzMt+sOa0dCJ+Idv+sCY4LH7vFZJY0eVhwut82DYDLgKGgJvCsKtPyMbvRO9nLN
-# XjV7Wsq5RrBcYDTC2+ZV5TJ+UXsDHYhuuYfD7fz91sjLmdf4aIjeWJhcJyTwXPxI
-# vdLeiMb3Qg3y3gvJLMS+Qgwut2YM1CgwvkrXYBYiEWjieZ6HfmbTv4VemNUjAvef
-# 6TxwCepxr7HaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEILE6WWceXUpGmIpibpNt5Glw8HiVTb5H7vfu
+# 66RDMIr2MA0GCSqGSIb3DQEBAQUABIICAFV4//PUXFkFKPlmDpuRkskLxv/TzCQI
+# DGmLm60WWPyXs/5uUaLz0Pq8FpLiqpK/xvpqe6yTRGda5awkUkgjw5Z8Es6YpRQQ
+# HsmGivi8NxcY7SkilKpIXzjkZsaVJBlX1g41FJpJAHJ4/hEeCCrJHMFw3G2XEXWv
+# PnXA7e9xGCw1v0pU+WDSTPE8JVNB5RapkS8TVegu7M8PfrZsFb2YuAiqQWQFx77t
+# X9R7RwTXjlm2d2Fg/qbHIJUiw7ofS+swKTRimkcag+7/00deB+OjD/PYAZN015Z1
+# 8eARl43au11L2J+GVVguF5ri8yeSy3DYkPe5Mloax3hsG0XoR9WYGlVMhj2mowwg
+# ki8wCNpEKUVbTDW5ZVnyKLgMY13OgPGO9Kg3xTI7KCEEPLafFC2DBnmFa0Atfyej
+# FloomGJJgiplTJeRu8+ooeStv9eTot4TfPTsoyUns5koATxDIeRWZjBdb5N8Ezcu
+# /xI7EiqkVSAEoxkh+OoUCw83M6//acivwSrLPzBvGAR4M18sTSZf7Tza2Ap+jb7c
+# YwD50jlPgoBYOVzA/TbDtIOoY34Ez0o/LiZ5a3ZKdJ9emFI9irX+ogO9mYYupkdP
+# 4Ih3JFntywMe9Ozad2Am+cVtHBrIqyPU0XAsFRY9DUOFZqCYIV1VcfDWg7r1VWpn
+# 9/aPYjz1suvYoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMjIwMTAyNVowLwYJKoZI
-# hvcNAQkEMSIEIGXvZ9epaKwkajnR9wXAvA+zsTodFfknHjH+ivGM93BAMA0GCSqG
-# SIb3DQEBAQUABIICADCTjElkHkfK7jTOaqCDPXbqypofVPlgyep5Bud5apWksaif
-# irsYGXNaXBzEPmyvuoCOs5v8Rv2Ahmf25t/jchY73Elr5ewks3XGtTdq8ZZrjx6+
-# 3OiGUggMyNHfmJ7iI1Gv03nx2K8LQ8RHlEZ/kUgKhN+WK1cFQvZY6jixPvs/SuPy
-# ubVoq+M3CUjYzPaW8FPV4NP6blH9Spuju8EMHKhmm9EM0NXU5ZOrKL8dYIqQfnxy
-# lc11N2GeJdAlC5CxxuXzSRGklKJDvgye39BYrBafdHvrPrNuWhuYusv/Q1aMFImT
-# +rfin2EgSqtYGTPjgoa7w53Sglhix0R+gJkE9A4uigJiZAytdKrFEay/qa7Qb6Dh
-# HvbSwvfRPPQ9AgnPwqPhSnNVcWrCyycg1Y1BnCSaFarrBZOg6rDnxIiWt3bSCmQg
-# FHtCuZ37S+wEPLKUEFpDVhdsgokJc18qfAnvrPTIVKhrnT02DQbganp4EfnVp73o
-# oyN5eEYWBDeG+YE8pXSNVrvgje1vRjsmSpgwwYJqVLLHa3kHGpZS5O54y0+7EfYc
-# 1Krlf0vWauSst0lYRhmxWMC88pYWkaZxkcW8N05qt2mnm9alvtMzbKDhs5daOmmi
-# kt5rt8d6jB72OSJYyCa5dHTAY9NHPPmELrcWJJ4qC6oBgvU4zZHsQ0DI/PUi
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMjIxMjgyOVowLwYJKoZI
+# hvcNAQkEMSIEIApzs5MaCcwIfJFMJF55udbKN06dGTBJkXcBe2rjbrAWMA0GCSqG
+# SIb3DQEBAQUABIICAAwgeJ9GWYVuoOw7Lvf4QaJle+R0WFuqALCmpaPpKkRyVIPN
+# PalnvK6iS1uad9iTzb3PfkhGUkA+rwN20pJNl8nPJtMM1LLcSuRymAOB4LGYUvOa
+# XLjtK0W2Ckl7xOW+pQaQOQYIKklS5dnqAv39VuR0QlQuRWcQL0IHDiyPULDkvhV7
+# ZY258OlgVxiSpr4eypxjjawjy7PF2BRQlT/UQXSqDTczAG3PvrP0gntOVau1AL+9
+# XV0f6yAYENx+HhSoTiW6GQrA8NqGFGuaM9p6W1fb4vHNh5IV6yIaIl/2ux3zWl1z
+# TOEj7xRh/CqsHGJSqXnFPbzJ0cz9WgJEoyzdc16DzX7Rfsw1fQ4k8kn8Q0dQGYml
+# r426XKdYr+8pIydPV2AP4ruEO2kd25Dx0Mlb8l/CWBsSm1Aaw10jO5i4cZwkgjTB
+# wvzl8z5V1qd4vHJ7WICJXLgnelJopge4Px46gClTjQ1GGP0bGscGzd/l4mcoifjl
+# h99y2b5XhOZ+nffEwpz5cqv037lhMvf3UVVb5yxPE0B3SSYE8mF1cEJ8Mv39zbqL
+# NwZ61yG6L7VpN4jfkoRJ6aeqYfBUxv1Z5TW6dRkvBJb1tGfAoZNKM6qOYvnxVpwC
+# zTXYt9O9GpzYh4YPYSltD1GxHjkgv/X2rIoTo8gS9WM6cYbcz7SR/A+EEiOI
 # SIG # End signature block
