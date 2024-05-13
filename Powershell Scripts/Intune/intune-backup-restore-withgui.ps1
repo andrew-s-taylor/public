@@ -16,7 +16,7 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        7.0.5
+  Version:        7.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -85,7 +85,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 7.0.5
+.VERSION 7.0.6
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -6377,7 +6377,7 @@ if ($repotype -eq "azuredevops") {
 #########                                                   RESTORE                            ########################################
 #######################################################################################################################################
 
-if (($type -eq "backup") -or ($type -eq "livemigration")) {
+if (($type -eq "restore") -or ($type -eq "livemigration")) {
 
 if ($type -eq "livemigration") {
     Disconnect-MgGraph
@@ -6442,7 +6442,7 @@ Do
 While ($response.Count -gt 0)
 
     ##$events = (Invoke-RestMethod -Uri $uri -Method Get -Headers @{'Authorization'='bearer '+$token;}).commit
-    $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b") -and ($_.message -notmatch "\bdaily\b") -and ($_.message -notmatch "\bdrift\b") -and ($_.message -notmatch "\btemplate\b")} | Out-GridView -PassThru -Title "Select Backup to View"
+    $events2 = $events | Select-Object message, url | Where-Object {($_.message -notmatch "\blog\b") -and ($_.message -notmatch "\bdelete\b") -and ($_.message -notmatch "\bdaily\b") -and ($_.message -notmatch "\bdrift\b") -and ($_.message -notmatch "\bemplate\b")} | Out-GridView -PassThru -Title "Select Backup to View"
     ForEach ($event in $events2) 
         {
     $eventsuri = $event.url
@@ -6562,8 +6562,6 @@ While ($response.Count -gt 0)
 ######                                         GridView Policies within Backup                           ######
 ###############################################################################################################
 if ($type -eq "livemigration") {
-    ##Replace the ID of $tenant with that of $secondtenant in $profilelist2
-    $profilelist2 = $profilelist2 -replace $tenant, $secondtenant
     $profilelist2 = $profilesjson | ConvertFrom-Json
 }
 else {
@@ -6578,8 +6576,8 @@ $profilelist2 = $decodedbackup
 }
 }
 $oneormore = $profilelist2.Count
-write-host $oneormore
-if ($oneormore -gt 4) {
+write-output $oneormore
+if ($oneormore -gt 1) {
         $firstarray = @()
         $secondarray = @()
         foreach ($loop in $profilelist2) {
@@ -6698,11 +6696,14 @@ else {
             if ($tname -eq $profilevalue[2]) {
             $policyuri =  $profilevalue[1]
             $policyjson =  $profilevalue[0]
-            ##Check if $postedfilename contains template and if so, grab the first 16 characters of the filename
+            ##Check if $postedfilename contains template and if so, grab the first 36 characters of the filename
             if ($postedfilename -match "Template") {
-                $templatename = $postedfilename.Substring(0,16)
+                $templatename = $postedfilename.Substring(0,36)
             ##Replaced $templatename with $tenant in the $policyjson
             $policyjson = $policyjson -replace $templatename, $tenant
+            }
+            elseif ($type -eq "livemigration") {
+                $policyjson = $policyjson -replace $tenant, $secondtenant
             }
             else {
                 $templatename = "No Template"
@@ -6777,7 +6778,7 @@ else {
             }
         }
             catch {
-
+write-output "error restoring $tname"
             }
 
 
@@ -6948,8 +6949,8 @@ else {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAr5RA+b5fCVeZm
-# At8DphAAU9t8DpqrRtfa5ljopwszUqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDSrqcwfL+P5N7E
+# inTUJP6w8mllqkPn/Ui2xwK/a8bhLaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7131,33 +7132,33 @@ else {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEILEjs0SQnG4XpOnHbKwhjHL/bKY0Jhd2MUSt
-# 7wiOKizjMA0GCSqGSIb3DQEBAQUABIICAEnx3CL4CQTJBLhNWxLcM6zSkNjuf/uD
-# +iRuVILzpBEzVzGVUuPxI2eQU171Pr49+AhVqgqaLxozAE+KMgVNPBTc3gALA8I0
-# W6mmDslzLg+n7e+prGDxPB39BG/hFLsfp1I7dJnEilXWW2YrmHmVvVnzhWgaF7lx
-# rjBfp6m+ysnCj0V8KVtKd5OmRTAZAwjc3IgAuLTymJtslIImwiIyUDNV/j2nRyYG
-# PLZnaGVlf4kuu/6UTJ6hAUqv0p8LxJ+2Q6/O0Lohm+Au5mziLEjRWLcgG9jtKJle
-# cmZJ4EoO6jqTYJwnokNtS0ufyM/oAiFKX+LRBg8cDNXeuUp3Tjo1O0BTyMouFFsh
-# 4ssu1CaIswPOwjwh4UH3yT2CRlgujBCSR9wQMFX4o/4SxALCYyC59u2VirCv6bXp
-# iUTQpLlAJEvYgfCNvL1mhtleGMbSo0Tdyk9zrUKgogZsqe8gDL2OQm899Q4DHk2F
-# XqrNftWwFSREnDVfJKYAYNl26sW2viJ6bDEss01XVh2WoGXZkOb0dhCqf+Bs5o2d
-# NlOfPZuryMdnXm9G62Nt6iw5MO9RDWtbQ4b5f7KKyxvvy1XjXk3w8+ztm+sWGLT6
-# DlYcCYYThJ3A7AGV49vu8UzCHiETqJ/+6IZQ9Va1B6DXYaw3THfn5NL7eglABLB5
-# HXnfVS5MsO6XoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK7ZxoBceX2BkbtVbHa0HNjf+ubWrt2cr84E
+# R7P49WceMA0GCSqGSIb3DQEBAQUABIICAFGS2yD9lmjedfAA+uuSY0hNvqlzOiyt
+# ktMfvAOIEIkrChajmdZBXX5QYnXKYkdCn7dBVWM6g7q9o1cEdLWE/G3jxETaEcKA
+# J/+St+oNNiQfaIAUZCooIIdX+/DhO92HP6tTjQbxGc0N22T/eXS7p6Yjy6xB0Gbd
+# RjwLMykis4sXoKf+SRUVBsh74s8wR9mMTdQ5TnmwRE4twX8yytUy7YpinWIQ3+MF
+# 4wnS7294RUuU0+U2aI2XwCYi8gzSrbqB3FdDsqm1GFwXFIoZ6nLj1tDqqyfFTJ5U
+# v8xiBdT4UvwQOeA/9hJt3Fe7SJtMeQCMz1v4/R4H1hW8qfpssVy8sCyUfiuZwctq
+# eWP/5x29H5XAj4oDfctGWyKZnn9Sl8Wf3E+5I+qqkfGLsI3xWATIvfEIHwE//KDz
+# +yr6U1JlbXfYnhu1TDrcn5Y4UZ4jnxSfGANFwN6wROXlvKBxx/ex2xLlhBuYBbW6
+# GD8XJP5tVDGjEuCqUN8lIrL0mmtaNXeJyJjwiScOKfU/a+eNgZJBHKA46pZe00sj
+# JRn6WJ8ni/DNJDOy6T3+clOXzxCnOhfXDKd56q/rc9e/yjyLv6C++b4hfHqBbw6A
+# oAYjQaUZyqyiRbolaG1WUFBIRrS1WHIwscSAusY7hlsKOq0flkNcEC5beF0KX32r
+# TPb5LKjx9/XPoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMzE0NDgxM1owLwYJKoZI
-# hvcNAQkEMSIEIPQZW+Gv5lGXUCD4QHBFRw2KJLx5NGG3TTCHGGCWUO0HMA0GCSqG
-# SIb3DQEBAQUABIICACBflqnCr7XjTDKK6b5AWBpGnZLM2pZeR7vGISQkPTAva3Ye
-# pXkwo04Eo3y5klJGXOGVHJbVOF+5Xe8y3wVQrsPVeYyO0cEUZx8QZnJ8BsJazMCS
-# CkmPmtEUkYqvkGyhhogfpOFArHinHh/4yo+MMDLabdw718KhohvXaaMWIIUB+9a9
-# mXS2MoH0YMCk1BsbIW5lPwn5IlatOiynqfkeCdlCQHLR3lSX/95EzLnDZdQ+XtYm
-# rhbE1poDpukR/2kh+lfq9NvktVFvGn5dm1FRgnGVaizxyhdSAaJpZZYvrC8ECC9y
-# VGzwxgtlWnAWJ/2WhqBDjDYByzCOOGdysSEDLfgkMOBOTBwFdIc+BUq/PGarVEdW
-# Daksm4ppQUnjnfy4JSICrf868AjYHFSakcBFpjgCIRfV/1iajuzalDYtCMUqMAXJ
-# FRKAYLIw17ve4aJ39mxcuFyZ2zSSO2AHU87uLWMc1AREecaBNGCke3LwbJp1Jvvx
-# I5qIkoKVdNQIUobcdt0lpB8B2ooj+csYUukVX1hxkdzS5gjmNBxr+kzEjjt+KPJu
-# LQfjfD17aNOfUb+20US467HU/pm34Ujt6NVIItQAlpGjl+dGyJCHzT4Or5ujZxjA
-# xGXP0MnhUl9lzuQPf5qNXD1gpAipk3ApQc/htNeCQXYci1PzQBL06dWEpCzD
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMzE4MTEzOFowLwYJKoZI
+# hvcNAQkEMSIEIBOWrh/MfXwTh9IVns0BQzbSs/ivo714PaUCOJkA5+i7MA0GCSqG
+# SIb3DQEBAQUABIICAJNmnMnkLLRXNwEd09XIyZWx5OOBiEbExHIlipiDmKUkX8qj
+# NocjugxQeN8EQ7+gVNXuZ0YQxOpFW9l+V9LW8bDIyNArEtC/mvqo2TCDo67wRMmI
+# A6Fp4iZf8CCgAqQqBdQXh4jK/nXav8BPnVLTsfn1mE+dWVN1FhAPGC1d/l08VheH
+# Dclt5ZpTkG+3OqeO7XIRxKOYOprhZnz1EQR0/purGghj3A6CS6Iyscp2YuprI6GL
+# mTtlKsaQK9oEHPVmnzpn8pGcd/lMXtcheJtSL9l/VXdL3SHJDXu1RilaZNxHzEMh
+# CXsLWDXHppdQaw4bTxQcRrAOeyJnTuCVM4nt9Gm6im7W88D993yXoKyfmDZ+wwcD
+# +0il4OC9OFeRXt2gTnBMWvWp0Pf+/8QBHXJ1kX/HsHcf0uAf1SFuprpIU04VRbQ1
+# 6oyvuo9PNlw/HaQwl/FJYCW5Sc01SflXM31BkrYUubNgZf7Zbpt2r869OrV6vXhd
+# LtuasYu2rZOo+bZBSTxrBvzzKK67xx3atpndcgyb5vywmv9r/DoQ763c9W5iMUjn
+# pjtxPm2s2/i2Q5boHgnN7awRMxkq/RAddbqw446BpeGtWeQuAudaiKryj8EjvOxl
+# VBjYsBJVCjk6wNqB2xdbtwoK9deFi6Xczi9awfMESUwZRVfdDPZjPjtKt0FU
 # SIG # End signature block
