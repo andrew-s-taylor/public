@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.22
+  Version:        4.2.23
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -89,6 +89,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 24/04/2024 - Switched provisionedpackage and appxpackage arround
   Change 02/05/2024 - Fixed notlike to notin
   Change 03/05/2024 - Change $uninstallprograms
+  Change 19/05/2024 - Disabled feeds on Win11
 N/A
 #>
 
@@ -310,9 +311,9 @@ switch ($locale) {
     Microsoft.Windows.AssignedAccessLockApp|Microsoft.Windows.CapturePicker|Microsoft.Windows.CloudExperienceHost|Microsoft.Windows.ContentDeliveryManager|Microsoft.Windows.Cortana|Microsoft.Windows.NarratorQuickStart|`
     Microsoft.Windows.ParentalControls|Microsoft.Windows.PeopleExperienceHost|Microsoft.Windows.PinningConfirmationDialog|Microsoft.Windows.SecHealthUI|Microsoft.Windows.SecureAssessmentBrowser|Microsoft.Windows.ShellExperienceHost|`
     Microsoft.Windows.XGpuEjectDialog|Microsoft.XboxGameCallableUI|Windows.CBSPreview|windows.immersivecontrolpanel|Windows.PrintDialog|Microsoft.XboxGameCallableUI|Microsoft.VCLibs.140.00|Microsoft.Services.Store.Engagement|Microsoft.UI.Xaml.2.0|*Nvidia*'
+    Get-AppxProvisionedPackage -Online | Where-Object {$_.PackageName -NotMatch $WhitelistedApps -and $_.PackageName -NotMatch $NonRemovable} | Remove-AppxProvisionedPackage -Online
     Get-AppxPackage -AllUsers | Where-Object {$_.Name -NotMatch $WhitelistedApps -and $_.Name -NotMatch $NonRemovable} | Remove-AppxPackage
     Get-AppxPackage -allusers | Where-Object {$_.Name -NotMatch $WhitelistedApps -and $_.Name -NotMatch $NonRemovable} | Remove-AppxPackage
-    Get-AppxProvisionedPackage -Online | Where-Object {$_.PackageName -NotMatch $WhitelistedApps -and $_.PackageName -NotMatch $NonRemovable} | Remove-AppxProvisionedPackage -Online
 
 
 ##Remove bloat
@@ -404,6 +405,13 @@ if ($customwhitelist) {
     
 
     foreach ($Bloat in $Bloatware) {
+        
+        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
+            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
+            Write-Host "Removed provisioned package for $Bloat."
+        } else {
+            Write-Host "Provisioned package for $Bloat not found."
+        }
 
         if (Get-AppxPackage -Name $Bloat -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $Bloat | Remove-AppxPackage -AllUsers
@@ -412,12 +420,6 @@ if ($customwhitelist) {
             Write-Host "$Bloat not found."
         }
 
-        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
-            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
-            Write-Host "Removed provisioned package for $Bloat."
-        } else {
-            Write-Host "Provisioned package for $Bloat not found."
-        }
 
 
         
@@ -834,6 +836,16 @@ If (!(Test-Path $registryPath)) {
 }
 Set-ItemProperty $registryPath "ChatIcon" -Value 2
 write-host "Removed Teams Chat"
+
+
+##Disable Feeds
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Dsh"
+If (!(Test-Path $registryPath)) { 
+    New-Item $registryPath
+}
+Set-ItemProperty $registryPath "AllowNewsAndInterests" -Value 0
+write-host "Disabled Feeds"
+
 ############################################################################################################
 #                                           Windows Backup App                                             #
 #                                                                                                          #
@@ -2049,8 +2061,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCpjvA911avAJWT
-# LT4zT4jua4qCkKVhKt7tv31UVj1flKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB7ScpJckWvNXOz
+# bvvv9Nt/jPaU86+HICb2JWDtMnz7gaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2232,33 +2244,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFutjnaeQXBJdCvgcl6xYKSN8eCzlHjTDHsD
-# 2TWuBnDVMA0GCSqGSIb3DQEBAQUABIICAC9E8t3Hl1sS0Ppdg2KHNtf9hjdQIfqZ
-# rJmEYMLsVveFjl2sTXWAjSK9lK/bOEWLLLx75B6fMVg92EJfIW/zBMAJLCel2xiG
-# h2hDcVTK5b1QSHaA/SUZTU++qrV1fOkaO759HigHTkYtid0upHdlQQk7omDELbvu
-# ov0e4Am4jusiYxpR1Q5cpwDERMFPq+LqmSxadA/EuLC82/Nhv1HNY4ZEUfojuK5g
-# 9HbrvotqSr1bw5YKzl9Z+mH4wLcBSeHPNuIO20CwhQZeeI9a/nJTh0gQnylEeiI2
-# M4R1Fz1IYGV/HWVYPQGbGT/R3zO+4J2KAJGjubJztWX4byRs+/SOFauGzo+9G7WE
-# W3vOWL8fJ9caiurqLDqHhg2r6qu5GBaPrQV9DRCJiCl60bE1gsPSxDmLV8/7KfuK
-# +SDuCnDBxPQi5iE0edN6MynOBv7tmWlSlnCgQYxd18b96IK0wCsRQbkl2zh9iDpT
-# Nxa0kM5tt21n1bPLjXvbi0Pfm7lEIKO+pEoOA0Oe3qpwbsByXqlBvFkF6xfbC1xx
-# mVVXWK9I3L4RRexXmFFiI9j0VJcxd84vp3H70PT3AGZM9UIEMhjZknV0n0HAi4vZ
-# HzRlANAkorA4U2OD/1hPJSLg57KbsbeMxB+Y0ir8JWLWagkaThyQOzsxa0Scak4Z
-# B/ReTuOtSMKCoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBOxItkoHOWi9OWlI4Ay66syUTu5VGPor5cr
+# lX3ZH5hJMA0GCSqGSIb3DQEBAQUABIICAF51uAOykCIZ7A5GWRJ8GVpFZe04EZ81
+# ONevjJgzVC66M1laCQLmy5D7bubUt4gYF6mGGOvP9H43ONqFjU6lp4fDG0FTE43E
+# NQO95zc1fRCuKwQp/Z/kk0tXkZ8wy3ySJDazRWVRqgt+NU3eRXB8kPe7juadzM+z
+# x3VZBqcJ71a7K4B9V4sXrY8NBuT39gHVb3VlRXuZtpugG4iyNXbquS4VmnO3aMxw
+# xmTS+dJ4vJAwnjeL2iI1HmiY26eGz/z/ms7WtNOXZygCt1sJmZlfUOe/e71ccUcp
+# 7rTa8p2RaGGlHVq/5zxZWPv6DeMA6i5alMifKXmkgnVnfKDJUCCswfmI/bJ2ENCf
+# qX9x1sSeypVgEu+9aNnTao7/9fkMP9wmAM2XEG6AwsMJ6hb8DO/hcMRTThUlVOWa
+# QWYrpIScog+5DwelmRjmf5kobUJr2nDydUFX+Sfqoz+TRGG4kqsCCfLTPgLbcksS
+# zjrMlo+j2O3C0xoVKIO40xDGNaExeM9fYGhmmytHAA50YR7fziyDhViWdn6+kZdm
+# TxCbOhv1scbOOKr8WV5HkVOS7yI9lb4EbOVCBmsvm6a00BfZ363i3z6ruj9bodZC
+# xqnxa7lYASIjNpbUYanvk/ca5tXq990s3cUoIy7iDTWMwSuAn71zvNjV9btCpYg4
+# u+mWVuR/CxH9oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUwOTEwNTQxNlowLwYJKoZI
-# hvcNAQkEMSIEIAwD8ygj9H9dJAJ/nvocPEgUW51ay2LFG7VITtp5o8VfMA0GCSqG
-# SIb3DQEBAQUABIICAJfjO5RkIcrU/Rn7Z6FRkjA3GLfhcyuu1lRNHjytt0jIvPD5
-# VFPX5hJ4So1K7MqMblmO1MJEwKVNV7oQxwZUjwvXGrPsjxw6QMafk51IY3bT0V3O
-# juRBD7bLJ2s6/5zKnNMN36MIOTrRyguIeMuITzN49HRWTi4YgWpaFbOxC9ulWLvg
-# rQibxqUfB0KXqabfGURUtp+pQsxk31qj7TjvJnu7IWob46hxHjmCIhNWGSFziVd9
-# t8PkRQ+7FQxHTW+OJzzPjaxDsagheO7+f1IFRh8LP9feB5DIWo+a4jX7aKIKZQB4
-# lGrb+CNzu9tf009DfXbCYNYFeXp2quILsjy6gDWUAZwQwhMvJuNXBRoDR6zNWr6u
-# ll7Ja2RNfrQK4LKOO5qbwHYxntO3PXUIpto+o0w4Qs+Dr+G3a1fI1PwMv/mzJYWr
-# Nc4AvccbVm2U+/hWj8N9IzZLrzsBR2SDdyF/YPh/7d0Rt6iP+bfTi1kBV32fp7oh
-# nhzyxIQRXyNgirVBNo2SO0bXWAugq6Tc6rlOJ/UIZDKExQryH/mvXGDgRzze/jbT
-# uYcCx14EL/GpANzYeWl4NEQ5QoaxN4+a/uvFIcWosyciNtC8BHJ6qsG8/sGwBD4l
-# h88p9wZAnmPuhWvAk7m//hmIQGrUxP2v1eMnMfzl5KiYl88uik59xjMNng9T
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUyMDEyMjExOVowLwYJKoZI
+# hvcNAQkEMSIEIMZjSeLGVqZ6eqyKFLXTWCCjXLfthRKbpJv7MXjsoj93MA0GCSqG
+# SIb3DQEBAQUABIICAJuIu2OXrzY8luVcg1p/6OatnSuSeyNcUXY0Uarwc0SoTS7m
+# WxAQBmPyzp8pwotMLn8GWAjpRV+aGdZHGHiB561jO+xU0+dML8jW+kkX3sO/L/Bo
+# pgAv+hi8QuLdRHOAigcGtbJ/6J+6pmS+tuUr/yUAzoikzKdcRUll3KzdC9oJqMDd
+# Xyi+7a4MTBQYeatmH4cFjVTx3wk1mFLw3ir3pGDYvhPAVSyji9zDu4suOyugD9q5
+# qZs7jwRDTgSvQaIQfGgQAomWZZoWabCI2TjlqPsTtogpaEx9CKzMJvWQA8TwuBrC
+# LCnlDqZK143HSTt21w6FdAFTiczMEyNxNW30pAyUa2YhrqRZcX/ZRqEi0WWE+Y7Q
+# HOAvTRyftgf6H9u3Krlx89mhXupCRoflfOqDXCqes1fjizBJOSdkbm1PE1vRoqK/
+# /NapG8c84XGTl3g85EZrgSS4DN4mxSPlrupMqUSsoIdcioaqPINfM5pYnv7HbgYn
+# ARfTSCusdAFs6nIFVpB8l5nR/7gScE9F0a3LdOWLxSR/Gb8JkASsSobMoW7qH2zt
+# AIhhOrX5qtmszTQT+BnSuZEb+N5G63iQL+0qtxPv1wv7w3ucy4EWQeIbDKHqx982
+# J9als2kKwyAQ5XWBKTfTODRf48zwR7bYczZ/Yyo2jzapXqr1+sTKI27LQ4Xt
 # SIG # End signature block
