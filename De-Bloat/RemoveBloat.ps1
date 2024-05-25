@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.24
+  Version:        4.2.25
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -91,6 +91,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 03/05/2024 - Change $uninstallprograms
   Change 19/05/2024 - Disabled feeds on Win11
   Change 21/05/2024 - Added QuickAssist to removal after security issues
+  Change 25/05/2024 - Whitelist array fix
 N/A
 #>
 
@@ -296,25 +297,87 @@ switch ($locale) {
 ############################################################################################################
 
     #Removes AppxPackages
-    $WhitelistedApps = 'Microsoft.WindowsNotepad|Microsoft.CompanyPortal|Microsoft.ScreenSketch|Microsoft.Paint3D|Microsoft.WindowsCalculator|Microsoft.WindowsStore|Microsoft.Windows.Photos|CanonicalGroupLimited.UbuntuonWindows|`
-    |Microsoft.MicrosoftStickyNotes|Microsoft.MSPaint|Microsoft.WindowsCamera|.NET|Framework|`
-    Microsoft.HEIFImageExtension|Microsoft.ScreenSketch|Microsoft.StorePurchaseApp|Microsoft.VP9VideoExtensions|Microsoft.WebMediaExtensions|Microsoft.WebpImageExtension|Microsoft.DesktopAppInstaller|WindSynthBerry|MIDIBerry|Slack'
+    $WhitelistedApps = @(
+        'Microsoft.WindowsNotepad',
+        'Microsoft.CompanyPortal',
+        'Microsoft.ScreenSketch',
+        'Microsoft.Paint3D',
+        'Microsoft.WindowsCalculator',
+        'Microsoft.WindowsStore',
+        'Microsoft.Windows.Photos',
+        'CanonicalGroupLimited.UbuntuonWindows',
+        'Microsoft.MicrosoftStickyNotes',
+        'Microsoft.MSPaint',
+        'Microsoft.WindowsCamera',
+        '.NET',
+        'Framework',
+        'Microsoft.HEIFImageExtension',
+        'Microsoft.ScreenSketch',
+        'Microsoft.StorePurchaseApp',
+        'Microsoft.VP9VideoExtensions',
+        'Microsoft.WebMediaExtensions',
+        'Microsoft.WebpImageExtension',
+        'Microsoft.DesktopAppInstaller',
+        'WindSynthBerry',
+        'MIDIBerry',
+        'Slack'
+    )
     ##If $customwhitelist is set, split on the comma and add to whitelist
     if ($customwhitelist) {
         $customWhitelistApps = $customwhitelist -split ","
-        $WhitelistedApps += "|"
-        $WhitelistedApps += $customWhitelistApps -join "|"
+        foreach ($whitelistapp in $customwhitelistapps) {
+            ##Add to the array
+            $WhitelistedApps += $whitelistapp
+        }
     }
     
     #NonRemovable Apps that where getting attempted and the system would reject the uninstall, speeds up debloat and prevents 'initalizing' overlay when removing apps
-    $NonRemovable = '1527c705-839a-4832-9118-54d4Bd6a0c89|c5e2524a-ea46-4f67-841f-6a9465d9d515|E2A4F912-2574-4A75-9BB0-0D023378592B|F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE|InputApp|Microsoft.AAD.BrokerPlugin|Microsoft.AccountsControl|`
-    Microsoft.BioEnrollment|Microsoft.CredDialogHost|Microsoft.ECApp|Microsoft.LockApp|Microsoft.MicrosoftEdgeDevToolsClient|Microsoft.MicrosoftEdge|Microsoft.PPIProjection|Microsoft.Win32WebViewHost|Microsoft.Windows.Apprep.ChxApp|`
-    Microsoft.Windows.AssignedAccessLockApp|Microsoft.Windows.CapturePicker|Microsoft.Windows.CloudExperienceHost|Microsoft.Windows.ContentDeliveryManager|Microsoft.Windows.Cortana|Microsoft.Windows.NarratorQuickStart|`
-    Microsoft.Windows.ParentalControls|Microsoft.Windows.PeopleExperienceHost|Microsoft.Windows.PinningConfirmationDialog|Microsoft.Windows.SecHealthUI|Microsoft.Windows.SecureAssessmentBrowser|Microsoft.Windows.ShellExperienceHost|`
-    Microsoft.Windows.XGpuEjectDialog|Microsoft.XboxGameCallableUI|Windows.CBSPreview|windows.immersivecontrolpanel|Windows.PrintDialog|Microsoft.XboxGameCallableUI|Microsoft.VCLibs.140.00|Microsoft.Services.Store.Engagement|Microsoft.UI.Xaml.2.0|*Nvidia*'
-    Get-AppxProvisionedPackage -Online | Where-Object {$_.PackageName -NotMatch $WhitelistedApps -and $_.PackageName -NotMatch $NonRemovable} | Remove-AppxProvisionedPackage -Online
-    Get-AppxPackage -AllUsers | Where-Object {$_.Name -NotMatch $WhitelistedApps -and $_.Name -NotMatch $NonRemovable} | Remove-AppxPackage
-    Get-AppxPackage -allusers | Where-Object {$_.Name -NotMatch $WhitelistedApps -and $_.Name -NotMatch $NonRemovable} | Remove-AppxPackage
+    $NonRemovable = @(
+        '1527c705-839a-4832-9118-54d4Bd6a0c89',
+        'c5e2524a-ea46-4f67-841f-6a9465d9d515',
+        'E2A4F912-2574-4A75-9BB0-0D023378592B',
+        'F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE',
+        'InputApp',
+        'Microsoft.AAD.BrokerPlugin',
+        'Microsoft.AccountsControl',
+        'Microsoft.BioEnrollment',
+        'Microsoft.CredDialogHost',
+        'Microsoft.ECApp',
+        'Microsoft.LockApp',
+        'Microsoft.MicrosoftEdgeDevToolsClient',
+        'Microsoft.MicrosoftEdge',
+        'Microsoft.PPIProjection',
+        'Microsoft.Win32WebViewHost',
+        'Microsoft.Windows.Apprep.ChxApp',
+        'Microsoft.Windows.AssignedAccessLockApp',
+        'Microsoft.Windows.CapturePicker',
+        'Microsoft.Windows.CloudExperienceHost',
+        'Microsoft.Windows.ContentDeliveryManager',
+        'Microsoft.Windows.Cortana',
+        'Microsoft.Windows.NarratorQuickStart',
+        'Microsoft.Windows.ParentalControls',
+        'Microsoft.Windows.PeopleExperienceHost',
+        'Microsoft.Windows.PinningConfirmationDialog',
+        'Microsoft.Windows.SecHealthUI',
+        'Microsoft.Windows.SecureAssessmentBrowser',
+        'Microsoft.Windows.ShellExperienceHost',
+        'Microsoft.Windows.XGpuEjectDialog',
+        'Microsoft.XboxGameCallableUI',
+        'Windows.CBSPreview',
+        'windows.immersivecontrolpanel',
+        'Windows.PrintDialog',
+        'Microsoft.VCLibs.140.00',
+        'Microsoft.Services.Store.Engagement',
+        'Microsoft.UI.Xaml.2.0',
+        '*Nvidia*'
+    )
+
+    ##Combine the two arrays
+    $appstoignore = $WhitelistedApps += $NonRemovable
+
+
+    Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -notin $appstoignore} | Remove-AppxProvisionedPackage -Online
+    Get-AppxPackage -AllUsers | Where-Object {$_.Name -notin $appstoignore} | Remove-AppxPackage
 
 
 ##Remove bloat
@@ -1274,13 +1337,13 @@ $UninstallPrograms = @(
     }        
     }
 
-$UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistApps -notcontains $_}
+$UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistedApps -notcontains $_}
 
 $HPidentifier = "AD2F1837"
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or ($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notin $WhitelistedApps)}
+$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or (($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notin $WhitelistedApps))}
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "^$HPidentifier"))-and ($_.Name -notin $WhitelistedApps)}
+$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or (($_.Name -like "^$HPidentifier"))-and ($_.Name -notin $WhitelistedApps))}
 
 $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
 
@@ -1427,11 +1490,11 @@ $WhitelistedApps = @(
     }        
     }
 
-    $UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistApps -notcontains $_}
+    $UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistedApps -notcontains $_}
 
-    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or ($_.DisplayName -like "*Dell"))-and ($_.DisplayName -notin $WhitelistedApps)}
+    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or (($_.DisplayName -like "*Dell")-and ($_.DisplayName -notin $WhitelistedApps)))}
 
-    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or ($_.Name -like "*Dell"))-and ($_.Name -notin $WhitelistedApps)}
+    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or (($_.Name -like "*Dell"))-and ($_.Name -notin $WhitelistedApps))}
     
     $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
     # Remove provisioned packages first
@@ -2063,8 +2126,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCqR4JEMFEsGiJP
-# KUa3/9l+In9EJJfVtsFpGIyfYv5h3aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDqDn54DXGsFZKv
+# temSBgiiBWSAHP9fBq+sHW1OgIPZJ6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2246,33 +2309,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMLJP9XVzkFbQz3hHxCgqXuT4sIMWD8KYnEy
-# yvz5JcI9MA0GCSqGSIb3DQEBAQUABIICAAlkkFu1CmlTI17LUc68MRqplveVZ/My
-# r1oueaQsIfZN+qIlBqGUF8RHpqdBrbI3DKiBx1lgiVi6c5BtEjg7S/WXoEiUXhNh
-# 4qu2NtQy18AKJY+AONI90Sw5LteTmC0CapY+ngxIfRhaw43RqA5yhR/rSYbJwJyk
-# jSOtTbdlyUcE1Od0Yze/XXfIbTdc+z0Z2Mw58FRasNBPCK/J2tIPY7YRlWb/gw3H
-# h20VXhoF6tooQeRhWCF81EQzOpdBU8NIsE+l22LTMlP/ouBurMjfSvqDJS56viU1
-# qk2U6gNlH6HQiiw0+7ixpp/S8XLPbEF+BbhL+MffBh5M96F1mrr+qXJsH9jRlwp0
-# xhOfqR5yBC64j9Io6h0ngbj5lI6f2Qdro9w6Vq36LDMHEBXqHFylaBqF2jfX1xYc
-# Osrr1rULUnS4Fh5xuWljG6tSAs9JKzHRIOq/WBV83vSuW7UO53M3gRK7e7MotUNn
-# k8qermv6VYvAjDbxibPAP+z6P2ESOApf8mRLxN2olUx+JpON6yRloQR658ZnUhb1
-# C74u9/z5L2DZ0n2HiLMgzvEWEUa/XCMAUFaQCoNI+G3AwhltK2DIEtbzHm3m7VjA
-# OG/XRXJZjQtOCgK+2WyUsaepuexxPndkJxd+ErLBVeasHSyGKc6pF04gLnuPmFJx
-# Ub4KlHal6BicoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEID1SIllWmIfx5HlqE4Cprv037/InsEPGuoXC
+# tMwhUomEMA0GCSqGSIb3DQEBAQUABIICAIBsUxd5t/hKCeBxmguI1Y4etJ5Cyo0Z
+# 8qvLU745hyqdB4V+PMFPpInOwphle7PTHptpeP0mEiSEtRaDDb9DQWnUgKlAmuAL
+# fvKvNqgUjQrv87o5CE0/M53D2LIuyC0Y+gJxK7WdAP6ewBo9B2PhLSq2zasVmoR4
+# 8eg2XQCqeW9kErEH7NgUL9witVaZpABABl7LJdNJxGEvzc6RgOwNynP/nGGqDqBE
+# dE0XW3rD/Y7BnI52uqJZFoUaHmBN/WpbLufW5AMv0CKc7JwrADmuBjGbep2o7c+a
+# Zc1zFeT9EPUCPHUUGbASg1Sn5lAkKokr85S5wP0bOTMPzAG3Ra+VI5kXlLLTcfWo
+# IXsHSlUteg3QE7q6yt3XC3XO/cEHek+2wmTdF20gHDeX4Xx4YoOHQNrVyVA6Do6w
+# buIdMp7dfsRFfLP6RaAq345Ilzq3pi9zkA4dci0wQNksNeAGFLzdZrpI0tx/bowS
+# O9XCLfEu/GeeJMUXLgFtbItcKnuUxa16mNO+FWGfs2kiD+xV2PqYWcJdueQxAoLc
+# 1JOwS6QVqyZ/rYifSHSGjgBa3QDpjuvWfwJZTN0TS6vBS6hIJMx2Stv3jXDRHxVP
+# Eg+iBQCOiyGjGfKM5uT/uuJj/QhP614sFTsfAOHMCjmqF2B/0gNGp86O8J01DVVJ
+# AN7FmU0/sM4roYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUyMTE0MjQzM1owLwYJKoZI
-# hvcNAQkEMSIEIAbChDofFe5iAhmI8vdl0hglI4v3HfIUh7d9BRQvPbgcMA0GCSqG
-# SIb3DQEBAQUABIICAEOpjh/DeXWmORX/+pcSR9xukD7bSqLAo65FRJYZPkCE4gFw
-# gGE6bUQdWi0OV2/ZpgtBzZu3iBUCKvCTOjU+C/KamCfnKqerkI62kKnY4c068K83
-# V0FWlCO8Lg2q7XlfDDMrjguA7/WIb3j6P0IbE4JTrRyNzEgisEQqRhdy7Oc8YeCC
-# bbX4/UQYQCzVdnXu7t9h/FPi6jktStYCZVZ0Ua7k4FYIcWRhirk4MlhwtuCR6Cz8
-# B0nGRgVTn9c83wo3pOfzqZ0HJ6W4cRlVXV9yB8XoBQTCH3OVzxJeT+G6xR2brskQ
-# VZ+qdSbuAwgA6l4RifDXLTGrfxmz/SazqXRWBtUCqFvJB8lHw38VwdiUfkS3G+qj
-# A+3YpGy4ybeMt1yo8bC7rAUesZiX4gsFW2XwjWOyZ4TCCYX5uevdOf2Xo/niKA5b
-# 5RetWQOcoRPnlXAjJn8Wf1LiFxZw7ddK7AgBluKLtF72deeH8Bxri4r2RupW6xv6
-# +CrGikdSxsns6km+ZocI+3TSOzg6FU7Ryc5ft4fpAjFUl8ThXIFurD5uvRsJs/dj
-# ORrbhMshLisRJ3nIk6qTHBuw8oZk2Co6cokP3DgSRMdviRkn4twD/YSPc9q6HgLg
-# IfJX3ScGLTKYt8nxjGHd6lr8Kg14OPGVgfwPAVIyb8G38QGEIm4JktmjrJ60
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUyNTA5MjMzNVowLwYJKoZI
+# hvcNAQkEMSIEIBuA9e+VVBlC52g740pgh3szaUB0icIwnjjTzKeATsdgMA0GCSqG
+# SIb3DQEBAQUABIICAAfPMoVQXmaurV63v6ko+/Bp09RCoa0S1xMo6lePJ3E3XgQk
+# ALetKB1neVW/E/TCMoGw1UqiMkC/ENJlKY/kGA1ov4o48MApBBzEUpyaUNGwm7wT
+# Q2AFL7djQjgyRfTC4PcoD5saaxfFbP1SdYvKzxUy6hB5tRpzrobAW4PpemhA2hM1
+# 3iOu8ph891isg+f1ubbrERV83HVw0F6F7NnJHRn278Q8J4Z7mhtdbNMGB9LOoLLM
+# aiKllnpvlg1uwLHG7Gc8zAx7+1wem1UB2dsJCBRh4Z1P0bo182a49hseAhdMNdYv
+# F5clA89xN43/PCr5VXPP0fWBg0Ykkw7oUI+UREFgs38jfU/4BCOW4dx+m6qZgBCb
+# tlgpj3DIHmy2hCazgBB0COeZIu3r0U+THE+4OC0dvvuPiR4kJ13tgmNY22BABT5Q
+# FxB2adMqgR8xl6PgQ5TLumqxQO5c+F2L1qYUV8EDq3YR4dMh/jBA0yjtxK/AI4om
+# EvS2S5r1yQ9XdVNVUrMIujj4pBdDSkjw/H1vnI4AbI6kMzZaPYMzHdZpf0JMWzNB
+# iWpnmpCIqYUsXgi5sVY4URBLbvNZ7ROEnSDBOtq23IqDdyLfd//966SnZ0YAuSnY
+# nhPRH/qFPDzdAI7JU72aLPIEG5iQafiI4dxm5CyxH25FbAhOboFBDCiaURvA
 # SIG # End signature block
