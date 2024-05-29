@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.25
+  Version:        4.2.26
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -92,6 +92,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 19/05/2024 - Disabled feeds on Win11
   Change 21/05/2024 - Added QuickAssist to removal after security issues
   Change 25/05/2024 - Whitelist array fix
+  Change 29/05/2025 - Uninstall fix
 N/A
 #>
 
@@ -1372,30 +1373,28 @@ ForEach ($AppxPackage in $InstalledPackages) {
 }
 
 # Remove installed programs
-$InstalledPrograms | ForEach-Object {
+$allstring | ForEach-Object {
 
-    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
-    $uninstallcommand = $_.String
-
-    Try {
-        if ($uninstallcommand -match "^msiexec*") {
-            #Remove msiexec as we need to split for the uninstall
-            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
-            #Uninstall with string2 params
-            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+    if ($UninstallPrograms -contains $_.Name) {
+        $uninstallcommand = $_.String
+        try {
+            if ($uninstallcommand -match "^msiexec*") {
+                # Remove msiexec as we need to split for the uninstall
+                $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+                $uninstallcommand = $uninstallcommand + " /quiet /norestart"
+                $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
+                # Uninstall with string2 params
+                Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            } else {
+                # Exe installer, run straight path
+                $string2 = $uninstallcommand
+                Start-Process $string2
             }
-            else {
-            #Exe installer, run straight path
-            $string2 = $uninstallcommand
-            start-process $string2
-            }
-        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
-        #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
-        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+            Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+        } catch {
+            Write-Warning -Message "Failed to uninstall: [$($_.Name)]"
+        }
     }
-    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
-
-
 }
 
 ##Belt and braces, remove via CIM too
@@ -1496,9 +1495,8 @@ $WhitelistedApps = @(
 
     $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or (($_.Name -like "*Dell"))-and ($_.Name -notin $WhitelistedApps))}
     
-    $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
     # Remove provisioned packages first
-ForEach ($ProvPackage in $ProvisionedPackages) {
+    ForEach ($ProvPackage in $ProvisionedPackages) {
 
     Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
 
@@ -1535,33 +1533,32 @@ ForEach ($AppxPackage in $InstalledPackages) {
 
 
 $ExcludedPrograms = @("Dell Optimizer Core", "Dell SupportAssist Remediation", "Dell SupportAssist OS Recovery Plugin for Dell Update", "Dell Pair", "Dell Display Manager 2.0", "Dell Display Manager 2.1", "Dell Display Manager 2.2", "Dell Peripheral Manager")
-$InstalledPrograms2 = $InstalledPrograms | Where-Object { $ExcludedPrograms -notcontains $_.Name }
+$UninstallProgramswin32 = $UninstallPrograms | Where-Object{$ExcludedPrograms -notcontains $_}
+
 
 # Remove installed programs
-$InstalledPrograms2 | ForEach-Object {
+$allstring | ForEach-Object {
 
-    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
-    $uninstallcommand = $_.String
-
-    Try {
-        if ($uninstallcommand -match "^msiexec*") {
-            #Remove msiexec as we need to split for the uninstall
-            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
-            $uninstallcommand = $uninstallcommand + " /quiet /norestart"
-            $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
-            #Uninstall with string2 params
-            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+    if ($UninstallProgramswin32 -contains $_.Name) {
+        $uninstallcommand = $_.String
+        try {
+            if ($uninstallcommand -match "^msiexec*") {
+                # Remove msiexec as we need to split for the uninstall
+                $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+                $uninstallcommand = $uninstallcommand + " /quiet /norestart"
+                $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
+                # Uninstall with string2 params
+                Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            } else {
+                # Exe installer, run straight path
+                $string2 = $uninstallcommand
+                Start-Process $string2
             }
-            else {
-            #Exe installer, run straight path
-            $string2 = $uninstallcommand
-            start-process $string2
-            }
-        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode        
-        #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
-        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+            Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+        } catch {
+            Write-Warning -Message "Failed to uninstall: [$($_.Name)]"
+        }
     }
-    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
 }
 
 ##Belt and braces, remove via CIM too
@@ -1768,28 +1765,28 @@ if ($manufacturer -like "Lenovo") {
     
     
 # Remove installed programs
-$InstalledPrograms | ForEach-Object {
+$allstring | ForEach-Object {
 
-    Write-Host -Object "Attempting to uninstall: [$($_.Name)]..."
-    $uninstallcommand = $_.String
-
-    Try {
-        if ($uninstallcommand -match "^msiexec*") {
-            #Remove msiexec as we need to split for the uninstall
-            $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
-            #Uninstall with string2 params
-            Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+    if ($UninstallPrograms -contains $_.Name) {
+        $uninstallcommand = $_.String
+        try {
+            if ($uninstallcommand -match "^msiexec*") {
+                # Remove msiexec as we need to split for the uninstall
+                $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
+                $uninstallcommand = $uninstallcommand + " /quiet /norestart"
+                $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
+                # Uninstall with string2 params
+                Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
+            } else {
+                # Exe installer, run straight path
+                $string2 = $uninstallcommand
+                Start-Process $string2
             }
-            else {
-            #Exe installer, run straight path
-            $string2 = $uninstallcommand
-            start-process $string2
-            }
-        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
-        #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
-        Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+            Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
+        } catch {
+            Write-Warning -Message "Failed to uninstall: [$($_.Name)]"
+        }
     }
-    Catch {Write-Warning -Message "Failed to uninstall: [$($_.Name)]"}
 }
 
 ##Belt and braces, remove via CIM too
@@ -2126,8 +2123,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDqDn54DXGsFZKv
-# temSBgiiBWSAHP9fBq+sHW1OgIPZJ6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB+gayKzwdXqlsZ
+# iLQbpT/yvqKEiiv86DxgoMGJUa+sdqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2309,33 +2306,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEID1SIllWmIfx5HlqE4Cprv037/InsEPGuoXC
-# tMwhUomEMA0GCSqGSIb3DQEBAQUABIICAIBsUxd5t/hKCeBxmguI1Y4etJ5Cyo0Z
-# 8qvLU745hyqdB4V+PMFPpInOwphle7PTHptpeP0mEiSEtRaDDb9DQWnUgKlAmuAL
-# fvKvNqgUjQrv87o5CE0/M53D2LIuyC0Y+gJxK7WdAP6ewBo9B2PhLSq2zasVmoR4
-# 8eg2XQCqeW9kErEH7NgUL9witVaZpABABl7LJdNJxGEvzc6RgOwNynP/nGGqDqBE
-# dE0XW3rD/Y7BnI52uqJZFoUaHmBN/WpbLufW5AMv0CKc7JwrADmuBjGbep2o7c+a
-# Zc1zFeT9EPUCPHUUGbASg1Sn5lAkKokr85S5wP0bOTMPzAG3Ra+VI5kXlLLTcfWo
-# IXsHSlUteg3QE7q6yt3XC3XO/cEHek+2wmTdF20gHDeX4Xx4YoOHQNrVyVA6Do6w
-# buIdMp7dfsRFfLP6RaAq345Ilzq3pi9zkA4dci0wQNksNeAGFLzdZrpI0tx/bowS
-# O9XCLfEu/GeeJMUXLgFtbItcKnuUxa16mNO+FWGfs2kiD+xV2PqYWcJdueQxAoLc
-# 1JOwS6QVqyZ/rYifSHSGjgBa3QDpjuvWfwJZTN0TS6vBS6hIJMx2Stv3jXDRHxVP
-# Eg+iBQCOiyGjGfKM5uT/uuJj/QhP614sFTsfAOHMCjmqF2B/0gNGp86O8J01DVVJ
-# AN7FmU0/sM4roYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJKtIOD/HwaITb5Y3EZDo4N93zrDqaXQGhgx
+# qEX1CJmRMA0GCSqGSIb3DQEBAQUABIICALLCo75U3/XpRZTBl94rGP6VttupHGMQ
+# MSraMl/anukBSHaMg03V85ZHJbrllX/ChOuAMOBEp+ejMt31Hv8bER0F5b6VLlPQ
+# xmGA77kDo0R4hrBFy062jqlY4RuBCwTe4NXDKzNikc6l8/aDpb45tH157h7aPu0U
+# jruZPesK0ONFl7Df8s7rQNHlygp2pIYMxzKHTNRfJU81IGVwsiuiK6StHIKqI5+s
+# LcMH2Nnp5rC4y/oa9owlC3gGXFIOYbAQzQslQ95vYBgNKhftX3feutYlCD1gWfqy
+# Lytf+vkj1fljzYvMnG7TZQDfGS9Yly9Lb4O9XRQS/q8HKhnbnGYCRMbnz+qQ0LaL
+# SmxciVI++hWK/EHj6Ih393VbZ1Hst65YGxY1vXLH0PFKKSd5E4frWC6DllMnvyxv
+# eHnFfYq+OLyQDslbOlsvcrqEK88m1kA1ERRvPbVyWKyf01hHfcr2VCjhMK6+aIWH
+# aicnMVI9vIhzNGtngdYB/EsSJ4d7aP+cA+pAdW9JYSOh8tN0/h36UdXmK2LdRKFr
+# VmwwrD1SRb0LlSzyqeIZR1ylmyDF5TQj0Kas1nUgH3Z3Z2aymhKfvRo24t1uDK7c
+# +rUuMqSX5T4jO8S5IvhQHCzUC/3DIBFV1uMcCYVjwnyljAuAG+pnSzlyKix7V7Yq
+# PjRuZBAimsEmoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUyNTA5MjMzNVowLwYJKoZI
-# hvcNAQkEMSIEIBuA9e+VVBlC52g740pgh3szaUB0icIwnjjTzKeATsdgMA0GCSqG
-# SIb3DQEBAQUABIICAAfPMoVQXmaurV63v6ko+/Bp09RCoa0S1xMo6lePJ3E3XgQk
-# ALetKB1neVW/E/TCMoGw1UqiMkC/ENJlKY/kGA1ov4o48MApBBzEUpyaUNGwm7wT
-# Q2AFL7djQjgyRfTC4PcoD5saaxfFbP1SdYvKzxUy6hB5tRpzrobAW4PpemhA2hM1
-# 3iOu8ph891isg+f1ubbrERV83HVw0F6F7NnJHRn278Q8J4Z7mhtdbNMGB9LOoLLM
-# aiKllnpvlg1uwLHG7Gc8zAx7+1wem1UB2dsJCBRh4Z1P0bo182a49hseAhdMNdYv
-# F5clA89xN43/PCr5VXPP0fWBg0Ykkw7oUI+UREFgs38jfU/4BCOW4dx+m6qZgBCb
-# tlgpj3DIHmy2hCazgBB0COeZIu3r0U+THE+4OC0dvvuPiR4kJ13tgmNY22BABT5Q
-# FxB2adMqgR8xl6PgQ5TLumqxQO5c+F2L1qYUV8EDq3YR4dMh/jBA0yjtxK/AI4om
-# EvS2S5r1yQ9XdVNVUrMIujj4pBdDSkjw/H1vnI4AbI6kMzZaPYMzHdZpf0JMWzNB
-# iWpnmpCIqYUsXgi5sVY4URBLbvNZ7ROEnSDBOtq23IqDdyLfd//966SnZ0YAuSnY
-# nhPRH/qFPDzdAI7JU72aLPIEG5iQafiI4dxm5CyxH25FbAhOboFBDCiaURvA
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUyOTIxMjgzNlowLwYJKoZI
+# hvcNAQkEMSIEIL+07HzeXJU8Q67rpLru6vkuRKp+VL7hr7Xk8aYkjv+jMA0GCSqG
+# SIb3DQEBAQUABIICAF/RF9CPYUWepFc/Sql2N9O/hMOcvF6SMNdOd5SH9vebgjhj
+# jqjbJyzPEtsJexZrhXvl+PVwbbzIcRLqnMY5Zy3yhK3DmJNOJHBuoUryAjzAdMOn
+# pjPuRFkCD1j5IB2wOOjvXgyCK2HTJfGiZqKeUJ3ZZob7AoJL07xUl8J4RbiBD+86
+# 26yYlfq3clsnquEbvjJomaUWDBni7bYoCSGqcNJQKlXH9OY06ym9d+b/Fm0u6yQq
+# VqZV09bS5VHAsgHqiWyeQhJexDeVIStzk5a3+x/xlN0MvaWnWVelZ7gy+HTSgOKT
+# Is+5a4QF+knOaF759f4lDSeT8LHLxArq048BV5zkWxjdo0u/SCLfrPpEmUEZ0u3l
+# skfe3vkqyMTp6pKDsRxgyB8QZxZ38mJza8nsvBjMjsPHTsk8wWn3FFYl+9b9G0eK
+# SGL9lD4/wvIO7rcCRvrHYK5vm3cvRo57x7sG+uRsMWeVYwrg/X/BN1lOSO1+zf+C
+# YDYs99T0AIJGns7yl96i3+3/QIJ0D403eK0A24nHhqX3K3Jaghg5OkXHEkmPe3Co
+# Qe4u8FjIeDwaI+1zyGF/SV7tc/r/lmh6uW9gDf0DZv633e+WtQsC83k2UVDWrtRw
+# MfVLmkEjdqY/v0P6cwW1Ke/Wem0x0Me4ujFHQNwh9/2cw8D6n3DTjyuaFiNK
 # SIG # End signature block
