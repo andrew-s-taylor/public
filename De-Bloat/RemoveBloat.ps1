@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        4.2.26
+  Version:        5.0.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -93,6 +93,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 21/05/2024 - Added QuickAssist to removal after security issues
   Change 25/05/2024 - Whitelist array fix
   Change 29/05/2025 - Uninstall fix
+  Change 31/05/2024 - Re-write for manufacturer bloat
 N/A
 #>
 
@@ -1325,77 +1326,59 @@ $UninstallPrograms = @(
 
 )
 
-
-    $WhitelistedApps = @(
+##Add HP whitelist
+    $WhitelistedApps += @(
 )
 
-##Add custom whitelist apps
-    ##If custom whitelist specified, remove from array
-    if ($customwhitelist) {
-        $customWhitelistApps = $customwhitelist -split ","
-    foreach ($customwhitelistapp in $customwhitelistapps) {
-        $WhitelistedApps += $customwhitelistapp
-    }        
-    }
 
 $UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistedApps -notcontains $_}
 
 $HPidentifier = "AD2F1837"
 
-$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or (($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notin $WhitelistedApps))}
+#$ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or (($_.DisplayName -like "*$HPidentifier"))-and ($_.DisplayName -notin $WhitelistedApps))}
 
-$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or (($_.Name -like "^$HPidentifier"))-and ($_.Name -notin $WhitelistedApps))}
+#$InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or (($_.Name -like "^$HPidentifier"))-and ($_.Name -notin $WhitelistedApps))}
 
 $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
-
-# Remove provisioned packages first
-ForEach ($ProvPackage in $ProvisionedPackages) {
-
-    Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
-
-    Try {
-        $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
-        Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
+foreach ($app in $UninstallPrograms) {
+        
+    if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
+        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
+        Write-Host "Removed provisioned package for $app."
+    } else {
+        Write-Host "Provisioned package for $app not found."
     }
-    Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
-}
 
-# Remove appx packages
-ForEach ($AppxPackage in $InstalledPackages) {
-                                            
-    Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
-
-    Try {
-        $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
-        Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+    if (Get-AppxPackage -Name $app -ErrorAction SilentlyContinue) {
+        Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
+        Write-Host "Removed $app."
+    } else {
+        Write-Host "$app not found."
     }
-    Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
-}
 
-# Remove installed programs
-$allstring | ForEach-Object {
+##Find the uninstall string from the registry
 
-    if ($UninstallPrograms -contains $_.Name) {
-        $uninstallcommand = $_.String
+$win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $app } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $win32) {
+    $uninstall = $sa.UninstallString
         try {
-            if ($uninstallcommand -match "^msiexec*") {
-                # Remove msiexec as we need to split for the uninstall
-                $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
-                $uninstallcommand = $uninstallcommand + " /quiet /norestart"
-                $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
-                # Uninstall with string2 params
-                Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
-            } else {
-                # Exe installer, run straight path
-                $string2 = $uninstallcommand
-                Start-Process $string2
-            }
-            Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
-        } catch {
-            Write-Warning -Message "Failed to uninstall: [$($_.Name)]"
+            write-host "Uninstalling $app"
+        cmd.exe /c $uninstall -silent
+        write-host "$app uninstalled"
         }
-    }
+        catch {
+            Write-Warning "Failed to $app"
+        }
+
 }
+    
+
+}
+
+
+
+
 
 ##Belt and braces, remove via CIM too
 foreach ($program in $UninstallPrograms) {
@@ -1474,95 +1457,63 @@ $UninstallPrograms = @(
 
 
 
-$WhitelistedApps = @(
+$WhitelistedApps += @(
     "WavesAudio.MaxxAudioProforDell2019"
     "Dell - Extension*"
     "Dell, Inc. - Firmware*"
+    "Dell Optimizer Core"
+    "Dell SupportAssist Remediation"
+    "Dell SupportAssist OS Recovery Plugin for Dell Update"
+    "Dell Pair"
+    "Dell Display Manager 2.0"
+    "Dell Display Manager 2.1"
+    "Dell Display Manager 2.2"
+    "Dell Peripheral Manager"
 )
 
-##Add custom whitelist apps
-    ##If custom whitelist specified, remove from array
-    if ($customwhitelist) {
-        $customWhitelistApps = $customwhitelist -split ","
-    foreach ($customwhitelistapp in $customwhitelistapps) {
-        $WhitelistedApps += $customwhitelistapp
-    }        
-    }
 
     $UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistedApps -notcontains $_}
 
-    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($UninstallPrograms -contains $_.DisplayName) -or (($_.DisplayName -like "*Dell")-and ($_.DisplayName -notin $WhitelistedApps)))}
 
-    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($UninstallPrograms -contains $_.Name) -or (($_.Name -like "*Dell"))-and ($_.Name -notin $WhitelistedApps))}
-    
-    # Remove provisioned packages first
-    ForEach ($ProvPackage in $ProvisionedPackages) {
-
-    Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
-
-    Try {
-        $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
-        Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
+foreach ($app in $UninstallPrograms) {
+        
+    if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
+        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
+        Write-Host "Removed provisioned package for $app."
+    } else {
+        Write-Host "Provisioned package for $app not found."
     }
-    Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
-}
 
-# Remove appx packages
-ForEach ($AppxPackage in $InstalledPackages) {
-                                            
-    Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
-
-    Try {
-        $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
-        Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
+    if (Get-AppxPackage -Name $app -ErrorAction SilentlyContinue) {
+        Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
+        Write-Host "Removed $app."
+    } else {
+        Write-Host "$app not found."
     }
-    Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
-}
 
-# Remove any bundled packages
-ForEach ($AppxPackage in $InstalledPackages) {
-                                            
-    Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
+##Find the uninstall string from the registry
 
-    Try {
-        $null = Get-AppxPackage -AllUsers -PackageTypeFilter Main, Bundle, Resource -Name $AppxPackage.Name | Remove-AppxPackage -AllUsers
-        Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
-    }
-    Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
-}
-
-
-$ExcludedPrograms = @("Dell Optimizer Core", "Dell SupportAssist Remediation", "Dell SupportAssist OS Recovery Plugin for Dell Update", "Dell Pair", "Dell Display Manager 2.0", "Dell Display Manager 2.1", "Dell Display Manager 2.2", "Dell Peripheral Manager")
-$UninstallProgramswin32 = $UninstallPrograms | Where-Object{$ExcludedPrograms -notcontains $_}
-
-
-# Remove installed programs
-$allstring | ForEach-Object {
-
-    if ($UninstallProgramswin32 -contains $_.Name) {
-        $uninstallcommand = $_.String
+$win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $app } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $win32) {
+    $uninstall = $sa.UninstallString
         try {
-            if ($uninstallcommand -match "^msiexec*") {
-                # Remove msiexec as we need to split for the uninstall
-                $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
-                $uninstallcommand = $uninstallcommand + " /quiet /norestart"
-                $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
-                # Uninstall with string2 params
-                Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
-            } else {
-                # Exe installer, run straight path
-                $string2 = $uninstallcommand
-                Start-Process $string2
-            }
-            Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
-        } catch {
-            Write-Warning -Message "Failed to uninstall: [$($_.Name)]"
+            write-host "Uninstalling $app"
+        cmd.exe /c $uninstall -silent
+        write-host "$app uninstalled"
         }
-    }
+        catch {
+            Write-Warning "Failed to $app"
+        }
+
+}
+    
+
 }
 
 ##Belt and braces, remove via CIM too
 foreach ($program in $UninstallPrograms) {
+    write-host "Removing $program"
     Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
     }
 
@@ -1722,72 +1673,46 @@ if ($manufacturer -like "Lenovo") {
         }
     
     
-    $ProvisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object {(($_.Name -in $UninstallPrograms))}
-
-    $InstalledPackages = Get-AppxPackage -AllUsers | Where-Object {(($_.Name -in $UninstallPrograms))}
         
     $InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms))}
-    # Remove provisioned packages first
-    ForEach ($ProvPackage in $ProvisionedPackages) {
-    
-        Write-Host -Object "Attempting to remove provisioned package: [$($ProvPackage.DisplayName)]..."
-    
-        Try {
-            $Null = Remove-AppxProvisionedPackage -PackageName $ProvPackage.PackageName -Online -ErrorAction Stop
-            Write-Host -Object "Successfully removed provisioned package: [$($ProvPackage.DisplayName)]"
-        }
-        Catch {Write-Warning -Message "Failed to remove provisioned package: [$($ProvPackage.DisplayName)]"}
-    }
-    
-    # Remove appx packages
-    ForEach ($AppxPackage in $InstalledPackages) {
-                                                
-        Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
-    
-        Try {
-            $Null = Remove-AppxPackage -Package $AppxPackage.PackageFullName -AllUsers -ErrorAction Stop
-            Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
-        }
-        Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
-    }
-    
-    # Remove any bundled packages
-    ForEach ($AppxPackage in $InstalledPackages) {
-                                                
-        Write-Host -Object "Attempting to remove Appx package: [$($AppxPackage.Name)]..."
-    
-        Try {
-            $null = Get-AppxPackage -AllUsers -PackageTypeFilter Main, Bundle, Resource -Name $AppxPackage.Name | Remove-AppxPackage -AllUsers
-            Write-Host -Object "Successfully removed Appx package: [$($AppxPackage.Name)]"
-        }
-        Catch {Write-Warning -Message "Failed to remove Appx package: [$($AppxPackage.Name)]"}
-    }
-    
-    
-# Remove installed programs
-$allstring | ForEach-Object {
 
-    if ($UninstallPrograms -contains $_.Name) {
-        $uninstallcommand = $_.String
-        try {
-            if ($uninstallcommand -match "^msiexec*") {
-                # Remove msiexec as we need to split for the uninstall
-                $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
-                $uninstallcommand = $uninstallcommand + " /quiet /norestart"
-                $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
-                # Uninstall with string2 params
-                Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
-            } else {
-                # Exe installer, run straight path
-                $string2 = $uninstallcommand
-                Start-Process $string2
-            }
-            Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
-        } catch {
-            Write-Warning -Message "Failed to uninstall: [$($_.Name)]"
-        }
+    
+foreach ($app in $UninstallPrograms) {
+        
+    if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
+        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
+        Write-Host "Removed provisioned package for $app."
+    } else {
+        Write-Host "Provisioned package for $app not found."
     }
+
+    if (Get-AppxPackage -Name $app -ErrorAction SilentlyContinue) {
+        Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
+        Write-Host "Removed $app."
+    } else {
+        Write-Host "$app not found."
+    }
+
+##Find the uninstall string from the registry
+
+$win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $app } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $win32) {
+    $uninstall = $sa.UninstallString
+        try {
+            write-host "Uninstalling $app"
+        cmd.exe /c $uninstall -silent
+        write-host "$app uninstalled"
+        }
+        catch {
+            Write-Warning "Failed to $app"
+        }
+
 }
+    
+
+}
+
 
 ##Belt and braces, remove via CIM too
 foreach ($program in $UninstallPrograms) {
@@ -2017,55 +1942,25 @@ $blacklistapps = @(
 
 )
 
- $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
- foreach($obj in $InstalledSoftware){
-     $name = $obj.DisplayName
-     if ($null -eq $name) {
-         $name = $obj.DisplayName_Localized
-     }
-      if (($blacklistapps -contains $name) -and ($null -ne $obj.UninstallString)) {
-         $uninstallcommand = $obj.UninstallString
-         write-host "Uninstalling $name"
-         if ($uninstallcommand -like "*msiexec*") {
-         $splitcommand = $uninstallcommand.Split("{")
-         $msicode = $splitcommand[1]
-         $uninstallapp = "msiexec.exe /X {$msicode /qn"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-         else {
-         $splitcommand = $uninstallcommand.Split("{")
-        
-         $uninstallapp = "$uninstallcommand /S"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-      }
 
-      }
+foreach ($blacklist in $blacklistapps) {
 
+    $win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $blacklist } | Select-Object -Property UninstallString
+ 
+ForEach ($sa in $win32) {
+    $uninstall = $sa.UninstallString
+        try {
+            write-host "Uninstalling $app"
+        cmd.exe /c $uninstall -silent
+        write-host "$app uninstalled"
+        }
+        catch {
+            Write-Warning "Failed to $app"
+        }
 
-      $InstalledSoftware32 = Get-ChildItem "HKLM:\Software\WOW6432NODE\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString, DisplayName_Localized
-      foreach($obj32 in $InstalledSoftware32){
-         $name32 = $obj32.DisplayName
-         if ($null -eq $name32) {
-             $name32 = $obj.DisplayName_Localized
-         }
-         if (($blacklistapps -contains $name32) -and ($null -ne $obj32.UninstallString)) {
-         $uninstallcommand32 = $obj.UninstallString
-         write-host "Uninstalling $name32"
-                 if ($uninstallcommand32 -like "*msiexec*") {
-         $splitcommand = $uninstallcommand32.Split("{")
-         $msicode = $splitcommand[1]
-         $uninstallapp = "msiexec.exe /X {$msicode /qn"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-         else {
-         $splitcommand = $uninstallcommand32.Split("{")
-        
-         $uninstallapp = "$uninstallcommand /S"
-         start-process "cmd.exe" -ArgumentList "/c $uninstallapp"
-         }
-     }
 }
+}
+
 
 ##Remove Chrome
 $chrome32path = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome"
@@ -2123,8 +2018,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB+gayKzwdXqlsZ
-# iLQbpT/yvqKEiiv86DxgoMGJUa+sdqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAelCbCMMdkfGDs
+# 721u1M0UkKpWWdn3BNg1e5xc/XxZuaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2306,33 +2201,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJKtIOD/HwaITb5Y3EZDo4N93zrDqaXQGhgx
-# qEX1CJmRMA0GCSqGSIb3DQEBAQUABIICALLCo75U3/XpRZTBl94rGP6VttupHGMQ
-# MSraMl/anukBSHaMg03V85ZHJbrllX/ChOuAMOBEp+ejMt31Hv8bER0F5b6VLlPQ
-# xmGA77kDo0R4hrBFy062jqlY4RuBCwTe4NXDKzNikc6l8/aDpb45tH157h7aPu0U
-# jruZPesK0ONFl7Df8s7rQNHlygp2pIYMxzKHTNRfJU81IGVwsiuiK6StHIKqI5+s
-# LcMH2Nnp5rC4y/oa9owlC3gGXFIOYbAQzQslQ95vYBgNKhftX3feutYlCD1gWfqy
-# Lytf+vkj1fljzYvMnG7TZQDfGS9Yly9Lb4O9XRQS/q8HKhnbnGYCRMbnz+qQ0LaL
-# SmxciVI++hWK/EHj6Ih393VbZ1Hst65YGxY1vXLH0PFKKSd5E4frWC6DllMnvyxv
-# eHnFfYq+OLyQDslbOlsvcrqEK88m1kA1ERRvPbVyWKyf01hHfcr2VCjhMK6+aIWH
-# aicnMVI9vIhzNGtngdYB/EsSJ4d7aP+cA+pAdW9JYSOh8tN0/h36UdXmK2LdRKFr
-# VmwwrD1SRb0LlSzyqeIZR1ylmyDF5TQj0Kas1nUgH3Z3Z2aymhKfvRo24t1uDK7c
-# +rUuMqSX5T4jO8S5IvhQHCzUC/3DIBFV1uMcCYVjwnyljAuAG+pnSzlyKix7V7Yq
-# PjRuZBAimsEmoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIIkA7nRSYyFmYFFlKft62g8m+aaG1GIyBqZn
+# WEF4rcmDMA0GCSqGSIb3DQEBAQUABIICADOC8uinGR1MX5q4lFdsCNJ0LloXKaF5
+# XRIXSVHXl2hJYATsum42HtjaCnVQZznyDol7BraRY6TZwGZf1AZR02d/NKt0lGWc
+# zzVOSBO5fYnUSQp7eGOlmxTnrKQ6gypJVBq6cx4vxV5Pbz6CW9ucu2vsq2OEJ+Ke
+# aVbvgzZEZwnYfj94K3sEtWAlXq84xZl7pyHyFrxpPygLY+FPzsmMuFR7ZE8lSd/O
+# BERKUusiMkYG0jeFa8diemYVHmnWbF11ZwL5qxOO6ouDbmuWkb2lPoXBxzFPK2OD
+# Cis6smhHGTtmtE2oWgqnRrJYcXsOcylsNwdvPpvBDnRXVyDYbTbAD9NMGXoVuO94
+# MBEdG/tBj2mBoSV6zxjTRFezdl9YCh4uv198RGxQ2c9hgk9Qa0CCSz5jt66FPB/Q
+# ncgLBFwVW+ZGkPlLf+WtqWl2c7i1ASrdc4a6iGR+Y0E30aN/WZ1lc+SKYaAJn8SE
+# O2qgIzntD8q9zvDbsxmV2CuF8rEx2DU0TA7+prUQd3GL54Zo9Ya3q3K16BFW3JDF
+# gr2DL0XPkeetHG43HzLeO0v5zwO/oWbcucguwEy5sizHEZXqMR21ur/nmlN24lra
+# /+XqpalzINQz9AxmsZXv9kqOeBrBiQeQp4xlOM6T2m971f0vqW9HWMOd8JlSqyHR
+# pzlpQs/eQxEaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUyOTIxMjgzNlowLwYJKoZI
-# hvcNAQkEMSIEIL+07HzeXJU8Q67rpLru6vkuRKp+VL7hr7Xk8aYkjv+jMA0GCSqG
-# SIb3DQEBAQUABIICAF/RF9CPYUWepFc/Sql2N9O/hMOcvF6SMNdOd5SH9vebgjhj
-# jqjbJyzPEtsJexZrhXvl+PVwbbzIcRLqnMY5Zy3yhK3DmJNOJHBuoUryAjzAdMOn
-# pjPuRFkCD1j5IB2wOOjvXgyCK2HTJfGiZqKeUJ3ZZob7AoJL07xUl8J4RbiBD+86
-# 26yYlfq3clsnquEbvjJomaUWDBni7bYoCSGqcNJQKlXH9OY06ym9d+b/Fm0u6yQq
-# VqZV09bS5VHAsgHqiWyeQhJexDeVIStzk5a3+x/xlN0MvaWnWVelZ7gy+HTSgOKT
-# Is+5a4QF+knOaF759f4lDSeT8LHLxArq048BV5zkWxjdo0u/SCLfrPpEmUEZ0u3l
-# skfe3vkqyMTp6pKDsRxgyB8QZxZ38mJza8nsvBjMjsPHTsk8wWn3FFYl+9b9G0eK
-# SGL9lD4/wvIO7rcCRvrHYK5vm3cvRo57x7sG+uRsMWeVYwrg/X/BN1lOSO1+zf+C
-# YDYs99T0AIJGns7yl96i3+3/QIJ0D403eK0A24nHhqX3K3Jaghg5OkXHEkmPe3Co
-# Qe4u8FjIeDwaI+1zyGF/SV7tc/r/lmh6uW9gDf0DZv633e+WtQsC83k2UVDWrtRw
-# MfVLmkEjdqY/v0P6cwW1Ke/Wem0x0Me4ujFHQNwh9/2cw8D6n3DTjyuaFiNK
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUzMTE5NTQ1M1owLwYJKoZI
+# hvcNAQkEMSIEIMeU63BqV/IMljrHAQkqen7z0srNggnSApucqwKtW8KNMA0GCSqG
+# SIb3DQEBAQUABIICAB0IeO4xXOywv5d7Cjm/u9r8ko4wgGVmbSBmDhdsjPI7rDwT
+# /Akdgi1BsY+X9GLfugh+w6EyE1BfAW7v+1eoQCF0CauPlgml/am4F1BkyfRbXMN2
+# /Yo+ZNVXGAXLWaE2yOagvZGa3xLqJkMsQ6C34dTYtp7hsT+Gc+Hrar5nCwOo2Xzr
+# K1q6NiwfjOs+tZJfU7Rh4dqPVGUMhVdVvEcCtuaYkaJIPCX0K6K8ATwlu3ihDOex
+# eUlY8qKl2ztsYTumBc8oOzw2jCzhMdxKb5lzyGNHmJZqyarqaX5klb0iwsrUWbbA
+# hEVDEIS3/mX0w4K1UgIKTpTwKDAyoM/TDmU0iZLllK9uGF6Zv0A3UkYz764hSp6V
+# aeMRkdg7Gd92wN36KeJDUl05HRN51czGjdewHI4gAGrU2fZOg1wKNTjnDe69GrQO
+# /h4ZDrtjYJgW3HfcdJuMPlGQsZym7OwYA4eKnt9Coa2+9Fo9LDu3QW7Xo52L41i0
+# o4UBCnURUOrS1RHjJeZ2nS7OQf/PHmFeJ5cGwcigbx1KrfvVFGpkvCyYTnokeSHk
+# 3OM+2szzoz18Sr1rDcYdScGh09avgQL/36ZQugROhGkXBSINAhdhiiwV88RDle0Q
+# vXLvnOdUPInSZ9C7UTurKUc2vQYJRnZdZM0gHuGBtESONuAPEO86rnzT0HmV
 # SIG # End signature block
