@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.0
+  Version:        5.0.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -94,6 +94,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 25/05/2024 - Whitelist array fix
   Change 29/05/2025 - Uninstall fix
   Change 31/05/2024 - Re-write for manufacturer bloat
+  Change 03/06/2024 - Added function for removing Win32 apps
+  Change 03/06/2024 - Added registry key to block "Tell me about this picture" icon
 N/A
 #>
 
@@ -378,8 +380,43 @@ switch ($locale) {
     $appstoignore = $WhitelistedApps += $NonRemovable
 
 
-    Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -notin $appstoignore} | Remove-AppxProvisionedPackage -Online
-    Get-AppxPackage -AllUsers | Where-Object {$_.Name -notin $appstoignore} | Remove-AppxPackage
+    $provisioned = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -notin $appstoignore}
+    foreach ($appxprov in $provisioned) {
+        $packagename = $appxprov.PackageName
+        $displayname = $appxprov.DisplayName
+        write-host "Removing $displayname AppX Provisioning Package"
+        try {
+            Remove-AppxProvisionedPackage -PackageName $packagename -Online
+        }
+        catch {
+            
+        }
+        write-host "Removed $displayname AppX Provisioning Package"
+    }
+
+
+    $appxinstalled = Get-AppxPackage -AllUsers | Where-Object {$_.Name -notin $appstoignore}
+    foreach ($appxapp in $appxinstalled) {
+        $packagename = $appxapp.PackageFullName
+        $displayname = $appxapp.Name
+        ##Check if exists first
+        if (Get-AppxPackage -Name $packagename -ErrorAction SilentlyContinue) {
+            write-host "$displayname AppX Package exists"
+            write-host "Removing $displayname AppX Package"
+            try {
+                Remove-AppxPackage -Package $packagename -AllUsers
+            }
+            catch {
+                
+            }
+            write-host "Removed $displayname AppX Package"
+        } else {
+            write-host "$displayname AppX Package does not exist"
+            # Skip the removal process
+        }
+
+    }
+    
 
 
 ##Remove bloat
@@ -793,6 +830,22 @@ else {
 
 ##Kill Cortana again
 Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage
+
+
+    #Turn off Learn about this picture
+    Write-Host "Disabling Learn about this picture"
+    $picture = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
+    If (Test-Path $picture) {
+        Set-ItemProperty $picture -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Value 1
+    }
+
+    ##Loop through users and do the same
+    foreach ($sid in $UserSIDs) {
+        $picture = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel"
+        If (Test-Path $picture) {
+            Set-ItemProperty $picture -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Value 1
+        }
+    }
     
 ############################################################################################################
 #                                        Remove Scheduled Tasks                                            #
@@ -1286,6 +1339,46 @@ $allstring += New-Object -TypeName PSObject -Property @{
 
 }
 
+
+function UninstallAppFull {
+
+    param (
+        [string]$appName
+    )
+
+    # Get a list of installed applications from Programs and Features
+    $installedApps = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+    HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+    Where-Object { $_.DisplayName -ne $null } |
+    Select-Object DisplayName, UninstallString
+
+    $userInstalledApps = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+        Where-Object { $_.DisplayName -ne $null } |
+        Select-Object DisplayName, UninstallString
+
+    $allInstalledApps = $installedApps + $userInstalledApps | Where-Object { $_.DisplayName -eq "$appName" }
+
+    # Loop through the list of installed applications and uninstall them
+
+    foreach ($app in $allInstalledApps) {
+        $uninstallString = $app.UninstallString
+        $displayName = $app.DisplayName
+        if ($uninstallString -match "^msiexec*") {
+            #MSI install, replace the I with an X and make it quiet
+            $string2 = $uninstallString + " /quiet /norestart"
+            $string2 = $uninstallString -replace "/I", "/X "
+            }
+            else {
+            #Exe installer, run straight path
+            $string2 = $uninstallString
+            }
+        Write-Host "Uninstalling: $displayName"
+        #Start-Process $string2
+        Write-Host "Uninstalled: $displayName" -ForegroundColor Green
+    }
+}
+
+
 ############################################################################################################
 #                                        Remove Manufacturer Bloat                                         #
 #                                                                                                          #
@@ -1356,22 +1449,7 @@ foreach ($app in $UninstallPrograms) {
         Write-Host "$app not found."
     }
 
-##Find the uninstall string from the registry
-
-$win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $app } | Select-Object -Property UninstallString
- 
-ForEach ($sa in $win32) {
-    $uninstall = $sa.UninstallString
-        try {
-            write-host "Uninstalling $app"
-        cmd.exe /c $uninstall -silent
-        write-host "$app uninstalled"
-        }
-        catch {
-            Write-Warning "Failed to $app"
-        }
-
-}
+UninstallAppFull -appName $app
     
 
 }
@@ -1491,22 +1569,8 @@ foreach ($app in $UninstallPrograms) {
         Write-Host "$app not found."
     }
 
-##Find the uninstall string from the registry
+    UninstallAppFull -appName $app
 
-$win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $app } | Select-Object -Property UninstallString
- 
-ForEach ($sa in $win32) {
-    $uninstall = $sa.UninstallString
-        try {
-            write-host "Uninstalling $app"
-        cmd.exe /c $uninstall -silent
-        write-host "$app uninstalled"
-        }
-        catch {
-            Write-Warning "Failed to $app"
-        }
-
-}
     
 
 }
@@ -1693,23 +1757,8 @@ foreach ($app in $UninstallPrograms) {
         Write-Host "$app not found."
     }
 
-##Find the uninstall string from the registry
-
-$win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $app } | Select-Object -Property UninstallString
- 
-ForEach ($sa in $win32) {
-    $uninstall = $sa.UninstallString
-        try {
-            write-host "Uninstalling $app"
-        cmd.exe /c $uninstall -silent
-        write-host "$app uninstalled"
-        }
-        catch {
-            Write-Warning "Failed to $app"
-        }
-
-}
-    
+    UninstallAppFull -appName $app
+   
 
 }
 
@@ -1945,20 +1994,8 @@ $blacklistapps = @(
 
 foreach ($blacklist in $blacklistapps) {
 
-    $win32 = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like $blacklist } | Select-Object -Property UninstallString
- 
-ForEach ($sa in $win32) {
-    $uninstall = $sa.UninstallString
-        try {
-            write-host "Uninstalling $app"
-        cmd.exe /c $uninstall -silent
-        write-host "$app uninstalled"
-        }
-        catch {
-            Write-Warning "Failed to $app"
-        }
+    UninstallAppFull -appName $blacklist
 
-}
 }
 
 
@@ -2018,8 +2055,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAelCbCMMdkfGDs
-# 721u1M0UkKpWWdn3BNg1e5xc/XxZuaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAimbekqudPCaRR
+# iALCoE5bmcGC9ZYMb6AhdcLe99WcXKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2201,33 +2238,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIIkA7nRSYyFmYFFlKft62g8m+aaG1GIyBqZn
-# WEF4rcmDMA0GCSqGSIb3DQEBAQUABIICADOC8uinGR1MX5q4lFdsCNJ0LloXKaF5
-# XRIXSVHXl2hJYATsum42HtjaCnVQZznyDol7BraRY6TZwGZf1AZR02d/NKt0lGWc
-# zzVOSBO5fYnUSQp7eGOlmxTnrKQ6gypJVBq6cx4vxV5Pbz6CW9ucu2vsq2OEJ+Ke
-# aVbvgzZEZwnYfj94K3sEtWAlXq84xZl7pyHyFrxpPygLY+FPzsmMuFR7ZE8lSd/O
-# BERKUusiMkYG0jeFa8diemYVHmnWbF11ZwL5qxOO6ouDbmuWkb2lPoXBxzFPK2OD
-# Cis6smhHGTtmtE2oWgqnRrJYcXsOcylsNwdvPpvBDnRXVyDYbTbAD9NMGXoVuO94
-# MBEdG/tBj2mBoSV6zxjTRFezdl9YCh4uv198RGxQ2c9hgk9Qa0CCSz5jt66FPB/Q
-# ncgLBFwVW+ZGkPlLf+WtqWl2c7i1ASrdc4a6iGR+Y0E30aN/WZ1lc+SKYaAJn8SE
-# O2qgIzntD8q9zvDbsxmV2CuF8rEx2DU0TA7+prUQd3GL54Zo9Ya3q3K16BFW3JDF
-# gr2DL0XPkeetHG43HzLeO0v5zwO/oWbcucguwEy5sizHEZXqMR21ur/nmlN24lra
-# /+XqpalzINQz9AxmsZXv9kqOeBrBiQeQp4xlOM6T2m971f0vqW9HWMOd8JlSqyHR
-# pzlpQs/eQxEaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIE2+T/qydgPbHs8IK6HkD0myJCvssusuQYek
+# sYiyQeWsMA0GCSqGSIb3DQEBAQUABIICAG9tPQN78RqpLqDptMyITe5JfSnjRf01
+# Q/rMYSPXzSWQQsrxowt6hDzYpQmMCutj8IaH2HqH1OvGhBeAgaD0kFLQo0kvZj8m
+# JMbIzu1jGQIbWChiShE6zssB5V54nGKSCVoh6sZGJJ4Tb0Ot6Zl5QZ4dPaT4Mv04
+# E8EjTBgp1vW5FsHYU4FUVN2MQymbz4BVVrI1S3089fRvcskhD52y7x94sVgV3RIE
+# XVKy+7CzvymXqXOt/J3eeOAHiEFT1QbIhIPrZ9/peoXgr/nugziRpHnNa8RZUXOo
+# ehHo5BFVIwbnOqXPNlYevlqIcFTI1oVHRLNtGunB2+SgmVycBN9h6o6abSGHeYYM
+# ILabD2AaMaEG+wizw/Gbc4VkFBjA03rqysTq3yPCibl3vajFYfFLq0+GAhI1vSSS
+# sO0d+AKoGNo6kAXoaFX3m/bU5QyWscPGFhsw5G8OLqRKj1La6rMHFse2qjuZPHmc
+# bLL2Ssz5aVXygnh7DB379M0eXQM8xJofotJEJMIbLvRcnCvWkKmBU9o8pRQuF++3
+# hnHDy0ci/RMqdeZ+IfPXiNbslY3jad+QMzCtE/9NXLFy7BOKqsa7OiWxmPDAbhT5
+# 0VySNK3EkVs8F2ZaRKfqX4gsfkCP2rZPLmpWyZzVhqOWzYXcYDAKcreAyQCq8Shr
+# R4+F9mGncu4coYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUzMTE5NTQ1M1owLwYJKoZI
-# hvcNAQkEMSIEIMeU63BqV/IMljrHAQkqen7z0srNggnSApucqwKtW8KNMA0GCSqG
-# SIb3DQEBAQUABIICAB0IeO4xXOywv5d7Cjm/u9r8ko4wgGVmbSBmDhdsjPI7rDwT
-# /Akdgi1BsY+X9GLfugh+w6EyE1BfAW7v+1eoQCF0CauPlgml/am4F1BkyfRbXMN2
-# /Yo+ZNVXGAXLWaE2yOagvZGa3xLqJkMsQ6C34dTYtp7hsT+Gc+Hrar5nCwOo2Xzr
-# K1q6NiwfjOs+tZJfU7Rh4dqPVGUMhVdVvEcCtuaYkaJIPCX0K6K8ATwlu3ihDOex
-# eUlY8qKl2ztsYTumBc8oOzw2jCzhMdxKb5lzyGNHmJZqyarqaX5klb0iwsrUWbbA
-# hEVDEIS3/mX0w4K1UgIKTpTwKDAyoM/TDmU0iZLllK9uGF6Zv0A3UkYz764hSp6V
-# aeMRkdg7Gd92wN36KeJDUl05HRN51czGjdewHI4gAGrU2fZOg1wKNTjnDe69GrQO
-# /h4ZDrtjYJgW3HfcdJuMPlGQsZym7OwYA4eKnt9Coa2+9Fo9LDu3QW7Xo52L41i0
-# o4UBCnURUOrS1RHjJeZ2nS7OQf/PHmFeJ5cGwcigbx1KrfvVFGpkvCyYTnokeSHk
-# 3OM+2szzoz18Sr1rDcYdScGh09avgQL/36ZQugROhGkXBSINAhdhiiwV88RDle0Q
-# vXLvnOdUPInSZ9C7UTurKUc2vQYJRnZdZM0gHuGBtESONuAPEO86rnzT0HmV
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwMzEwNDI0M1owLwYJKoZI
+# hvcNAQkEMSIEIO2eqBAwVX/S7bM+VW9fH4pjDz7/kchlled/GwR4ljVYMA0GCSqG
+# SIb3DQEBAQUABIICAIdcF/qw2zkHFOsoL90G/6+Xm0+Xj0PygIkfzZ7KQS/lsT4Q
+# Gw9c4JPx7s/dtlky5xukbbA46ITqf5rXy5uZsJrpo1jdixatcYGsmMaKvN+hlN4E
+# HmnNKjoIF9yH3ujXcIzxFG9rXOYs7zQtDaaxvbD0vaXamxQHV6IuGILBzqi5r3qP
+# M/awpqEfg2hFhKHg+xGXIfWhF3kklLvv9NlfAiQapLin8thcZOjVX3EtmCqavWkN
+# KUowRkqYmIxVvMEsdbdVvnrHjWVzHCCWX+0a9dFBJBgeMeL5Ze82XWHTia9zu9XD
+# enWb3Tx4ccBeyKUgh9YcMztJxMsM3uZMuBnLZlI+5ZROqHS5aXa6U5y6re4TWpYQ
+# BcwCOH7I6OdPGlOi/cbCQtZ8yU2lpzlAXAMoqvMLl6CNVKikZ55OlBBakx9bRUhH
+# 97p8AaPaL6aDEJELOoV8CMEX7zupM5yaNAz9ioxoyUCxb2RBC6cB/IlA/zpHcLHS
+# 6XmLHgfd4c91vWBtjO9V+ChBGXP/EJ+92UfnDjkiqO69g3Fjn67vqOpBkLxDCBUT
+# VhqQPsgS23Lf2SouIHNut5xV1xlCkP/44Owp6kL98eCzyL2I8Squ5dFr3sks1m8V
+# aSxc483niHKA/9La8Y5eWBrWMHcVzQSF5KsP/yLq7jZDFeUBTCu+HMKTcL5I
 # SIG # End signature block
