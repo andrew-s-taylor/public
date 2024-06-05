@@ -808,7 +808,7 @@ Function Get-DeviceConfigurationPolicy(){
     
         
 }
-    
+
 ##########################################################################################
 
 Function Get-GroupPolicyConfigurationsDefinitionValues()
@@ -2448,6 +2448,55 @@ Function Get-DeviceConfigurationPolicybyName(){
             return $output
     }
     
+
+
+    Function Get-APConfigurationPolicybyName(){
+    
+        <#
+        .SYNOPSIS
+        This function is used to get Autopilot configuration policies from the Graph API REST interface
+        .DESCRIPTION
+        The function connects to the Graph API Interface and gets any Autopilot configuration policies
+        .EXAMPLE
+        Get-APConfigurationPolicybyName
+        Returns any Autopilot configuration policies configured in Intune
+        .NOTES
+        NAME: Get-APConfigurationPolicybyName
+        #>
+        
+        [cmdletbinding()]
+        
+        param
+        (
+            $name
+        )
+        
+        $graphApiVersion = "beta"
+        $Resource = "deviceManagement/configurationPolicies"
+        
+        try {
+    
+        
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)?`$filter=name eq '$name'"
+            $DC = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+        
+            }
+            catch {}
+            $myid = $DC.id
+            if ($null -ne $myid) {
+                $fulluri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$myid"
+                $type = "Configuration Policy"
+                }
+                else {
+                    $fulluri = ""
+                    $type = ""
+                }
+                $output = "" | Select-Object -Property id,fulluri, type    
+                $output.id = $myid
+                $output.fulluri = $fulluri
+                $output.type = $type
+                return $output
+        }
     
 Function Get-DeviceConfigurationPolicySCbyName(){
     
@@ -3750,6 +3799,13 @@ if ($null -ne $check.id) {
     $type = $check.type
     break
 }
+$check = Get-APConfigurationPolicybyName -name $name
+if ($null -ne $check.id) {
+    $id = $check.id
+    $uri = $check.fulluri
+    $type = $check.type
+    break
+}
 $check = Get-DeviceConfigurationPolicySCbyName -name $name
 if ($null -ne $check.id) {
     $id = $check.id
@@ -4061,6 +4117,43 @@ Function Get-DeviceConfigurationPolicyAssignments() {
             
     $graphApiVersion = "Beta"
     $Resource = "deviceManagement/deviceConfigurations"
+            
+    try {
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
+                    (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject)
+    }
+            
+    catch {
+            
+    }
+            
+}
+
+
+Function Get-APConfigurationPolicyAssignments() {
+    
+    <#
+            .SYNOPSIS
+            This function is used to get Autopilot configuration Policy assignments from the Graph API REST interface
+            .DESCRIPTION
+            The function connects to the Graph API Interface and gets any Autopilot configuration policy assignments
+            .EXAMPLE
+            Get-APConfigurationPolicyAssignments
+            Returns any Autopilot configuration policy assignments configured in Intune
+            .NOTES
+            NAME: Get-APConfigurationPolicyAssignments
+            #>
+            
+    [cmdletbinding()]
+            
+    param
+    (
+        [Parameter(Position = 0, mandatory = $true)]
+        $id
+    )
+            
+    $graphApiVersion = "Beta"
+    $Resource = "deviceManagement/configurationPolicies"
             
     try {
         $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)/$id/assignments"
@@ -6949,8 +7042,8 @@ write-output "error restoring $tname"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDSrqcwfL+P5N7E
-# inTUJP6w8mllqkPn/Ui2xwK/a8bhLaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAPJLDPj6WEKVgy
+# g3IRfsvCDkkKqi8xRBDxJrgytUSKQ6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7132,33 +7225,33 @@ write-output "error restoring $tname"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIK7ZxoBceX2BkbtVbHa0HNjf+ubWrt2cr84E
-# R7P49WceMA0GCSqGSIb3DQEBAQUABIICAFGS2yD9lmjedfAA+uuSY0hNvqlzOiyt
-# ktMfvAOIEIkrChajmdZBXX5QYnXKYkdCn7dBVWM6g7q9o1cEdLWE/G3jxETaEcKA
-# J/+St+oNNiQfaIAUZCooIIdX+/DhO92HP6tTjQbxGc0N22T/eXS7p6Yjy6xB0Gbd
-# RjwLMykis4sXoKf+SRUVBsh74s8wR9mMTdQ5TnmwRE4twX8yytUy7YpinWIQ3+MF
-# 4wnS7294RUuU0+U2aI2XwCYi8gzSrbqB3FdDsqm1GFwXFIoZ6nLj1tDqqyfFTJ5U
-# v8xiBdT4UvwQOeA/9hJt3Fe7SJtMeQCMz1v4/R4H1hW8qfpssVy8sCyUfiuZwctq
-# eWP/5x29H5XAj4oDfctGWyKZnn9Sl8Wf3E+5I+qqkfGLsI3xWATIvfEIHwE//KDz
-# +yr6U1JlbXfYnhu1TDrcn5Y4UZ4jnxSfGANFwN6wROXlvKBxx/ex2xLlhBuYBbW6
-# GD8XJP5tVDGjEuCqUN8lIrL0mmtaNXeJyJjwiScOKfU/a+eNgZJBHKA46pZe00sj
-# JRn6WJ8ni/DNJDOy6T3+clOXzxCnOhfXDKd56q/rc9e/yjyLv6C++b4hfHqBbw6A
-# oAYjQaUZyqyiRbolaG1WUFBIRrS1WHIwscSAusY7hlsKOq0flkNcEC5beF0KX32r
-# TPb5LKjx9/XPoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHkSOYSmo4Ai2ytEicbdtZ3IufEfn59LORmQ
+# 2UNbAUwcMA0GCSqGSIb3DQEBAQUABIICAEQacTJoINE20MwPXa9IfILcaXFG3otP
+# OsF8LePlqRG58W8J9/Jmum2gDvNiwdlib7l8Mobv2G/VYP8hs0wfgY5fOc22URuV
+# WRGVrjoa9L6Fkuh7xpW+pVI1Fp9LZKJoUYE/xZnchlQZVzavdOxaigHFOvgIQzpG
+# hdYhRvwSV6BrTM324TFmR1Upb5viUEYxdAl2HWcRKvU3oyrUZ3bBxG2Efx/gd3DW
+# mQ7BspkueMEQbcZBYTQuNlQp4HMohONLWoklCsOeWLMpT9ZWWmcjnM0hhSPYzppr
+# 9sEvMSF2BlBOLnrCE81Z/J8r+d/FVidvZz4E3ZkMKsio3Y88ox0bHIVGh++vCNQ4
+# NgL2J+J7fh032TQCtxrUr6apfTgkJXllmPFObGVhuHlbeWG7xIRx+ry0o1b4c/mL
+# MOTs0O2Jn75tcDkH5K8Z8FDNraTn6FNnYmdJCBqL2eQskqwOlaXJGRp5SewqMkhb
+# KLwHb1zrf1EbczNxAxS/RsRyIXX475CCr3/XIlOstZVg7n7XOJOicQGossmAqWJs
+# 8pmE4jNMNAbP3Dv13V+ybXlLOomlQxJwIOTihdwKwTi4+9ybg4VTSmgfqx66LfcQ
+# 0LUaKqB9gyXwd8QC7Nm64R9tsh65engHRMpd8IkiP1YiDlInV5t/jjZCcXKxHtXb
+# BN6M/n34ppEYoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDUxMzE4MTEzOFowLwYJKoZI
-# hvcNAQkEMSIEIBOWrh/MfXwTh9IVns0BQzbSs/ivo714PaUCOJkA5+i7MA0GCSqG
-# SIb3DQEBAQUABIICAJNmnMnkLLRXNwEd09XIyZWx5OOBiEbExHIlipiDmKUkX8qj
-# NocjugxQeN8EQ7+gVNXuZ0YQxOpFW9l+V9LW8bDIyNArEtC/mvqo2TCDo67wRMmI
-# A6Fp4iZf8CCgAqQqBdQXh4jK/nXav8BPnVLTsfn1mE+dWVN1FhAPGC1d/l08VheH
-# Dclt5ZpTkG+3OqeO7XIRxKOYOprhZnz1EQR0/purGghj3A6CS6Iyscp2YuprI6GL
-# mTtlKsaQK9oEHPVmnzpn8pGcd/lMXtcheJtSL9l/VXdL3SHJDXu1RilaZNxHzEMh
-# CXsLWDXHppdQaw4bTxQcRrAOeyJnTuCVM4nt9Gm6im7W88D993yXoKyfmDZ+wwcD
-# +0il4OC9OFeRXt2gTnBMWvWp0Pf+/8QBHXJ1kX/HsHcf0uAf1SFuprpIU04VRbQ1
-# 6oyvuo9PNlw/HaQwl/FJYCW5Sc01SflXM31BkrYUubNgZf7Zbpt2r869OrV6vXhd
-# LtuasYu2rZOo+bZBSTxrBvzzKK67xx3atpndcgyb5vywmv9r/DoQ763c9W5iMUjn
-# pjtxPm2s2/i2Q5boHgnN7awRMxkq/RAddbqw446BpeGtWeQuAudaiKryj8EjvOxl
-# VBjYsBJVCjk6wNqB2xdbtwoK9deFi6Xczi9awfMESUwZRVfdDPZjPjtKt0FU
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwNTEwMDE0NVowLwYJKoZI
+# hvcNAQkEMSIEIAtue+eIFcr2t6KNtMJWFZVLLbYXs84kG7tXXaVZ5a7hMA0GCSqG
+# SIb3DQEBAQUABIICAEsVDCqZv36B46rzkrWryiaAEIyULKjquaNYybqGoeq0bFh5
+# g0qqCe36Qj//vYIqrEanVPEpC9lo3PWjTFSPkqK4e7ImYWK9K8T6p95blnJ2k0/J
+# OkZjmx1mZAW9gRCTh/JX3TvW20PY2H06tRVZRjCBvvsed0QfVH/MFcCHOb7lUnca
+# e24FdKFKhYZtMQvEXDdd1EYL5PI6kDtTE5eM9Fph4NgxuXeaa8qvm609yEnK8KZm
+# Rvo4TH6qSgxTYmYjwRLx1dVsoQR5V3ChiIWAQ4xMAlUL0Fc87DXtHWbNq3UYJOfT
+# tsG/dpzPTqmWB6Z7plyl6y1GUlAmHUTlcBMGQBJKOHDQOoV/1MzjXfV/demMtCq9
+# N8h/sKONC9gK5Llh5DAmkrqo1rZk4AovbBVWhkHoJhmmpURphSxRBrh0cmK31fav
+# EjyH1wzn4ZZKaaRjtZ0nvKKRomocSZgnT4lLV48Ear4csrUo6E+KaetcUcmA7AuH
+# Rf47ZMsWk1gdwD3s+YMyRiQ9euaPSN4JDngihsCm9YvhHwiq8tyJwDQaP3J3LBvW
+# qH3tFsl4vLBiPmlHEx9saqoLAFM7oTgfXwam/L6sKIblDW1/P9qnme+Pst4X/RFP
+# NGOn4+f2U4kWQSMKkEimkjmo5Ojq7wEkKMa9ncHf3dvqO+hodoUdIlWAOKqv
 # SIG # End signature block
