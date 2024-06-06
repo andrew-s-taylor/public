@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.2
+  Version:        5.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -96,6 +96,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 31/05/2024 - Re-write for manufacturer bloat
   Change 03/06/2024 - Added function for removing Win32 apps
   Change 03/06/2024 - Added registry key to block "Tell me about this picture" icon
+  Change 06/06/2024 - Added keys to block Windows Recall
 N/A
 #>
 
@@ -829,7 +830,10 @@ else {
 
 ##Kill Cortana again
 Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage
-
+############################################################################################################
+#                                        Remove Learn about this picture                                   #
+#                                                                                                          #
+############################################################################################################
 
     #Turn off Learn about this picture
     Write-Host "Disabling Learn about this picture"
@@ -1081,6 +1085,35 @@ foreach ($sid in $UserSIDs) {
     }
 }
 }
+############################################################################################################
+#                                              Remove Recall                                               #  
+#                                                                                                          #
+############################################################################################################
+
+    #Turn off Recall
+    Write-Host "Disabling Recall"
+    $recall = "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsAI"
+    If (!(Test-Path $recall)) {
+        New-Item $recall
+    }
+    Set-ItemProperty $recall DisableAIDataAnalysis -Value 1
+
+
+    $recalluser = 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+    If (!(Test-Path $recalluser)) {
+        New-Item $recalluser
+    }
+    Set-ItemProperty $recalluser DisableAIDataAnalysis -Value 1
+
+    ##Loop through users and do the same
+    foreach ($sid in $UserSIDs) {
+        $recallusers = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\WindowsAI"
+        If (!(Test-Path $recallusers)) {
+            New-Item $recallusers
+        }
+        Set-ItemProperty $recallusers DisableAIDataAnalysis -Value 1
+    }
+
 
 ############################################################################################################
 #                                             Clear Start Menu                                             #
@@ -2054,8 +2087,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBwOEouECVQOrWy
-# pqjWdfAIfO4w02099LmMWuMq/qc1hqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDj9qcmK4oG2SFa
+# CL7C5b3q7z7vl/Ek+X8Wzs0rDtPsOqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2237,33 +2270,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKoPtWMfHOY9SWMnH0dATBm1SV8eZ3LsBYp2
-# 6WHhxPr7MA0GCSqGSIb3DQEBAQUABIICAD9z9KauycAawwq0mCmCD6CUaPwbcuO5
-# xN9DqvK3pceMp4JDzeB5MAp6dOiceg5pGZJAJbPMoBfkOTKHtnrVUwt/y59TG7Hr
-# Gxl1D7HasnGDfff6vSOGlQCLxmRDM90517ohiCj6N4pDG5B+Ov5sny45WjfyLHER
-# RGn+L3muMfSO00VXTlP33x+38jUxDfqBBfiQjyTSW7FRNo4JZJMvmDAAnvZs5NiF
-# 8F/3MUMTbM/KfQBWhAdTlP06gxJ6uXC5t8OdgsAQDiJY6/+CGbn1QIViCgCROgBR
-# FRAdRaeqNj51XEmUJIbvycl0rRrZL996UJcKHD2SDwXOtJIwZFATsw2Ba7Kw6E/y
-# CtH7+iNvXsaFVM6uVgiOJP0El44EOczWFs7eW1f5qpm9/ZfCGJs4XCHN4q6nTnkD
-# 91wehLypeWpIRq3rHYFNKbgH7wEZpZjAwG0i5LA2dcbrth0LzITyXara6WYN0Hpf
-# tRD3yiVLqhWOlSAhBOspkdEqizTXcavNFnG3H5qwE6egtHPuNwbPkkDQuu7i0LzD
-# eYjeWw97EjW0FoYrEdyrBmN4ZvqjHlHlTwXqWF2+ZpX0MpRx0WM64xZ9UOZpbfQJ
-# ihq0Sc085uGFGMS50QWPnLJRGkHGtCJaF1AlyhDC13difJHuKc8ccD52C/o6YlJZ
-# EhimuPuGHfTCoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMlKbW6VPME0pPcY+L0/o81lQh/+rkbI+doQ
+# oiGQNmbvMA0GCSqGSIb3DQEBAQUABIICAKJDNFRK2BJcwe1mru6FoEuC6+mnPDKX
+# rZiqEJJ7UHLZX/mvU8OdRha44upXUg+o+TV63ukY/cNxJJ24v6voXLblUxr8sKjS
+# 0lW4NUJnviQXldzEXD3jxQBbmJa6oDyLL25yd4vkXuzqqQiqSp7EjqmoxJ5xFmoJ
+# RWL3EghXmqHz6TRqdqx6SlYVBjJ+ZeT7rNZmTD5pxqXdOWOS6T/xkOU0QuNXeyQr
+# 0Qvhz59CL2HOhV72dB3oc6yzjQegoadgldSZ+jhCJeA5JPGicih9ko+hCTpXuEbo
+# bMT4p8G3gUED50GYk8D8yFLO12pBZ20Ke4Cg1oqMYBW0hoRLFe4KyrAktPQqqBZf
+# ruxopAwic9id0A8PNH3n012EuBIODYswZ81S/vQLeizYLtlck7JIGL2F38wj+tqi
+# 7bGHmoIRUIRRffHAh/bWX/mCUDv1jcplZV/cat9ikylBq/5H8qMR7dJ435eMIeIr
+# 1pk0/6Hlk/t35ofwdAO8wCc6FitwpwHrHne0qGy0Rp6LZ0WIsnvjqzTcDENLBsL7
+# b9L7+NlUkvwcwbXlGf/lzrqcsp5gNKiJV6pPJdqplVdJTViyjNvQ/tIXxeRuTTGz
+# 5ovONiKUnIjWlgeGxJE23pDZq1ASj3c5tbzm4YgmwVfVexOBKnQodjzKu9Y3JKJb
+# B92/OWkOMdRtoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwMzEyMzk1NFowLwYJKoZI
-# hvcNAQkEMSIEIBCQF34GVzX3xfgcuWK6ganL+76piOzO6tNAXL0zxnW6MA0GCSqG
-# SIb3DQEBAQUABIICABtUa0jz2bsyC2+I+TIR4v2paQLrcFRza238cu9APlZqSjQG
-# eW5aw91AvZtpU4LE1KEYXFyld9lWSEn7elDZhB878lXqzKchqODwkH1qJmGG7Tn9
-# qbO8CXGzsssU01vfMz8n3EuShJhM6XUxtv8JejGS02dd3ZvcPt+Lspk7yQv51JG4
-# Y2jCdw4XavvzosNww4Xai0pPFkRjHizo6ZZ8GPRoHMfIXO6O1gKSHKx12Kox/MMm
-# ++zGrWEl0If4aIPsHTO84rRwTWQmMnIDCdm4iwW0QZBk84OaD8FXm7BRX7Tlylcg
-# 1YS2XY5LqlGaaNT00N/7ZIhLtPwzm7O5Nxliy4FW97WFCLMP9iCXhus4WDMs5AR6
-# maibVkvbQlnDYS5MVjFlFQM5LuzQpOwY1+bTE4Xie5hfqJ3pIWHT06JRSceTXX3+
-# nfPLVCFjGy54g0vF6KTFT4KgSq7CRfvhFRV8xsJ0dv7faBuZzC/s/+r8LfAy+FEK
-# j7pSmEJmIxU0Ry/Kl0IelPzw/s0vvA4kgtUVBdC46gkIgCqlsoAfFqmxwN5/ZHyD
-# j1ESX//+6mxUBpuNop6F93V5OlijHkay/zu8JggoxghKYH8dSQW2nHb3dbb0fXFX
-# gYX5wKrzlXBk7DqSK6fUdIDuoDYdDUjZgr19kYGju2jtiJvlZzKrDcSoHKO4
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwNjE0MzkzOFowLwYJKoZI
+# hvcNAQkEMSIEIMM+0Banratvmk9VatRdgtCF06iHx7L5FHRDXMLx6HmHMA0GCSqG
+# SIb3DQEBAQUABIICAI5sc456U5CHs6iRZTcO3QhDeec3e6VtPAEUNHCsTqqsVctp
+# zRqVqM3pfEB59X7idnZWWW2CbWHl0NqxApNYMHkwPudFQe+gM/09of+GdJxSvwnO
+# Fjj4l8vhiCXtKUb+Mtyz2TwIe3P2AmgC4efaITGWMPGBJj1bgrKfVRsDJCL3/5c0
+# fGBZgCXEnGdRr7JK6lZqsRmgG2fk8V9FCIhm5vqTPfLUKDDaJB85FCSJYE7ubZyl
+# blm4gQloYd2hfuyMLms8st3Qo/S6K+Imr4KhX7DSacJoGh7fetwyUO8DTU7hUDYj
+# 1hYzheH2psMFGR4WpISSe70N/L+NKWLnSm/iF9ghHxzLyBQ6DqpVmWkBVqn8coNs
+# OvYkujzIAHZjLonaXHQGomH8xtCWoGPyEwTqErML6FklsYeA4h1adeJ0T8yv0KE6
+# zs5FbmhBmlRS7+piNtAYA6uDKafHfI873xVLPq58WDxNkcPFarXgR88rkU9ilJUG
+# eU5YAiKXkOcG1lXf32UmqAFJhFX7sWefD7gDAfC9qmS893asuotkpeS1tk9LwUp9
+# EsLwHv9+vm1O8FOkx2U8p1uggf+ysiqTF4rOOLDg57BrM7np598tVI7wHOT7oZeI
+# fbJfA8MZtSsaE9ieXyup5hzLSHOe2gbHv+v2pF1S1bJ5eFp8D4kil/JmdjiT
 # SIG # End signature block
