@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.3
+  Version:        5.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -97,6 +97,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 03/06/2024 - Added function for removing Win32 apps
   Change 03/06/2024 - Added registry key to block "Tell me about this picture" icon
   Change 06/06/2024 - Added keys to block Windows Recall
+  Change 07/06/2024 - New fixes for HP and McAfee (thanks to Keith Hay)
 N/A
 #>
 
@@ -1515,6 +1516,8 @@ if (Test-Path -Path "C:\ProgramData\HP\TCO" -PathType Container) {Remove-Item -P
 if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon.com.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Amazon.com.lnk" -Force}
 if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Angebote.lnk" -Force}
 if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Booking.com.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Booking.com.lnk" -Force}
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Adobe offers.lnk" -PathType Leaf) {Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Adobe offers.lnk" -Force}
 
 Write-Host "Removed HP bloat"
 }
@@ -1995,6 +1998,20 @@ ForEach ($sc in $safeconnects) {
         cmd.exe /c $sc.UninstallString /quiet /norestart
     }
 }
+
+##
+##remove some extra leftover Mcafee items from StartMenu-AllApps and uninstall registry keys
+##
+if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\McAfee") {
+	Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\McAfee" -Recurse -Force
+}
+if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\McAfee.WPS") {
+	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\McAfee.WPS" -Recurse -Force
+}
+#Interesting emough, this producese an error, but still deletes the package anyway
+get-appxprovisionedpackage -online | sort-object displayname |format-table displayname,packagename
+get-appxpackage -allusers |sort-object name | format-table name, packagefullname
+Get-AppxProvisionedPackage -Online | Where-Object DisplayName -eq "McAfeeWPSSparsePackage" | Remove-AppxProvisionedPackage -Online -AllUsers
 }
 
 
@@ -2015,7 +2032,7 @@ foreach ($user in $userprofiles) {
     }
 }
 
-if ($intunecomplete -gt 1 -and $nonAdminLoggedOn -eq $false) {
+if ($intunecomplete -lt 1 -and $nonAdminLoggedOn -eq $false) {
 
 
 ##Apps to remove - NOTE: Chrome has an unusual uninstall so sort on it's own
@@ -2087,8 +2104,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDj9qcmK4oG2SFa
-# CL7C5b3q7z7vl/Ek+X8Wzs0rDtPsOqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCnCRCCIXp6CpWK
+# SpfCeOkfx3EfRpwHzPRpzpbZ3FXulaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2270,33 +2287,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMlKbW6VPME0pPcY+L0/o81lQh/+rkbI+doQ
-# oiGQNmbvMA0GCSqGSIb3DQEBAQUABIICAKJDNFRK2BJcwe1mru6FoEuC6+mnPDKX
-# rZiqEJJ7UHLZX/mvU8OdRha44upXUg+o+TV63ukY/cNxJJ24v6voXLblUxr8sKjS
-# 0lW4NUJnviQXldzEXD3jxQBbmJa6oDyLL25yd4vkXuzqqQiqSp7EjqmoxJ5xFmoJ
-# RWL3EghXmqHz6TRqdqx6SlYVBjJ+ZeT7rNZmTD5pxqXdOWOS6T/xkOU0QuNXeyQr
-# 0Qvhz59CL2HOhV72dB3oc6yzjQegoadgldSZ+jhCJeA5JPGicih9ko+hCTpXuEbo
-# bMT4p8G3gUED50GYk8D8yFLO12pBZ20Ke4Cg1oqMYBW0hoRLFe4KyrAktPQqqBZf
-# ruxopAwic9id0A8PNH3n012EuBIODYswZ81S/vQLeizYLtlck7JIGL2F38wj+tqi
-# 7bGHmoIRUIRRffHAh/bWX/mCUDv1jcplZV/cat9ikylBq/5H8qMR7dJ435eMIeIr
-# 1pk0/6Hlk/t35ofwdAO8wCc6FitwpwHrHne0qGy0Rp6LZ0WIsnvjqzTcDENLBsL7
-# b9L7+NlUkvwcwbXlGf/lzrqcsp5gNKiJV6pPJdqplVdJTViyjNvQ/tIXxeRuTTGz
-# 5ovONiKUnIjWlgeGxJE23pDZq1ASj3c5tbzm4YgmwVfVexOBKnQodjzKu9Y3JKJb
-# B92/OWkOMdRtoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEID4VcSVQMhYIEoT1Pb541OXxOuhRhgGozDqI
+# XIWJXbhdMA0GCSqGSIb3DQEBAQUABIICAG14HvlmmTBC6gDTFmMqtOtXb/w1ojUM
+# MT98UTWjcan6+N9WPar2a9IW6KZZoEPjDDuA0LdBxfrPQu0drdQ3Ax6k6hnFiaF7
+# RgChgv11MYUQaTT801ZnIrsn20xgz+wRmRcz35w1tEE/29JG+7TybbVdTu2Ac5QI
+# ozSY3FKgeL9xugRyvxnuycLlmsDaw+uZCAx1WLCFkgSudgKP+wGg/1aqQi8jBGZQ
+# GFqy3NLS3zNVASmX/8XjjUhfU4HZfYZe4LqA4xGPmgwbXedI9mbxM6o6MmdcpdKP
+# ZRKm/GtUJL+gwgxzWcY5M0/wZZqgTNmF7iXPcqY1oPmFUj1hoavaIA1BmB5PWLy1
+# 1SWTJ/VDQc3YLGmAU9QenlyQQzQOQ0gBkrgiNkn6fKVvzzeyWWdnFTFgA2exVnzo
+# J2iv2swgsR8ZOp7dl8yuxrr17/cVYfvk/kQiQu38QmdxB/TdxEEsAReq6B489jy0
+# Xz2jB2Um/uOyUjK1fi3f451ZBFR6iaIdSGRtmcdtyNwblJVP5oczOGhRya1W+kRv
+# YW65LD9PkqjTzUX7pEwhS6qeDOSvRAcSd2frR0lpDZWetKCJZoNcefmImy/uo/Vo
+# RGJK2BA91/DYKF3lcrtWCF5AiUgsKuE4xcInlMnB/ivAxAT6DdGz0R4/QPsJbjOn
+# yiNp0GuKVAqSoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwNjE0MzkzOFowLwYJKoZI
-# hvcNAQkEMSIEIMM+0Banratvmk9VatRdgtCF06iHx7L5FHRDXMLx6HmHMA0GCSqG
-# SIb3DQEBAQUABIICAI5sc456U5CHs6iRZTcO3QhDeec3e6VtPAEUNHCsTqqsVctp
-# zRqVqM3pfEB59X7idnZWWW2CbWHl0NqxApNYMHkwPudFQe+gM/09of+GdJxSvwnO
-# Fjj4l8vhiCXtKUb+Mtyz2TwIe3P2AmgC4efaITGWMPGBJj1bgrKfVRsDJCL3/5c0
-# fGBZgCXEnGdRr7JK6lZqsRmgG2fk8V9FCIhm5vqTPfLUKDDaJB85FCSJYE7ubZyl
-# blm4gQloYd2hfuyMLms8st3Qo/S6K+Imr4KhX7DSacJoGh7fetwyUO8DTU7hUDYj
-# 1hYzheH2psMFGR4WpISSe70N/L+NKWLnSm/iF9ghHxzLyBQ6DqpVmWkBVqn8coNs
-# OvYkujzIAHZjLonaXHQGomH8xtCWoGPyEwTqErML6FklsYeA4h1adeJ0T8yv0KE6
-# zs5FbmhBmlRS7+piNtAYA6uDKafHfI873xVLPq58WDxNkcPFarXgR88rkU9ilJUG
-# eU5YAiKXkOcG1lXf32UmqAFJhFX7sWefD7gDAfC9qmS893asuotkpeS1tk9LwUp9
-# EsLwHv9+vm1O8FOkx2U8p1uggf+ysiqTF4rOOLDg57BrM7np598tVI7wHOT7oZeI
-# fbJfA8MZtSsaE9ieXyup5hzLSHOe2gbHv+v2pF1S1bJ5eFp8D4kil/JmdjiT
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwNzIwMDk1MVowLwYJKoZI
+# hvcNAQkEMSIEIHtcDblUbzKShaKyP+2K2fwo4LyG2rgnX4Cip1eyM1yiMA0GCSqG
+# SIb3DQEBAQUABIICAGJSpX+4tRgj6kC7iHo0GXS0vwzHYqijzF8sh7TSXGTEjAGF
+# E/Daw3yD4yB+Qf41UuRm0+e5XFKblwruHJ15u9+Cdl71izVJKnir+RUV5lU1Qdmo
+# IG+fojHvIZP+Oyyf8CGD4VqIcYWGxpuwuAVSaYerWA99Nz7P3sKiJmDf13bjCbHC
+# 01e+Ew3JhKtdk/nAkc936WU/2CDv/R40d9CrQ4+fm5be/FVWWIYASdOmcUuctSx6
+# 5HiKuXyWltaMflxAVlXwcVqLhx/LvSJbZFrBWGNRGgn+oeo2RWVsFABGPGAqrsvr
+# qQRqQxSloGdGIshitfTNw2QW09O1Ff8iEKLEYp26AlBQpNorxPGqJ2m0wxyM30oO
+# +EJZM7k3VbsIgLas6T1AmtGTUn86mXwatnsEtU6LAuw3mHz/+aXinCzm31NXW/oF
+# Y1Nj2Tw4osBTIF4CAbFKXuF4qA2Ty2LE2cGyiuipm6YZR9EJkFLRvIIptbVDsZRe
+# FPegncBWriMYt2sTSL47Qo1Qtd8VnHtCzC/7QaPWu12ZWcHAjMjRlCS6PclQH2Pi
+# LKLXHi6vo/ijRC7GHY9nWaEZrHs1fVn/e3c8yxXa54MZjBNoIYzRrkAPNoQsofPz
+# Q1Xl+zW2bSCRRY/QiiB6t9od0if2JrgIguKbgyBP8eRPhZjQEFE0PLU2jIHK
 # SIG # End signature block
