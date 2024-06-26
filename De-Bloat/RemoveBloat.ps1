@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.8
+  Version:        5.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -393,13 +393,20 @@ switch ($locale) {
         "Microsoft.UI.Xaml.2.8",
         "Microsoft.UI.Xaml.2.*",
         "Microsoft.UI.Xaml.2.7",
+        "Microsoft.UI.Xaml.2.3",
+        "Microsoft.UI.Xaml.2.4",
+        "Microsoft.UI.Xaml.2.1",
+        "Microsoft.UI.Xaml.2.2",
+        "Microsoft.UI.Xaml.2.5",
+        "Microsoft.UI.Xaml.2.6",
         "Microsoft.VCLibs.140.00.UWPDesktop",
         "MicrosoftWindows.Client.LKG",
         "MicrosoftWindows.Client.FileExp",
         "Microsoft.WindowsAppRuntime.1.5",
         "Microsoft.WindowsAppRuntime.1.3",
         "Microsoft.WindowsAppRuntime.1.*",
-        "Microsoft.Windows.OOBENetworkCaptivePortal"
+        "Microsoft.Windows.OOBENetworkCaptivePortal",
+        "Microsoft.Windows.Search"
     )
 
     ##Combine the two arrays
@@ -921,29 +928,6 @@ Get-AppxPackage - allusers Microsoft.549981C3F5F10 | Remove AppxPackage
 ############################################################################################################
     #Windows 11 Customisations
     write-host "Removing Windows 11 Customisations"
-    #Remove XBox Game Bar
-    
-    $packages = @(
-        "Microsoft.XboxGamingOverlay",
-        "Microsoft.XboxGameCallableUI",
-        "Microsoft.549981C3F5F10",
-        "*getstarted*",
-        "Microsoft.Windows.ParentalControls"
-    )
-    ##If custom whitelist specified, remove from array
-if ($customwhitelist) {
-    $customWhitelistApps = $customwhitelist -split ","
-    $packages = $packages | Where-Object { $customWhitelistApps -notcontains $_ }
-}
-    
-
-    foreach ($package in $packages) {
-        $appPackage = Get-AppxPackage -allusers $package -ErrorAction SilentlyContinue
-        if ($appPackage) {
-            Remove-AppxPackage -Package $appPackage.PackageFullName -AllUsers
-            Write-Host "Removed $package"
-        }
-    }
 
    #Remove Teams Chat
 $MSTeams = "MicrosoftTeams"
@@ -2125,8 +2109,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA8CoXcRkAsosl5
-# EaKwnnqBV2QQ925sTInuAvW+J2Dy9qCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBKRvqJSmqssmiS
+# ForPoNXFpT4R8EIDbFB2Lt89w6BqPKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2308,33 +2292,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEINquGsfQHIGGURr/W9ZrWYukxnua0CeZ1y6w
-# kst5HLdlMA0GCSqGSIb3DQEBAQUABIICABh0fgyaL1kxTOt5nn6Ofp1mFl3Gxk6L
-# BWto9K0gXjAwk6OdV+XJhiQO3QsKkqcRg9N1WVxmz0qA9zYbNKJB14cbujEeWnuy
-# LiRhWr2fTtr+fI3bUpnrY4rkUwoI+V7+6+ffykPS3rJ97dKkzReIwmF4GjTVl9tC
-# G3YTnQjrpbDY7tbq7ivsr2rSeoYog7elS2LVOVLVCI6LcVJA2WUsYxWIIDFUauL6
-# xzlK95aENFf8P67g0d9YBZ9F1aQYAs136luR4xvOfXR4GXMEhItMwYrXkgUMIeJT
-# j+MFSwxvToA2ivCI6CfzCbHnc4l0tpuxvi7PDNW/L8SmlSrmmf2DwzaxsgAmGMI4
-# POXo2c2s0/+4Ti7SL/HE11G7gDmaKQdGGuW4Q7P6emEMyegPzrlP9Tnk1TJAKj8x
-# w2uGGd/m8qtSPfTb/Fkhz6S12Rn14yBG5jBm/hZE0EA5aPyfrGfwnV3D96xTlnYP
-# fnUrt1XleJSoLuXmp4yeei6grfGcxX9dsxGUd0PKqce1q3UiL2gTLpxqUrbqednp
-# HZsn+cJqDOaXZ1lhpPMPXOVafw3lTRKpJu8iJqwFS6vwqjCNdIJNqXcg/dVt6n74
-# wN2Eq6nJVtoIQk8eK63EDY3kIztLpqzJwAcNKBufRkFgghJUujUD1x8r4dLg66PT
-# 8vGNNnLaL8IMoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIDUKl1psGG65O5z8XveV0y2aRd+nShU2OVvz
+# 5mZDecqzMA0GCSqGSIb3DQEBAQUABIICAL71X2FLrwXRQ2LQN3M7hRRRz60O9p34
+# roy2v14g+MV11ymzyBfBTCdNMT65mJIbRb5Sg8hHHb2y08YWZpt33efLvae4ymnb
+# YIpbWFEVSmc8kSe+OkeSV6aXKEELoDFVkzPzm+xwLdSZM5o++baNVs5YvOKIYpSo
+# EHXtNw5CWSuAN13eFaadViATzkjbws6DaxIm0bk8ne/2auvJLBs6TX8HAL60hkuE
+# +Q+doUQ/RI1g2YeOeyIQ0b7tnesK9haTLyEJdjPYzUq2BRK4Sh9b5T0ubvkEiujQ
+# 93ITN8zlHKSli/MPzqmXcOEzmTI0/bdQ6tJ0FRP0y6ppkrDpV1FydPWF9ZaBcIf3
+# wkT1WUTivQc77ptgbq071qdEd8JRdNsytIg2WxezTSX3BSkuBX+lxI3VjgHvYobo
+# 6HVGC7T8o8T2ig3pQJF+iO1WxT8BZLCsKbZrAmJn04fQVTE88mDB3jSiQJeUdZmI
+# QOOb6X42HqkWca0pi+H5ifNF3EGf4+5WUeH6Bb6POym8sxMlUDOd8N1NZd1pqYV0
+# qHptyPBFmS7CLQRDeP6i/eaiwJAyuN28dUu7ZMFFuZf3Atcb37aG+FEDL/qa5MbJ
+# 5vDZcOoiLEkpLCO+fklXbGqLwlvWcISetaDbz0mkb0PdxTdD5Gg3Xl3lXANnusQI
+# 1u+YpIU60cEkoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYyNjExMjcwOVowLwYJKoZI
-# hvcNAQkEMSIEILZ8H7eHXp1cIALeFD6pdEdZbHhNNfp8+vEZwiHkhiU2MA0GCSqG
-# SIb3DQEBAQUABIICAEATaZ+351GqddHAHj5Km+DVIj5ySJWVye28Y+pE+JG8+BOp
-# D8W1kHzGAr/PDbFiBoMlOuow7xs0xSRl3DmZwclX2V8swCF8myb+LbHBr/QbxW78
-# qQEOWzMlysuAk9Hg6PsXBiHH1nav3CG9IsTvygFOpNAj1P8oNELd7sNGS++eu0rc
-# 58emJeqtm3BkaBaR3gdCHXBbE7Kj3cLaEoF/GLtXvRPNac1QofVXs95FIL6zr5vh
-# bsym6ryNgA9yxxxMMjgkuTzjUZ3Kqgn49RcQLzsBsSImi/IWBic7FJQUXAZsj4xJ
-# TaAkG/seMpAxR62gMztKC8axyycLF8OhetJO0jV+4fLizxPkhY0yx/2ajdMoqZ8q
-# JP/DAxVD9eIwT+v9sQ+U0LJKcwe/tQUIGIecjNGEIkmsWRxqTERzuC145thca+pJ
-# cFxeBZE0f50gGkTcHBliAsctVh1fExjG+LhZFXrgOUvmomYArvC6DW7KRrwFpU5t
-# eFGv31l1BOsnzYvNnXC8I9C3B6lIyQgFGuBpYUhjdRXQw9G5L8gjjGhEQSS+UTi4
-# z/Q5qsQu9Dm5B4hZqbLlA+GJL2iSz1C46+R0prGMEJVRumBPgntWNhqqdMi1uX80
-# IJFTxIwHwtZaqdOMtQRUdrdI+nOk+j7znYiIaHSvPsXFrTNI8/oLQI8GXbUx
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYyNjEzNDYwOFowLwYJKoZI
+# hvcNAQkEMSIEIJJ5rjr9B/T9tVZHd/7yGDvydpZsOUkGkJaPYFLMy3o2MA0GCSqG
+# SIb3DQEBAQUABIICAHg2Se2TmEvTdxFEWQokk+6aSYBQNh6hvVJpdU1UNqjALbvj
+# m7RkzbZ3UR7WATbonqt9ELWa37ixiivDtzJ1ELeB0V7y4EfQhvaQ3wvRoY7waaNS
+# JOyAaIWOPA5wrdkhKfqMVIOLM6mfRYdm591vEBwUZvRapjJ59hstDYsReXpXSrh8
+# Q2p4XQ3s1dNtlwTPFM4SWjHZ/WfdkjEdO9zfF7R6pL+Js/3Vgow3QmTGlARUuwrl
+# sRLtsUNAtvLmgBi7Yxj7Fo9wcp7ixaz/5ZtvanQMbyn2rKa6Vt6nbmO4LjXUzspP
+# ft8OOhRTLxLEq6Lwp1w9ocWtOnSZ7y6MTy8VCOTyOhXFOrXm4xGji1ZGMiDcImjF
+# CHnEx4pwrBHTp481yimQ2UjfbE2m87RCaA0z5mgnq4lT4TruOmt0tj0+YZPUePbn
+# iOaIvwRxzXiSmWmPjmuycsWzteqRYvbEy83gVPjLN0iOfu7oW3R9sd0GeSmIKjjZ
+# JTF7wYk05o0Obaj9IBxdrWLWozM6RCPZ1NZMOCwwD5WHfardspMNYhCSKSHoIACN
+# nCW81h4XV2pqOv7s9T+/hQ63zcxxmdwa1u/p60wCKzAZOfSUbpLGyfYUEcNqpSmW
+# FXTqYNRRHdDwPmye8yAo+fX1YogAkW0cYYxUCWJr7Xb/tQK8gMWGBWCjuOGR
 # SIG # End signature block
