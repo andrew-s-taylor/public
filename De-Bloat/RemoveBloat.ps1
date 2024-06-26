@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.6
+  Version:        5.0.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -377,7 +377,26 @@ switch ($locale) {
         'Microsoft.VCLibs.140.00',
         'Microsoft.Services.Store.Engagement',
         'Microsoft.UI.Xaml.2.0',
-        '*Nvidia*'
+        '*Nvidia*',
+        "Microsoft.AsyncTextService",
+        "Microsoft.UI.Xaml.CBS",
+        "Microsoft.Windows.CallingShellApp",
+        "Microsoft.Windows.OOBENetworkConnectionFlow",
+        "Microsoft.Windows.PrintQueueActionCenter",
+        "Microsoft.Windows.StartMenuExperienceHost",
+        "MicrosoftWindows.Client.CBS",
+        "MicrosoftWindows.Client.Core",
+        "MicrosoftWindows.UndockedDevKit",
+        "NcsiUwpApp",
+        "Microsoft.NET.Native.Runtime.2.2",
+        "Microsoft.NET.Native.Framework.2.2",
+        "Microsoft.UI.Xaml.2.8",
+        "Microsoft.UI.Xaml.2.*",
+        "Microsoft.UI.Xaml.2.7",
+        "Microsoft.VCLibs.140.00.UWPDesktop",
+        "MicrosoftWindows.Client.LKG",
+        "MicrosoftWindows.Client.FileExp",
+        "Microsoft.WindowsAppRuntime.1.5"
     )
 
     ##Combine the two arrays
@@ -390,7 +409,7 @@ switch ($locale) {
         $displayname = $appxprov.DisplayName
         write-host "Removing $displayname AppX Provisioning Package"
         try {
-            Remove-AppxProvisionedPackage -PackageName $packagename -Online
+            Remove-AppxProvisionedPackage -PackageName $packagename -Online -ErrorAction SilentlyContinue
         }
         catch {
             write-host "Unable to remove $displayname AppX Provisioning Package"
@@ -406,7 +425,7 @@ switch ($locale) {
             write-host "$displayname AppX Package exists"
             write-host "Removing $displayname AppX Package"
             try {
-                Remove-AppxPackage -Package $packagename -AllUsers
+                Remove-AppxPackage -Package $packagename -AllUsers -ErrorAction SilentlyContinue
                 write-host "Removed $displayname AppX Package"
             }
             catch {
@@ -518,7 +537,7 @@ if ($customwhitelist) {
         }
 
         try {
-            Remove-AppxPackage -Name $bloat -AllUsers
+            Remove-AppxPackage -package $bloat -AllUsers
             Write-Host "Removed $Bloat."
         } catch {
             Write-Host "$Bloat not found."
@@ -2103,8 +2122,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBhHmLk25QpVRns
-# cDJyQVEJvrTb1J4yYUlyeqzHSEQsdqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDLuc7zL3lAU821
+# +CZKqAVpMn5RE9nJClaAPgG1VP2/paCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2286,33 +2305,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFzheLWcc3OiXn8SfGxkgXVW1O6bq19lrElx
-# LpeEr3ikMA0GCSqGSIb3DQEBAQUABIICAD82kjmQMpmpqgXrmSs89MOAjjsodQVi
-# mfvPCfV5VTiDfONn/crjKYcin8OCjhlqB/b0yvcwtbhMNiI5lc5ocS6p0onLofcZ
-# 4Nzxzq1eBu7ZlBVwN+6b7ZES/fjcF1WnxIsDu1Y7/mspQhmy7PuFiLev4bBwZKZk
-# GV4vdk9Acd1GlGcoHpJFpBSwntyuztk7LkIppIlfbvSLKOz6ZgeJrnZuxxL97M8t
-# UO8Y6VD6a1aMgDbhowsspl0JITQKhhONZoc8+wQnGkM/eq3LoWC+Ku0uh0MF930e
-# L04xn4b1DDSudxADtwuSoHz0MjeJm37Arprsys2IPpbp3BTWwfPOkJn3BRAu9ytz
-# t3LlHsYC1jS6MBHimUTli/idbTBqeovxKyMlyG+Zx5U0JjIKR3FMZh4rtOtDAqX8
-# w8r52ZYvIcf4JRF+fjOtjl2qiC1NCkXctcPzoZggVZrloF3+mjwxBynmR8DLi4I0
-# OviG/pkNqpku/TcdjZnSRXbs+78330kZGEPPscYy1GTLQGK15lKfEq+rjE2UT7uK
-# jrecEdWOdB1jhXj5Ck8Ytq7RSYLMxWHFWi4+nRKwzH9w7EQfkqsHY/faWU2xJ7z0
-# Fko3HGN6OJkmfNVzCfmkiFMj2pfLdoHDFYIi3MIJnYcK+XhX9qouHK6XuppMGnL7
-# IyRuhDKQBPVxoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBY0M1GQNZ3TyuGotxkKLdK2sLBTYlx1taHv
+# ngOs5cqhMA0GCSqGSIb3DQEBAQUABIICAKl+F0oz9kh/izojbHTRBmro22n1ffLY
+# u+PgLGVZdFRjrqMXvxTacSqErRed+HdxRudzbYKUfYsgTaOqUB8LWdpeqfpjiobc
+# aQBL86akQr0jZ9vB47O5E1/B6tD5pmXbZAaErXGd+uTq9uy/i915fK2N2NxY+hPn
+# W0U54fnxp0ClXpiV/1aw3L0NWK0wSiCz4KhLHHcfMcnwduQ6FLhTtL9s4ZWE8+pD
+# r2ytMlMqBdmYKfNOy92vzgDcNF8DoQI5A4rCVrWhGDsVsyP9CYNSa1c6CSvClv7d
+# x23nlqA0ZpqddlzDhhIdVtodVLWL91DSgEgz9XlNu9HiyKeSTHdsATamrmxwrLCf
+# mRFiqXmLD1HJW0HXJRBFGVLfsJFhppBcEhJqnuHwSHxZqv7v700ICyKWFptKXuei
+# sA6XuYR+KbHQ8J3UsRLPdIsj54Y6KSt9j/IHPsKRF97Oaf7yeRBSXySkkYvwd50x
+# LHzg2ITEi82lnH1TDHrShrXiLhBzTuLqTJof5gHwVaQv2cqMWqB3UTohU7p6MKnN
+# SpyzRHjHhvXfRzp1bNbZJ1jjBr9diKinMr01lrXQyqevxd+HxMr13Mqrf61lclHZ
+# 0CnOJyfTtD2WZZwoH3FPm2skvP2Ozd3pkBHqLdnbSyyBd3mDMhG1MSFRkJh4MNkE
+# 1qJqZ+0xF1b3oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYyNjA3NTg0MlowLwYJKoZI
-# hvcNAQkEMSIEIIbym8WpHHdw1QFBz/pXehD7SD5NswHz/YOMpBjpOGNVMA0GCSqG
-# SIb3DQEBAQUABIICADKz8JOcSOuETldeAR2vbcuBbOylJ5BWsRpdqfM7q8hHj5tW
-# RrU4wCZ1pKnsSVSxrWDngiXbTaG2jxMbT2z8lRP8kUasUezxnSLyBjcpTyVY2ssd
-# nMegTpCqnuIjGbXwHriRmqz3PisQyNrt8+thSEN+shWYaRwB9ECoSdqRIcw1R1uN
-# 6Y8RXHrb6Ck09gEjV0YjQAmuDvtCfNBb6Z4SnavfALSw00TJP1vFhFX1ISDaCpBm
-# h6bNmN3BEeFP/IRacjdcPqSvXUAOAJE4g0uJaB6VIsBuUcD8jy2dEhoRA+7CMmj7
-# sOvPiT8lZYv7pEZdYzUeBPWAycwjzNCBl4QqWkzXEjFhcDMWqXmOdx+MxVo/FFje
-# ie+ToH7D9e8x9BW2lDZp7NvYT947Jl+mlfftXbIOvQqqbijqabUtZTH3SVU2Otjb
-# fgC92YkuTpwwodncqfd2l8Y11SSk98bv1rGf85GYntV5wYVGaZRTRbminlYF7d6D
-# 99hemZXYF35g/TukZbc/O+W+q99vRRiAvn740173R/owNAS8eaR4gq7Wpls0jUpk
-# MJum8XdinFNEintNEr+scZE4clQ6mgX+ywjwvxo2vR9UpM3D4b2OwPKhvh/+vnWe
-# kzO2dqRW09yIJ2rloV2ruiyaI9WILg9X9ifvZ6MiNwaTugT2SckNJap1/a1k
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYyNjA5Mjk0MlowLwYJKoZI
+# hvcNAQkEMSIEIOB+ZQa+yOhKXAEMBe9ZaMogCHN9YBeU7pSTyQ1JDZUmMA0GCSqG
+# SIb3DQEBAQUABIICAFnv0iXVEVHgCVvwT1rcN1NtYXdegPKtuhQnGakA3E8vA2mU
+# VdnBNiCtWYZEdnNGV+dJ7LJNiixp1jwjK9uqzPj6SRlYaZnSUhHK7DWHK6adkVKH
+# 2wCdgbRyqi6syBkSzyAMBJpP/DNnUveQ/m41OqaYbZFiCq028qnjOJNBL2E8tG7h
+# aerJoEmPMDH6BWs0ab5wRyGv9lfyPuv4eUZyT60DSfP7G1HftDmo0bI8O+lT5PHJ
+# HgexrMVCpS24Wm+RQ+cuJzwgGidtEbc9HFqkRIIpz5Gnte8eD1cwjqYMSV6RoW54
+# K1CmsCmwwrU8oZCWVSN+zbhqhpyVXOKo5pSTIUZLV0jCkJK1AVASm8oU3RUTJ3KG
+# MFYZ9VOhlgTGbfI6pE2sAbt2x9uwm6tlMBBQfTcmldpgPebI/fSMVFPHVSUgaTNw
+# wTom98dnURtQPZl7JQh/Rs8nFX9tDhtfQlalpHZMHI3Gc4NU7JtguC3IfUYl83l2
+# Jzh6yJMWVYUG2e76pUvk6/3UEilYgEKHKhW7hP2BKm04SvADULIc34QoVmaBCQL/
+# zK2a1/gSqdxErXmkkzS5HSOLJhBAYKtckhufYjB9SesStlhOktCVgRWKhw4oMBAi
+# m1tPznzbyWrkyFXq//0WS/lzyPuzfA4kD+uHKXjnQ7sH/eDnABM77BldYGtd
 # SIG # End signature block
