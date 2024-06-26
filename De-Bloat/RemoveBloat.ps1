@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.5
+  Version:        5.0.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -99,6 +99,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/06/2024 - Added keys to block Windows Recall
   Change 07/06/2024 - New fixes for HP and McAfee (thanks to Keith Hay)
   Change 24/06/2024 - Added Microsoft.SecHealthUI to whitelist
+  Change 26/06/2024 - Fix when run outside of ESP
 N/A
 #>
 
@@ -392,7 +393,7 @@ switch ($locale) {
             Remove-AppxProvisionedPackage -PackageName $packagename -Online
         }
         catch {
-            
+            write-host "Unable to remove $displayname AppX Provisioning Package"
         }
         write-host "Removed $displayname AppX Provisioning Package"
     }
@@ -402,21 +403,17 @@ switch ($locale) {
     foreach ($appxapp in $appxinstalled) {
         $packagename = $appxapp.PackageFullName
         $displayname = $appxapp.Name
-        ##Check if exists first
-        if (Get-AppxPackage -Name $packagename -ErrorAction SilentlyContinue) {
             write-host "$displayname AppX Package exists"
             write-host "Removing $displayname AppX Package"
             try {
                 Remove-AppxPackage -Package $packagename -AllUsers
+                write-host "Removed $displayname AppX Package"
             }
             catch {
-                
+                write-host "$displayname AppX Package does not exist"
             }
-            write-host "Removed $displayname AppX Package"
-        } else {
-            write-host "$displayname AppX Package does not exist"
-            # Skip the removal process
-        }
+            
+
 
     }
     
@@ -513,17 +510,17 @@ if ($customwhitelist) {
 
     foreach ($Bloat in $Bloatware) {
         
-        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat -ErrorAction SilentlyContinue) {
+        try {
             Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
             Write-Host "Removed provisioned package for $Bloat."
-        } else {
+        } catch {
             Write-Host "Provisioned package for $Bloat not found."
         }
 
-        if (Get-AppxPackage -Name $Bloat -ErrorAction SilentlyContinue) {
-            Get-AppxPackage -allusers -Name $Bloat | Remove-AppxPackage -AllUsers
+        try {
+            Remove-AppxPackage -Name $bloat -AllUsers
             Write-Host "Removed $Bloat."
-        } else {
+        } catch {
             Write-Host "$Bloat not found."
         }
 
@@ -2106,8 +2103,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBgaJtz+Sw+DIW7
-# Xp/5Mosd/4KFLfVzNjEPZZ940mYq/qCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBhHmLk25QpVRns
+# cDJyQVEJvrTb1J4yYUlyeqzHSEQsdqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2289,33 +2286,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGRUFBBJKigDfFuOe6PJJZccDK5roJVO6VAX
-# tufodENrMA0GCSqGSIb3DQEBAQUABIICALYdFS7F2xGVSStSLDGzRABBpXs7qiF7
-# UMM50yPwXWVsszZBB5g0AmN7TI5WMxPEv+JHxEVhb/okECsKSqo6T38+w5zQtNLD
-# zetW7NYuCfZfJ9ORB8jUeC9CgpFMfJk0re0OHBvAgNYx3ijTy/zq1iaaAujssKJa
-# blDd3QDfWYPVsKEecIZTa4a0h3C4HjwS+Rq5jiVq0RdOvUU3QtDzcfb+HzFy/cAk
-# jQbh+LKQNkUn/MZFH8XsdQ5WvHOqTJoruzZqFGhcf6ULERWAAcpVo4fnMxsWu2JS
-# 3j1Cg9GgndnFuVkW32smnKhrY1hWQ5x+pi3YPcxDDQB4Fd4otUVBgfSDXtHBG6M0
-# UH9vtINhFQKm+x14UAEZblWAVt9KgQOwS4gXfryLILvEBDGjg+WTi6Yj+RrLyNaL
-# we2iMGSD5zpcAqBfvM0oUzyi0WOjuvSbtawVZYz+tH1mOoI8ACAUx2TodgH0XjH3
-# I5gcsY1tUIeQ1iWO+V13/WC0aCYIVfCkrABZOt0FLZHyZDLSnmw+XL0lcn2AbREw
-# DXemD8juLP1nnm7PcvQmfZwZQKlBxfcxFcQ1f/d5/ReSobouX4SZItdviS9zQ3WQ
-# kKv8j3f1GrQQLp6VcIElAEPm1ukQYMmE/q3/td/q9IQzqOB++EjpeRTtBwrBxVg+
-# 8z2ZrBj0sEuIoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFzheLWcc3OiXn8SfGxkgXVW1O6bq19lrElx
+# LpeEr3ikMA0GCSqGSIb3DQEBAQUABIICAD82kjmQMpmpqgXrmSs89MOAjjsodQVi
+# mfvPCfV5VTiDfONn/crjKYcin8OCjhlqB/b0yvcwtbhMNiI5lc5ocS6p0onLofcZ
+# 4Nzxzq1eBu7ZlBVwN+6b7ZES/fjcF1WnxIsDu1Y7/mspQhmy7PuFiLev4bBwZKZk
+# GV4vdk9Acd1GlGcoHpJFpBSwntyuztk7LkIppIlfbvSLKOz6ZgeJrnZuxxL97M8t
+# UO8Y6VD6a1aMgDbhowsspl0JITQKhhONZoc8+wQnGkM/eq3LoWC+Ku0uh0MF930e
+# L04xn4b1DDSudxADtwuSoHz0MjeJm37Arprsys2IPpbp3BTWwfPOkJn3BRAu9ytz
+# t3LlHsYC1jS6MBHimUTli/idbTBqeovxKyMlyG+Zx5U0JjIKR3FMZh4rtOtDAqX8
+# w8r52ZYvIcf4JRF+fjOtjl2qiC1NCkXctcPzoZggVZrloF3+mjwxBynmR8DLi4I0
+# OviG/pkNqpku/TcdjZnSRXbs+78330kZGEPPscYy1GTLQGK15lKfEq+rjE2UT7uK
+# jrecEdWOdB1jhXj5Ck8Ytq7RSYLMxWHFWi4+nRKwzH9w7EQfkqsHY/faWU2xJ7z0
+# Fko3HGN6OJkmfNVzCfmkiFMj2pfLdoHDFYIi3MIJnYcK+XhX9qouHK6XuppMGnL7
+# IyRuhDKQBPVxoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYyNDE4NTI1NVowLwYJKoZI
-# hvcNAQkEMSIEIKspNJfVnNbFDoP+Y56B9ZalVnsSBZUFNVcOuFEfTOVyMA0GCSqG
-# SIb3DQEBAQUABIICAGwRFcUPth3JZOjjcu1rkmVugqsyMUEmSeXlfNae2URce5S2
-# TjkKnTlA4uEHqi1LJgxTNCEiO3MZHuV3b4C3LXrnBjoyussvGaOJ3lY8WEtWit+V
-# yhSq3cRG7MACnCYD4K5itowK1kkyRNI7JsLZRWleFrCqrre7uXoLFgu6dWYgNKHE
-# OP8VaLTcB1qrcvegHKv8zWZfp79NdzW1VuUHI73m88Rnjo5fLkKgH+cOF9dSlXoQ
-# /YXmOJe4y5C6OG+sTOcJK9G0GkrVoBJlVA6l0vdXQRcZgfRsSENJiFQIRMWTGyVP
-# nWsx+u6Mthxujcpu1SoN8VU3D/mMRIhUHJtC8CP/rwPQUvO/U4te2LIUEvBBgri5
-# RxKT5Qt8giZ6170QnyB5Xsc5FwZmj/NPVN9rD0r+aijRB20y77jTZJRbOAcVo/iE
-# hjX2h/xxSYc9KeqwEZ8g/A0l4bDGOWNzfdzqInfLG+FHatBoyPm4KmzOTOmII1/B
-# pA7PS1i/u8ql3hJWdqp/tK497rXC97NR1wteajTWWOjL9q5tftIrYmNdYc7t+Zh9
-# 2r4f1socnsVpi6+iwVLAOkPGKOVKKPbhw23jOApHXz5lOFjxqWOSKZlC7aGVB8TC
-# 6une5QzlDOBFpo7XFAaCkFBaME8Auof6n5qs9sNE+eRdsGrS2b2mjDRaPI7h
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYyNjA3NTg0MlowLwYJKoZI
+# hvcNAQkEMSIEIIbym8WpHHdw1QFBz/pXehD7SD5NswHz/YOMpBjpOGNVMA0GCSqG
+# SIb3DQEBAQUABIICADKz8JOcSOuETldeAR2vbcuBbOylJ5BWsRpdqfM7q8hHj5tW
+# RrU4wCZ1pKnsSVSxrWDngiXbTaG2jxMbT2z8lRP8kUasUezxnSLyBjcpTyVY2ssd
+# nMegTpCqnuIjGbXwHriRmqz3PisQyNrt8+thSEN+shWYaRwB9ECoSdqRIcw1R1uN
+# 6Y8RXHrb6Ck09gEjV0YjQAmuDvtCfNBb6Z4SnavfALSw00TJP1vFhFX1ISDaCpBm
+# h6bNmN3BEeFP/IRacjdcPqSvXUAOAJE4g0uJaB6VIsBuUcD8jy2dEhoRA+7CMmj7
+# sOvPiT8lZYv7pEZdYzUeBPWAycwjzNCBl4QqWkzXEjFhcDMWqXmOdx+MxVo/FFje
+# ie+ToH7D9e8x9BW2lDZp7NvYT947Jl+mlfftXbIOvQqqbijqabUtZTH3SVU2Otjb
+# fgC92YkuTpwwodncqfd2l8Y11SSk98bv1rGf85GYntV5wYVGaZRTRbminlYF7d6D
+# 99hemZXYF35g/TukZbc/O+W+q99vRRiAvn740173R/owNAS8eaR4gq7Wpls0jUpk
+# MJum8XdinFNEintNEr+scZE4clQ6mgX+ywjwvxo2vR9UpM3D4b2OwPKhvh/+vnWe
+# kzO2dqRW09yIJ2rloV2ruiyaI9WILg9X9ifvZ6MiNwaTugT2SckNJap1/a1k
 # SIG # End signature block
