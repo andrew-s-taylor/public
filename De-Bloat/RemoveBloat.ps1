@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.10
+  Version:        5.0.11
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -101,6 +101,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 24/06/2024 - Added Microsoft.SecHealthUI to whitelist
   Change 26/06/2024 - Fix when run outside of ESP
   Change 04/07/2024 - Dell fix for "|"
+  Change 08/07/2024 - Made whitelist more standard across platforms and removed bloat list to use only whitelisting
 N/A
 #>
 
@@ -329,7 +330,18 @@ switch ($locale) {
         'WindSynthBerry',
         'MIDIBerry',
         'Slack',
-        'Microsoft.SecHealthUI'
+        'Microsoft.SecHealthUI',
+        "WavesAudio.MaxxAudioProforDell2019"
+        "Dell - Extension*"
+        "Dell, Inc. - Firmware*"
+        "Dell Optimizer Core"
+        "Dell SupportAssist Remediation"
+        "Dell SupportAssist OS Recovery Plugin for Dell Update"
+        "Dell Pair"
+        "Dell Display Manager 2.0"
+        "Dell Display Manager 2.1"
+        "Dell Display Manager 2.2"
+        "Dell Peripheral Manager"
     )
     ##If $customwhitelist is set, split on the comma and add to whitelist
     if ($customwhitelist) {
@@ -392,7 +404,6 @@ switch ($locale) {
         "Microsoft.NET.Native.Runtime.2.2",
         "Microsoft.NET.Native.Framework.2.2",
         "Microsoft.UI.Xaml.2.8",
-        "Microsoft.UI.Xaml.2.*",
         "Microsoft.UI.Xaml.2.7",
         "Microsoft.UI.Xaml.2.3",
         "Microsoft.UI.Xaml.2.4",
@@ -405,7 +416,9 @@ switch ($locale) {
         "MicrosoftWindows.Client.FileExp",
         "Microsoft.WindowsAppRuntime.1.5",
         "Microsoft.WindowsAppRuntime.1.3",
-        "Microsoft.WindowsAppRuntime.1.*",
+        "Microsoft.WindowsAppRuntime.1.1",
+        "Microsoft.WindowsAppRuntime.1.2",
+        "Microsoft.WindowsAppRuntime.1.4",
         "Microsoft.Windows.OOBENetworkCaptivePortal",
         "Microsoft.Windows.Search"
     )
@@ -448,117 +461,6 @@ switch ($locale) {
     }
     
 
-
-##Remove bloat
-$Bloatware = @(
-    #Unnecessary Windows 10/11 AppX Apps
-    "Microsoft.549981C3F5F10"
-    "Microsoft.BingNews"
-    "Microsoft.GetHelp"
-    "Microsoft.Getstarted"
-    "Microsoft.Messaging"
-    "Microsoft.Microsoft3DViewer"
-    "Microsoft.MicrosoftOfficeHub"
-    "Microsoft.MicrosoftSolitaireCollection"
-    "Microsoft.NetworkSpeedTest"
-    "Microsoft.MixedReality.Portal"
-    "Microsoft.News"
-    "Microsoft.Office.Lens"
-    "Microsoft.Office.OneNote"
-    "Microsoft.Office.Sway"
-    "Microsoft.OneConnect"
-    "Microsoft.People"
-    "Microsoft.Print3D"
-    "Microsoft.RemoteDesktop"
-    "Microsoft.SkypeApp"
-    "Microsoft.StorePurchaseApp"
-    "Microsoft.Office.Todo.List"
-    "Microsoft.Whiteboard"
-    "Microsoft.WindowsAlarms"
-    #"Microsoft.WindowsCamera"
-    "microsoft.windowscommunicationsapps"
-    "Microsoft.WindowsFeedbackHub"
-    "Microsoft.WindowsMaps"
-    "Microsoft.WindowsSoundRecorder"
-    "Microsoft.Xbox.TCUI"
-    "Microsoft.XboxApp"
-    "Microsoft.XboxGameOverlay"
-    "Microsoft.XboxIdentityProvider"
-    "Microsoft.XboxSpeechToTextOverlay"
-    "Microsoft.ZuneMusic"
-    "Microsoft.ZuneVideo"
-    "MicrosoftTeams"
-    "Microsoft.YourPhone"
-    "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
-    "Microsoft.GamingApp"
-    "Microsoft.Todos"
-    "Microsoft.PowerAutomateDesktop"
-    "SpotifyAB.SpotifyMusic"
-    "Microsoft.MicrosoftJournal"
-    "Disney.37853FC22B2CE"
-    "*EclipseManager*"
-    "*ActiproSoftwareLLC*"
-    "*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
-    "*Duolingo-LearnLanguagesforFree*"
-    "*PandoraMediaInc*"
-    "*CandyCrush*"
-    "*BubbleWitch3Saga*"
-    "*Wunderlist*"
-    "*Flipboard*"
-    "*Twitter*"
-    "*Facebook*"
-    "*Spotify*"
-    "*Minecraft*"
-    "*Royal Revolt*"
-    "*Sway*"
-    "*Speed Test*"
-    "*Dolby*"
-    "*Office*"
-    "*Disney*"
-    "clipchamp.clipchamp"
-    "*gaming*"
-    "MicrosoftCorporationII.MicrosoftFamily"
-    "C27EB4BA.DropboxOEM*"
-    "*DevHome*"
-    "MicrosoftCorporationII.QuickAssist"
-    #Optional: Typically not removed but you can if you need to for some reason
-    #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
-    #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
-    #"*Microsoft.BingWeather*"
-    #"*Microsoft.MSPaint*"
-    #"*Microsoft.MicrosoftStickyNotes*"
-    #"*Microsoft.Windows.Photos*"
-    #"*Microsoft.WindowsCalculator*"
-    #"*Microsoft.WindowsStore*"
-)
-##If custom whitelist specified, remove from array
-if ($customwhitelist) {
-    $customWhitelistApps = $customwhitelist -split ","
-    $Bloatware = $Bloatware | Where-Object { $customWhitelistApps -notcontains $_ }
-}
-    
-
-    foreach ($Bloat in $Bloatware) {
-        
-        try {
-            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
-            Write-Host "Removed provisioned package for $Bloat."
-        } catch {
-            Write-Host "Provisioned package for $Bloat not found."
-        }
-
-        try {
-            Get-AppxPackage -AllUsers | Where-Object Name -like $Bloat | Remove-AppxPackage -AllUsers
-            Write-Host "Removed $Bloat."
-        } catch {
-            Write-Host "$Bloat not found."
-        }
-
-
-
-        
-
-    }
 ############################################################################################################
 #                                        Remove Registry Keys                                              #
 #                                                                                                          #
@@ -1458,12 +1360,9 @@ $UninstallPrograms = @(
 
 )
 
-##Add HP whitelist
-    $WhitelistedApps += @(
-)
 
 
-$UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistedApps -notcontains $_}
+$UninstallPrograms = $UninstallPrograms | Where-Object{$appstoignore -notcontains $_}
 
 $HPidentifier = "AD2F1837"
 
@@ -1576,22 +1475,7 @@ $UninstallPrograms = @(
 
 
 
-$WhitelistedApps += @(
-    "WavesAudio.MaxxAudioProforDell2019"
-    "Dell - Extension*"
-    "Dell, Inc. - Firmware*"
-    "Dell Optimizer Core"
-    "Dell SupportAssist Remediation"
-    "Dell SupportAssist OS Recovery Plugin for Dell Update"
-    "Dell Pair"
-    "Dell Display Manager 2.0"
-    "Dell Display Manager 2.1"
-    "Dell Display Manager 2.2"
-    "Dell Peripheral Manager"
-)
-
-
-    $UninstallPrograms = $UninstallPrograms | Where-Object{$WhitelistedApps -notcontains $_}
+    $UninstallPrograms = $UninstallPrograms | Where-Object{$appstoignore -notcontains $_}
 
 
 foreach ($app in $UninstallPrograms) {
@@ -1771,11 +1655,8 @@ if ($manufacturer -like "Lenovo") {
         "ElevocTechnologyCo.Ltd.SmartMicrophoneSettings_1.1.49.0_x64__ttaqwwhyt5s6t"
     )
 
-        ##If custom whitelist specified, remove from array
-        if ($customwhitelist) {
-            $customWhitelistApps = $customwhitelist -split ","
-            $UninstallPrograms = $UninstallPrograms | Where-Object { $customWhitelistApps -notcontains $_ }
-        }
+
+            $UninstallPrograms = $UninstallPrograms | Where-Object { $appstoignore -notcontains $_ }
     
     
         
@@ -2110,8 +1991,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDT9GT7aV6VC2ad
-# gFo2F9W6ACfT/XRlrNWhAvxAE6S38qCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC955Ak3QVLAVlu
+# jvelnvU0A9nanTV6TmvHMDOvhJncXaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2293,33 +2174,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFQ8OIrA6LndFrPHP3rxeKjEx5iNTEbeFhPO
-# kbjvcTllMA0GCSqGSIb3DQEBAQUABIICAA55bcgXr3gkI2lkM+j7+BeSX+s+tDjO
-# +phnwO4qvt6VOflrkRz/OsXCIitllNVVHmgyB6PEN/CEfES1hYCcoMlHIJFS4tjs
-# uTClwu7uu7mmhPHam2/SZqogDFBQJlRcvEMgk61r5lFfsQ72J3MTeHmHrYBCrmal
-# v//0p9CCRv5+Yyu2xCmREOzrJJcIBPsHGRtl52DOASLZgCK0EbYTLe370u7zQy/j
-# H5FvGRTnFvXGiMsMldt2kI6ASmaV0tg95ePfhatREnqihS4sgTAG+gdwEeWOp01u
-# 9qQQH5uK4h2tkDZVSUpId0Jizjx1YS0yqs4ZSnyrFIJmPcD4rQ3AlOtq/4wcsyuh
-# Uq9BleHrIBqr/JJOtZEFB81BYDMS1hE8dkYlH3YYpeVJmIfVmbYw0uXHXB6ULFLM
-# ZPdDpccxTwcb6Hhuc3P0/axrPYQxqV8A9jP4JZ4wV3z1B8wfXe7H6As0Qm4Yr68z
-# VhpYi4gmKncyUIfhZcAyePZbDV7DxbjtVFhkuEx49bD9Q502ePdx9v1j6Ml7Ro7v
-# vt8iVyS2/cWDQDE+bRpc32NWM8T5HELKmRqdfF+rDQYOTvwDhNEkGiFWLMy7e8AV
-# 1YF3/5HFNAvL6Jp0JAkYJl4obx2yhQjWdb7XNvCjuRLbnA4m8XNj447k/3PEJL9I
-# zu2GTXGuAmvdoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJcppK/cte8LzMCUbvF2348Bvh/iEj2QIU+P
+# cNsKkxMaMA0GCSqGSIb3DQEBAQUABIICAK2ND0QOcJAo9EpH/Mguod3O8WIGrNFW
+# R2V49QqgzGS71TWc9Mw1tCtDV0MhPN/JosYggCFDWfTaNHklwxD06FUutYskcYwD
+# khuQZmTBVXJ1xB5shCE0w+IS19rGUiOk8uNdsFA5nTUaEUCmE0rpC5o7X4HY5G+N
+# M470jqN14Wvzu3TVgyLfnCDD9ZbYNkK52McNfEWyTgA4o+mZUl9d5phml4IWgG4j
+# oSyydHJ51sXRs+JX5hMavIFb030+KOxxXyJHZLtf4cy6C9gX3U38ApYr/zPG8Yn+
+# IHUvREP+EtPmVNUVixEhbdqocbs6NKfrI1lcYaWGLn4tIieYaHmRXAUHEh4MsZ0A
+# JebfjfMRzGKjluCogEIl9J0WOK3FIYMoVHZmULlVuqepnt3kia+GRVKUdcOsS6jI
+# Nu5DkZotyTyqrMBwbnWQDTt0tu3PuOCkZPvdcSlAC7EBVA34ckiAtZs4PAcqbd4V
+# DY7NJu5+7ZW6WU+tvfHz7EVjSmA0nUjTsbIv0iOBi2kspwGWnQrEMJ6suJ/mOmmp
+# wLn4n8rF/lpifkYNPNCC/mZFvAphI8K+aZUQ/Qlr5tivPFThMacyzbYciYvCgIeB
+# VHOx1vIBQ7tbL0oxO/WjRxhLkS4dcStY4slK3B/cdWPC6c3w47nji2rg0F1eh1kJ
+# U0r7E84Emjc/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcwNDEwMTk0NFowLwYJKoZI
-# hvcNAQkEMSIEILwOiz3y0/5PTIOt/NwCyxUlGz8XW47EwP6iEcgixzs9MA0GCSqG
-# SIb3DQEBAQUABIICAC8xRRvr1KLh4vQW5RECfdjBSVGz48yrUSJUtfbSwSqSe39+
-# uD9sItNoVD9A7J2UWg8x2CJ6R/+8M+eUpD3jqdjWXTeVr+2gmEAKYv9QyZCM3ynZ
-# jBkG/IO7jz44gLlyvk1xfOS5rgCZkhQ49cZ5sYIJAvQQFXAJLLxI+d79WLfJK64o
-# mGkwE5/ZZL94SAkE8rTHe7xfzcRFf+JF+slMeqPxhWgBcye71kUZrjETnrY2wDd8
-# kgIal8saAIH08MVXTtaUr3Sml/N7WzOPKRJfHnwMs5j7g2DfTsquozI2Wv/zPkN2
-# SsjN+G+fadhkcWJoMtgie+VuMSW8MI2mO/Kc91rGDTecb9TzGRzwKO49AFW3mrc2
-# MlOvkAQgd9Rz8yqeNFpoJqfblTdbjoWIdliWGMauEJz61ubn5Km69z87BfuiGd47
-# 885a3R/7P2V3jnvU0cBD8A2Mft731infWYq5Xi9NCiI5zaNWu8XjEU2f7wbyfpW9
-# LzDlwv94pUllSo9+FpanRa2Iq8x6tQBzvXU8GQ6LOi0KaFfgY38pmmjVE4296oI6
-# ycIZ9LJ2AeIjCdJivYRF/1K8XcAyEuwCzzjCT7ee20NPze5qC3eQPHq7WzmWK9jV
-# KLraiwu25FFPVNam7Msq3QmSFNhjvM68MnywlWcWYVKInS2AQL4fTzOFM6ai
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcwODA5NDQyN1owLwYJKoZI
+# hvcNAQkEMSIEIJUvqDhc5n+BRRYALxrUzhJq6rtBGi15SSSJsce6kPTOMA0GCSqG
+# SIb3DQEBAQUABIICAArcQxHdvHYpM6Dxuo/HyIJiFkMjg5wDjeuDEm4X83dpkpVa
+# huhRUvloDUPZYPBAj6d4Fw89KR8MtkvnRPIhYZJaqQQicckkmZ7pr8rX5UDs1JC8
+# duSeXSyfx79tNmvN0RBMTYFPVS2XpQi/Ugbcro1gR9Sq/BDYDhkhrAarxldzT46n
+# bd9pilmD498Dx0/Foq9YVj+h7c2nR0kWqnCKDoNzfWeMrXhwzoJ+PgXY66E2SXRk
+# JLSNelW8DmbPk7jplF5ebfEh7luDBaE71HfFsTJNNloHCr43lqHLbyQ6wi9ht9lV
+# 3MsB93x27k4jt6nX78h9QamgCOvArpmGa0WeqwWW3k41g/fDUE5UK/Ny7ZpylH7u
+# 5epsc63+cYd0e4R1xA0HDWKiEbxgtYl27Cwu6ABTG0Xi/wiRelh7ZLHD3M2HtSm/
+# r12JVjX8xtKe3I197dTqkC6hHAXPVyUhxShaj8UrZhrOIq0OSMAEpixki2j1tR6N
+# 9L+hsrag8RiaYB04YP3KjaW6EKqdXs+pMZSNFkhFPO3xtWq0Li/4XGAWQcgsjT86
+# CNiufPXwNxkLIX6CrUwau1jrGFLSzbaQGThhL2FTMAGNm8tokTT0oyr2OEfGKpqR
+# KgQSMpABz5LDyZ0qRI7rnsqQy58LM9WjXY0/NNjC72qAd8bAeG0JWyThjepp
 # SIG # End signature block
