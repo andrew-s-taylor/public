@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.12
+  Version:        5.0.13
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -103,6 +103,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 04/07/2024 - Dell fix for "|"
   Change 08/07/2024 - Made whitelist more standard across platforms and removed bloat list to use only whitelisting
   Change 08/07/2024 - Added start.bin
+  Change 12/07/2024 - Added logic around start.bin
 N/A
 #>
 
@@ -435,11 +436,12 @@ switch ($locale) {
         write-host "Removing $displayname AppX Provisioning Package"
         try {
             Remove-AppxProvisionedPackage -PackageName $packagename -Online -ErrorAction SilentlyContinue
+            write-host "Removed $displayname AppX Provisioning Package"
         }
         catch {
             write-host "Unable to remove $displayname AppX Provisioning Package"
         }
-        write-host "Removed $displayname AppX Provisioning Package"
+        
     }
 
 
@@ -1085,10 +1087,24 @@ $blankjson = @'
 '@
 
 $blankjson | Out-File "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml" -Encoding utf8 -Force
+$intunepath = "HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Win32Apps"
+$intunecomplete = @(Get-ChildItem $intunepath).count
+$userpath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+$userprofiles = Get-ChildItem $userpath | ForEach-Object { Get-ItemProperty $_.PSPath }
 
+$nonAdminLoggedOn = $false
+foreach ($user in $userprofiles) {
+    if ($user.PSChildName -ne '.DEFAULT' -and $user.PSChildName -ne 'S-1-5-18' -and $user.PSChildName -ne 'S-1-5-19' -and $user.PSChildName -ne 'S-1-5-20' -and $user.PSChildName -notmatch 'S-1-5-21-\d+-\d+-\d+-500') {
+        $nonAdminLoggedOn = $true
+        break
+    }
+}
+
+if ($intunecomplete -lt 1 -and $nonAdminLoggedOn -eq $false) {
 MkDir -Path "C:\Users\Default\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState" -Force -ErrorAction SilentlyContinue | Out-Null
 $starturl = "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/start2.bin"
 invoke-webrequest -uri $starturl -outfile "C:\Users\Default\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\Start2.bin"
+}
 }
 
 
@@ -1996,8 +2012,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBhpH4yYRlCikgD
-# s7SL649aNBLkAte77ATu+SX0hftSc6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCy9AsFQjV0PmfM
+# ZEBI8GtJLAvdT7dUoBjMx00gb5hL0KCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2179,33 +2195,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIL5Gs/RnsOtA/vwph9Ydr1AtqM2CVo5AX7Tq
-# 7VH5Y+gqMA0GCSqGSIb3DQEBAQUABIICAEFA0Jd/IwqyojQOsJo6he7sooVoGcQU
-# HmyEe8BiSglypOjAlLDqhebx54JpJb5j9ix5M/mxKGuJZ2jh9hKCstDb8gvXE0fX
-# TZyhegkQz2jnlF3Hnr7El0Ov+o8O7PelFHbaM5MSDbycv2gQIIXrSmEGk8umiaOK
-# a4eoL3yM+VtKthGCsNWuNPbCJt2P0XmNpG8jZKrO1v+ql5QBMXsP4VQWf5tKPmpx
-# DBqzUhKEbD6YIh9RejKGB7yEHia7J29P4rLaGHeTP0mkv1xSt9La3jz8pqbTO/1p
-# U+QF93dKt27zRJqMpuT/7zXpj6NzBMGL79Dc9wPa5Blm/GH19He3UHgcGlq85k7I
-# 5gSBSjucMYOE85A8W/ZP1oWiGKmrfilqq/Z0XVLJx30z5R/cqIQGMhC+RUHOFnIC
-# GZBw/Sulbdsd/rbxC8wr+vGamJW0qW9NowboJ/j/HFir3NDS+SFKzcbhgZMYq6NC
-# 3PkUg28+oacxn+2W4+/Z51Dj6K6+C6E0gjj8u4Na5AqZZzvTDvSZuECYiKXot4uC
-# nzimIhStO5Qzo9i69fjmxBKCiga9LBty4OegjJbLuXHXuN0dQJSCXvHNExFMyZus
-# 88ck/cpsBCMvwc1/nN7vHBg8nmjgiV7Nouu0AYDyJqzcso0x3rDXSz/FDRDu1+bH
-# juDaKayMHv+4oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIAbiDYjjJrJPdgOzdlQnfd4zOThTO2qcJWzq
+# vzdtb/cNMA0GCSqGSIb3DQEBAQUABIICABr5ESkn8FfybwiYz0vW8xSUXWEmsseU
+# fEJ5fdUGTuZ4GIxBW7j0fu3S6CqPQZcH8iI7l18Vcr42od9OjG31zlG7kIFLPMuZ
+# dbiJiZmcFOdGdsLP2OPqESnE0v3I3fW1jDK31zNFLSu8XhOGSwP028Ujxq5dQOkT
+# erSw1ePFwYC1G70k1As6CP0PMvydKk5vtXiu3dDvNZ/fKfaff7GtjUwrJwpsXZZe
+# 9UUjmlA5yhAtnJ6uEIHBdEMupKYWr6FWSqww5BrNMQOgjdWrOma4RKm9nQVe2SxK
+# lPS6m+cYvCgKCjiK53XvTbtilnTbQivbZpkwvVLpP+Ak4RWHL1T7Ks3nO7yYFtGO
+# GlGsnSrCHA0HEt4RvKCX3XJYIeiCj2bhRc7Bq11+3YQUXMIleQsu+KhayQSHJvX5
+# mpOBk3aSbNZ65yx9CCNC4i8qa/BS9J6PVdEmpXLhvG1PkeVXhqkuTXnl2J3EC2jJ
+# GAVI+o/d/S+5oAjv3OC/G2vex4UQdlLlP5QiT5F+HdDeV6VSWHYJLivi1aLhukI5
+# 8fFjjx6qu64ROw5fTkJVb5HUnyJ4c2YJn+2W97q+IFT3CTlwU0BxEDrZ4OOLBL0+
+# jtUkHDJnLcyeeoJq2BScdhzfwWrFEf1no7Ct/0OuMTmVuyLrpDkMpPX/ZJnEnW8q
+# aawCLLd0eFWCoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcwODEzNTkwNlowLwYJKoZI
-# hvcNAQkEMSIEIGsv5GuMCgfg6+vborKeYtCnXznARS47tVa2T5k3FaSBMA0GCSqG
-# SIb3DQEBAQUABIICAFly28YtVyZnzT8lIcHBzSJ4uUUpwInsVl5n8JYNgKeWv2IL
-# UH1+8lNbFCc8gyboO8mJADBMD5zFRmuiWWIKXGaYUH1y2IQtQRfgAHxsxfddKjiS
-# vaG0Wr09znjR60LYHdAb3Xb5voRdxI8dmxFNFvdgbacJKpzb65hmJwT8chLhSw71
-# KTOX0zzGcsL42CquBZ0wXRFzkUnt2NXb6fWho/kXRiFhKgAin5RU8ouIK/dpEq/2
-# suw5ELUK5bBSdeK7/z/IVnmGLqaCOhfjjf65BlmW0JYagIm+D6WSYi7xSW5fosX3
-# sdlmR3WCyGZHvI3O+AOIvWrIUQtL2wSUtaIoKT6qzM+ZCAnGO8RLqCopDvo6JwCe
-# jGV5gXwOX/SH133Qc9J6DbwK1mmAJM6RuSKXaTHMhlikknbphi0sAL7jq84BXcua
-# xnXdOXCyTzeW691vW8aI4inYmykg4sKr3PWbvfSmClO2tsGd82v3Y7SvEHGMWzYp
-# yBKTF9F6DmbWXO9sfP2+mEpmBVa0ewJ3T3js6PzTTSNM8Tzvo5IvS+cUXzUQMnAm
-# VtHfcAlFRp8Q1N+0AZTwWd3RrDP2uW2As++ZM4ZGWcOhhsv5k+cs5yVjdzx3IVPA
-# 908D0163ebO3DO74zkcqzMr+ait3/U/hKijaFkICANxbn8siknacnn/I6RUy
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcxMTIyNDYyMFowLwYJKoZI
+# hvcNAQkEMSIEIHtcKxNsrEx2XgnM03JCk4EJfzF6yAavQ5SyeUaa/CRlMA0GCSqG
+# SIb3DQEBAQUABIICADeHELSjbRRomB1jroF9lItIcF4Zk4U3iz7chhosvLxltBQd
+# lJRfJM85r9tkF2TAsWsrEJr1L42nVxXG6Xt0ofrBUVpDxIICaJKdvgtAPFBSq4pg
+# ndb1aWdoUjZMC0DwDAZrjGKOlznKL4n/ayPC8h6/72dwbk094u16djGrV+feBsa9
+# xyOIwPmXiITEO8erl1VN66d+vFlh9hLJo+d9i30GJlmX3GOg0c42RuDtmLiarmT2
+# Y07C3fhsyJmuNfbnrlo9+PvpIl6WvtsSKnn9aqdtWhbZHTEdoBFZxcHbET6HQtKX
+# TTuW/wjcPVil17iXiTj/FNULDNWlYynW5YZhA8YvOcQMEL8URz4GiKkP8T0uH7ss
+# 1Wkzp5V8sQ+BlnnXM4za2iI5BslCeli9bGUOtRlztbQhR+2mC0Oh5cbroLcscOWL
+# oY7ZdbI+MS8V1w1cRZBaDl8Du7a4KqXxW8b4afhXmRL9JZ9qoSkef/Q/wHcRAsUz
+# q4N4h33knt9Tcxer3in1EeNsCVPzpn9Q6ndh7hUmmzzSy+4YsRurwxGCne2lzgtZ
+# 1pmGgzYMD4JuNKSaU92yjIKNe2OEP/e95r0BCHRrDQjZFEySQvWwS2AXxZm/A1KX
+# InEKwaDxJrOdcdYBc5UV7q2EHA3cf+hWPZz2X9thStbLTl7OqASZjftTTGac
 # SIG # End signature block
