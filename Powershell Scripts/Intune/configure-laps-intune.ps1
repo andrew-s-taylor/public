@@ -9,7 +9,7 @@ Account name $name
 .OUTPUTS
 None
 .NOTES
-  Version:        1.0.6
+  Version:        1.0.7
   Author:         Andrew Taylor
   WWW:            andrewstaylor.com
   Creation Date:  25/04/2023
@@ -18,7 +18,7 @@ N/A
 #>
 
 <#PSScriptInfo
-.VERSION 1.0.6
+.VERSION 1.0.7
 .GUID 22204255-7dfa-4393-aba7-5c9a1fc765d9
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -213,7 +213,7 @@ $customjson = @"
 	"omaSettings": [
 		{
 			"@odata.type": "#microsoft.graph.omaSettingString",
-			"description": "Create lapsadmin and set password",
+			"description": "Create $accountname and set password",
 			"displayName": "Create-User",
 			"omaUri": "./Device/Vendor/MSFT/Accounts/Users/$accountname/Password",
 			"value": "$password"
@@ -262,7 +262,7 @@ write-host "Creating LAPS policy with new user account $accountname"
 $lapsurl = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
 $lapsjson = @"
 {
-	"description": "Uses lapsadmin created via custom OMA-URI policy",
+	"description": "Uses $accountname created via custom OMA-URI policy",
 	"name": "LAPS Config",
 	"platforms": "windows10",
 	"roleScopeTagIds": [
@@ -404,8 +404,8 @@ Disconnect-MgGraph
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDvktbQh37P5Ypl
-# B1ub6V/2DAJzsciLkMzqjh0E6VBmOaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCA1ybIBeASA9JA
+# 6sbz5GlKhjJ8GolF3r7LeV+4XvFfZKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -587,33 +587,33 @@ Disconnect-MgGraph
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOY8gY++ILuJQTXJbJveiadpaOgCeE1T/RyG
-# AteSDiJGMA0GCSqGSIb3DQEBAQUABIICABimsVMtPf7Xpj/o6H60V1KzjkEC/t3R
-# Xc+ne/zJqmwkGLQ408JA+bYtXJFhSHS1FToOP9SpGAS9YUrZmNUv35pDBdMx+ICu
-# 3A9NdSZWPHZXNqaI3gMuN/iGfpP0/8cijVS8A7+r/77K3mPoKf68yuXj7GHnGXNV
-# hSMFU2W7mmkTaGklaf0EHXtYm19nyelErJH4JZ+svpg663uBJcJuArecHHOJ75uk
-# 7NZShnTJIIKSWemlb0OnjwoqWT2BDlyjCgZVoJBnxiHAiIXNaAAwpHyH+vQPGiyQ
-# RU1W8pT5obhMaUrHFy8yOrjr73cyKhXm5aBw7kxE9BZigdlrOnpnIpxFwEhMHOVp
-# mbza8MNo3oeKz0A6aLAIeeAWEY4Klcp/gaBfsqhTCu2TNFfB/N+55YgmTNMT6GFx
-# BTgmCuH+GtkwXSlR5K8NYta8PV2CyU0sOANEKYtsEbB5dot7/EpEDmDFEufVPPyT
-# nO/9aauas8tQGEdyKJ0eFwuXUVWvFWGHcTIYvzp8zq+dTjbl63m39qkYEnrl4Nsz
-# kHBeouoqyeejFXGfIxVTqk1nEYuB12Jt64pGRFtxbll+9RXuqlprkHlMPIXY0qtn
-# 8Ar7EwxNwbE9X3fEwfpepeNwmlkuAsZH1zHzJ6OfV5Hhbp/eQd2h2DEAdd/JLQ3p
-# yEsnAthjqPl/oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEtX1hCP2HqC4OxsnemSqQY3dkA6DQovcTTQ
+# +BbXT/uwMA0GCSqGSIb3DQEBAQUABIICAAgH+Y/KTf6P4jtWu8mQOfOphx+4MPEt
+# w5SYAcRkJcbOeJwhmAQUwRuf1OSFoiiZhHQbXKcH5RNyJUShD2lOm1bAuBZsJh06
+# zeQ+bUpXU/hD5l/H3WyvJk4Csun6O23Z3octS/VWjglVJHB3z4T+L6MSk7rZHkSG
+# i8Ia06//DcYs4DdxenMKD8z1M2sR3Xv1T2o+tositt4esAbNeoTeKNx2YZwPp2r0
+# Td5rnZ7Aa3kee9j1AYn6ZaobKDdmc68SLEF6tZcFGVdFEqWjTfKyfkJpwZ54nvax
+# gIpPf0yXK3WRvluWk1LXDxdO1aS7Big8/KoJgq5f5GPxqk7QXGg+hpU9GCkNeFG+
+# OcRXp4CmnfZJe/aczY4llhyKji0K7oVsy61QPpsqwC7YlBAE0fxf0RZForATJXYk
+# UEtDmJbJbk9YSjZFYy6ZEIGN7kpRXK/qDZ6fXWRTgG0peTXBMGR4sIbyxWjhRe4l
+# T081oLRhX5lGMgk2AN4K2G4e5MhQl9BRasCJgon+3qTLdYsUdn0nxPl3WwpCU1dY
+# +w/0Xtb8NKLkaeOqhfCC66csMBhWpIjlYcCV3e53kgB/A9h8aoSOn5V55e+mbWbj
+# B5/oFoxl/doTe4EXdjMZ77n8V65NlentDsM06P6h6UkZu6mbW6gAO0fmvNZe6lRv
+# dcCcKbMvxNROoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIzMTExNTIwNDYzNlowLwYJKoZI
-# hvcNAQkEMSIEIHjE6vct976hqxJTkKgOtAm/v++Woqltvp3/dFGwXvUmMA0GCSqG
-# SIb3DQEBAQUABIICAAfD9gP+dl3wdWPYH7/KfoZzW61n0kYhE5GzCuaaEJmwCju8
-# XY6yIJdqbcEpPcxYMxiDMkN7NZA776eRq/ZxgiVbQa5mKKOZj+j3Yd+QJYdiUX6/
-# vi3Q4txLcTvEFlwgZS5gxaN/JgQDVt4g0sajwl7lP0FUwXz5tf0mU/d/ROg5qmfa
-# sF78a9YTka4DNGds5NYjZI226iFz6e+OEsri0NaBM54RrutKqhaKwefW7+uPBhTf
-# 7KLAT5RRunQ7aGb6rS4A8r27Uo+CubywE0MlEUKDTWbV0ichcOVLtrEVWW1d15VQ
-# XIejyC9Dq738zWBcL7iuCiLQe4/f2ngYM4L4AG8FoejdejkuKi9KiBrNNbzkgdKH
-# 8565U5KzF6Fr0CiRKRJX+wCmKmzumTkjYz0imWGmB+n4jxzzcM7rVsNAB1ZSx4xG
-# w9Mtn+pQ5tyquK7yrnzsFEwj94s2+FHzff06zzP0JrGhmNvYyypCwShteNzEaQwl
-# LskoCLxY5vHlafQMOivDQpHKAFmNwquyWinC2YRpluFNcAQ5XJMaiHzHAENs91My
-# M+0/jrto1wZpaTmMBhxk+jpL/L4Vp1RSeNQzjoXyr/fikNCs1hUL0rG4v1EKek0J
-# qrOyoIj07BOgyO6T7wzxnBhI+rRhdFFAIOO6C0sc8440lJb0RyLJpLzmkQpg
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcyMTE5MTI0OFowLwYJKoZI
+# hvcNAQkEMSIEIHy6BwHfn544eRLJFr0bJSaXhKLY5DvNjl3WeaUBOB3qMA0GCSqG
+# SIb3DQEBAQUABIICABqVqzedMncxyMcDRm2ofnxxdQblg2cJWQ4zriSYx8XanTtU
+# Tt2qDTYCkFjxkRZVGTDXvDCHMGUJSijxowjyO4C/ryfT/36WHsqmYrhSgJDUP6wb
+# 1s8PffSdOJBnb7vkbgy9zexB6I9DiUmeCk2KFh6u2ISwyEtfbj6QjaBj/9+56zmZ
+# B4WcbxuWig1NYjwwsje5MRi9XM37nH2VFPoZh50D05JO99rOBdGmvPQFJRhNs6YX
+# GTvz68Z0kRwdhrY/kif36SNbGGsm/EAD4+QpiG0cy6jQ+wRzn1Gm3th9c95dUmyI
+# 50UW4VdegIDWZLiKAXJ/RMU2BBbgtOfURYDE5Za0HmboJd6Tfw7BMU87z7TZDcU/
+# SB/4m0DOcDABKv2V9bH4ajni4INNnHsu28dPZ+L8+o3n2RvmRFpBFFPZUFlPzZFR
+# Mn2uhQ1p4mvHO9zxLdj6uIL8Ian/8yNckiVsWM81eQ5w/XB/HUKPLvujKqrku5Za
+# cXZpg/aVZ5pOJF6c8jLRVFkVxak8Dvq2LaRBO7lSbNWhP1tioXABjuk4rggxAukk
+# w+AfVL49sfAIozE6Y5qqVkmb/xoJ7VauU5KYvLGy/S8x1JWBD+4EKNTCAD5mcYEE
+# 8eEPbDGGOfDZ/RU1z8IWuoAYsTmad/K5JLBZhHCJ6hMcYlXT54tsNeUNACiZ
 # SIG # End signature block
