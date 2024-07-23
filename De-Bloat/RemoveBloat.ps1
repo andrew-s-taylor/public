@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.15
+  Version:        5.0.16
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -106,6 +106,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 12/07/2024 - Added logic around start.bin
   Change 15/07/2024 - Removed Lenovo bookmarks
   Change 18/07/2024 - Updated detection for removing Office Home
+  Change 23/07/2024 - Lenovo camera fix for E14
 N/A
 #>
 
@@ -1811,6 +1812,21 @@ $filename = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\User Guide.lnk
 if (Test-Path $filename) {
     Remove-Item -Path $filename -Force
 }
+
+##Camera fix
+$keypath = "HKLM:\SOFTWARE\\Microsoft\Windows Media Foundation\Platform"
+$keyname = "EnableFrameServerMode"
+$value = 0
+if (!(Test-Path $keypath)) {
+    New-Item -Path $keypath -Force
+}
+Set-ItemProperty -Path $keypath -Name $keyname -Value $value -Type DWord -Force
+
+$keypath2 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows Media Foundation\Platform key"
+if (!(Test-Path $keypath2)) {
+    New-Item -Path $keypath2 -Force
+}
+Set-ItemProperty -Path $keypath2 -Name $keyname -Value $value -Type DWord -Force
 }
 
 
@@ -2043,8 +2059,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC+hURv7EAD22js
-# 4A1CW2dWWgHpNbaU8OQTxjAMQAWsCaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD+zx9Xf5w9LzVZ
+# gFkMYRAnjU9w0QtcZakIOmAbBhDDUqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2226,33 +2242,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGLJZRTJZRIYp3ciQuJByFbAsgIgTQ1QEvZT
-# ySeLXUSDMA0GCSqGSIb3DQEBAQUABIICADa3oUKxZY0RMO/1FxVVTIko7cRM+180
-# fbdDL4Kp0xZPM96ci2umnYRFHFQ4T2oOxel52ZPzCDIUZ7wpk9ZhmG4JsQTSw//4
-# dzzCENfBl+kFwPC3Gly7ttkFkDtB/wZwoAIXg9nKLRC0XWPMLBQWc5PW/y5gISi3
-# SklaTmd+gZYHidw8e1w1nIHOEmeGCJGevcyhgSHXFPUTgxeP8Hq+YRmfInikHnM9
-# f7map3OBUNzmtcKKwhQRLbsq5sBcES/5dPF8llqI0TNJNItIirTghlpmu4QRolCq
-# OupwkM+bVb+qnKq+ztrz1hl/+TZJEa69oloaIETG21LKpkZo/SUTW3wGjkuWOS/m
-# /ZjL5NTBDyAKd4GTrp+e/qxRaIw4aJ5y+mDCKHKLJp4HIATjjyjAaU6YAF8U8gnR
-# Xf7eLeGx3DoVL9r3lyw3I7fYzEItNBi0pxM0CqzDtnMpGB7+Jl7bp+EzCzcVnAbk
-# eWjXw7S4Skfu2IjlvqBEur8JGRZaGd4PLynkfMStNso7XFHbLtSPXefODAFPHGIk
-# tSHutZghlCd1e9SMRr2VwYaJYfQZ+vi35mLZucPeVwTJ2VwZaOfl3iv5mQ8ieIdU
-# r+g/WU048Xs4LxsFeO0e2UpyQpNtWG71+X4w9p2IBWmqnSiOoWQG1w8Ks2cjkJ8H
-# Ft8s17GCGdkLoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIAa9KYdUoASIY48lLyxRfgVYXOUFizUmEsyY
+# pnyLuZzzMA0GCSqGSIb3DQEBAQUABIICAH7GizsbdiR0oneTAVWbYWZq2yv7UQLk
+# cwdSt/gBSbL+LO8TBYLcWXZgzWgmQlq1y7dYeDn8KRr3JukPjKCu4AKVGlILG7CF
+# 7JIPYEkVzny+Kz4o2DE/nUGznRUW2mQeMIG90ax2krUKab+EnThHfB6qwAXgS/nM
+# HBZ4cPqSmMsQdDpCeHZOk+F6HpLUPj1VcktH8+z70acaDcX8eCthILuAATPH+Pz8
+# 1IFAhSzoZGO21oTvWYRjNy949VkwCsqx3jCsBBDn9gFCtuLf6a0j+y2EZp5PDbF/
+# g8B5gtiVzQD0Lbps+mPah8i1nPcNZEcjvB3G6cxmcqYKaYpxAkkOrithJHdQ/EVx
+# m4c9XAh1a1qcJD9FY8AMIyPIGWZf3K0R2cKR2DriCFlwq1yrH2AQkmcDlSCYeJ7f
+# inqbhIZVnPBg7NHv0+/5DkeP9FW8/E1KkEoA+eMI4KGWBYbGeBl7YvguY6+5RDP8
+# WrGjR3A64Z8AohoEL0FQ50BwOUz7kN0om2ZHqrRlc+BpzNedXbnm1RYm9w3K2p1X
+# +SnsQs3CWqdEbIliHNY5LWggCKXDqUkTsfYPMWV9i2728AxJnwG9kDuUq6EeI/nH
+# IbtojBmwJOSZbH+9zGxi4stT6+zcxaQso/eiYFEVTPorwogdTsE2OSOoRSNMHQuZ
+# CPBsHUzYv0ZooYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcxODA5MTY1OVowLwYJKoZI
-# hvcNAQkEMSIEIGgCTyGYtAyx7U/hZuJJpDbFRpErnyqPK2R1i1IXft4OMA0GCSqG
-# SIb3DQEBAQUABIICADI6RyILTwdB/HsSN0FUZ5tDzNnbQSRCNUY1xWX4fdUF6g4O
-# K34Fn/bXzdgpciGXERyzVg5EuH+JuYwOnJ0MGCQ0aGtR97AraUKfmzveiBjQi2Jf
-# a5LfvyeTbu69DCyh93DE7rv/4eD2b8hqqaF00cE2BiYQi7evYg079/NmozaudJvG
-# w83EZ47pMeEzq3HmM6YeLi/NIcsZtaWsSpZJoQxTZk+WpOLlNhBj11PQW7W/OXAZ
-# ZpS3JHrsEJEapKUrXfdp50Bu8LvRAUQhJRU4FX47SDWBlszwDc4vOvLBkb6JrApf
-# 1/UCjHv7AClWw7xnimvNuZaV51s75lrgt+TyTejFoBfVDBI22Fr67kLKT79Abs/L
-# 0/iV/xgsx+gfmiqERV/2uLxy3gbAbHWOUj/0/FvXrtPK6yBitESowO+bWD2o4YcN
-# 1bOl/kvRtwO+l9Rwc3lAx9oQTeCy8Uz9xMwOwlWrrhp2FJb6WCzUX1cdRGL4pVj5
-# 3TuyFpyOQBWyp5F1A0EE5eEL+ubJ7rMtiA5P99Y82Pr5fPQkyRO5RFP8zd/6klcD
-# rzJkRFzdHMPlkDWA5MRVGruBNIEZsADhF+Cp66B2M8z/3cU5wQG0NDKQ5cuDt5+n
-# xjjgtf87gpEHwio9oYQ+nJAx0uUV2NBRw4/AjutKviiaxB6kvfgk6kFghCaK
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcyMzE1NTQ0MFowLwYJKoZI
+# hvcNAQkEMSIEIIzNiD/PtYb0hFBGMpGCLAM1G8nHw1gMV/It8YzPxfzzMA0GCSqG
+# SIb3DQEBAQUABIICAAGLnyaoGOtZqK4AvqRA+FvpjJLtGgE74Q4RBF5/l6C0aoDi
+# W0tXnfdT+FEQ+6JUgVZPIfL3ELe6uWmM3glTCNKDl71HUTDZ4VIHwHeE/h2e3jdj
+# EPhLj5AxbHvXLHrTktBXW0hZ2IbeVLTmuNwSUIxrXkRPinSdPigOZqGkyDcZqhqI
+# bap0lskBL06tSLzubtLuLhEn7dmyTTvyoF6Zzt5ttF/60zBHQ1hX2yY49tQXF3hR
+# ICpD8EL9M2X85HTg8FW+JmF9TaM9xv9HbliGDC9OTmWh+hemNEBFNTQjd5xZqPM9
+# zsg9Qq8II4Q4J3A8P6qBZRDreFw6lOiO3MxIhpaiR+Zuzvjhj0nJrCfDk/i5sKsR
+# ez/jRKiiMfK0piPRUnlC/OxxXBg8ScXFCroviSrI1IpbvnGAy7AEH4iGa5NDg25D
+# KLvoWzUsySL2T6qrzuI/3/NumErjcbcvMx6PsFxrI0tS4ZJm9D+1UhogPRhplr8L
+# lZX1FoxITybIoAeyUpyAJHZKBQ+F92TCWmQ8CBY2+tRGvS4vzv5IaLhLGTU971tV
+# kPFL2rTww7bRnjOsNrhbMKM0KgYIEy8bJuN63UOIw9kMcXes1bvZcSn75qd/yHj6
+# 9gbkkZu0pGwJYPUUsUz20DG1RhNtRvc3I/kUTZ2TwQttDJWbIjanNlcXxBEx
 # SIG # End signature block
