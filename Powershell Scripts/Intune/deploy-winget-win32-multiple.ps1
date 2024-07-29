@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 5.0.2
+.VERSION 5.0.3
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,7 +30,7 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        5.0.2
+  Version:        5.0.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -58,6 +58,7 @@ In-Line Outputs
   Update: Changed from IntuneWin to PS module from Stephan van Rooij (https://svrooij.io/2023/10/19/open-source-intune-content-prep/)
   Update: Path fix
   Update: Added logic around Git logging
+  Update: Removed device scope
 .EXAMPLE
 N/A
 #>
@@ -2505,7 +2506,7 @@ function new-installscript {
         }
     
     `$Winget = `$WingetPath + "\winget.exe"
-    &`$winget install --id "$appid" --silent --force --accept-package-agreements --accept-source-agreements --scope machine --exact | out-null
+    &`$winget install --id "$appid" --silent --force --accept-package-agreements --accept-source-agreements --exact | out-null
 "@
     return $install
 
@@ -2974,8 +2975,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAiw3rU50SnzM50
-# 8usiSvxHvn6+S83JohYLqp+HATsv+aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC0uWa+SewRyWnW
+# hSQoxipLPN63BoNVahIAWQBUbxOxTaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3157,33 +3158,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJP1g0cyoAUO8jsidle5jYbXMVi6hmyxoVh7
-# eJyEoDUiMA0GCSqGSIb3DQEBAQUABIICADbGGJ2y5AJr176eD4h989iV/8ex2jv4
-# mVFBpsQLWThOSSbt1aB0m7NRYf6RubyuK3arhDvls5V73BexJ/4qpTmTw7WNetdm
-# kC3InnBaE2jQmhYUQvrsDusEErWb2MwG+VNFzAe104uaBw1rqdM56VCVGCOqZfi8
-# xDLGeidrVEElfdYwEi1ySEE1E7jv23MRZJPS9YdaIdtR1xjcR3MkSbpEbvhIO3VD
-# UPH2UVTRkzyHirUAKVruk3YfIyJTtskK9KDM6cQC0z0FFcGfnyBzK+4r840Ur8NJ
-# Tzk+YJlz22h47KmWbpeXSFPKrshx5TOYz+HO4CdtuT29pvDLleRY1+RBxSUX5Xhn
-# yvHnIkR8PRSZZ0GJwwJgnhzRkSE3nYEvxSGp1T7Fhwm3Z/K2zcxAIK8wPZyuSuz5
-# +H9Z0UjLmp9rXxU8pzTWW1AHFR9F3EAWLPuCNuMrRTCmEqagq8+hc4AJqtb90HYH
-# +izi5JwyFD0TUAkYlLiDMkOGq/Ey8SOw+CYwgYtnIWg8jb6qcGngde3E4M3BHVav
-# ti4R9HtEp3AaL/7E1G3ZV+Thhrnv7WrpkTDrhPtpdbsOkKtuZlXwJOYAYh+tPqyw
-# fVbkjReP2Px8U9eZ2zkbuQF9fR0k80Ub+OlOwBfJxAr8foGIbdIgWljst0eC6Pa1
-# DPs0lUGwiwKroYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOF+lrXCi3ZgzXZkydacd16IbW3zFRXKtznX
+# GnB59V7OMA0GCSqGSIb3DQEBAQUABIICADZs8Qbi9fbTyG8xZk1jyIkpOC9PyT7a
+# S0Y81+6fFD0mvclLJm9S49WW5BzLPmpvhCxAsoAJWoNg1auYQ5anC+vFcKQKdnta
+# KcXCklxFEl2R20i8dKluD17S8c3F02G3TvmuXCS/CU6spngtTuUel7mOFXUMif1x
+# nZz0mSB2vdKjnOyaheReNI6UZu2C+fFMr/1dfJq2+OuHyMJ2csBoihKJLmVvCsMX
+# cpV3GjDWFSsJTKtlu0QObLa6FM5mpsaQOFRQEnIdakw+21uPE/PC5vjpvWhRt1hx
+# ik1fHEerPrRjyWHNU6dUk5XlbMWmqov2NbpXAMNuYOxFfsMQRMnXvCYkmU9Biv/j
+# YdjgYekyHqXG4hRUCLio3imLoabbyieniaHmGinC74bSIpWjKoodmRgX2wonWSJq
+# /w616uaT6akWIOomd8ZgDC7/qivY/roffpzH6yiFycnVSan95okdHp1Jm1Og5yOp
+# Xz1hzG18TDZDuuCWSoK8ZELo6vlJmtLA2ZlvZHTcD/KfLY0WjU9B+qgGHWe+Y3Nk
+# vDsa8dS6O06ad5Iu/BUa5gzuNZS0vrb89F5kFLtw9fsAKOPECS/EMyC2GiKYRGG5
+# /gpotOpn91ucEfM6hny/p3hkONz2mLEFVuUI8NlXF7LS17Odba8urKPXZbdUrsYB
+# MjYWFMSCBUzaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDQwODEwMTc1NFowLwYJKoZI
-# hvcNAQkEMSIEIH2HuIcxYes2jZN8FDHmKIa0I3yQuf2J77XoZJZXGBGLMA0GCSqG
-# SIb3DQEBAQUABIICAC4nMm/oLwLNkTu+syiPiQddi6urxzVroTueGY6qv/KpoZsB
-# EHeOS79jxMYE7kALAPKA+jaKL5oLvCTPMK7oxS46ejvUpnixoBYUvkJ/Ocr1wZvh
-# u0Eu3EIs8kHRS2R1K0sln8eempKaeIHSjuuKhq6J6REcIk4FeijuBMR2+JSLL7go
-# Z7aHKtcYvQB8E/l84cEXOzqAN+dcW/gXPxoX2l42o6kp13X2DUZ5snjcP1rZiDrJ
-# aFUgkFws3geXzkU8tnboN1gJe/ydB9xuxNowW5DJcvA9Uo/Pl8rcIbZV33rsp9PZ
-# CoO/33GQgFANfXq4aCBGmPZbrQHlx4/lbPJmOToEvya67heeSnaPnhWebfpHxbyZ
-# eLUpZAqQaeQNiH+G3HB5zL/HHUCYqXTO+PqknFFV+15og7MoBoUMl3JB02dsS2Xy
-# bVS6GDC2vm6B5eAGhkeyJYFgTpqm95EPPrPucyAOyartxoxwzLxG6N7MQUReTYJj
-# JpWVUjH21R8r9iAAYcbQdqpV2RSO3iSeD57beU3dq8LZfk0uHuF5M9ngi4mnQFKR
-# kRfVa72a6T/d+3h1GGXmy4Nihgkn8a5EX9Bd3QZH9SKysEot7Ykh9XNCLe+iobZJ
-# 2tLpCqwZGddyLrgB0oxsoNeubtEZVrVsRQ4KPcSmC1HPsg8p8UWHNl3jCyFh
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcyOTE0MjMyNVowLwYJKoZI
+# hvcNAQkEMSIEIHXNS3E8USkTHksmcy0gmZNqCMF7EtjaXdmJE3dPFZvOMA0GCSqG
+# SIb3DQEBAQUABIICAELo8Z/Jpe+VSWrLGiVQasxcEKp8kitI2+ER6JLEblDL9SOo
+# Yp8TdxZX2ChHgvOtlnGyMJ032uGZ23aE+Va3nvRlTJ1PalBpZ7881Q39TOdT2WGq
+# 8QqkB2eiDdj21sO8t0GS9ynosxcorgCD2nbXFeb+/9JTLrqYcVtdv+4KdNrBJ5nt
+# SajXAmUu+GpWlA+7b0S0M36gWOeI+Nkh0+68njllvu6SBXuQmfS7uXOY3MzTBrhj
+# EOcaMxJK1al60wTeZBHWxq4ghxsawnoSq4haqQHLbKIiWM8LAq6HKKRcBUyZD6La
+# jE91LqMtZMa0wyIB70pq7mFH15yXjFAjpN1XdtMF6LJyo68MJ2agRKEpKTtqIsYT
+# Fj8qqtHX5SNhCpgwyTLQCYGCSypTpDF3VpeiQANt9prFKhkLqV6cPP4eS7QNRD4I
+# RZYRTNv0lXMs9k3G0AiuuNVY8I0vo9+DIQ7LLrMYhQ0ocAxhKvChccWBnVH0rqRl
+# X9dz8tDnw+AtDDYJsGN6AwruWvvw16zejjTTeb4X+XVkbaajj7Tclmx2A7/yPgYc
+# T9EWPcl/do/Hvi/XwNXBnJ5KKEk5XyPMfIPhL7eVUn5ZxoEiZVqwfap67RFXLdfY
+# ZXRskhuMBWfFlqNII07KE+H9Q3YyiiomluY4sSWRdppbX1mXTZCLTXmGxUsA
 # SIG # End signature block
