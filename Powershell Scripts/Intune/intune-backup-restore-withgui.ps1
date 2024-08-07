@@ -153,7 +153,7 @@ param
 
 if ($WebHookData){
 
-    $bodyData = ConvertFrom-Json -InputObject $WebHookData.RequestBody
+    $bodyData = ConvertFrom-Json -InputObject ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($WebHookData.RequestBody)))
 
 $type = ((($bodyData.type) | out-string).trim())
 $selected = ((($bodyData.selected) | out-string).trim())
@@ -4999,6 +4999,33 @@ if ($policy.supportsScopeTags) {
            }
        }
 
+                       ##Now grab the JSON
+                       $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
+                       
+       foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
+       {
+           $GroupPolicyConfigurationsDefinitionValue
+           $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+           $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
+           $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
+           $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinitionDisplayName
+           $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+           $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+           $policy | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
+           $policy | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
+               if ($DefinitionValuePresentationValues) {
+                   $i = 0
+                   $PresValues = @()
+                   foreach ($Pres in $DefinitionValuePresentationValues) {
+                       $P = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
+                       $GPDPID = $groupPolicyDefinitionsPresentations[$i].id
+                       $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')"
+                       $PresValues += $P
+                       $i++
+                   }
+               $policy | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
+               }
+            }
           $assignments = Get-DeviceConfigurationPolicyGPAssignments -id $id
    }
 
@@ -6890,33 +6917,11 @@ write-output "error restoring $tname"
                 }
 
                 ##Now grab the JSON
-                $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
+                $GroupPolicyConfigurationsDefinitionValues = $policy.presentationValues
                 $OutDefjson = @()
 	                foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
 	                    {
-		                    $GroupPolicyConfigurationsDefinitionValue
-		                    $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		                    $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
-		                    $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
-                            $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinitionDisplayName
-		                    $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		                    $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		                    $OutDef = New-Object -TypeName PSCustomObject
-                            $OutDef | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
-                            $OutDef | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
-                                if ($DefinitionValuePresentationValues) {
-                                    $i = 0
-                                    $PresValues = @()
-                                    foreach ($Pres in $DefinitionValuePresentationValues) {
-                                        $P = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
-                                        $GPDPID = $groupPolicyDefinitionsPresentations[$i].id
-                                        $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')"
-                                        $PresValues += $P
-                                        $i++
-                                    }
-                                $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
-                                }
-		                    $OutDefjson += ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
+		                    $OutDefjson += ($GroupPolicyConfigurationsDefinitionValue | ConvertTo-Json -Depth 10).replace("\u0027","'")
                             foreach ($json in $OutDefjson) {
                                 $graphApiVersion = "beta"
                                 $policyid = $copypolicy.id
