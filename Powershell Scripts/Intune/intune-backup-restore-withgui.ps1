@@ -4985,7 +4985,8 @@ if ($policy.supportsScopeTags) {
     }
     else {
         $newname = $oldname
-    }        $policy.displayName = $newname
+    }        
+    $policy.displayName = $newname
         # Set SupportsScopeTags to $false, because $true currently returns an HTTP Status 400 Bad Request error.
    if ($policy.supportsScopeTags) {
        $policy.supportsScopeTags = $false
@@ -5004,7 +5005,6 @@ if ($policy.supportsScopeTags) {
                        
        foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
        {
-           $GroupPolicyConfigurationsDefinitionValue
            $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
            $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
            $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
@@ -5026,6 +5026,8 @@ if ($policy.supportsScopeTags) {
                $policy | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
                }
             }
+
+            
           $assignments = Get-DeviceConfigurationPolicyGPAssignments -id $id
    }
 
@@ -7047,8 +7049,8 @@ write-output "error restoring $tname"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAPJLDPj6WEKVgy
-# g3IRfsvCDkkKqi8xRBDxJrgytUSKQ6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCNU/wVupnuWvwn
+# gW3zZrrhV387BQqhOTBAv9+Y16/lG6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7230,33 +7232,33 @@ write-output "error restoring $tname"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHkSOYSmo4Ai2ytEicbdtZ3IufEfn59LORmQ
-# 2UNbAUwcMA0GCSqGSIb3DQEBAQUABIICAEQacTJoINE20MwPXa9IfILcaXFG3otP
-# OsF8LePlqRG58W8J9/Jmum2gDvNiwdlib7l8Mobv2G/VYP8hs0wfgY5fOc22URuV
-# WRGVrjoa9L6Fkuh7xpW+pVI1Fp9LZKJoUYE/xZnchlQZVzavdOxaigHFOvgIQzpG
-# hdYhRvwSV6BrTM324TFmR1Upb5viUEYxdAl2HWcRKvU3oyrUZ3bBxG2Efx/gd3DW
-# mQ7BspkueMEQbcZBYTQuNlQp4HMohONLWoklCsOeWLMpT9ZWWmcjnM0hhSPYzppr
-# 9sEvMSF2BlBOLnrCE81Z/J8r+d/FVidvZz4E3ZkMKsio3Y88ox0bHIVGh++vCNQ4
-# NgL2J+J7fh032TQCtxrUr6apfTgkJXllmPFObGVhuHlbeWG7xIRx+ry0o1b4c/mL
-# MOTs0O2Jn75tcDkH5K8Z8FDNraTn6FNnYmdJCBqL2eQskqwOlaXJGRp5SewqMkhb
-# KLwHb1zrf1EbczNxAxS/RsRyIXX475CCr3/XIlOstZVg7n7XOJOicQGossmAqWJs
-# 8pmE4jNMNAbP3Dv13V+ybXlLOomlQxJwIOTihdwKwTi4+9ybg4VTSmgfqx66LfcQ
-# 0LUaKqB9gyXwd8QC7Nm64R9tsh65engHRMpd8IkiP1YiDlInV5t/jjZCcXKxHtXb
-# BN6M/n34ppEYoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEoQ7qDYdfuknQoy+zLITKf7/trlU8cZt/94
+# dtvgbUcTMA0GCSqGSIb3DQEBAQUABIICAD+YtcGFOdQJJ0X+F6aepa0Ykx42tRqv
+# 8J3/UGxeIpeMFW25lIfiiQmlpPUpl+fcoeoKYiVULjgNEbM49FAXUsgKfISpq/Nm
+# el3aeoyuJpXl3YlMOfX3PFuHHSUapQ7BRpkND3Mn0Dv09Ebqx+ybZZ72auEZezx3
+# 0YbijTq3EB0kU6d5ttMCvqAcmry4KgWCy2pkgPG5ovbrUtzCuZC5aICQD9lFgSFL
+# AHntJSu9MEEMTprfCFfrgf8vdF3/MH6BfTZLXE14GQaH82CZRtvG7Q+yzIybA+Ei
+# 61D00ek/4mROsI3P7a4GVCwZcENbz9yJGdT912qVMWD28OyJOZfPb9b3I3bRc3BM
+# gcwtNNMiDBQkyQiVpO/YvcrTc2D37BF0+6YV8CD4IgDgB1bRyyyIFzMz4aw8n8HF
+# qysdsz2irULyEvHf4GVjLpODU5lb21pEwVe2w4YcwcHYFQpsvKtvq1MyQl9UOchI
+# f/Vcj5mxmmmwlqt2QeGdMO37QYDbZs6TMplYD7WaV41M4cxu9qJgb0K7P6yZYNVs
+# oCOEfPQx1/9QtFaRi3YlFBICN3oEZyHvLa05LIsTjHEy/NVYuho8gKlrc1DhdBHx
+# 6fCAIXm/Og9mvXb9ktCNVqT6XKv1pbIIuVGAMS4316KZvIolM/2h2c/UwodyzmlZ
+# NxSD2GKYkchFoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDYwNTEzNTQxOVowLwYJKoZI
-# hvcNAQkEMSIEIAtue+eIFcr2t6KNtMJWFZVLLbYXs84kG7tXXaVZ5a7hMA0GCSqG
-# SIb3DQEBAQUABIICACfe0MiXc2X74Kt8c7Y+RUqJGW6hwKm8QO/ZFaXbPvINJU51
-# sVNVd6TxKZuwP5gATq3FOfPBRexa9xAr6ToDhCO6OZUfEGmdZAdNET0fUiEQI/OJ
-# AXOvb2piR8zUVOXKUqx1Oi3t5c1yhnEttO8xqaGYnBYtZCWZ9IFXScbtfqk8mcv3
-# 1zutfqoHWRvun4+ws3+YYO7DKecEomKL5zJ1tAtqRPCa+foNyHjF6LxDSO6nlVaY
-# Ia5qhFeqLiP4jJsEjtQ/FE2XOPGGpwXiTyPA0Hf+vWVAtr9Z2tKX9Y6JCJlM2GHn
-# ots0VoOl3aF5+utsokf+hs7EP5K6ZLa3w6A9+H7B31b50Yo/R9isniffvEVI3Yb1
-# V90uTrSZlGB1jzmiPUzj6BUiCVTePJQCAePTpmSW2PJP9x3iTzVKJRu0rAyqBMbY
-# gRLZsslWQA8kKDXCgA7ZVTKTxiC4pHTalHPTRIR3nhYO6XbwLPVDW5PdBdlvukcU
-# wDHjAbapQ6uqbqisa8QbWfpLenawIJyZXgh/Os29sfUtoC15AudH+w1JlbDfBXTu
-# p3HkZhAypGSnNgpDHvOr8BZai6SLTjyz8Ii5XqwW2vK+peQNHvxzGeXN75Ev7De9
-# 71N+ZCmrlFVFyUHZTxhDGTpVDbM4srkBFXLem0bWVypKLbOmSV/TBftT/hgv
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgwODA5NDYwOFowLwYJKoZI
+# hvcNAQkEMSIEIOCd0XB/+vh4oyXMZ2YOhrpYBZFzMNwWBCpnE+LNYvCVMA0GCSqG
+# SIb3DQEBAQUABIICAB9Nsij8g+75maO/rzeo3QfmK4w9LqI/b4X509VP0m9pDG47
+# jD8WTm0D4PShzCJXX6iQKmz3eal8WBrQAJWqfKs5ATkddVCPrQHi67V8PmhZ8Z1L
+# Kz1nPCwDCqiSsSW3j8byg4e//OYYCGMO1VZhmWQhpaALE+08xWlgtWUGxRBSTDoh
+# AisjzuxRsmkIZWnOG3IPBr9FPmd9LHG9Qn5Hc/frE74f+AgzokkvySywI57LR+7R
+# PyYGdg9xT4pP1C1Ba79jxCol6Yryq123CZRRj0qg9+yIzDhQS/xg27ilEmsY6Uh0
+# L2FfLFKux+9XmhA5Qa2POK4GtC2BHHmGgYUb8WCtZD8I/DXO5kb65rYBsBX/AA2a
+# aaIvx2JfPNlTs5hDGwAwCulBiLFNhR4+WWiHGmbzppraywidm4oODxfJfQnt2p6p
+# TjHTLb4qpuRWrPVaOrbUiIwEztMpqI5j5CNL8vr4iAq+t8wJsqjBkngvQcrY3gSm
+# /3dK/qOhqYl6HMtHhXnWB/k4LY/NwrXaCFgFDGL+84CiyORs3HGXdhkXLmfctYZs
+# qGAbTROjeXRs05vprdUeXj/mcqZ64WLaY65MRKit2LXdzTpVqVKkvv3DlTpSoIAq
+# fB32Z0eFsdOtnvrLk/mYrl90qljiLk5/U15P65bShGj5zJnfGdUNZMZd3fLu
 # SIG # End signature block
