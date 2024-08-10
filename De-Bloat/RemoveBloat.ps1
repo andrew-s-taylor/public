@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 .Removes bloat from a fresh Windows build
 .DESCRIPTION
@@ -185,7 +185,7 @@ switch ($locale) {
     "en-US" {
         $everyone = "Everyone"
         $builtin = "Builtin"
-    }    
+    }
     "en-GB" {
         $everyone = "Everyone"
         $builtin = "Builtin"
@@ -359,7 +359,7 @@ switch ($locale) {
             $WhitelistedApps += $whitelistapp
         }
     }
-    
+
     #NonRemovable Apps that where getting attempted and the system would reject the uninstall, speeds up debloat and prevents 'initalizing' overlay when removing apps
     $NonRemovable = @(
         '1527c705-839a-4832-9118-54d4Bd6a0c89',
@@ -447,7 +447,7 @@ switch ($locale) {
         catch {
             write-host "Unable to remove $displayname AppX Provisioning Package"
         }
-        
+
     }
 
 
@@ -464,11 +464,8 @@ switch ($locale) {
             catch {
                 write-host "$displayname AppX Package does not exist"
             }
-            
-
 
     }
-    
 
 ############################################################################################################
 #                                        Remove Registry Keys                                              #
@@ -478,11 +475,11 @@ switch ($locale) {
 ##We need to grab all SIDs to remove at user level
 $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList" | Select-Object -ExpandProperty PSChildName
 
-    
+
     #These are the registry keys that it will delete.
-            
+
     $Keys = @(
-            
+
         #Remove Background Tasks
         "HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\46928bounde.EclipseManager_2.2.4.51_neutral__a5h4egax66k6y"
         "HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
@@ -490,30 +487,30 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
         "HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.PPIProjection_10.0.15063.0_neutral_neutral_cw5n1h2txyewy"
         "HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.XboxGameCallableUI_1000.15063.0.0_neutral_neutral_cw5n1h2txyewy"
         "HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.XboxGameCallableUI_1000.16299.15.0_neutral_neutral_cw5n1h2txyewy"
-            
+
         #Windows File
         "HKCR:\Extensions\ContractId\Windows.File\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
-            
+
         #Registry keys to delete if they aren't uninstalled by RemoveAppXPackage/RemoveAppXProvisionedPackage
         "HKCR:\Extensions\ContractId\Windows.Launch\PackageId\46928bounde.EclipseManager_2.2.4.51_neutral__a5h4egax66k6y"
         "HKCR:\Extensions\ContractId\Windows.Launch\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
         "HKCR:\Extensions\ContractId\Windows.Launch\PackageId\Microsoft.PPIProjection_10.0.15063.0_neutral_neutral_cw5n1h2txyewy"
         "HKCR:\Extensions\ContractId\Windows.Launch\PackageId\Microsoft.XboxGameCallableUI_1000.15063.0.0_neutral_neutral_cw5n1h2txyewy"
         "HKCR:\Extensions\ContractId\Windows.Launch\PackageId\Microsoft.XboxGameCallableUI_1000.16299.15.0_neutral_neutral_cw5n1h2txyewy"
-            
+
         #Scheduled Tasks to delete
         "HKCR:\Extensions\ContractId\Windows.PreInstalledConfigTask\PackageId\Microsoft.MicrosoftOfficeHub_17.7909.7600.0_x64__8wekyb3d8bbwe"
-            
+
         #Windows Protocol Keys
         "HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
         "HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\Microsoft.PPIProjection_10.0.15063.0_neutral_neutral_cw5n1h2txyewy"
         "HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\Microsoft.XboxGameCallableUI_1000.15063.0.0_neutral_neutral_cw5n1h2txyewy"
         "HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\Microsoft.XboxGameCallableUI_1000.16299.15.0_neutral_neutral_cw5n1h2txyewy"
-               
+
         #Windows Share Target
         "HKCR:\Extensions\ContractId\Windows.ShareTarget\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
     )
-        
+
     #This writes the output of each key it is removing and also removes the keys listed above.
     ForEach ($Key in $Keys) {
         Write-Host "Removing $Key from registry"
@@ -528,9 +525,9 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
         New-Item $Advertising
     }
     If (Test-Path $Advertising) {
-        Set-ItemProperty $Advertising Enabled -Value 0 
+        Set-ItemProperty $Advertising Enabled -Value 0
     }
-            
+
     #Stops Cortana from being used as part of your Windows Search Function
     Write-Host "Stopping Cortana from being used as part of your Windows Search Function"
     $Search = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
@@ -538,7 +535,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
         New-Item $Search
     }
     If (Test-Path $Search) {
-        Set-ItemProperty $Search AllowCortana -Value 0 
+        Set-ItemProperty $Search AllowCortana -Value 0
     }
 
     #Disables Web Search in Start Menu
@@ -547,7 +544,7 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     If (!(Test-Path $WebSearch)) {
         New-Item $WebSearch
     }
-    Set-ItemProperty $WebSearch DisableWebSearch -Value 1 
+    Set-ItemProperty $WebSearch DisableWebSearch -Value 1
     ##Loop through all user SIDs in the registry and disable Bing Search
     foreach ($sid in $UserSIDs) {
         $WebSearch = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Search"
@@ -556,72 +553,72 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
         }
         Set-ItemProperty $WebSearch BingSearchEnabled -Value 0
     }
-    
-    Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0 
 
-            
+    Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
+
+
     #Stops the Windows Feedback Experience from sending anonymous data
     Write-Host "Stopping the Windows Feedback Experience program"
     $Period = "HKCU:\Software\Microsoft\Siuf\Rules"
-    If (!(Test-Path $Period)) { 
+    If (!(Test-Path $Period)) {
         New-Item $Period
     }
-    Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
+    Set-ItemProperty $Period PeriodInNanoSeconds -Value 0
 
     ##Loop and do the same
     foreach ($sid in $UserSIDs) {
         $Period = "Registry::HKU\$sid\Software\Microsoft\Siuf\Rules"
-        If (!(Test-Path $Period)) { 
+        If (!(Test-Path $Period)) {
             New-Item $Period
         }
-        Set-ItemProperty $Period PeriodInNanoSeconds -Value 0 
+        Set-ItemProperty $Period PeriodInNanoSeconds -Value 0
     }
 
-    #Prevents bloatware applications from returning and removes Start Menu suggestions               
+    #Prevents bloatware applications from returning and removes Start Menu suggestions
     Write-Host "Adding Registry key to prevent bloatware apps from returning"
     $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
     $registryOEM = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-    If (!(Test-Path $registryPath)) { 
+    If (!(Test-Path $registryPath)) {
         New-Item $registryPath
     }
-    Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1 
+    Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
 
     If (!(Test-Path $registryOEM)) {
         New-Item $registryOEM
     }
-    Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0 
-    Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0 
-    Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0 
-    Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0 
-    Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0 
-    Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0  
-    
+    Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0
+    Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0
+    Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0
+    Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0
+    Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0
+    Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0
+
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
         $registryOEM = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
         If (!(Test-Path $registryOEM)) {
             New-Item $registryOEM
         }
-        Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0 
-        Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0 
-        Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0 
-        Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0 
-        Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0 
-        Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0 
+        Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0
+        Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0
+        Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0
+        Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0
+        Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0
+        Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0
     }
-    
-    #Preping mixed Reality Portal for removal    
+
+    #Preping mixed Reality Portal for removal
     Write-Host "Setting Mixed Reality Portal value to 0 so that you can uninstall it in Settings"
-    $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"    
+    $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"
     If (Test-Path $Holo) {
-        Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
+        Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
     }
 
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"    
+        $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"
         If (Test-Path $Holo) {
-            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0 
+            Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
         }
     }
 
@@ -633,46 +630,46 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     If (!(Test-Path $WifiSense1)) {
         New-Item $WifiSense1
     }
-    Set-ItemProperty $WifiSense1  Value -Value 0 
+    Set-ItemProperty $WifiSense1  Value -Value 0
     If (!(Test-Path $WifiSense2)) {
         New-Item $WifiSense2
     }
-    Set-ItemProperty $WifiSense2  Value -Value 0 
-    Set-ItemProperty $WifiSense3  AutoConnectAllowedOEM -Value 0 
-        
+    Set-ItemProperty $WifiSense2  Value -Value 0
+    Set-ItemProperty $WifiSense3  AutoConnectAllowedOEM -Value 0
+
     #Disables live tiles
     Write-Host "Disabling live tiles"
-    $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
-    If (!(Test-Path $Live)) {      
+    $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
+    If (!(Test-Path $Live)) {
         New-Item $Live
     }
-    Set-ItemProperty $Live  NoTileApplicationNotification -Value 1 
+    Set-ItemProperty $Live  NoTileApplicationNotification -Value 1
 
     ##Loop through users and do the same
     foreach ($sid in $UserSIDs) {
-        $Live = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"    
-        If (!(Test-Path $Live)) {      
+        $Live = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
+        If (!(Test-Path $Live)) {
             New-Item $Live
         }
-        Set-ItemProperty $Live  NoTileApplicationNotification -Value 1 
+        Set-ItemProperty $Live  NoTileApplicationNotification -Value 1
     }
-        
+
     #Turns off Data Collection via the AllowTelemtry key by changing it to 0
     # This is needed for Intune reporting to work, uncomment if using via other method
     #Write-Host "Turning off Data Collection"
     #$DataCollection1 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
     #$DataCollection2 = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
-    #$DataCollection3 = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection"    
+    #$DataCollection3 = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
     #If (Test-Path $DataCollection1) {
-    #    Set-ItemProperty $DataCollection1  AllowTelemetry -Value 0 
+    #    Set-ItemProperty $DataCollection1  AllowTelemetry -Value 0
     #}
     #If (Test-Path $DataCollection2) {
-    #    Set-ItemProperty $DataCollection2  AllowTelemetry -Value 0 
+    #    Set-ItemProperty $DataCollection2  AllowTelemetry -Value 0
     #}
     #If (Test-Path $DataCollection3) {
-    #    Set-ItemProperty $DataCollection3  AllowTelemetry -Value 0 
+    #    Set-ItemProperty $DataCollection3  AllowTelemetry -Value 0
     #}
-    
+
 
 ###Enable location tracking for "find my device", uncomment if you don't need it
 
@@ -683,12 +680,12 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     #If (!(Test-Path $SensorState)) {
     #    New-Item $SensorState
     #}
-    #Set-ItemProperty $SensorState SensorPermissionState -Value 0 
+    #Set-ItemProperty $SensorState SensorPermissionState -Value 0
     #If (!(Test-Path $LocationConfig)) {
     #    New-Item $LocationConfig
     #}
-    #Set-ItemProperty $LocationConfig Status -Value 0 
-        
+    #Set-ItemProperty $LocationConfig Status -Value 0
+
     #Disables People icon on Taskbar
     Write-Host "Disabling People icon on Taskbar"
     $People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
@@ -711,12 +708,12 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     If (!(Test-Path $Cortana1)) {
         New-Item $Cortana1
     }
-    Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0 
+    Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0
     If (!(Test-Path $Cortana2)) {
         New-Item $Cortana2
     }
-    Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1 
-    Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1 
+    Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1
+    Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1
     If (!(Test-Path $Cortana3)) {
         New-Item $Cortana3
     }
@@ -730,12 +727,12 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
         If (!(Test-Path $Cortana1)) {
             New-Item $Cortana1
         }
-        Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0 
+        Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0
         If (!(Test-Path $Cortana2)) {
             New-Item $Cortana2
         }
-        Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1 
-        Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1 
+        Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1
+        Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1
         If (!(Test-Path $Cortana3)) {
             New-Item $Cortana3
         }
@@ -748,13 +745,13 @@ $UserSIDs = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Pr
     $Objects32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}"
     $Objects64 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}"
     If (Test-Path $Objects32) {
-        Remove-Item $Objects32 -Recurse 
+        Remove-Item $Objects32 -Recurse
     }
     If (Test-Path $Objects64) {
-        Remove-Item $Objects64 -Recurse 
+        Remove-Item $Objects64 -Recurse
     }
 
-   
+
     ##Removes the Microsoft Feeds from displaying
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"
 $Name = "EnableFeeds"
@@ -790,13 +787,13 @@ Get-AppxPackage Microsoft.549981C3F5F10 -allusers | Remove-AppxPackage
             Set-ItemProperty $picture -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Value 1
         }
     }
-    
+
 ############################################################################################################
 #                                        Remove Scheduled Tasks                                            #
 #                                                                                                          #
 ############################################################################################################
 
-    #Disables scheduled tasks that are considered unnecessary 
+    #Disables scheduled tasks that are considered unnecessary
     Write-Host "Disabling scheduled tasks"
     $task1 = Get-ScheduledTask -TaskName XblGameSaveTaskLogon -ErrorAction SilentlyContinue
     if ($null -ne $task1) {
@@ -846,12 +843,12 @@ $MSTeams = "MicrosoftTeams"
 
 $WinPackage = Get-AppxPackage -allusers | Where-Object {$_.Name -eq $MSTeams}
 $ProvisionedPackage = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $WinPackage }
-If ($null -ne $WinPackage) 
+If ($null -ne $WinPackage)
 {
     Remove-AppxPackage  -Package $WinPackage.PackageFullName -AllUsers
-} 
+}
 
-If ($null -ne $ProvisionedPackage) 
+If ($null -ne $ProvisionedPackage)
 {
     Remove-AppxProvisionedPackage -online -Packagename $ProvisionedPackage.Packagename -AllUsers
 }
@@ -864,7 +861,7 @@ C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\C
 
 ##Stop it coming back
 $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
-If (!(Test-Path $registryPath)) { 
+If (!(Test-Path $registryPath)) {
     New-Item $registryPath
 }
 Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
@@ -872,7 +869,7 @@ Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
 
 ##Unpin it
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
-If (!(Test-Path $registryPath)) { 
+If (!(Test-Path $registryPath)) {
     New-Item $registryPath
 }
 Set-ItemProperty $registryPath "ChatIcon" -Value 2
@@ -881,7 +878,7 @@ write-host "Removed Teams Chat"
 
 ##Disable Feeds
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Dsh"
-If (!(Test-Path $registryPath)) { 
+If (!(Test-Path $registryPath)) {
     New-Item $registryPath
 }
 Set-ItemProperty $registryPath "AllowNewsAndInterests" -Value 0
@@ -968,7 +965,7 @@ if (!(Test-Path $registryPath)) {
     $HKUCoPilot.SetValue("TurnOffWindowsCopilot", 0x1, [Microsoft.Win32.RegistryValueKind]::DWord)
 }
 
-        
+
 
 
 
@@ -986,16 +983,16 @@ foreach ($sid in $UserSIDs) {
     $registryPath = "Registry::HKU\$sid\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"
     $propertyName = "TurnOffWindowsCopilot"
     $propertyValue = 1
-    
+
     # Check if the registry key exists
     if (!(Test-Path $registryPath)) {
         # If the registry key doesn't exist, create it
         New-Item -Path $registryPath -Force | Out-Null
     }
-    
+
     # Get the property value
     $currentValue = Get-ItemProperty -Path $registryPath -Name $propertyName -ErrorAction SilentlyContinue
-    
+
     # Check if the property exists and if its value is different from the desired value
     if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) {
         # If the property doesn't exist or its value is different, set the property value
@@ -1004,7 +1001,7 @@ foreach ($sid in $UserSIDs) {
 }
 }
 ############################################################################################################
-#                                              Remove Recall                                               #  
+#                                              Remove Recall                                               #
 #                                                                                                          #
 ############################################################################################################
 
@@ -1048,27 +1045,27 @@ if ($version -like "*Windows 10*") {
     If(Test-Path C:\Windows\StartLayout.xml)
 
     {
-    
+
     Remove-Item C:\Windows\StartLayout.xml
-    
+
     }
     write-host "Creating Default Layout"
     #Creates the blank layout file
-    
+
     Write-Output "<LayoutModificationTemplate xmlns:defaultlayout=""http://schemas.microsoft.com/Start/2014/FullDefaultLayout"" xmlns:start=""http://schemas.microsoft.com/Start/2014/StartLayout"" Version=""1"" xmlns=""http://schemas.microsoft.com/Start/2014/LayoutModification"">" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output " <LayoutOptions StartTileGroupCellWidth=""6"" />" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output " <DefaultLayoutOverride>" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output " <StartLayoutCollection>" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output " <defaultlayout:StartLayout GroupCellWidth=""6"" />" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output " </StartLayoutCollection>" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output " </DefaultLayoutOverride>" >> C:\Windows\StartLayout.xml
-    
+
     Write-Output "</LayoutModificationTemplate>" >> C:\Windows\StartLayout.xml
 }
 if ($version -like "*Windows 11*") {
@@ -1077,18 +1074,18 @@ if ($version -like "*Windows 11*") {
     If(Test-Path "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml")
 
     {
-    
+
     Remove-Item "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml"
-    
+
     }
-    
+
 $blankjson = @'
-{ 
-    "pinnedList": [ 
-      { "desktopAppId": "MSEdge" }, 
-      { "packagedAppId": "Microsoft.WindowsStore_8wekyb3d8bbwe!App" }, 
-      { "packagedAppId": "desktopAppId":"Microsoft.Windows.Explorer" } 
-    ] 
+{
+    "pinnedList": [
+      { "desktopAppId": "MSEdge" },
+      { "packagedAppId": "Microsoft.WindowsStore_8wekyb3d8bbwe!App" },
+      { "packagedAppId": "desktopAppId":"Microsoft.Windows.Explorer" }
+    ]
   }
 '@
 
@@ -1399,7 +1396,7 @@ $HPidentifier = "AD2F1837"
 
 $InstalledPrograms = $allstring | Where-Object {$UninstallPrograms -contains $_.Name}
 foreach ($app in $UninstallPrograms) {
-        
+
     if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
         Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
         Write-Host "Removed provisioned package for $app."
@@ -1415,7 +1412,7 @@ foreach ($app in $UninstallPrograms) {
     }
 
 UninstallAppFull -appName $app
-    
+
 
 }
 
@@ -1506,7 +1503,7 @@ $UninstallPrograms = @(
 
 
 foreach ($app in $UninstallPrograms) {
-        
+
     if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
         Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
         Write-Host "Removed provisioned package for $app."
@@ -1523,7 +1520,7 @@ foreach ($app in $UninstallPrograms) {
 
     UninstallAppFull -appName $app
 
-    
+
 
 }
 
@@ -1537,7 +1534,7 @@ foreach ($program in $UninstallPrograms) {
 
 ##Dell Optimizer
 $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell*Optimizer*Core" } | Select-Object -Property UninstallString
- 
+
 ForEach ($sa in $dellSA) {
     If ($sa.UninstallString) {
         try {
@@ -1552,7 +1549,7 @@ ForEach ($sa in $dellSA) {
 
 ##Dell Dell SupportAssist Remediation
 $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -match "Dell SupportAssist Remediation" } | Select-Object -Property QuietUninstallString
- 
+
 ForEach ($sa in $dellSA) {
     If ($sa.QuietUninstallString) {
         try {
@@ -1565,7 +1562,7 @@ ForEach ($sa in $dellSA) {
 
 ##Dell Dell SupportAssist OS Recovery Plugin for Dell Update
 $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -match "Dell SupportAssist OS Recovery Plugin for Dell Update" } | Select-Object -Property QuietUninstallString
- 
+
 ForEach ($sa in $dellSA) {
     If ($sa.QuietUninstallString) {
         try {
@@ -1580,7 +1577,7 @@ ForEach ($sa in $dellSA) {
 
     ##Dell Display Manager
 $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell*Display*Manager*" } | Select-Object -Property UninstallString
- 
+
 ForEach ($sa in $dellSA) {
     If ($sa.UninstallString) {
         try {
@@ -1685,14 +1682,14 @@ if ($manufacturer -like "Lenovo") {
 
 
             $UninstallPrograms = $UninstallPrograms | Where-Object { $appstoignore -notcontains $_ }
-    
-    
-        
+
+
+
     $InstalledPrograms = $allstring | Where-Object {(($_.Name -in $UninstallPrograms))}
 
-    
+
 foreach ($app in $UninstallPrograms) {
-        
+
     if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
         Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
         Write-Host "Removed provisioned package for $app."
@@ -1708,7 +1705,7 @@ foreach ($app in $UninstallPrograms) {
     }
 
     UninstallAppFull -appName $app
-   
+
 
 }
 
@@ -1765,7 +1762,7 @@ foreach ($program in $UninstallPrograms) {
     if (test-path -Path $path) {
         Start-Process -FilePath $path -ArgumentList $params -Wait
     }
- 
+
     ##Uninstall Smart Appearance
     $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
     $params = '/SILENT'
@@ -1888,7 +1885,7 @@ $destination = 'C:\ProgramData\Debloat\mcafee.zip'
 
 #Download the file
 Invoke-WebRequest -Uri $URL -OutFile $destination -Method Get
-  
+
 Expand-Archive $destination -DestinationPath "C:\ProgramData\Debloat" -Force
 
 write-host "Removing McAfee"
@@ -1907,7 +1904,7 @@ $destination = 'C:\ProgramData\Debloat\mcafeenew.zip'
 
 #Download the file
 Invoke-WebRequest -Uri $URL -OutFile $destination -Method Get
-  
+
 New-Item -Path "C:\ProgramData\Debloat\mcnew" -ItemType Directory
 Expand-Archive $destination -DestinationPath "C:\ProgramData\Debloat\mcnew" -Force
 
@@ -1927,7 +1924,7 @@ $InstalledPrograms | ForEach-Object {
             #Remove msiexec as we need to split for the uninstall
             $uninstallcommand = $uninstallcommand -replace "msiexec.exe", ""
             $uninstallcommand = $uninstallcommand + " /quiet /norestart"
-            $uninstallcommand = $uninstallcommand -replace "/I", "/X "   
+            $uninstallcommand = $uninstallcommand -replace "/I", "/X "
             #Uninstall with string2 params
             Start-Process 'msiexec.exe' -ArgumentList $uninstallcommand -NoNewWindow -Wait
             }
@@ -1936,7 +1933,7 @@ $InstalledPrograms | ForEach-Object {
             $string2 = $uninstallcommand
             start-process $string2
             }
-        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode        
+        #$A = Start-Process -FilePath $uninstallcommand -Wait -passthru -NoNewWindow;$a.ExitCode
         #$Null = $_ | Uninstall-Package -AllVersions -Force -ErrorAction Stop
         Write-Host -Object "Successfully uninstalled: [$($_.Name)]"
     }
@@ -1945,7 +1942,7 @@ $InstalledPrograms | ForEach-Object {
 
 ##Remove Safeconnect
 $safeconnects = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -match "McAfee Safe Connect" } | Select-Object -Property UninstallString
- 
+
 ForEach ($sc in $safeconnects) {
     If ($sc.UninstallString) {
         cmd.exe /c $sc.UninstallString /quiet /norestart
@@ -1956,10 +1953,10 @@ ForEach ($sc in $safeconnects) {
 ##remove some extra leftover Mcafee items from StartMenu-AllApps and uninstall registry keys
 ##
 if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\McAfee") {
-	Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\McAfee" -Recurse -Force
+    Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\McAfee" -Recurse -Force
 }
 if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\McAfee.WPS") {
-	Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\McAfee.WPS" -Recurse -Force
+    Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\McAfee.WPS" -Recurse -Force
 }
 #Interesting emough, this producese an error, but still deletes the package anyway
 get-appxprovisionedpackage -online | sort-object displayname |format-table displayname,packagename
