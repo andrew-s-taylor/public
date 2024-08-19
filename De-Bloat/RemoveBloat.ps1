@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.18
+  Version:        5.0.19
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -110,6 +110,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 25/07/2024 - Added MS Teams to whitelist
   Change 07/08/2024 - Lenovo fix
   Change 14/08/2024 - Whitelisted any language packs
+  Change 19/08/2024 - Added version to log for troubleshooting
+  Change 19/08/2024 - Added blacklist and whitelist for further protection
 N/A
 #>
 
@@ -155,7 +157,7 @@ Else {
 Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
 
 $locale = Get-WinSystemLocale | Select-Object -expandproperty Name
-
+write-output "Script version is 5.0.19 on locale $locale"
 ##Switch on locale to set variables
 ## Switch on locale to set variables
 switch ($locale) {
@@ -339,21 +341,20 @@ $WhitelistedApps = @(
     'MIDIBerry',
     'Slack',
     'Microsoft.SecHealthUI',
-    "WavesAudio.MaxxAudioProforDell2019"
-    "Dell - Extension*"
-    "Dell, Inc. - Firmware*"
-    "Dell Optimizer Core"
-    "Dell SupportAssist Remediation"
-    "Dell SupportAssist OS Recovery Plugin for Dell Update"
-    "Dell Pair"
-    "Dell Display Manager 2.0"
-    "Dell Display Manager 2.1"
-    "Dell Display Manager 2.2"
-    "Dell Peripheral Manager"
-    "MSTeams"
-    "Microsoft.Paint"
-    "Microsoft.OutlookForWindows"
-    "Microsoft.WindowsTerminal"
+    "WavesAudio.MaxxAudioProforDell2019",
+    "Dell Optimizer Core",
+    "Dell SupportAssist Remediation",
+    "Dell SupportAssist OS Recovery Plugin for Dell Update",
+    "Dell Pair",
+    "Dell Display Manager 2.0",
+    "Dell Display Manager 2.1",
+    "Dell Display Manager 2.2",
+    "Dell Peripheral Manager",
+    "MSTeams",
+    "Microsoft.Paint",
+    "Microsoft.OutlookForWindows",
+    "Microsoft.WindowsTerminal",
+    "Microsoft.MicrosoftEdge.Stable"
 )
 ##If $customwhitelist is set, split on the comma and add to whitelist
 if ($customwhitelist) {
@@ -402,7 +403,6 @@ $NonRemovable = @(
     'Microsoft.VCLibs.140.00',
     'Microsoft.Services.Store.Engagement',
     'Microsoft.UI.Xaml.2.0',
-    '*Nvidia*',
     "Microsoft.AsyncTextService",
     "Microsoft.UI.Xaml.CBS",
     "Microsoft.Windows.CallingShellApp",
@@ -438,8 +438,111 @@ $NonRemovable = @(
 ##Combine the two arrays
 $appstoignore = $WhitelistedApps += $NonRemovable
 
+##Bloat list for future reference
+$Bloatware = @(
+#Unnecessary Windows 10/11 AppX Apps
+"*ActiproSoftwareLLC*"
+"*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
+"*BubbleWitch3Saga*"
+"*CandyCrush*"
+"*DevHome*"
+"*Disney*"
+"*Dolby*"
+"*Duolingo-LearnLanguagesforFree*"
+"*EclipseManager*"
+"*Facebook*"
+"*Flipboard*"
+"*gaming*"
+"*Minecraft*"
+"*Office*"
+"*PandoraMediaInc*"
+"*Royal Revolt*"
+"*Speed Test*"
+"*Spotify*"
+"*Sway*"
+"*Twitter*"
+"*Wunderlist*"
+"AD2F1837.HPPrinterControl"
+"AppUp.IntelGraphicsExperience"
+"C27EB4BA.DropboxOEM*"
+"Disney.37853FC22B2CE"
+"DolbyLaboratories.DolbyAccess"
+"DolbyLaboratories.DolbyAudio"
+"E0469640.SmartAppearance"
+"Microsoft.549981C3F5F10"
+"Microsoft.AV1VideoExtension"
+"Microsoft.BingNews"
+"Microsoft.BingSearch"
+"Microsoft.GetHelp"
+"Microsoft.Getstarted"
+"Microsoft.GamingApp"
+"Microsoft.HEVCVideoExtension"
+"Microsoft.Messaging"
+"Microsoft.Microsoft3DViewer"
+"Microsoft.MicrosoftEdge.Stable"
+"Microsoft.MicrosoftJournal"
+"Microsoft.MicrosoftOfficeHub"
+"Microsoft.MicrosoftSolitaireCollection"
+"Microsoft.MixedReality.Portal"
+"Microsoft.MPEG2VideoExtension"
+"Microsoft.News"
+"Microsoft.Office.Lens"
+"Microsoft.Office.OneNote"
+"Microsoft.Office.Sway"
+"Microsoft.OneConnect"
+"Microsoft.OneDriveSync"
+"Microsoft.People"
+"Microsoft.PowerAutomateDesktop"
+"Microsoft.PowerAutomateDesktopCopilotPlugin"
+"Microsoft.Print3D"
+"Microsoft.RemoteDesktop"
+"Microsoft.SkypeApp"
+"Microsoft.StorePurchaseApp"
+"Microsoft.SysinternalsSuite"
+"Microsoft.Teams"
+"Microsoft.Whiteboard"
+"Microsoft.Windows.DevHome"
+"Microsoft.WindowsAlarms"
+"Microsoft.WindowsCamera"
+"Microsoft.WindowsFeedbackHub"
+"Microsoft.WindowsMaps"
+"Microsoft.WindowsSoundRecorder"
+"Microsoft.WindowsStore"
+"Microsoft.Xbox.TCUI"
+"Microsoft.XboxApp"
+"Microsoft.XboxGameOverlay"
+"Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
+"Microsoft.XboxIdentityProvider"
+"Microsoft.XboxSpeechToTextOverlay"
+"Microsoft.ZuneMusic"
+"Microsoft.ZuneVideo"
+"MicrosoftCorporationII.MicrosoftFamily"
+"MicrosoftCorporationII.QuickAssist"
+"MicrosoftWindows.CrossDevice"
+"MirametrixInc.GlancebyMirametrix"
+"MSTeams"
+"RealtimeboardInc.RealtimeBoard"
+"SpotifyAB.SpotifyMusic"
+#Optional: Typically not removed but you can if you need to for some reason
+#"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
+#"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
+#"*Microsoft.BingWeather*"
+#"*Microsoft.MSPaint*"
+#"*Microsoft.MicrosoftStickyNotes*"
+#"*Microsoft.Windows.Photos*"
+#"*Microsoft.WindowsCalculator*"
+#"*Microsoft.WindowsStore*"
+#"Microsoft.Office.Todo.List"
+#"Microsoft.Whiteboard"
+#"Microsoft.WindowsCamera"
+#"Microsoft.WindowsSoundRecorder"
+#"Microsoft.YourPhone"
+#"Microsoft.Todos"
+#"Microsoft.PowerAutomateDesktop"
+)
 
-$provisioned = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -notin $appstoignore -and $_.DisplayName -notlike 'MicrosoftWindows.Voice*' -and $_.DisplayName -notlike 'Microsoft.LanguageExperiencePack*' -and $_.DisplayName -notlike 'MicrosoftWindows.Speech*' }
+
+$provisioned = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -in $Bloatware -and $_.DisplayName -notin $appstoignore -and $_.DisplayName -notlike 'MicrosoftWindows.Voice*' -and $_.DisplayName -notlike 'Microsoft.LanguageExperiencePack*' -and $_.DisplayName -notlike 'MicrosoftWindows.Speech*' }
 foreach ($appxprov in $provisioned) {
     $packagename = $appxprov.PackageName
     $displayname = $appxprov.DisplayName
@@ -455,7 +558,7 @@ foreach ($appxprov in $provisioned) {
 }
 
 
-$appxinstalled = Get-AppxPackage -AllUsers | Where-Object { $_.Name -notin $appstoignore  -and $_.Name -notlike 'MicrosoftWindows.Voice*' -and $_.Name -notlike 'Microsoft.LanguageExperiencePack*' -and $_.Name -notlike 'MicrosoftWindows.Speech*'}
+$appxinstalled = Get-AppxPackage -AllUsers | Where-Object { $_.Name -in $Bloatware -and $_.Name -notin $appstoignore  -and $_.Name -notlike 'MicrosoftWindows.Voice*' -and $_.Name -notlike 'Microsoft.LanguageExperiencePack*' -and $_.Name -notlike 'MicrosoftWindows.Speech*'}
 foreach ($appxapp in $appxinstalled) {
     $packagename = $appxapp.PackageFullName
     $displayname = $appxapp.Name
@@ -2071,8 +2174,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC7fl72UHNom/7+
-# 5pmkFKdODbii5w+S0fUNFfUhlsAlc6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBsoCGFM8X6UXQf
+# 8s4jsyeocAC/R5ot+wiT10xtdjPx9aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2254,33 +2357,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIN032nSuyXjPWWDsejA80C8tI+xH2L63zqiX
-# 5S7/qrLvMA0GCSqGSIb3DQEBAQUABIICAIzaZ8qkgmabbsnLFZQISppjNwTZRzmD
-# nXMQ8x01QDt/7YYqxuVw6e0lFkM22HoVjLocj/bQ+I/S3ynx1149fAsw2bhHrrS7
-# kObKdyzpGZPa/G0yYuUpPNJ5cXB2NkB73GGA/Es6ygXKyRP2p8iPHhJh//RHdTgf
-# c1mvQ2LDW78JLH474FTnFk41MU3QxKt6WYnQde+1/uqJ9vJ+F0hsiMZh1VFI5CcR
-# qhwn1bLyqFNt7QiTzYXi7jFkqS54aGKnGaBTM8PTizwLwt9E+uzzfXPut5uI0jip
-# 8+07Jzq6nEAw4UdRuXZBvQ+MzI6kC9MA1DEtIrBNfNVvT9ndL+dbNScaYABJ76Yd
-# 8Lpqo7TDRkXpERPKaqKfPlmFsLT5Vh43viv9aR3XW8mYea/gkYzJslsSylQKqZgy
-# 9BJ8patJDT/ixO5ANJe6Kh4yuWVFulb5S9EolOGjwH1MVN1fPiih/q4ZYvwGsyi6
-# z7R1SrScbPsB/dXjZ6nE709lDRYDSsezFQJI7byXiXR3oK/RQxjuOsORcm5w1Ygo
-# jVYrU2dXFz/DQrl9eGKb1rAbBhD/Ie84k1NEVp0J2jJg0S1jyQeVVAT6iHOSrg6R
-# EUflaxLi4UOXNE2bPNqOibSFBqDegFo8hu+NC7PYOFfhoEQ4BBqGu0YKYAwj6DBA
-# RnZidE6XFSsgoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKoHb0hK+5iK9i4I53XJv4ED0Bn0U3L0KvAj
+# xnI/nJySMA0GCSqGSIb3DQEBAQUABIICAJ2VcbOwMZIU5AWH4Ao2KgRmPFmCWVX2
+# 9GstaxbfQ1ewKyjjiFBUQN7KVkFjNX7mxqon6v17fdJeIWhclNm6xopH1KN0AY76
+# ji498laHVY63p+h3VkvaUJi7eNNn5a4TbiIWNKeE4xdjvX2kkkEsbAg8Sw8ivDNK
+# g03L8+E/Qvzvq/Hbjt37jAHHY9n1i8E8OK/S/fNZaTHBkP69RL5CKX5PiE2uJJcM
+# zSi2EWFGDi54Q+aDK1nXqqUh++jS8tL53ikFUCwJSqxNGRChPvDqFs40MRFIReVX
+# y0Abusg1WbEV+IfktB/D/TeSyqi/sz32XEyD2o3tMvPoo9el0r9RoV9wh8InKspE
+# Zbm5KTZ9IeO+3XiWL27EEOW4VNsXqRecEWtOKy7m0Vse3820rI06vAC5uzl3t7PZ
+# 6GBcw56GOHXZfZ8c6ZqyRFkyclCW0NBZ60NTrPJ4qZynJwslFHOgr8HvuAXlgZCN
+# klKvYmZjBVrSiG/nWpEpq3ZmDSTuqhZk0D4K0jW8gTbmNjsPtkzA4N+SRrr+pFOX
+# Vq2sKpUG6taugRAAV1WwAz2+zG+LZrEIY2d7NT1RPxfxWWwt1T75wlRgOjv6pPqN
+# OR69p91qDw9CF7SY4O1NEC6s1jY4z6Xjv8e/rVmFo8g15t3fmnYYOq9oJjty+FeB
+# uNQb6sEulMbPoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgxNDEwNTk0NlowLwYJKoZI
-# hvcNAQkEMSIEIO1jWsX+H46bLYnNo080ZkOkyPPe1iYLL+yWwt9g/a56MA0GCSqG
-# SIb3DQEBAQUABIICAAH2uvkEj7XsSnE1AqfZP5COjVRe6Ym5HMRAc4Ook1CEWP2F
-# qOcUQjZZoFIo+tdK9apNNayxajJlcLOXE1d7mtB5S+H1Zu5xZhJyE2f3Pl+gpJH+
-# bsWNFad7nuTbfRqcL63oH2/ipkVfLU5udty6miPBHtjjsJHf/jDNeM6wcN9EHubN
-# I3SoMMGwVi4885uVKIlIFrtNtADXuCNezXqrsoGFHCg+kk7cI38Ix5HSw5SFT2nS
-# LEepqKf84UZNsixSp7pw3EcNs7VpGiCDxUUPnhKWniHVnCF1Q0YNnlMyWRKM7ayR
-# 1I4RGUf+qdCFoQqLho4WuryP7WVKBdr7Tb1PoLeYj4n/6yNEj3Ko3LCOWFZdnfBm
-# nzoapOV6VWLvObyob+HKJnLyufkGWJNSQuqaZuEn7nn3k0H4ZecEtrC6gAsohmQ+
-# j3jlKKOzUTczgH3ZiHXRLgJ/iq9XMtvbTILAGovhEk5M3ErGebzMWeRSr5kvEXQW
-# uXTLFZ0nL+hBMbOgpfb3mGFohmGiBgNoRnTi+K6S+WSGOiI93vc0Aedujm1LvUqs
-# VFi1EHcy8b1g5+1U7b6yAvhQN+nastG1ir2j3/Lthij8opbOJ3wiPdHzAR91oTu/
-# yJtXTZgv6oZkTRj8OiW/VK5sKbM+BYv3XUs45CPnOgE3pjszUuDjPOkiv2dT
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgxOTA4MzkyMVowLwYJKoZI
+# hvcNAQkEMSIEIBDbMWcrnMdyQu/oeheKlK06FUcfLEmQ7wjHi16+oba6MA0GCSqG
+# SIb3DQEBAQUABIICACN7wkg1mAtsgfzqsvifP7JZ6pc8TKRlOWHEclBo8xp3hmfc
+# 9lQRaTWtN7Tw3lwn1Xr6B4k9cAWxAaUOS8IrGO3Yve8Uq9zbD4zsaZbw4nMlUqWU
+# z2h5qLtBwAteXdpAxJI790kiwXP6kyccGIyLgC4ZulyYMlTLrzwgqUxkXSsE0Hfl
+# MP17NU5d4g48xCbdNU2FRjDIIznKPEYxtEi/FRHtfwzK1uuvc5ZMZMDJejcnDflM
+# pZS0oSn9DUv//UpolvwLBy9l9rDV/h9+VVZTplc7Vw0DU+yKRvB4aUnRNynPtzyH
+# RrODajNAf1BNltaBpqUH6n01NEKPs+H2Gm34F2NWPE8hers40Z/iKRQAhaZTFJUk
+# tt3/Po8acfSdXw0i7BosGqFDHcUiTHBKe2IBczs6A+tHIpmpE+X82Ea1+EA/ffhH
+# jgh8vrsWG6etIhq8iuMcQbCBx0DBMiDnkaAXSIRmra0oqXibghm9qY3vHbTvpKTF
+# Wetaw/NkD5N+tvpKCAYFuF4ULEQTcWWw8hUZdLdPy6lDJRCsy9YpCfQNkBNusbsM
+# EGAIqLZIZCZ+14F16nCUcE6RCx1m4CHbjBYGiHQI48Fu6tcBhuasyT1SUkNNW4Jl
+# 3kuXLXhtgu77M6KZg7lcw/RbJ83dEISCcA2VMv0o8icatk9KT8YQY0SaQTpA
 # SIG # End signature block
