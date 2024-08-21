@@ -830,7 +830,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValues()
 	Param (
 		
 		[Parameter(Mandatory = $true)]
-		[string]$GroupPolicyConfigurationID
+		$GroupPolicyConfigurationID
 		
 	)
 	
@@ -869,8 +869,8 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues()
 	Param (
 		
 		[Parameter(Mandatory = $true)]
-		[string]$GroupPolicyConfigurationID,
-		[string]$GroupPolicyConfigurationsDefinitionValueID
+		$GroupPolicyConfigurationID,
+		$GroupPolicyConfigurationsDefinitionValueID
 		
 	)
 	$graphApiVersion = "Beta"
@@ -903,9 +903,9 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesdefinition ()
 	Param (
 		
 		[Parameter(Mandatory = $true)]
-		[string]$GroupPolicyConfigurationID,
+		$GroupPolicyConfigurationID,
 		[Parameter(Mandatory = $true)]
-		[string]$GroupPolicyConfigurationsDefinitionValueID
+		$GroupPolicyConfigurationsDefinitionValueID
 		
 	)
 	$graphApiVersion = "Beta"
@@ -942,9 +942,9 @@ Function Get-GroupPolicyDefinitionsPresentations ()
 		
 		
 		[Parameter(Mandatory = $true)]
-		[string]$groupPolicyDefinitionsID,
+		$groupPolicyDefinitionsID,
 		[Parameter(Mandatory = $true)]
-		[string]$GroupPolicyConfigurationsDefinitionValueID
+		$GroupPolicyConfigurationsDefinitionValueID
 		
 	)
 	$graphApiVersion = "Beta"
@@ -4999,31 +4999,31 @@ if ($policy.supportsScopeTags) {
                }
            }
        }
-
+       $gppolicyid = $policy.id
                        ##Now grab the JSON
-                       $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $id
+                       $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $gppolicyid
                        
        foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
        {
-           $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+           $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $gppolicyid -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
            $DefinitionValuedefinitionID = $DefinitionValuedefinition.id
            $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
            $DefinitionValuedefinitionDisplayName = $DefinitionValuedefinitionDisplayName
            $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
            $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-           $policy | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
-           $policy | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
+           $policy | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')" -Force
+           $policy | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower()) -Force
                if ($DefinitionValuePresentationValues) {
                    $i = 0
                    $PresValues = @()
                    foreach ($Pres in $DefinitionValuePresentationValues) {
                        $P = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
                        $GPDPID = $groupPolicyDefinitionsPresentations[$i].id
-                       $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')"
+                       $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')" -Force
                        $PresValues += $P
                        $i++
                    }
-               $policy | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
+               $policy | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues -Force
                }
             }
 
@@ -7049,8 +7049,8 @@ write-output "error restoring $tname"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCNU/wVupnuWvwn
-# gW3zZrrhV387BQqhOTBAv9+Y16/lG6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBQ40fdV2jCcaRD
+# YcF+zWlDJK1RImdeR8vHUA6hSx8e7aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7232,33 +7232,33 @@ write-output "error restoring $tname"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEoQ7qDYdfuknQoy+zLITKf7/trlU8cZt/94
-# dtvgbUcTMA0GCSqGSIb3DQEBAQUABIICAD+YtcGFOdQJJ0X+F6aepa0Ykx42tRqv
-# 8J3/UGxeIpeMFW25lIfiiQmlpPUpl+fcoeoKYiVULjgNEbM49FAXUsgKfISpq/Nm
-# el3aeoyuJpXl3YlMOfX3PFuHHSUapQ7BRpkND3Mn0Dv09Ebqx+ybZZ72auEZezx3
-# 0YbijTq3EB0kU6d5ttMCvqAcmry4KgWCy2pkgPG5ovbrUtzCuZC5aICQD9lFgSFL
-# AHntJSu9MEEMTprfCFfrgf8vdF3/MH6BfTZLXE14GQaH82CZRtvG7Q+yzIybA+Ei
-# 61D00ek/4mROsI3P7a4GVCwZcENbz9yJGdT912qVMWD28OyJOZfPb9b3I3bRc3BM
-# gcwtNNMiDBQkyQiVpO/YvcrTc2D37BF0+6YV8CD4IgDgB1bRyyyIFzMz4aw8n8HF
-# qysdsz2irULyEvHf4GVjLpODU5lb21pEwVe2w4YcwcHYFQpsvKtvq1MyQl9UOchI
-# f/Vcj5mxmmmwlqt2QeGdMO37QYDbZs6TMplYD7WaV41M4cxu9qJgb0K7P6yZYNVs
-# oCOEfPQx1/9QtFaRi3YlFBICN3oEZyHvLa05LIsTjHEy/NVYuho8gKlrc1DhdBHx
-# 6fCAIXm/Og9mvXb9ktCNVqT6XKv1pbIIuVGAMS4316KZvIolM/2h2c/UwodyzmlZ
-# NxSD2GKYkchFoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEII+LOj3gtaBa8ktVi1krzLqkd47irGbBZzg5
+# GEnl+rSkMA0GCSqGSIb3DQEBAQUABIICACRdQFKZfBaeULBgr62dnZBvYQZQbxTq
+# 8IH1nUUEdRw3HDMABzHe4ePJD+k7B3oQjPumHAD51PYIa7GeipUCBeX8xJaWoMrB
+# suWa4januLd9P10c0hQZ3wOxOxeAuVbWecKXGPorROs2hq6DauEb2iwp4LfWAPCq
+# xQ75D3v0g0wFSuYxdqyY3bRGQzKi90PHUs6W9Bxtei5Y+vyfB3H+91x5/r/2oWrY
+# RGUB3h0e86KAmfWhlEZFustK4ubKEeJ5N3EofTSRaFVCQs//l5f7AFKhLT6wnsKU
+# 3PcGSwxjwk0gSrT2X1pBBI6BaTBuxmvm52mZ9wjhbtmtMjTdd3QNQq19n6Q619lE
+# 79lsn9qa3002zAOgpG1yBC1hF3LOeHDGg/PLFTmHosK53g+bm1/YZcR7n3rNATZV
+# 0fjBWOlPLDaJvRGVBjbHgL0oV22veg7bw6/lkxYFL5lp5LnI2tAMYgxTO5ARXpY9
+# +edZ0AEUbR2E1ytQzycV+/smq8gsmcZ8I5THHFu7U2G136Rxv86e5K+X3UCwzyDm
+# vhiQ8uHeTLDDYgYUSqYl9ClEqjjhGAAraI6QijUr4R6jUDrnelZJmh30Y7OqSnz5
+# HcJLz9FEvu64SxZRpLjBNqOYMC4YTi7/e4SPLWYGIFVDvnvhxvXTy39KfnvxnAZP
+# tnXR2HJmQ9VFoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgwODA5NDYwOFowLwYJKoZI
-# hvcNAQkEMSIEIOCd0XB/+vh4oyXMZ2YOhrpYBZFzMNwWBCpnE+LNYvCVMA0GCSqG
-# SIb3DQEBAQUABIICAB9Nsij8g+75maO/rzeo3QfmK4w9LqI/b4X509VP0m9pDG47
-# jD8WTm0D4PShzCJXX6iQKmz3eal8WBrQAJWqfKs5ATkddVCPrQHi67V8PmhZ8Z1L
-# Kz1nPCwDCqiSsSW3j8byg4e//OYYCGMO1VZhmWQhpaALE+08xWlgtWUGxRBSTDoh
-# AisjzuxRsmkIZWnOG3IPBr9FPmd9LHG9Qn5Hc/frE74f+AgzokkvySywI57LR+7R
-# PyYGdg9xT4pP1C1Ba79jxCol6Yryq123CZRRj0qg9+yIzDhQS/xg27ilEmsY6Uh0
-# L2FfLFKux+9XmhA5Qa2POK4GtC2BHHmGgYUb8WCtZD8I/DXO5kb65rYBsBX/AA2a
-# aaIvx2JfPNlTs5hDGwAwCulBiLFNhR4+WWiHGmbzppraywidm4oODxfJfQnt2p6p
-# TjHTLb4qpuRWrPVaOrbUiIwEztMpqI5j5CNL8vr4iAq+t8wJsqjBkngvQcrY3gSm
-# /3dK/qOhqYl6HMtHhXnWB/k4LY/NwrXaCFgFDGL+84CiyORs3HGXdhkXLmfctYZs
-# qGAbTROjeXRs05vprdUeXj/mcqZ64WLaY65MRKit2LXdzTpVqVKkvv3DlTpSoIAq
-# fB32Z0eFsdOtnvrLk/mYrl90qljiLk5/U15P65bShGj5zJnfGdUNZMZd3fLu
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyMTEwMTI1OFowLwYJKoZI
+# hvcNAQkEMSIEIA6UM/r+VU1A0VJtBgCsIIv9Q4kzbeD7Pkx6hBitdpIWMA0GCSqG
+# SIb3DQEBAQUABIICAICxGDS/u6it/FL4BRUtwgFi0XGsM35sYIKLj5jGQlv3bF9e
+# /8pk4e5/h6/ekvbKh7zMRq/Wd3rgLBtJO1/HbKrYK+CMLheHa7W3iHt+0/h4iuYW
+# sUgMnXA5smIMxkKEHWTubaRvA8mILhmnQmABwFv0yOLMhpEl6HQIJriE6l0P/JPh
+# r9hlkBPXR0GY8BsX24PW/+AAe9afl/k59sk00AFTKelO2KdedUxoaPdIiEBnNPQG
+# v5hZA/5VRZnP8cu2CYfN3nGQ/tDbBZ45xEwpNcl1iYtuba9OcFhKagJRjRc3JnfQ
+# OoFNgK7pHyekrrIziN2j6X7xhMvAMw2spQR+AGlZdohU/aikX3Pb5866GQSsLORZ
+# k2NuPOhmoQg2fee9fnclqX86fNxeMGklUIqU/YWxBSjakifOEwvrFfdF1wALQrIt
+# TxuV4pEBGYVm010nx3CGYzhXgJdINEczN2UONs84hE1Wx8WGrCoTKqgmqzvSnQ1j
+# NMuVA/xdxuWVw6ywk/qzzZcjhlFiVkA67tC4m20WpfeyQMYnf2LhZPa7Wa6xTpzj
+# HugEkdUiIY41iSX49ShTtnhh/Tk8LuuBo3jBsDHegVuEj94KjrG/fTcjOxvEbJdV
+# SalSP8G5B3xkH5H8v6sWAAXN/nvdeHfN6TeqE/Jxx1hB8RbgZ0OVIHuaAPFD
 # SIG # End signature block
