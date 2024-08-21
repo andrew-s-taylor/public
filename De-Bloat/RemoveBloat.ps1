@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.19
+  Version:        5.0.20
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -341,20 +341,20 @@ $WhitelistedApps = @(
     'MIDIBerry',
     'Slack',
     'Microsoft.SecHealthUI',
-    "WavesAudio.MaxxAudioProforDell2019",
-    "Dell Optimizer Core",
-    "Dell SupportAssist Remediation",
-    "Dell SupportAssist OS Recovery Plugin for Dell Update",
-    "Dell Pair",
-    "Dell Display Manager 2.0",
-    "Dell Display Manager 2.1",
-    "Dell Display Manager 2.2",
-    "Dell Peripheral Manager",
-    "MSTeams",
-    "Microsoft.Paint",
-    "Microsoft.OutlookForWindows",
-    "Microsoft.WindowsTerminal",
-    "Microsoft.MicrosoftEdge.Stable"
+    'WavesAudio.MaxxAudioProforDell2019',
+    'Dell Optimizer Core',
+    'Dell SupportAssist Remediation',
+    'Dell SupportAssist OS Recovery Plugin for Dell Update',
+    'Dell Pair',
+    'Dell Display Manager 2.0',
+    'Dell Display Manager 2.1',
+    'Dell Display Manager 2.2',
+    'Dell Peripheral Manager',
+    'MSTeams',
+    'Microsoft.Paint',
+    'Microsoft.OutlookForWindows',
+    'Microsoft.WindowsTerminal',
+    'Microsoft.MicrosoftEdge.Stable'
 )
 ##If $customwhitelist is set, split on the comma and add to whitelist
 if ($customwhitelist) {
@@ -403,36 +403,36 @@ $NonRemovable = @(
     'Microsoft.VCLibs.140.00',
     'Microsoft.Services.Store.Engagement',
     'Microsoft.UI.Xaml.2.0',
-    "Microsoft.AsyncTextService",
-    "Microsoft.UI.Xaml.CBS",
-    "Microsoft.Windows.CallingShellApp",
-    "Microsoft.Windows.OOBENetworkConnectionFlow",
-    "Microsoft.Windows.PrintQueueActionCenter",
-    "Microsoft.Windows.StartMenuExperienceHost",
-    "MicrosoftWindows.Client.CBS",
-    "MicrosoftWindows.Client.Core",
-    "MicrosoftWindows.UndockedDevKit",
-    "NcsiUwpApp",
-    "Microsoft.NET.Native.Runtime.2.2",
-    "Microsoft.NET.Native.Framework.2.2",
-    "Microsoft.UI.Xaml.2.8",
-    "Microsoft.UI.Xaml.2.7",
-    "Microsoft.UI.Xaml.2.3",
-    "Microsoft.UI.Xaml.2.4",
-    "Microsoft.UI.Xaml.2.1",
-    "Microsoft.UI.Xaml.2.2",
-    "Microsoft.UI.Xaml.2.5",
-    "Microsoft.UI.Xaml.2.6",
-    "Microsoft.VCLibs.140.00.UWPDesktop",
-    "MicrosoftWindows.Client.LKG",
-    "MicrosoftWindows.Client.FileExp",
-    "Microsoft.WindowsAppRuntime.1.5",
-    "Microsoft.WindowsAppRuntime.1.3",
-    "Microsoft.WindowsAppRuntime.1.1",
-    "Microsoft.WindowsAppRuntime.1.2",
-    "Microsoft.WindowsAppRuntime.1.4",
-    "Microsoft.Windows.OOBENetworkCaptivePortal",
-    "Microsoft.Windows.Search"
+    'Microsoft.AsyncTextService',
+    'Microsoft.UI.Xaml.CBS',
+    'Microsoft.Windows.CallingShellApp',
+    'Microsoft.Windows.OOBENetworkConnectionFlow',
+    'Microsoft.Windows.PrintQueueActionCenter',
+    'Microsoft.Windows.StartMenuExperienceHost',
+    'MicrosoftWindows.Client.CBS',
+    'MicrosoftWindows.Client.Core',
+    'MicrosoftWindows.UndockedDevKit',
+    'NcsiUwpApp',
+    'Microsoft.NET.Native.Runtime.2.2',
+    'Microsoft.NET.Native.Framework.2.2',
+    'Microsoft.UI.Xaml.2.8',
+    'Microsoft.UI.Xaml.2.7',
+    'Microsoft.UI.Xaml.2.3',
+    'Microsoft.UI.Xaml.2.4',
+    'Microsoft.UI.Xaml.2.1',
+    'Microsoft.UI.Xaml.2.2',
+    'Microsoft.UI.Xaml.2.5',
+    'Microsoft.UI.Xaml.2.6',
+    'Microsoft.VCLibs.140.00.UWPDesktop',
+    'MicrosoftWindows.Client.LKG',
+    'MicrosoftWindows.Client.FileExp',
+    'Microsoft.WindowsAppRuntime.1.5',
+    'Microsoft.WindowsAppRuntime.1.3',
+    'Microsoft.WindowsAppRuntime.1.1',
+    'Microsoft.WindowsAppRuntime.1.2',
+    'Microsoft.WindowsAppRuntime.1.4',
+    'Microsoft.Windows.OOBENetworkCaptivePortal',
+    'Microsoft.Windows.Search'
 )
 
 ##Combine the two arrays
@@ -2180,8 +2180,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCidjJtS+WCyxxp
-# bLemSOGIeGejvt09wg+Tez4jjUqEHaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAMRXDlL2ICG6cL
+# P/XDaxTzUIhp7JvIcXA2wTvXs91GwaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2363,33 +2363,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIDvTs9oM3h4YzsyWuu0k10n/ld751am8LuYQ
-# 793ayA67MA0GCSqGSIb3DQEBAQUABIICAF5QDgHe4r+RVcfGWzsMBCatzkS4XoBV
-# FMV6hWdhawtcg/20FQgdz/o+St0PfE2LHUj8UsycngRnxy5+IzQR8onN3V2+Ye98
-# CZchu76ntcPG3K0rqLcZSYJSqNwD3VqvKa9VuX7kqXZpRDtKwUTf4BhNxA0mRExD
-# ajML6Nbo0XZdyvvwHvFaLxCyjLOs2OHQqLmldC/CVzOEUT7s18/pSuTsonLs9gDl
-# tPDRlnl5cUFXJlgK+5Nu2lsJJH+kIrydQC0tQi/vtV5VMP92H1o58Y14hv69oBFP
-# vJKLaf4w+KVkVMRBgMtg0GfB5HsokmQ8dae/CnZjacShyewAEOWESm3WM993D0cO
-# phnxDkZZRjx4F+fGNP0xgHGxJ98pb6Yv3OFSyOW4eXSQr75PmJs9gJJaznx3gngK
-# 7scOntEDf7xfE5SUgNudKIGcq/4dvlh/ISRsw+oNbTTluLWgsbGwYAqy5uKy2Ue1
-# qkoIAghbidDqAFcm1LRxmDiPjzX8pKe9s/nGwZXodjGy1TJ63BtHgNdXuH7ZD8KP
-# z4CegWsGXX64MvUBqeot7bJKMe1OzKzZH3tKMTykkG4zxHy02ImfS+QQWp2TH/nu
-# 4gOT0Dp4rODIRWU5k1E9BUs83K23rotiN76DfkoElLuqbwXbgkjbZSz4i5yba3uR
-# meiE4wXH6aSzoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBgmsPMJDBvIhMskoFTlri4nER+rd/4QOMjc
+# r6DM2R5zMA0GCSqGSIb3DQEBAQUABIICAEwXfHnqVLsEjb/QkUY9MsLfpzR1RdWr
+# j8djhuDvAXgmHLwxJelC+mtbngh9C5YuK94Y2Q0+xPf2X1cjNp0KJ2q/oywkY7AE
+# pRmIHegE0tImQoFLataMeASwicbMKChpd1RHbkkstAlpAQBh+AiHzh8AJVb4fn7K
+# IkPTUpQTe1XOf04VqWgfKvJdogg22cbC/+bNk4HZbrBkoTDq9AxpJiPTU43qEj8S
+# fRX/CM8BqILZVI7znfSBUQf+cZyVDa78u7znaEMiLaGSGjVtBYtonlqEQWXzS8l4
+# nSWv5EqPy5O8UDKwUXjRBlOkd263mHpIU0ZaDN4lOe43Vi+TumZCgA01yrf+fdAc
+# x9AUSjVyYulCdhdEdc7kzBKwxWB6L1TcXwH1V2FcvHj23lVKyHM5DtvkKhPBMCJ2
+# 1EK8b2zx7DLhf5MewPCVfxU2EI/I4OrLk80J2OU7BHb+yK8pZuT24l0yd/1QssIR
+# wwyK1tjQgoDoPS0177LQQSbDKq/mD9Cplv/9t3dQqjoczf/Y0jSaKH2nl2R/MaVj
+# LMW0bT0mwvfq/ljNz4rUkeU/G4rw1Eqe2D2GRdYxTtjsmO9D+loSZyaUVfn3f6Wq
+# FVRm3/6g/Sxmu5P4XRnkpkTgft/XGPgo2VfLNNeG6+YWito0nc9NSPaT2tZ+PNaA
+# uPuoxtWe89emoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgxOTE0MTcyMVowLwYJKoZI
-# hvcNAQkEMSIEIJkKoXEDeoa8o1IpqrwkUZItmKkxHoHlwCez/bCHa/VyMA0GCSqG
-# SIb3DQEBAQUABIICAGV0Q0ZQLz2UMuhTYV3aTiLK7nAkdpowbUPBgUVCzx69l4cO
-# C5PKFFbYnuICICxZxottcCaAyzDkFto7CRVidrPsRAuJDqHClFfwssC8711i1Xhc
-# X8aBQcysAuGb4h8vtG+V1sOwV2qk4GDiGtoRSmjgNcUB2Mgd2yk37589A87jF5vB
-# JfUp5DynvMPjZALIdz93266o6Y4cAvUK/oskfHpVtTnp25QOQgIZI3kggkL2YMhg
-# NB4Sua7+kPC3eTgk8CsA45tPFGk8tll8W++7EWquvRe5GpadIEd/n6wJ/JWY4VgL
-# wVwbCqojFXMuM/qqz9MJR/DcW8PTn2v0Trjs8Ht7fiOsmfAY/0qkrH86Nv9YqJku
-# X+6/KoLFRS17jAlxRsyvXb49QLovgoo46oF55KUir6QZmrGgMCE40353FR6uJ+/u
-# XUJ7mKNg4uR6j7y942MCeiYd+VHh93zm+2IRnokP+jB4Je3G0zzFzMx9I+H5FBfA
-# fYf5mvDpMQY0+WXpBxSpTslmxpCifhiHEiBUM+pdegS7vTXJwrVSoIQXJulU9vWH
-# WCBf8OIEZSMDX1SdbKy8It1gbxW6yJ9UKFUuHmff6CNJVdcslF+BT0fvo7UA+2mP
-# ATo4xWyi9ZlIJoTS+uX1BEQP++PpVMIbfK8TOBl1J1OPxn+k+QyvDUwjneoJ
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyMTA3MTk1NVowLwYJKoZI
+# hvcNAQkEMSIEIEXWiCP52cC+WOmoCnwNbEiVChXX/j6mOrCvQZrtF12OMA0GCSqG
+# SIb3DQEBAQUABIICAEBqG5fc4T0aq2sbmqxwkSq73UKm3Tt7v8RFx4+lX5+ObACq
+# 0ROcivIsianPkaLhsjTQykUCEUEmk7axy2jOIae1SknxqvN8tX+NZSUS2grWHSQy
+# E1ovnn+5rixthlMy9mjv54wiZYOLZ2yrcFILqAuZv6AxLPO7X8Yk+wV9QzFEHjM/
+# dhp9CcVwclxbNa1KtEYVJXaf0882g0rjOx73JBL/XzhOW3d5x8/6564F3DcwxeYd
+# OA86axWAZdIwcuA1SWbJ04J6CjQXRgWOCWZJzBeUStEMs612FDfeXv3HqjTSaxfm
+# ThK7LzUyRhd9KBv0svpDPBySF/gybQKu3vhp9kWEJ3NceyzwtNJwmng/Ut0R687O
+# 9WiNuDxGTCyzohSjrtKESNoiTyu/BzsOT2MAkETz5gos7XjD1mRVYl3NTEcT+Lt5
+# caipF4HnP7fKawUOojicH3WhfRg1RXP3X9BFSgjlT/URBG6ZPtBO9pcyMTIW4H7x
+# P6escKiGERdSmTO3P9YBK6eOC4Qryefouep0DALYqmRRUD6mh1Bb0gkpX0Crr6Pr
+# J+K3nd8CSCaMGXM1k3TwdAd5yHa45k0dcU5rsQluUYuhQeuRVng1cFtoCUdEklPo
+# d8SdmcH9aLQXzldqGXySiPtCRtJNq74+L2/YV5Ffl9F8sewkcxl/Q/xWz2Hq
 # SIG # End signature block
