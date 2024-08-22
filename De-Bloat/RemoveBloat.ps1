@@ -1442,14 +1442,14 @@ function UninstallAppFull {
         if ($uninstallString -match "^msiexec*") {
             #MSI install, replace the I with an X and make it quiet
             $string2 = $uninstallString + " /quiet /norestart"
-            $string2 = $uninstallString -replace "/I", "/X "
+            $string2 = $string2 -replace "/I", "/X "
         }
         else {
             #Exe installer, run straight path
             $string2 = $uninstallString
         }
         write-output "Uninstalling: $displayName"
-        #Start-Process $string2
+        Start-Process $string2
         write-output "Uninstalled: $displayName" -ForegroundColor Green
     }
 }
@@ -2180,8 +2180,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAMRXDlL2ICG6cL
-# P/XDaxTzUIhp7JvIcXA2wTvXs91GwaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAsjU3ySu7ydT3f
+# rt17srKr50bfuVDyoUjvFc/GxUlEDqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2363,33 +2363,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIBgmsPMJDBvIhMskoFTlri4nER+rd/4QOMjc
-# r6DM2R5zMA0GCSqGSIb3DQEBAQUABIICAEwXfHnqVLsEjb/QkUY9MsLfpzR1RdWr
-# j8djhuDvAXgmHLwxJelC+mtbngh9C5YuK94Y2Q0+xPf2X1cjNp0KJ2q/oywkY7AE
-# pRmIHegE0tImQoFLataMeASwicbMKChpd1RHbkkstAlpAQBh+AiHzh8AJVb4fn7K
-# IkPTUpQTe1XOf04VqWgfKvJdogg22cbC/+bNk4HZbrBkoTDq9AxpJiPTU43qEj8S
-# fRX/CM8BqILZVI7znfSBUQf+cZyVDa78u7znaEMiLaGSGjVtBYtonlqEQWXzS8l4
-# nSWv5EqPy5O8UDKwUXjRBlOkd263mHpIU0ZaDN4lOe43Vi+TumZCgA01yrf+fdAc
-# x9AUSjVyYulCdhdEdc7kzBKwxWB6L1TcXwH1V2FcvHj23lVKyHM5DtvkKhPBMCJ2
-# 1EK8b2zx7DLhf5MewPCVfxU2EI/I4OrLk80J2OU7BHb+yK8pZuT24l0yd/1QssIR
-# wwyK1tjQgoDoPS0177LQQSbDKq/mD9Cplv/9t3dQqjoczf/Y0jSaKH2nl2R/MaVj
-# LMW0bT0mwvfq/ljNz4rUkeU/G4rw1Eqe2D2GRdYxTtjsmO9D+loSZyaUVfn3f6Wq
-# FVRm3/6g/Sxmu5P4XRnkpkTgft/XGPgo2VfLNNeG6+YWito0nc9NSPaT2tZ+PNaA
-# uPuoxtWe89emoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEILkgzkS42kxRVlsPmpIEl9orsmf0/OpvraC9
+# 5eZj7NgNMA0GCSqGSIb3DQEBAQUABIICAKLmMzTJbI990doTDY4kBMPX35qrmONs
+# VFfLRwGS5ekkg283ci75IOcXcGokGk5HEtIuRRA6NM/DRRe0n4gPzRSPmWUOKPcN
+# NaYJk2hAa3TL3g8BIOf3yL4p07BxPEdDu6Cc4XRHbZFSsojTBmuDxlRNEx3kjYjk
+# UxUY/1IjilATq/ivfI21Fl8OcoAFKyrt6xuIBo5B5Mn8ZNBdGubq9ANfbEx+o5Jy
+# qb37yEaDPfjWda8a3JPslP61jK1BNWEekZqvwX+riu34gDFdtdLyIa+293EzFd4t
+# gkBW1MbW/g6pDdlvT8p2byznpnamK/4XO9A2sO1sNxUNIMt7MAlm5d63dpUruhb2
+# 5RMmYXuHeclO6m9Q77v5uYO/uc+/saX4y0sMzBS8trlkmAyElGweS16huutesRzf
+# xlFBgPIc6UV1YELDxK5PiXo1qGxsj76OCwC30MfBrlqxaWyviSRGCEUd5k6hWf/4
+# BT9svGqRxZFOd2FlPKLy999COaotT1QYEXPBc5+o0Wh6dIKjy/tODV4vr5j7IPu5
+# g5UDnoIZvAtFvmARbaRrfwo5Hm9x9D+Jg/3BQRTOrweEChkU3hv6wihubb+6F9mf
+# mVv2G7Jlf8guJ+3czCR+FyjRdgZJGTOEyCaq5TP64OYjpyFQ+ibdd2NX1CIsacu7
+# 2Pzc4kNOnn+goYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyMTA3MTk1NVowLwYJKoZI
-# hvcNAQkEMSIEIEXWiCP52cC+WOmoCnwNbEiVChXX/j6mOrCvQZrtF12OMA0GCSqG
-# SIb3DQEBAQUABIICAEBqG5fc4T0aq2sbmqxwkSq73UKm3Tt7v8RFx4+lX5+ObACq
-# 0ROcivIsianPkaLhsjTQykUCEUEmk7axy2jOIae1SknxqvN8tX+NZSUS2grWHSQy
-# E1ovnn+5rixthlMy9mjv54wiZYOLZ2yrcFILqAuZv6AxLPO7X8Yk+wV9QzFEHjM/
-# dhp9CcVwclxbNa1KtEYVJXaf0882g0rjOx73JBL/XzhOW3d5x8/6564F3DcwxeYd
-# OA86axWAZdIwcuA1SWbJ04J6CjQXRgWOCWZJzBeUStEMs612FDfeXv3HqjTSaxfm
-# ThK7LzUyRhd9KBv0svpDPBySF/gybQKu3vhp9kWEJ3NceyzwtNJwmng/Ut0R687O
-# 9WiNuDxGTCyzohSjrtKESNoiTyu/BzsOT2MAkETz5gos7XjD1mRVYl3NTEcT+Lt5
-# caipF4HnP7fKawUOojicH3WhfRg1RXP3X9BFSgjlT/URBG6ZPtBO9pcyMTIW4H7x
-# P6escKiGERdSmTO3P9YBK6eOC4Qryefouep0DALYqmRRUD6mh1Bb0gkpX0Crr6Pr
-# J+K3nd8CSCaMGXM1k3TwdAd5yHa45k0dcU5rsQluUYuhQeuRVng1cFtoCUdEklPo
-# d8SdmcH9aLQXzldqGXySiPtCRtJNq74+L2/YV5Ffl9F8sewkcxl/Q/xWz2Hq
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyMjE0NTgxMFowLwYJKoZI
+# hvcNAQkEMSIEIGNZJ9gE2q3eHuNwcwevqSUjtcouOGuBiyddzhfiSdcaMA0GCSqG
+# SIb3DQEBAQUABIICAE1PMlmilXsba176rgoqN3GyQiygWk2SxvyyOrMPml1SznZO
+# dTyH8WYSpbfoXSEMnsOb6gl8MVF92zzfXM35LjVE4Eh+AvFE/QIdxHY4apnYv87p
+# 4AwlrRDbd+W033UlATw7PjW2IaK5gfSu2dU/kzkWYAXj7FnGCGuQECFtIPQ6aCLv
+# y3ht2WMt9JxkC6atftGRbcDIBAqeMYRURqV3xHSRNjWV4/ZuadMc8lUYnBCP3EZ9
+# 4DQHVDPrrBnfrrtObuHi33t01HqIFBId2+asb1urv2If5fblZ+q6xs13d8wvIoo9
+# pDs3TJnpGyrs05GsidHEAkykF/dG00Wo6+/zNvvGNvGsXd8pQtAoCf/DIbRE8fhD
+# yaupMDDw1b3nW10NPpjZSFnJjTofwgDEiI73ssDSEy05es54i4O+Y3+LCUZO8rz7
+# Hd3Li52UdzC8UVAXpJ6mjv2QFRpBI9Edn0H9OXahueuJ85KbMtO5CtKMVhqpu+0Q
+# ov2zWrPtgzJf6ua6YAqeS/mUcw7NOrHGKOA0VoCbllQFKuUbal7V06DMUKT5ADGA
+# Jllg2o6lTlqwUkqaCZK2e3Kf8mTVNd/WqghZyUUDvEqrWzgf0iaHg7TVYdM01ZYe
+# kJsvsbqCxyS4axsBQKdDndz7nSL5DvvkMa8j5o7UX5zAm00kuqnMRLB1hZ1D
 # SIG # End signature block
