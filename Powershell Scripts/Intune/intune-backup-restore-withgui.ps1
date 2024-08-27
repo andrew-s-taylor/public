@@ -6826,10 +6826,18 @@ else {
             }
             elseif ($type -eq "livemigration") {
                 $policyjson = $policyjson -replace $tenant, $secondtenant
+                
             }
             else {
                 $templatename = "No Template"
                 $policyjson =  $profilevalue[0]
+            }
+            if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {
+                        $policyjsonall = $policyjson
+            $policyjson = $policyjson |convertfrom-json | Select-Object * -ExcludeProperty "definition@odata.bind", "presentationValues" | convertto-json
+            }
+            else {
+            $policyjson = $policyjson
             }
             $id = $profilevalue[3]
             $assignmentjson = $profilevalue[4]
@@ -6866,7 +6874,7 @@ else {
             $body = ([System.Text.Encoding]::UTF8.GetBytes($policyjson.tostring()))
             try {
                 write-output "Restoring Policy $tname"
-                writelog "Restoring Policy $tname"
+               # writelog "Restoring Policy $tname"
 
             $copypolicy = Invoke-MgGraphRequest -Uri $policyuri -Method Post -Body $body  -ContentType "application/json; charset=utf-8"
             ##Assign if selected
@@ -6874,7 +6882,13 @@ else {
                 write-output "Assignment Selected, assigning policy"
                 writelog "Assignment Selected, assigning policy"
 
-                if ($assignmentjson -ne "No Available Assignment") {
+                if([string]::IsNullOrEmpty($assignmentjson)) {
+                $assignmentjson2 = "No Available Assignment"
+                }
+                else {
+                $assignmentjson2 = $assignmentjson
+                }
+                if (($assignmentjson2 -ne "No Available Assignment")) {
                 $copypolicyid = $copypolicy.id
                 $assignmenturi = $policyuri + "/" + $copypolicyid + "/assign"
                     ##Check if group creation
@@ -6909,6 +6923,7 @@ write-output "error restoring $tname"
             if ($policyuri -eq "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations") {
                 write-output "Policy is admin template, restoring values"
                 writelog "Policy is admin template, restoring values"
+                $id = $copypolicy.id
 
                 ##Check if ID is a string and if not convert it
                 if ($id -is [string]) {
@@ -6917,9 +6932,9 @@ write-output "error restoring $tname"
                 else {
                     $id = $id.tostring()
                 }
-
+                $policyascode = $policyjsonall | convertfrom-json
                 ##Now grab the JSON
-                $GroupPolicyConfigurationsDefinitionValues = $policy.presentationValues
+                $GroupPolicyConfigurationsDefinitionValues = $policyascode.presentationValues
                 $OutDefjson = @()
 	                foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
 	                    {
@@ -6929,11 +6944,20 @@ write-output "error restoring $tname"
                                 $policyid = $copypolicy.id
                                 $DCP_resource = "deviceManagement/groupPolicyConfigurations/$($policyid)/definitionValues"
                                 $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
+                                $tempconfig = $json | convertfrom-json
+                                                                $tempconfig2 = [PSCustomObject]@{}
+                                $tempconfig2 | Add-Member -MemberType NoteProperty -Name 'definition@odata.bind' -Value $policyascode.'definition@odata.bind' -Force
+                                $tempconfig2 | Add-Member -MemberType NoteProperty -Name 'enabled' -Value $policyascode.enabled -Force 
+                                                                $tempconfig2 | Add-Member -MemberType NoteProperty -Name 'presentationValues' -Value @($tempconfig) -Force
+                           
+$tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'")
 			                    #Invoke-RestMethod -ErrorAction SilentlyContinue -Uri $uri -Headers $authToken -Method Post -Body $json -ContentType "application/json"
                                 try {
-                                Invoke-MgGraphRequest -Uri $uri -Method Post -Body $json -ContentType "application/json"
+                                Invoke-MgGraphRequest -Uri $uri -Method Post -Body $tempconfigout -ContentType "application/json"
                                 }
-                                catch {}
+                                catch {
+                                write-output "error"
+                                }
                             }
                         }
             }
@@ -7049,8 +7073,8 @@ write-output "error restoring $tname"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBQ40fdV2jCcaRD
-# YcF+zWlDJK1RImdeR8vHUA6hSx8e7aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBP8bM07t2KPFiL
+# exI6wFUqoGMoQYTQUnFbjFSFKaZrpaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7232,33 +7256,33 @@ write-output "error restoring $tname"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEII+LOj3gtaBa8ktVi1krzLqkd47irGbBZzg5
-# GEnl+rSkMA0GCSqGSIb3DQEBAQUABIICACRdQFKZfBaeULBgr62dnZBvYQZQbxTq
-# 8IH1nUUEdRw3HDMABzHe4ePJD+k7B3oQjPumHAD51PYIa7GeipUCBeX8xJaWoMrB
-# suWa4januLd9P10c0hQZ3wOxOxeAuVbWecKXGPorROs2hq6DauEb2iwp4LfWAPCq
-# xQ75D3v0g0wFSuYxdqyY3bRGQzKi90PHUs6W9Bxtei5Y+vyfB3H+91x5/r/2oWrY
-# RGUB3h0e86KAmfWhlEZFustK4ubKEeJ5N3EofTSRaFVCQs//l5f7AFKhLT6wnsKU
-# 3PcGSwxjwk0gSrT2X1pBBI6BaTBuxmvm52mZ9wjhbtmtMjTdd3QNQq19n6Q619lE
-# 79lsn9qa3002zAOgpG1yBC1hF3LOeHDGg/PLFTmHosK53g+bm1/YZcR7n3rNATZV
-# 0fjBWOlPLDaJvRGVBjbHgL0oV22veg7bw6/lkxYFL5lp5LnI2tAMYgxTO5ARXpY9
-# +edZ0AEUbR2E1ytQzycV+/smq8gsmcZ8I5THHFu7U2G136Rxv86e5K+X3UCwzyDm
-# vhiQ8uHeTLDDYgYUSqYl9ClEqjjhGAAraI6QijUr4R6jUDrnelZJmh30Y7OqSnz5
-# HcJLz9FEvu64SxZRpLjBNqOYMC4YTi7/e4SPLWYGIFVDvnvhxvXTy39KfnvxnAZP
-# tnXR2HJmQ9VFoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIANtLdnPrIYoCsT2rJYFoajS4zNJ8+9osAZp
+# lX8oJWFNMA0GCSqGSIb3DQEBAQUABIICADRoqHHYnojZtLc0j+oyTWTP7xTCHaiD
+# eFi9LzHjcfiX0Xt11MD7fQQZXVM+wQ6y3+OulA7+DUPyDA6fwM0V7qFXny4wh9cm
+# /s9BMHkURmuS8GFhxjGlr1U/5t0mlvCrla0ci2y0UYfJybZdjBhYBzYb52o9ERoB
+# fWsrr56f85D3raMjUkVcLUXJES6kPkmNdwWkZC3AU4LqyqHzT02M7+5pYLyshTrK
+# uHtAquXNr/XPa3c4pY67BxwZTjOGEeWpxYwKLOdwpKb6k1Twm5IwcmxpulvjSZpn
+# Jjin2oxpcioeRFDomKGJchnE5DRW5EMgMvDQQuNxzQ5NX2sjCA3zT4SddIOV65Wx
+# 7I6ZTnywTuevWjK5L3jBlIwYx+KvoaZzsLrjp6EmPrXcXMMwPfifdk94yww7bMqj
+# 5FLKd7AnyCw2jP/lQ+lxR48gSV25Z7X2VAQYpN+xxIcV/cYbj0nON/QAazuo7cWs
+# qo6p7L1oKNtTFD3BW0fzSNSpouelYpZDySyqxJsA61DvM12a9jAt4LkdA00Skcxh
+# TxEvED4EkgMSxZIs0+dCzIdv9zC6JMeBDUcZpOx2Zy0wVvfWvQDaFCNdOkpebtER
+# MYhAW/nFMp6fRXZHj4PvEBvXVWzvPWqSarO37pABalOu/GvGXFpjEYDRumOVfWnN
+# aOPN/8CJxbDYoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyMTEwMTI1OFowLwYJKoZI
-# hvcNAQkEMSIEIA6UM/r+VU1A0VJtBgCsIIv9Q4kzbeD7Pkx6hBitdpIWMA0GCSqG
-# SIb3DQEBAQUABIICAICxGDS/u6it/FL4BRUtwgFi0XGsM35sYIKLj5jGQlv3bF9e
-# /8pk4e5/h6/ekvbKh7zMRq/Wd3rgLBtJO1/HbKrYK+CMLheHa7W3iHt+0/h4iuYW
-# sUgMnXA5smIMxkKEHWTubaRvA8mILhmnQmABwFv0yOLMhpEl6HQIJriE6l0P/JPh
-# r9hlkBPXR0GY8BsX24PW/+AAe9afl/k59sk00AFTKelO2KdedUxoaPdIiEBnNPQG
-# v5hZA/5VRZnP8cu2CYfN3nGQ/tDbBZ45xEwpNcl1iYtuba9OcFhKagJRjRc3JnfQ
-# OoFNgK7pHyekrrIziN2j6X7xhMvAMw2spQR+AGlZdohU/aikX3Pb5866GQSsLORZ
-# k2NuPOhmoQg2fee9fnclqX86fNxeMGklUIqU/YWxBSjakifOEwvrFfdF1wALQrIt
-# TxuV4pEBGYVm010nx3CGYzhXgJdINEczN2UONs84hE1Wx8WGrCoTKqgmqzvSnQ1j
-# NMuVA/xdxuWVw6ywk/qzzZcjhlFiVkA67tC4m20WpfeyQMYnf2LhZPa7Wa6xTpzj
-# HugEkdUiIY41iSX49ShTtnhh/Tk8LuuBo3jBsDHegVuEj94KjrG/fTcjOxvEbJdV
-# SalSP8G5B3xkH5H8v6sWAAXN/nvdeHfN6TeqE/Jxx1hB8RbgZ0OVIHuaAPFD
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyNzE4MTg0NFowLwYJKoZI
+# hvcNAQkEMSIEIAAvpJeCwme2sfzou/DDmlCL9VueYZ2g/xRk3F4RnBm+MA0GCSqG
+# SIb3DQEBAQUABIICAItpg9bh12Vs+4JlC9+jF1wyFgpUpnWCLVLZwm+qUMdLjMxa
+# AxeZwRLH8/gVDXZkx2M5iYnmW7p2Me3h5gZCjFhF6nBIEt7nO1zsONeQ1mi13Xp7
+# r7nXZt938AhWc139Psd2YYb/rN632nkV1r+D7DXev6HFw2qRnJngaKZORN+e3ELf
+# X+fsJnH3u2gWCcuoO2+wP6pNiuiNiawQHzv2Lns2yyLxpLdb1ltv+M40r+ZLmcBK
+# o3TYUvuVS9nZ39rC9Z+wjI7JrQl/SR1c2RZjKCE4jFsENFiFqV6crzkyXv7TVUWO
+# e5f+E+WUFhb53K7w+zQH8SXGLnzvzXrTRCL8tLrYKeYFuRz/4Tt1UjWenQGWpmGU
+# TQ87VIRuUBW6Gt4i2qdpY/HxGSXua2N8wIau0K7hw2UvZgis9mwkpiZx6VdB2xvI
+# IG1sS7tRZ2sDx1HRnypWh2zAfYCe4iKS6Pgyn5QB6GDOivHl51sxYEvQLp1J21vM
+# xI4zFKu2A/3/U5BmuyDgVkFFP/nywui49pVnsEZUKGNarlC87zR3ByrWHCq+6gXS
+# /nCCSNs3JYG3OAGQXL/BrHKFyjdMzJSvfkf6VccK5XYWcZ1CCuBn44O4gR9U9vIV
+# /r/jCVZafceHIIAe+WbqS2zzEyC56xNlJNRBC2dgHmOurK75IetpHz8Uc7pI
 # SIG # End signature block
