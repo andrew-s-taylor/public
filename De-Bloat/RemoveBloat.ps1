@@ -2096,15 +2096,18 @@ if ($mcafeeinstalled -eq "true") {
 $intunepath = "HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Win32Apps"
 $intunecomplete = @(Get-ChildItem $intunepath).count
 $userpath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-$userprofiles = Get-ChildItem $userpath | ForEach-Object { Get-ItemProperty $_.PSPath }
+$userprofiles = Get-ChildItem $userpath | Get-ItemProperty
 
 $nonAdminLoggedOn = $false
 foreach ($user in $userprofiles) {
-    if ($user.PSChildName -ne '.DEFAULT' -and $user.PSChildName -ne 'S-1-5-18' -and $user.PSChildName -ne 'S-1-5-19' -and $user.PSChildName -ne 'S-1-5-20' -and $user.PSChildName -notmatch 'S-1-5-21-\d+-\d+-\d+-500') {
+    # Exclude default, system, and network service profiles, and the Administrator profile
+    if ($user.PSChildName -notin '.DEFAULT', 'S-1-5-18', 'S-1-5-19', 'S-1-5-20' -and $user.PSChildName -notmatch 'S-1-5-21-\d+-\d+-\d+-500') {
         $nonAdminLoggedOn = $true
         break
     }
 }
+
+
 
 if ($nonAdminLoggedOn -eq $false) {
 
@@ -2242,8 +2245,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBisWfPq21aWmtD
-# gM1jC1sgU+Jhq4ffUeSu+Npgblip/6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD73LOJwypZ83UI
+# loQM7Vx6hEwU3Jmpctq1bo3kfoUoSKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2425,33 +2428,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJ20GJTtW0I25J+fGr2/b17+rRo6TBAr9H3y
-# FkzD7xp3MA0GCSqGSIb3DQEBAQUABIICAG6HsMnFqI4Wt7ulEisYxmhTOkjTLdo4
-# W0FN2c9wMg6v2ABNFJFcOplIYQ/yg+oRnULlzJXSu9gIDrpZbSjYz1Jg9QybouL6
-# oRmHzqnkT6jeCzHGgBXzUJPUt8W/0sAVoMAJ3PIRQcBVv+7UDH12iGDxyxMDHDx+
-# GiMR20hobhbeQHLqsKAhJMV/gNqM9db1UfEM57sHvljSErTKHj0zMXa3V1crPCk4
-# pvDOMSH4ZNLuIWfBR4/xVxTKS+XjEKvOVor2DfldqFs9Ds0dRvYUYByPJudZPw3i
-# XR2cJQSWicuVQZYDXbAzUGLzkbXehoLJ3sDbsJVZjtLoB66UIvCf05ZNPRoXiiNd
-# dN7diQVwhq3n9cNks4d8MZhHv5KEXTw/EYnXMKD8U/7fuICKfMGbxfWLV/rfpnFl
-# OcxVBRmzmW8Gvfurq5r2tETgh89GB4FGC3gB8piJXiyUoYTRwNASRGo8Y3YIH10Y
-# 7HYttwNUApOKeN0Lb01035wBktUgEpuPmhVSV+96C0aTf9+3ATFTohHcmnzBvh2n
-# FWiJhww0RGz3Iz9E9/yNaT1f8latIfdRlGVJR0f1tfwk/8lXjA2rMTCgPPDg8I/z
-# /aMc9fovpD5Jt4czo5uULHqx5A4wSZzxZ/v0U32SaGkzHTg03tj31rGe4UyQLv4O
-# 92ZMq4Jf6jqeoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEILUtZNuxr28ZgDpPXRh73GOiYvCvlutNFnUL
+# 3ovSGmmcMA0GCSqGSIb3DQEBAQUABIICAGS2jIcKoqnoveY6yYzKorLamFWOqBYF
+# rSX0fhCGcT/Vhw5QORJWHwBDF/9f8K5hlzv0FpCdT4+nBY0s6C9O84ZkBHIS5NRP
+# V4j6wq/3+3xkrv3dbSIJwsMKsUepLd/VepCfn8A4Hv3KMAheMzD5GKKKZiBPn0HY
+# yIIPtFsKZ02IPnEloVe5qnpB+/Rz2NYrIuFwQ5sVm+lw3mhdFWtI+pLrtpCcDzEE
+# WRCfdSZowEzwmsLTBiTTTArdFL/+lIYYMcqJkiVEsbIOvNGcmybFgmNPzD8QUS3c
+# g+bzxj1psVFCR4OTSZrt+b9mXHDXll5MQCz6SzeK0OFeTAdZAjuoXzR3aXBxzQmi
+# v/uWC3FXVUMXuC7aJAd10D0CFBCZoM0Z+urTpJi2YlL7Cq5bf6rb1wab2LgQodvd
+# GvIhxAvgXiXbIkjW/tGRWXzLFOIVwZPc/Lmhd6zKOAt7EqzhlMp8twRu8cagHREW
+# tqF+rtGGXTFWP+f8LlTYmXR8tLJ7+igyOWFZI8RQ4um3Gz8ao5QXMe/MvDX7UOdk
+# YJtnNb3lcKGD++IFIdeyBIGlGkFKZNr6iYEoYKIo//jYRAeRPnVFK43KE7qBPU/1
+# +k8ldInMQaPeaGOZtgJ32jovJVfvDiCEuIf/VYORj++yoLxxY+rUkOmXY1pQexCf
+# KhtznBajGGv0oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwMjE1MjUzMVowLwYJKoZI
-# hvcNAQkEMSIEILgeJbnVmAlqXdALtszXTK0Zw/9NdRNp1jtGbgqZm/F6MA0GCSqG
-# SIb3DQEBAQUABIICAHvyGnjP0uzEwHt++vjCdsQDVIvRz6ard5FwWYJs/pCxNNC3
-# KdwgNinScEpBbxnHAaJmLzU7sa60yr5Ysr6oLq5cLnhA+99+QgMRG5shHiVKCTFu
-# ncup1cY115S/bQW56KfYeyFEBuhC+5B9Dv6dxLsF074isfHDnO0jnq431Tj1BKxu
-# 24QH4UzyCpg3nJtzh9/tSN5N8ZcyXQrcyCNMQzsPenikY965mUPaqoYhzL9I8z14
-# +yMJgm0kqHb7pfFXyXI/8+RzTr3YmLNFVhpOUm6FLWK8SsPcS1usmT1ciIjBRlam
-# pqBESyvf6OzS+RqBY/6l2yZQW/y3lbzIUOsXRCIeimYq1bE52boymYrJnplJuVFI
-# gqvJRbSXfXVV8GKsh0dg52l3EmUvYnnz62AnyuWEijuWI2yZFnmJuHVOj921B7Vl
-# 59T84ZQXnh7x4znVX/4f/jjvWO4wOZ5mPcKBfyj366HcFIPEZCeTxnLpM1hCjNsI
-# 7k14LqZMohsBgUfOgAzKAjkVpRPiRb3WqPLLcwRcCM3hlBRTd4BrtoUTaM6Dd2fx
-# 1igQ5tt2ObKd8ZLjMcdqt4VgyZOu3UHzPKpPJJGTALgizJYRh42qDH+EIFJR+S3+
-# qtihwKC+3gDsijnWAc4rOcbC7oFEz9yODdxH4W7/I1SdxbRlSIabh3/MS0Es
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwMjE3NDEzNVowLwYJKoZI
+# hvcNAQkEMSIEIJzEcq9trhQu4+eKAwyrfRdZWtLhS6VXuJTc3mMKx863MA0GCSqG
+# SIb3DQEBAQUABIICAFv4snHNKHkjcdyfc7fZvL3TLqagd1lNa8jhZIXVT0UWjOjy
+# MiRadT+tq+seePjWwIz+JVnVtIql2c8OBfn9CS4eCZ48itI4VHsKD0Ur95kA7Kbr
+# 9CMis1ue8mgbGVb7V+z/p5haf+oA2E6qf3ELZ9DFOPq+6SZoWU+da9i9aa1xy4J0
+# n5OPKOhiJGWba46swe9LanN/nvYmeIUIwdAroUKScrPsDQ3wOeMZ9btfWAecMhUq
+# G42bWTF2aQnhDRbyECOSZzKZS9fZaEgicz5VySBCz2FKz5hwhbUaFvSjR0POBVat
+# ef6SZUKI6D7QnG4n6ggf6Wt5PJdOCTOl92bZ8pP4SDBh1OuKJzEogjucrkwoFKZw
+# BcMCTtCjr1/1EvWwzkV/aWbhG3re377YTB/08Yoz8JPn65xKPcPw6oBE8JFz7bZJ
+# MoyOZtvZ/sA3MiK6AoxoqMLdSFZBYGB1j9Ez2aqRB9Dh08ZaylgQxvvk+6yWy0C9
+# N967ArtU9kOXvcZgOMOERYl7JtARzoRZ/HEB+9XkcJuTfRnYGcN3Ov9+agnPLZOV
+# srb4Gs8qbX6SioPzhgurS3Chw3rP1iKm9qHRmoEAwMQ0gOGpBDZEEVpSWKJiqaBk
+# 0IZwkob1+k6HcNDYFPrAnsNCq/a23gTOmplpMRXSbwMroojEsBsnaFXyrfan
 # SIG # End signature block
