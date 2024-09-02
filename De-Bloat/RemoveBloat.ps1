@@ -2210,14 +2210,22 @@ if ($nonAdminLoggedOn -eq $false) {
 
     $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
     foreach ($Language in $AllpossibleLanguages) {
-        Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=O365HomePremRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
-        Start-Sleep -Seconds 5
+        ##Check if it exists in registry under O365HomePremRetail - $Language
+        $uninstallString = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\O365HomePremRetail - $Language" -Name UninstallString -ErrorAction SilentlyContinue
+        if ($uninstallString) {
+            Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=O365HomePremRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
+            Start-Sleep -Seconds 5
+            }
     }
 
     $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
     foreach ($Language in $AllpossibleLanguages) {
+                ##Check if it exists in registry under O365HomePremRetail - $Language
+                $uninstallString = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OneNoteFreeRetail - $Language" -Name UninstallString -ErrorAction SilentlyContinue
+                if ($uninstallString) {
         Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=OneNoteFreeRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
         Start-Sleep -Seconds 5
+                }
     }
 
 }
@@ -2234,8 +2242,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCvoO2DW2bsc8/g
-# mpR9rA6FGhKkWsX7vbCk0sULd7y/gKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBisWfPq21aWmtD
+# gM1jC1sgU+Jhq4ffUeSu+Npgblip/6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2417,33 +2425,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIP4HaYViI7Qqb+yoK3Wz7i8RjERT+dgbqXyX
-# HQddvNPDMA0GCSqGSIb3DQEBAQUABIICABIPw8Ai2t3Nqf/7XuBE2ynl8nSA9KYA
-# Dtu4ODmxjMH8MybX1n6f5dMKu+rHN7YjSTuUNuW6nKhIFiDpSPMWlIly9h+X1KsF
-# GjiRQpWb9BedRMZc3r8czHAN9MnlAKNo+8Va3BEow2+5k4+4XOsX3l1cv2IHW2Di
-# e1PDZKrc654cMUFwxHPrCAdw9fxUiR+w+ARRr1C/EroCLKGKas4XEZEb4rAsaZBR
-# zoea3KBM0u2QScmwZk49XrptS1nzN3BvWXHedtwsdQJc8ioMA2Zj2evMEqGqhLde
-# rw/dIqqrBGfXJQLZT35FAmVMRYA9lWCqUnbW4JespmuphQoNkTm+kxC3IvQNP+zF
-# UexvV1sAO/u62cjD8CaKLMbupSZSp9b1QyCpvBd0tjlzB2oYjKApS3JLY30B3cmH
-# Rpx1Jni+CE4HZIxwxhUiWA3S/OdePNvWmT6SHjhTE4NzBU6G9Yv8vlm/7fOc+Crn
-# ZwlpA9UNqiNrcmvccVmMNVpP+Wx74UnQKCk0cqZr1x5JnyM2b6/+S8agL+Qg+g8r
-# WwDzPV8or5a9zjQWlXNa91KoQwGYGsrHQPJxyu9KKn/E+6svLtDZqInQEHn+lzEE
-# xVmhWBTUlGLwYaQYxNs/wXyFDcDXb8n/dCORKIGo+QGMHp3SF2XrNlcP92UGX9p4
-# xdJyssauwxTOoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIJ20GJTtW0I25J+fGr2/b17+rRo6TBAr9H3y
+# FkzD7xp3MA0GCSqGSIb3DQEBAQUABIICAG6HsMnFqI4Wt7ulEisYxmhTOkjTLdo4
+# W0FN2c9wMg6v2ABNFJFcOplIYQ/yg+oRnULlzJXSu9gIDrpZbSjYz1Jg9QybouL6
+# oRmHzqnkT6jeCzHGgBXzUJPUt8W/0sAVoMAJ3PIRQcBVv+7UDH12iGDxyxMDHDx+
+# GiMR20hobhbeQHLqsKAhJMV/gNqM9db1UfEM57sHvljSErTKHj0zMXa3V1crPCk4
+# pvDOMSH4ZNLuIWfBR4/xVxTKS+XjEKvOVor2DfldqFs9Ds0dRvYUYByPJudZPw3i
+# XR2cJQSWicuVQZYDXbAzUGLzkbXehoLJ3sDbsJVZjtLoB66UIvCf05ZNPRoXiiNd
+# dN7diQVwhq3n9cNks4d8MZhHv5KEXTw/EYnXMKD8U/7fuICKfMGbxfWLV/rfpnFl
+# OcxVBRmzmW8Gvfurq5r2tETgh89GB4FGC3gB8piJXiyUoYTRwNASRGo8Y3YIH10Y
+# 7HYttwNUApOKeN0Lb01035wBktUgEpuPmhVSV+96C0aTf9+3ATFTohHcmnzBvh2n
+# FWiJhww0RGz3Iz9E9/yNaT1f8latIfdRlGVJR0f1tfwk/8lXjA2rMTCgPPDg8I/z
+# /aMc9fovpD5Jt4czo5uULHqx5A4wSZzxZ/v0U32SaGkzHTg03tj31rGe4UyQLv4O
+# 92ZMq4Jf6jqeoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwMjE1MjIyMlowLwYJKoZI
-# hvcNAQkEMSIEIOlBuM8E8Nwn/aGqbwLkW1mwKBgnjrX4/luF0SUldR8sMA0GCSqG
-# SIb3DQEBAQUABIICAFzxZFOKpufeWZeE0m7Bmg4Y4D8oqtTt75irbRC4J1SfKqJJ
-# dOHVbTcLKdxsUam6HIlJjaonUMzFaGb6MWbvM48t8f0IRgFIVMz8AM4woxUZL2CC
-# vdqBWThyFBZ3EWEkWqCPDf9jhOsrxcLbTvc3Hbuq2PW4fnd8z0fIAxBKBHJEpmdI
-# V9I+aBkMxfqsiQboKSKc+BglU42larVKcBQzw/bbj4y4Oucpq9mFZSvh6IVQZdVD
-# 0nVsgz9lzvC9ZWx5o+UhsVHcxX4Kc4suhInns6ZY+U0HOmzxYQ7MSRLLnIRAUmYF
-# 6jNgg4koxvsf7VL4beixOK4WUkHdSTRhD0TsogNhxcgjz2/DJi9hQ3rTkBW1gLmz
-# dZo3lVGQ7DF0lKTcwqBwajY4YgwUxwKAfOI++EArHOMkuZzc4PvBs8uYnF+wamYz
-# NEBsoDdp9z/B0JFdsQ0eE+PzEsdfxgto2PlLb0Ry5b0Kz5a3Edh1OzIMpjTUxZHx
-# SQm4XqOXjKU1POb6Xk/3NTsbTJ8PN0b2WE2W4GpAz3G+iv4QlTkpQoQMz2IoT4Ja
-# MJt4kGeEwYNYhwI1RmGx01qCEbj5RwDTMXy4/CCMDq/RE/WS9+1JstlWkUHT/b6x
-# +c8E5cVDUHcn59o87Vlr4s6S7FRpqLiSejanqjAyCKSetpru2JiOm6R4VVor
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwMjE1MjUzMVowLwYJKoZI
+# hvcNAQkEMSIEILgeJbnVmAlqXdALtszXTK0Zw/9NdRNp1jtGbgqZm/F6MA0GCSqG
+# SIb3DQEBAQUABIICAHvyGnjP0uzEwHt++vjCdsQDVIvRz6ard5FwWYJs/pCxNNC3
+# KdwgNinScEpBbxnHAaJmLzU7sa60yr5Ysr6oLq5cLnhA+99+QgMRG5shHiVKCTFu
+# ncup1cY115S/bQW56KfYeyFEBuhC+5B9Dv6dxLsF074isfHDnO0jnq431Tj1BKxu
+# 24QH4UzyCpg3nJtzh9/tSN5N8ZcyXQrcyCNMQzsPenikY965mUPaqoYhzL9I8z14
+# +yMJgm0kqHb7pfFXyXI/8+RzTr3YmLNFVhpOUm6FLWK8SsPcS1usmT1ciIjBRlam
+# pqBESyvf6OzS+RqBY/6l2yZQW/y3lbzIUOsXRCIeimYq1bE52boymYrJnplJuVFI
+# gqvJRbSXfXVV8GKsh0dg52l3EmUvYnnz62AnyuWEijuWI2yZFnmJuHVOj921B7Vl
+# 59T84ZQXnh7x4znVX/4f/jjvWO4wOZ5mPcKBfyj366HcFIPEZCeTxnLpM1hCjNsI
+# 7k14LqZMohsBgUfOgAzKAjkVpRPiRb3WqPLLcwRcCM3hlBRTd4BrtoUTaM6Dd2fx
+# 1igQ5tt2ObKd8ZLjMcdqt4VgyZOu3UHzPKpPJJGTALgizJYRh42qDH+EIFJR+S3+
+# qtihwKC+3gDsijnWAc4rOcbC7oFEz9yODdxH4W7/I1SdxbRlSIabh3/MS0Es
 # SIG # End signature block
