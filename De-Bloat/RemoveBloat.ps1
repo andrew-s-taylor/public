@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.21
+  Version:        5.0.22
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -113,6 +113,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 19/08/2024 - Added version to log for troubleshooting
   Change 19/08/2024 - Added blacklist and whitelist for further protection
   Change 22/08/2024 - Added Poly Lens for HP
+  Change 02/09/2024 - Added all possible languages to Office Home removal
 N/A
 #>
 
@@ -2168,6 +2169,57 @@ if ($nonAdminLoggedOn -eq $false) {
         Start-Sleep -Seconds 5
     }
 
+    ##Create a list of all possible locales
+    $AllpossibleLanguages = @(
+        "ar-sa"
+        "bg-bg"
+        "cs-cz"
+        "da-dk"
+        "de-de"
+        "el-gr"
+        "en-us"
+        "es-es"
+        "et-ee"
+        "fi-fi"
+        "fr-fr"
+        "he-il"
+        "hr-hr"
+        "hu-hu"
+        "it-it"
+        "ja-jp"
+        "ko-kr"
+        "lt-lt"
+        "lv-lv"
+        "nb-no"
+        "nl-nl"
+        "pl-pl"
+        "pt-br"
+        "pt-pt"
+        "ro-ro"
+        "ru-ru"
+        "sk-sk"
+        "sl-si"
+        "sr-latn-rs"
+        "sv-se"
+        "th-th"
+        "tr-tr"
+        "uk-ua"
+        "zh-cn"
+        "zh-tw"
+    )
+
+    $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
+    foreach ($Language in $AllpossibleLanguages) {
+        Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=O365HomePremRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
+        Start-Sleep -Seconds 5
+    }
+
+    $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
+    foreach ($Language in $AllpossibleLanguages) {
+        Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=OneNoteFreeRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
+        Start-Sleep -Seconds 5
+    }
+
 }
 else {
     write-output "Intune detected, skipping removal of apps"
@@ -2182,8 +2234,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJKR2P1FNVyAnj
-# Fl5rke5lr+pa6Ag9w5pAuZheKyHQLKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCvoO2DW2bsc8/g
+# mpR9rA6FGhKkWsX7vbCk0sULd7y/gKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2365,33 +2417,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFUgV1VEVs7rBKzJz5/NAbrmhsmziQKRHS7o
-# qeq0aKsJMA0GCSqGSIb3DQEBAQUABIICAC+Zlf/wG7qxJT5IIoyO5Me9DUgFkGne
-# TJ6vSEOZnXEajWdZaNgHSEeGU1PXJw4Y/fgdZaO7uRD3r8oZQZYGH5bZ6Gy68Rsu
-# m+CW8KBRF1BPmFIr/46x+yXeSErqF8yBpUGMz+uCZ2XGNpiSEVx/lYUhQ9Oud44l
-# RwDLiGEnTx4yarS3BVMFHx4AVziG8BnF1/YWXCFgL6Wbqj7AIarO2b+84e4Qhu/Q
-# Ed3+GcbF3fNiYVIYRgh4VbBSFVfjesN6oW2r5z0gVyC3j20j1CqlLvyOdsKHUpro
-# QggKxeDkmMuVgfVz1KCp4SDbv+/MMeC0umw91ACnRLNt1WW8zUbIiQsDi9utw3Ui
-# h/K2LECVySQew0LtuXTqnfF75oR/COWA2gNLVAvXi6T2vy2aeBwOCRERQMZygBe0
-# Jq5JMAy/d5xvkHuxEwFoS3Oj9348BPYbfT1M24rerfdSve5TvIZFPnHIH5LMNXFL
-# l2ezrlKI4kJFPbMjhN/S63S0i+aZ+ZU3wYj1K75/5T8dSmfXW7SPg2CJaH/qgNxf
-# w+Kh/OQupv82vA6KgezWrI6IcfryadvV8Jwi40qOtGa2N3m2pnGZTAGLbCFsJ9p/
-# TyTMbYk7Cl4m6ltoGlItLc+ZGWQ0IMbvKM3pkeUrJn+xGj4X2uPbKzIZJTkzQZok
-# Jc+UvCdOuQPBoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIP4HaYViI7Qqb+yoK3Wz7i8RjERT+dgbqXyX
+# HQddvNPDMA0GCSqGSIb3DQEBAQUABIICABIPw8Ai2t3Nqf/7XuBE2ynl8nSA9KYA
+# Dtu4ODmxjMH8MybX1n6f5dMKu+rHN7YjSTuUNuW6nKhIFiDpSPMWlIly9h+X1KsF
+# GjiRQpWb9BedRMZc3r8czHAN9MnlAKNo+8Va3BEow2+5k4+4XOsX3l1cv2IHW2Di
+# e1PDZKrc654cMUFwxHPrCAdw9fxUiR+w+ARRr1C/EroCLKGKas4XEZEb4rAsaZBR
+# zoea3KBM0u2QScmwZk49XrptS1nzN3BvWXHedtwsdQJc8ioMA2Zj2evMEqGqhLde
+# rw/dIqqrBGfXJQLZT35FAmVMRYA9lWCqUnbW4JespmuphQoNkTm+kxC3IvQNP+zF
+# UexvV1sAO/u62cjD8CaKLMbupSZSp9b1QyCpvBd0tjlzB2oYjKApS3JLY30B3cmH
+# Rpx1Jni+CE4HZIxwxhUiWA3S/OdePNvWmT6SHjhTE4NzBU6G9Yv8vlm/7fOc+Crn
+# ZwlpA9UNqiNrcmvccVmMNVpP+Wx74UnQKCk0cqZr1x5JnyM2b6/+S8agL+Qg+g8r
+# WwDzPV8or5a9zjQWlXNa91KoQwGYGsrHQPJxyu9KKn/E+6svLtDZqInQEHn+lzEE
+# xVmhWBTUlGLwYaQYxNs/wXyFDcDXb8n/dCORKIGo+QGMHp3SF2XrNlcP92UGX9p4
+# xdJyssauwxTOoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDgyMjE0NTk0MVowLwYJKoZI
-# hvcNAQkEMSIEID66dZoOJ6MHiki/Rc+ZT1UYG/uab8mfFa1+TJ4izIFaMA0GCSqG
-# SIb3DQEBAQUABIICAHd5Y6/qjt4rFFtMKOmyqiUEopIa7Xo1mYVCIW+rnwDzFdor
-# x7Tl1/4zNvus37Na13+214KU4TX8rugqt9rQfnk6nqIjBePEkwLnCIi5d5aDJyae
-# 7JdR+amosQ/SuxeY+JJ8VgdB4jXHyZZ5Tfq8bB2XWW8MpQwDdAYY0jGArGWv5Nb7
-# icBQWRcmjxyTZHVYcRg3j215JlHFELPdwIN5jF7x0IyZ+fR47Y8wjXR685Zgyt6h
-# 0N02pt3BOyedJWYjADkuEIb1vu+s3fevRytRVZxKqCQTVNsdEMhBD4sEdmfdRJPJ
-# 8zoog7A8zccGfZwdm5wENMuXlvSuilmc9QHb+wMCEawQQQtqZ7h75si6AuEGoXry
-# xpR4uh6uQaTSTTa6ZCBFi9Q1byHWeL4x11yTte+ieZ0BybBOc9MRynxDmf2jhCee
-# 5YabKZvrBs7IcLMnBpLPeHu7chlAuEvzJr2WrnLan95mYyY/gahIcaqVDbs3q04+
-# 5yTmjAhDfktKur1JYLasl6yEYs2DUlfQPuM0bHsYofkqH8YQZd/76IltxuilyjWP
-# p708vxs/mTSHOcbku1O58F1yHvCscGgEJKnW5WT+dY64tGvwX8LgbvQgKY1wy/fN
-# +/fXkFYEzfdd/kWREeTKx2AGNEEe1HqLBD2Tt2zgsucJ9cIZs1yFLeSm8Bfc
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwMjE1MjIyMlowLwYJKoZI
+# hvcNAQkEMSIEIOlBuM8E8Nwn/aGqbwLkW1mwKBgnjrX4/luF0SUldR8sMA0GCSqG
+# SIb3DQEBAQUABIICAFzxZFOKpufeWZeE0m7Bmg4Y4D8oqtTt75irbRC4J1SfKqJJ
+# dOHVbTcLKdxsUam6HIlJjaonUMzFaGb6MWbvM48t8f0IRgFIVMz8AM4woxUZL2CC
+# vdqBWThyFBZ3EWEkWqCPDf9jhOsrxcLbTvc3Hbuq2PW4fnd8z0fIAxBKBHJEpmdI
+# V9I+aBkMxfqsiQboKSKc+BglU42larVKcBQzw/bbj4y4Oucpq9mFZSvh6IVQZdVD
+# 0nVsgz9lzvC9ZWx5o+UhsVHcxX4Kc4suhInns6ZY+U0HOmzxYQ7MSRLLnIRAUmYF
+# 6jNgg4koxvsf7VL4beixOK4WUkHdSTRhD0TsogNhxcgjz2/DJi9hQ3rTkBW1gLmz
+# dZo3lVGQ7DF0lKTcwqBwajY4YgwUxwKAfOI++EArHOMkuZzc4PvBs8uYnF+wamYz
+# NEBsoDdp9z/B0JFdsQ0eE+PzEsdfxgto2PlLb0Ry5b0Kz5a3Edh1OzIMpjTUxZHx
+# SQm4XqOXjKU1POb6Xk/3NTsbTJ8PN0b2WE2W4GpAz3G+iv4QlTkpQoQMz2IoT4Ja
+# MJt4kGeEwYNYhwI1RmGx01qCEbj5RwDTMXy4/CCMDq/RE/WS9+1JstlWkUHT/b6x
+# +c8E5cVDUHcn59o87Vlr4s6S7FRpqLiSejanqjAyCKSetpru2JiOm6R4VVor
 # SIG # End signature block
