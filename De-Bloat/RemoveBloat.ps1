@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.23
+  Version:        5.0.24
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -115,6 +115,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 22/08/2024 - Added Poly Lens for HP
   Change 02/09/2024 - Added all possible languages to Office Home removal
   Change 03/09/2024 - OOBE Logic update for Win32 app removal
+  Change 04/09/2024 - Lenovo updates
 N/A
 #>
 
@@ -1938,20 +1939,38 @@ if ($manufacturer -like "Lenovo") {
         Remove-Item -Path $filename -Force
     }
 
-    ##Camera fix
-    $keypath = "HKLM:\SOFTWARE\\Microsoft\Windows Media Foundation\Platform"
-    $keyname = "EnableFrameServerMode"
-    $value = 0
-    if (!(Test-Path $keypath)) {
-        New-Item -Path $keypath -Force
-    }
-    Set-ItemProperty -Path $keypath -Name $keyname -Value $value -Type DWord -Force
+    ##Camera fix for Lenovo E14
+    $model = Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object -ExpandProperty Model
+    if ($model -eq "21E30001MY") {
+        $keypath = "HKLM:\SOFTWARE\\Microsoft\Windows Media Foundation\Platform"
+        $keyname = "EnableFrameServerMode"
+        $value = 0
+        if (!(Test-Path $keypath)) {
+            New-Item -Path $keypath -Force
+        }
+        Set-ItemProperty -Path $keypath -Name $keyname -Value $value -Type DWord -Force
 
-    $keypath2 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows Media Foundation\Platform"
-    if (!(Test-Path $keypath2)) {
-        New-Item -Path $keypath2 -Force
+        $keypath2 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows Media Foundation\Platform"
+        if (!(Test-Path $keypath2)) {
+            New-Item -Path $keypath2 -Force
+        }
+        Set-ItemProperty -Path $keypath2 -Name $keyname -Value $value -Type DWord -Force
     }
-    Set-ItemProperty -Path $keypath2 -Name $keyname -Value $value -Type DWord -Force
+
+
+        ##Remove Lenovo theme and background image
+        $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes"
+
+        # Check and remove ThemeName if it exists
+        if (Get-ItemProperty -Path $registryPath -Name "ThemeName" -ErrorAction SilentlyContinue) {
+            Remove-ItemProperty -Path $registryPath -Name "ThemeName"
+        }
+    
+        # Check and remove DesktopBackground if it exists
+        if (Get-ItemProperty -Path $registryPath -Name "DesktopBackground" -ErrorAction SilentlyContinue) {
+            Remove-ItemProperty -Path $registryPath -Name "DesktopBackground"
+        }
+
 }
 
 
@@ -2193,65 +2212,6 @@ if ($IsOOBEComplete -eq 0) {
         Start-Sleep -Seconds 5
     }
 
-    ##Create a list of all possible locales
-    $AllpossibleLanguages = @(
-        "ar-sa"
-        "bg-bg"
-        "cs-cz"
-        "da-dk"
-        "de-de"
-        "el-gr"
-        "en-us"
-        "es-es"
-        "et-ee"
-        "fi-fi"
-        "fr-fr"
-        "he-il"
-        "hr-hr"
-        "hu-hu"
-        "it-it"
-        "ja-jp"
-        "ko-kr"
-        "lt-lt"
-        "lv-lv"
-        "nb-no"
-        "nl-nl"
-        "pl-pl"
-        "pt-br"
-        "pt-pt"
-        "ro-ro"
-        "ru-ru"
-        "sk-sk"
-        "sl-si"
-        "sr-latn-rs"
-        "sv-se"
-        "th-th"
-        "tr-tr"
-        "uk-ua"
-        "zh-cn"
-        "zh-tw"
-    )
-
-    $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
-    foreach ($Language in $AllpossibleLanguages) {
-        ##Check if it exists in registry under O365HomePremRetail - $Language
-        $uninstallString = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\O365HomePremRetail - $Language" -Name UninstallString -ErrorAction SilentlyContinue
-        if ($uninstallString) {
-            Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=O365HomePremRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
-            Start-Sleep -Seconds 5
-            }
-    }
-
-    $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
-    foreach ($Language in $AllpossibleLanguages) {
-                ##Check if it exists in registry under O365HomePremRetail - $Language
-                $uninstallString = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OneNoteFreeRetail - $Language" -Name UninstallString -ErrorAction SilentlyContinue
-                if ($uninstallString) {
-        Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=OneNoteFreeRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
-        Start-Sleep -Seconds 5
-                }
-    }
-
 }
 else {
     write-output "Intune detected, skipping removal of apps"
@@ -2266,8 +2226,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCgxae7JGzqgQ8X
-# 3cvEwxtk+jQuilGS1MblCZf09eeru6CCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAYtZNJhLjnK1qi
+# rj0/5/tx4xzFpK/ltpo9y29gptg9faCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2449,33 +2409,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGpwjF1h693y0Hre3MMM8qoloeu20GBbABlM
-# Y8xAg1qhMA0GCSqGSIb3DQEBAQUABIICAIe1aMQHb55IKwx0NnOTQdSZuXzJwke0
-# pamkQQ4nKT5QBNfIs0gsthPJfSIrzQYQpz4L8KDrGnAotfNE24Ur4LEt4MOJ7FNi
-# 8sAvNZx+9XOx1i0iXpVlGFvQEaxPmA0p98YKbuSBW69UV92GWRjpHgA3V187Wn0I
-# wXqZ8rGfuGdshZ1SRAkpBfxHNgB8QArmAxk+cyIkSvNO1TajcmJCXchITZIaHzXZ
-# qnj1wOLjWRr4k+fsyswHw476cZM2DeUV7eJplTOgGa3X0u9h4H/oW9OK2/46aqW6
-# U/WL1wEL3gLzN72blI8cOBmfshCoYp/D4FS7znB9XilxiHC+W+iNpTdb+26Sw/xq
-# /ddfZXrlIN/s2XN/GFS3LCsLYCUhfoBp/Nka23NvgiHhUeR+uSZ2efMIOsos/IHZ
-# V5MIgH3nJTF/3N+LRRZ68PaFGBEkopx2lzTiZ827z7xt44E98DU07Pzephhu6scA
-# 5TGbmrNm1dIly1T3EQueF3BLD0zmxu0UzKJbVhjWeYhr13BU8MaK0GO4MozFcWxr
-# iyJRtkbUPSJEbMKH5r91H4yng2J8IFEruIN/HiumJ/Jn3mCkdPO+EwoZzd3QnSQk
-# Qh4OD+1fH4gqSenTijJYLd3E7GAxUDMQFh/CkbBhHOXefpmmROBPVOZRh1PYz+2N
-# hrMRxEwDUoLuoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEILVQMBUGgHGxY17m/eRgDLEr+Eh4jNSbJlkc
+# 0plEc2lcMA0GCSqGSIb3DQEBAQUABIICALy/bZ7jo4aSwaEHOhy/6gBw8pGs4NxL
+# nclDsPYLbOw0sDt5aUAn4UKu06WNpKGRvoxobAEhpkAjZ6fW9TZGIWkRhAl1+vPm
+# 8BLk6D8jCwb+V+XC0pa2WDF0XMVtS1lB0xVwCjut+yi5TuotVREHJdDNlmfz5bvt
+# ThmQNsKtsBvN8GtKpWSQGckySCXwEPd75sW7vU3Lwy5P+hzuAORi41O5CYfXy4i4
+# VsL6YK3mFS+1NgA0qfVsit+UWVzLTS2uPjpZFW1IQtU0M2HsEMbY2yW0+1elyOfa
+# n2UrOPqyQC9H997EC1hBkEvIkmenq7uwgzahIN87H4UDP1CmiHe2sXi4w+lPex2C
+# sSqFe7EkEsvLukZgXMyRE8KcAUNMRWn99hsjvKL6OS+NG0Hms8hbG5Vo60D5yR+9
+# rTDBJQAqUfT2r8j51mbLuY4CGboB8g/tNjnxEOKYt+uDjFRpm2AuUShhWrc/0FTG
+# E/SQOP8br9AFHmHulGVSbI3f3B4rwK3FSTONIuzmSmwvllypVoLkllI49+GiEo9d
+# skts5BgBJMtrWVeHCax/dVYTUik34gk2RfRMgfref4VA52DI73Me/iopFBoNQJBd
+# qcVAxtrOnC5syh4m5TNRx/n5IwSrZt9dJq/uSjYSZMa6eI6AgDb5hVyC3v7exvZW
+# ZfSumyfXfPFIoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwMzExMjEwN1owLwYJKoZI
-# hvcNAQkEMSIEINcWBU5hK3XpDnsZ3xBe5w8jbPo3smU1eiZuW8VeJav/MA0GCSqG
-# SIb3DQEBAQUABIICABRUR6uZPmI4vc4zsK68EuoUgX5XW/PG0XqPdbR6GhqTVjre
-# AGhI+a1GSO0qP2jkK0DvZMpC96EW8NdEV5ZRYFp6kegp0J2ovC9gbCcNfO9i9qIB
-# BX4nTDL2CZrQGVaUeAHh7v0p5nRIg/zHjmqtu83yb8XXMvnY9Vem23d1BbiUApWf
-# yjx0p6ZlDBbT3dKWXSPoL0l0ITc59DKH5LE18VpQwaeOpuz81fL4Aer/b1wm4hoV
-# W5v2HbNdBP8SJprAeINb4dxplYBe+PZTg7+SM+wRoUidw6maFAQsfvOhA6FsYZo1
-# 9MmHpb8v//AzIVYoOXowMwsYuvoHWQXlqAi26G0m17HEJ7dB2nP2MsSMbX5L1aIh
-# ZfWqtz+CVcfCnM1LK0+vxAJkLxhNO9s55n9hlJ0N9+OUZauf3TOcVnXkScWIT+3D
-# Cdi6W3EhSIJbZCxOXuFDLUwf1YbtIQQG7DpQs9nL5RZlhrUqM+BjrZqY2OTvVJZY
-# u4mwa1+Lu7+q+MyW3BgwnOrMXUvU9+vs+aw/Dpi8kySzxX+EL3W8CivLG3xpuJ4k
-# EzlOkmCPxtJUUGi0Y3j37VBQMZQ/wO+TWQHcoH1ezUXRce2ydreCjcgax2v8yvsh
-# VBN8V5g9vp/rbwEHPUEOx+FRG91ji+KgUCs0lPQJBfBilWut58haz1BpyHMJ
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwNDA5MzMwMVowLwYJKoZI
+# hvcNAQkEMSIEIOQyA47kj/EzXnJiNwPlOnL+9jsVaqCWeYZq/4KsN0A3MA0GCSqG
+# SIb3DQEBAQUABIICABeHK5HVS+LNJT46PNwD/WO0ygSfb81TkB/9NbIwysstyDCQ
+# 6GDD8qgmp4cl91aM68wN9SqGMYnOL/sLiK5Ptr4WCeIlfBGHa0n3PtA4EKh2XwyM
+# 1lwf9bg3rQ8HcP2pwJ1AvFY3+iclP4l3jxct612VhQLUK9S9q8G166w+D1aJypVT
+# 0kwdNoxK4+mR4rZWEfqzlfII0wKyCVh7EY9bMsm/c6eYntQCh/Nduvv+50pD5YhT
+# +6PSlBjnX0pLWk8/uEbCNLTF6JY5X1gZF40hvrACRcMsu496/WwSu3EUC3+K5T8a
+# aC5j+gkQ6uCHVpXAx4vOel00+Lr7J9Dc+ByCBLFpR7ia42uSIPweTna74dIG9Iac
+# fVXpKXcg9tOHsZ1Qgkp5LYYgZkMD7nU2DlhZY4weMkU0XNLLAABVOSWJt91v8lNU
+# f7Ht0B71BTbkwXPg9nc71D3vMT+fdt8wA6xRYC0BUfhC3O2ccR1aEwRNM7h4OiuV
+# Deya7uuzXHoC8sFFWmzK94hL7aQkrae+gNpaItqqdSqnDaV+3MFrfk9lo0ayaEqq
+# utwTT+quB9muV49H55WeiLdBfZcuLuvwND7YEJ0/YdPwQ5tcoWAQoS1xLgi2T2U0
+# 0/fnveWj1hRjNLdic7trxwqGIXB3wymNgpel8w4nC1SbNK6TMfUHkv0/WVVy
 # SIG # End signature block
