@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.24
+  Version:        5.0.25
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -116,6 +116,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 02/09/2024 - Added all possible languages to Office Home removal
   Change 03/09/2024 - OOBE Logic update for Win32 app removal
   Change 04/09/2024 - Lenovo updates
+  Change 17/09/2024 - Added HP Wolf Security
 N/A
 #>
 
@@ -1497,7 +1498,6 @@ if ($manufacturer -like "*HP*") {
         "HP Wolf Security - Console"
         "HP Wolf Security Application Support for Chrome 122.0.6261.139"
         "Windows Driver Package - HP Inc. sselam_4_4_2_453 AntiVirus  (11/01/2022 4.4.2.453)"
-
     )
 
 
@@ -1555,6 +1555,11 @@ if ($manufacturer -like "*HP*") {
 
         &'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\Windows\Temp\HPConnOpt.iss')
     }
+##Remove HP Data Science Stack Manager
+if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Uninstall Z by HP Data Science Stack Manager.exe') {
+    &'C:\Program Files\HP\Z By HP Data Science Stack Manager\Uninstall Z by HP Data Science Stack Manager.exe' @('/allusers', '/S')
+}
+
 
     ##Remove other crap
     if (Test-Path -Path "C:\Program Files (x86)\HP\Shared" -PathType Container) { Remove-Item -Path "C:\Program Files (x86)\HP\Shared" -Recurse -Force }
@@ -1565,6 +1570,12 @@ if ($manufacturer -like "*HP*") {
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -Force }
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Booking.com.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Booking.com.lnk" -Force }
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Adobe offers.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Adobe offers.lnk" -Force }
+
+
+    ##Remove Wolf Security
+    wmic product where name="HP Wolf Security" call uninstall
+    wmic product where name="HP Wolf Security - Console" call uninstall
+    wmic product where name="HP Security Update Service" call uninstall
 
     write-output "Removed HP bloat"
 }
@@ -2194,23 +2205,27 @@ if ($IsOOBEComplete -eq 0) {
 
 
     }
+$xml = @"
+<Configuration>
+  <Display Level="None" AcceptEULA="True" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="True" />
+  <Remove>
+    <Product ID="O365HomePremRetail"/>
+    <Product ID="OneNoteFreeRetail"/>
+  </Remove>
+</Configuration>
+"@
 
-    ##Remove home versions of Office
-    $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem
-    $AllLanguages = $OSInfo.MUILanguages
+##write XML to the debloat folder
+$xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
 
+##Download the ODT
+$odturl = "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/odt.exe"
+$odtdestination = "C:\ProgramData\Debloat\odt.exe"
+Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
 
-    $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
-    foreach ($Language in $AllLanguages) {
-        Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=O365HomePremRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
-        Start-Sleep -Seconds 5
-    }
-
-    $ClickToRunPath = "C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe"
-    foreach ($Language in $AllLanguages) {
-        Start-Process $ClickToRunPath -ArgumentList "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=OneNoteFreeRetail.16_$($Language)_x-none culture=$($Language) version.16=16.0 DisplayLevel=False" -Wait
-        Start-Sleep -Seconds 5
-    }
+##Run it
+Start-Process -FilePath "C:\ProgramData\Debloat\odt.exe" -ArgumentList "/configure C:\ProgramData\Debloat\o365.xml" -Wait
 
 }
 else {
@@ -2226,8 +2241,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAYtZNJhLjnK1qi
-# rj0/5/tx4xzFpK/ltpo9y29gptg9faCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAJMatVztmF/vfW
+# /ud5C2l6HEWYlIqZinz1ZgatsxxfaqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2409,33 +2424,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEILVQMBUGgHGxY17m/eRgDLEr+Eh4jNSbJlkc
-# 0plEc2lcMA0GCSqGSIb3DQEBAQUABIICALy/bZ7jo4aSwaEHOhy/6gBw8pGs4NxL
-# nclDsPYLbOw0sDt5aUAn4UKu06WNpKGRvoxobAEhpkAjZ6fW9TZGIWkRhAl1+vPm
-# 8BLk6D8jCwb+V+XC0pa2WDF0XMVtS1lB0xVwCjut+yi5TuotVREHJdDNlmfz5bvt
-# ThmQNsKtsBvN8GtKpWSQGckySCXwEPd75sW7vU3Lwy5P+hzuAORi41O5CYfXy4i4
-# VsL6YK3mFS+1NgA0qfVsit+UWVzLTS2uPjpZFW1IQtU0M2HsEMbY2yW0+1elyOfa
-# n2UrOPqyQC9H997EC1hBkEvIkmenq7uwgzahIN87H4UDP1CmiHe2sXi4w+lPex2C
-# sSqFe7EkEsvLukZgXMyRE8KcAUNMRWn99hsjvKL6OS+NG0Hms8hbG5Vo60D5yR+9
-# rTDBJQAqUfT2r8j51mbLuY4CGboB8g/tNjnxEOKYt+uDjFRpm2AuUShhWrc/0FTG
-# E/SQOP8br9AFHmHulGVSbI3f3B4rwK3FSTONIuzmSmwvllypVoLkllI49+GiEo9d
-# skts5BgBJMtrWVeHCax/dVYTUik34gk2RfRMgfref4VA52DI73Me/iopFBoNQJBd
-# qcVAxtrOnC5syh4m5TNRx/n5IwSrZt9dJq/uSjYSZMa6eI6AgDb5hVyC3v7exvZW
-# ZfSumyfXfPFIoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOT94t8xLNHRpTSva9xkxWAfFbsf/CRKQ2aQ
+# murgTMB3MA0GCSqGSIb3DQEBAQUABIICACyb9aKACxEDcs6a0uxi40T7Ksk9HyXT
+# 1qhTXQ89xARHbHCNO+yDQmlaYpxL22drVtMw+u0WDFutopck6z5RJRou1gIlRKr2
+# mxG+CguOk/xnj2rKu52bXY60CBOctMV/7I0nMgtG3+YildSL0WisWymjfMExvrrU
+# D2N6+7wN1vBypezD5hOdt4mGySDNYVNUPI0IBiPKRyZZ+ZkdpsY4vahbaETgouCD
+# EbmT9YvjOmLUvTeWfluQ/tiCN213KiB4iuJE8G5FXT9nvTCViBukUUANQmNdLd4T
+# DOYLtM0JVrvcRpoSilCcXJxwOfdFEBhCkD94hsqlmaCiUA0PowisyDG+HlRRmQMh
+# 5TjURHAN7sh6plp5MnIMmlQsXQmb1HrUo6ddRP0FMpkM+c3MKoMWOqdn0s/fD6g0
+# VPvbPDjkgv6VttNXrnxZhpWpMV2Hbgz3xfL4EIuh0EI8DchMvndahKmv4nJJGXPY
+# v94cavPWSlsYU5BJlh+Atcqpy8s1LE1zsxifM5NbD5O8ih4bJ3dggapNLdQQUUcT
+# LTkWdX3HxrK/QKn00nc8RL5A4mTqVK079CigUmhvoroEIU9bv4Q4Us6Wwdt03NwR
+# yGAdLCiFf1zNm29yWHNQ1xrLab/Anto8sAb+iPQu+XiHV1dMUV19jYaRkzRsB7cq
+# GSNXRbVpxsW9oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkwNDA5MzMwMVowLwYJKoZI
-# hvcNAQkEMSIEIOQyA47kj/EzXnJiNwPlOnL+9jsVaqCWeYZq/4KsN0A3MA0GCSqG
-# SIb3DQEBAQUABIICABeHK5HVS+LNJT46PNwD/WO0ygSfb81TkB/9NbIwysstyDCQ
-# 6GDD8qgmp4cl91aM68wN9SqGMYnOL/sLiK5Ptr4WCeIlfBGHa0n3PtA4EKh2XwyM
-# 1lwf9bg3rQ8HcP2pwJ1AvFY3+iclP4l3jxct612VhQLUK9S9q8G166w+D1aJypVT
-# 0kwdNoxK4+mR4rZWEfqzlfII0wKyCVh7EY9bMsm/c6eYntQCh/Nduvv+50pD5YhT
-# +6PSlBjnX0pLWk8/uEbCNLTF6JY5X1gZF40hvrACRcMsu496/WwSu3EUC3+K5T8a
-# aC5j+gkQ6uCHVpXAx4vOel00+Lr7J9Dc+ByCBLFpR7ia42uSIPweTna74dIG9Iac
-# fVXpKXcg9tOHsZ1Qgkp5LYYgZkMD7nU2DlhZY4weMkU0XNLLAABVOSWJt91v8lNU
-# f7Ht0B71BTbkwXPg9nc71D3vMT+fdt8wA6xRYC0BUfhC3O2ccR1aEwRNM7h4OiuV
-# Deya7uuzXHoC8sFFWmzK94hL7aQkrae+gNpaItqqdSqnDaV+3MFrfk9lo0ayaEqq
-# utwTT+quB9muV49H55WeiLdBfZcuLuvwND7YEJ0/YdPwQ5tcoWAQoS1xLgi2T2U0
-# 0/fnveWj1hRjNLdic7trxwqGIXB3wymNgpel8w4nC1SbNK6TMfUHkv0/WVVy
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkxNzIwNDM0OFowLwYJKoZI
+# hvcNAQkEMSIEIPAT55voXnnr8SNSLVyZFJJ62YAb4Kn/Q5zGyf1erMSNMA0GCSqG
+# SIb3DQEBAQUABIICAGZXw8z3P3Q+DdnS+jaF9FdXVLHmiYdIH9T6TfGfmLqbr0qp
+# 2Dl93HTiDtX9gYPvDZA7m/5a+jTj4iYW8/KgSJ+xyD5yYL9Wj2h1WLbYVdiCg1bT
+# ustb+MwwSd+f9S8/78rDBjVuBtxRPp+WiBqsZIK9ydsfMbr4y+5lciNTEOqK0Ttd
+# ma4cAYxmzmZ8B+wlSs6wUSyOu5GHle2tfxsh0HxAmuKELceeijMMgaUnMUiiT5Wn
+# j3vQ2SuZXjqj/f5AtVbaadcSt0q/wlCeaj8Y7RQdR5GUW0ZNf1vwItIZcrcGmAIM
+# I/A3IDs5ZZrxgsM8ijtCGaTmUHkXVUmStQYNc7RhaDjw0xnCSXMelG+AdZmdjNsU
+# zOEJZT3gpvsE/HG4jxNKT8bHpSDbD5GtEV/aakO+p4qOcr0mcnR0h4X0hTBNapsA
+# 8po+wOGEa3rZFuC56cRfI1JIqKTtqgU76C1dzaKcvz+ZvJuTQG+u/os1JNZCd77u
+# nfdGbRDk+KmZAbEuXEDRvrDaMmn5E9MN+ULybMTJqe6wg7R158WB9CwKjN3bA/7u
+# xl4qsT94YCofY0M/mtiNVwehFdpjXRT8oOBTR00lNVYi112huxDW3KUBwmeRiQDi
+# /+o42fYMSSAt/K/IEiAncqXkbRO52OOR55Pj7nNqLUkF2ypC6o1Zclh4Zskx
 # SIG # End signature block
