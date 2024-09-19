@@ -4900,6 +4900,38 @@ foreach ($assignment in $json) {
 return $json
 }
 
+function getallpagination () {
+    <#
+.SYNOPSIS
+This function is used to grab all items from Graph API that are paginated
+.DESCRIPTION
+The function connects to the Graph API Interface and gets all items from the API that are paginated
+.EXAMPLE
+getallpagination -url "https://graph.microsoft.com/v1.0/groups"
+ Returns all items
+.NOTES
+ NAME: getallpagination
+#>
+[cmdletbinding()]
+    
+param
+(
+    $url
+)
+    $response = (Invoke-MgGraphRequest -uri $url -Method Get -OutputType PSObject)
+    $alloutput = $response.value
+    
+    $alloutputNextLink = $response."@odata.nextLink"
+    
+    while ($null -ne $alloutputNextLink) {
+        $alloutputResponse = (Invoke-MGGraphRequest -Uri $alloutputNextLink -Method Get -outputType PSObject)
+        $alloutputNextLink = $alloutputResponse."@odata.nextLink"
+        $alloutput += $alloutputResponse.value
+    }
+    
+    return $alloutput
+    }
+
 #################################################################################################
 function getpolicyjson() {
     <#
@@ -5440,6 +5472,37 @@ if ($policy.supportsScopeTags) {
 "conditionalaccess" {
     $uri = "conditionalaccess"
     $policy = Get-ConditionalAccessPolicy -id $id
+    $includelocations = $policy.conditions.locations.includeLocations
+    $excludelocations = $policy.conditions.locations.excludeLocations
+    $newincludelocations = @()
+    $newexcludelocations = @()
+    foreach ($ilocation in $includelocations) {
+        ##Check if it is a GUID
+        if ($ilocation -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+            # $location is a GUID
+            $nameduri = "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations/$ilocation"
+            $ilocjson = Invoke-MgGraphRequest -Uri $nameduri -Method GET -OutputType PSObject | Select-Object * -ExcludeProperty modifiedDateTime, createdDateTime
+            $newincludelocations += $ilocjson
+        } else {
+            # $location is not a GUID
+            $newincludelocations += $ilocation
+        }
+    }
+
+    foreach ($elocation in $excludelocations) {
+        ##Check if it is a GUID
+        if ($elocation -match '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+            # $location is a GUID
+            $nameduri = "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations/$elocation"
+            $elocjson = Invoke-MgGraphRequest -Uri $nameduri -Method GET -OutputType PSObject | Select-Object * -ExcludeProperty modifiedDateTime, createdDateTime
+            $newexcludelocations += $elocjson
+        } else {
+            # $location is not a GUID
+            $newexcludelocations += $elocation
+        }
+    }
+    $policy.conditions.locations.includeLocations = $newincludelocations
+    $policy.conditions.locations.excludeLocations = $newexcludelocations
     $oldname = $policy.displayName
 }
 "deviceAppManagement/mobileApps" {
@@ -6855,7 +6918,51 @@ else {
                     $oldname = $Policy.DisplayName
                     $NewDisplayName = $oldname
                 }        
-       
+                $includelocations = $policy.conditions.locations.includeLocations
+                $excludelocations = $policy.conditions.locations.excludeLocations
+                $newincludelocations = @()
+                $newexcludelocations = @()
+                foreach ($ilocation in $includelocations) {
+                    if ($ilocation."@odata.type") {
+                        $namedlocname = $ilocation.displayName
+                        ##Check if it exists
+                        $uritocheck = "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations?`$filter=displayName eq '$namedlocname'"
+                        $checknl = Invoke-MgGraphRequest -Uri $uritocheck -Method GET -OutputType PSObject
+                        if ($checknl) {
+                            $newincludelocations += $checknl.value.id | Select-Object -First 1
+                        }
+                        else {
+                            $json = $ilocation | Select-Object * -ExcludeProperty id | convertto-json
+                            $newloc = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations" -Method POST -Body $json -ContentType "application/json"
+                            $newlocid = $newloc.id
+                            $newincludelocations += $newlocid
+                        }
+                    } else {
+                        $newexcludelocations += $ilocation
+                    }
+                }
+            
+                foreach ($elocation in $excludelocations) {
+                    if ($elocation."@odata.type") {
+                        $namedlocname = $elocation.displayName
+                        ##Check if it exists
+                        $uritocheck = "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations?`$filter=displayName eq '$namedlocname'"
+                        $checknl = Invoke-MgGraphRequest -Uri $uritocheck -Method GET -OutputType PSObject
+                        if ($checknl) {
+                            $newexcludelocations += $checknl.value.id | Select-Object -First 1
+                        }
+                        else {
+                            $json = $elocation | Select-Object * -ExcludeProperty id | convertto-json
+                            $newloc = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations" -Method POST -Body $json -ContentType "application/json"
+                            $newlocid = $newloc.id
+                            $newexcludelocations += $newlocid
+                        }
+                    } else {
+                        $newexcludelocations += $elocation
+                    }
+                }
+                $policy.conditions.locations.includeLocations = $newincludelocations
+                $policy.conditions.locations.excludeLocations = $newexcludelocations
                 $Parameters = @{
                     displayName     = $NewDisplayName
                     state           = $policy.State
@@ -7071,8 +7178,8 @@ $tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'"
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDJZFtPdLHYvD0i
-# z9uQwWv3H6D9hirkfVZqOpVuP9cbLqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA+ask8+Of4jvnm
+# rqj9AzUKRd6tMOsEBxcG9CQRJFmZCKCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7254,33 +7361,33 @@ $tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'"
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIAzqWpb74twHvOUYFrxRwiIeEx4ER7JJ+/LE
-# JtqEsmSzMA0GCSqGSIb3DQEBAQUABIICAIK1RLL12zXbzk2XKK2jIn9w+WFEf5wb
-# QNkoZBZvTARUa2cJs5PHc90nFx2M8ZDP/3SWzieunHYiqTfIKAFEBcHX+qisgnVC
-# AAnli2tpy/XuxAVxKOMkU8fR90MMXMeVxhTkuh2q9OgF1SHar92ysvWSpTm3Cvhc
-# 19h1xz73dYkSgP1G6DmZH0wH2tDG9blI3VPXnKFw3VYshepHxRpbblNwSVVrZrO5
-# R6heq2JgCYSxs6ZjfPBnxeRGxBY2U6DdvZw8V9BivYDnryvZQ1FmqXg7C6yyPgbC
-# BOm6fGZ+5YGVxHrk3xhbzrlNAxe2XEqtISNBZBjNOfM+tsnWaCW0Y4dS0irMNeQK
-# PR9e9z5wvBNDtjsk3N1PRf5Ey2tuQMIUuCLx43MAhDkXF47+AVso9mD2qTNhVmxW
-# aKB5/PW0hGr+kv3Kmi/ANHX8PmX/0RibrGbXIsQBnpVPALiJV8CiZo9G63MrQ/S0
-# 8w4ETMb69PYC6QByIzRtHMF7n9imXc5gCHcLv01Rcv3RXVUTehStufufnt4qJeYj
-# wvjXBne01u+qgE20lKn++yw8G0g+PrC3ZXUEaFOJxRRqeoLqJYU6sjtPUi/LavB2
-# vEOCv36BR+LiJtX9dEMT0hwouVxZc8QZ8yhUCizlCUzpC7dFTrnUd/qMgehGqVA9
-# eabNP05fHkcDoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIEVb/331w9f3fuPcyZ312GUCFXO4WS6Qpzjj
+# dCIhucneMA0GCSqGSIb3DQEBAQUABIICAK1sRP9IsqN3kwddbYAupJcYjGh9l5nX
+# qTteQqTo+BJ6u1ZrXmbwHIX0yrxgv6HNbV65VGlEFu/jBjZHXDgA7/NOO1yEZXQ5
+# n7nUX1ygxBtUGNzdM7lKmfe7i7sc9LPPfIdNhHzI13u8eMf+Yi3zNDmlWvaMrCPj
+# 3ZFMKTWg9d2Oz0ewfQoPluNBozX3NrHmgk1YNsy7gMnJGlLuCT2zANx0xZKPj7Ii
+# MOGsEwQsAlEf0lBlI83KY3T1qemOvu1vBuw08fInCul9pFXz8AIUO64JFxjXzUnj
+# OMPLhSJw6RIdr6+F2aa1opqMCoNFP6urB+VhYyIreHchFwjH1O274zXtVFgb/WjH
+# 7GBBP4GkZdjX03EK6MPjh/0z10IP7TtMeh0yPvWPkWupl1NgSJQLbKhRjunNURQa
+# /2lwZZf/UdbTQv+l4AgLppKwHyLOjamgCF060xlFaV1oWGpM+e9wSc0QOjmXVtuw
+# +9X7LxgYn6zqI+orkMFAPW7D1fuvdubTW5LN/pY/HgKRDGYnDUZjm22XIcwsKvdd
+# WZORLc1RoChPm1pcVk+/MzhnDRAkzzntOD7NiDqatLeP0CTtnFfiPkcWrg0P4aZp
+# PWfdID2urazEDd3KbVYiYJTul+UFH3M2RichBz7lKkg/x/VntKx84vP0AzcggtIb
+# B2EMq0Q4SwXdoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkxODA5MDc1NVowLwYJKoZI
-# hvcNAQkEMSIEIJWW6P2vVA9oDrmDpgmW6dHZwPM2tRniTL60BvnmzujyMA0GCSqG
-# SIb3DQEBAQUABIICAGq5fHx44vdsAe4kSbeUN0oln09Htid6ULPvdLNSm4uUO5OU
-# XM/ohjTlKOgQBMiOVEU52ujV2MgZLqWQFZcd/MnnsbxtlhbJDX4dSOmRoY6a9WLQ
-# 79dP9gKKdUuAzYOs+3HmRB06Rr8KDvZI0OyAByUK9FB4FgCp1OvRK2YgiCBJfy09
-# HMaTUIk0/c1FK6Q46Dr8WLzGmohD7y1vBqEEQqXG0KVabJXG96nfqACc0Pe85/oZ
-# BZHvZofoTTiK3AArVI8pVJb7dW3def11nRp0L8/sTfeMLKRdIKmt4qaGRFojhro1
-# tN2kZ3cXzql8JZmMDr1Z6yZ65CA1rfm7yGug/r3KZtXS1ZH9gUtU55jNpbDmR6Lf
-# 1fgZ85Io5oNn3JZxMTGZzcCpWg9GJUzCvqh4AKTMSK3aDiJb7ipgAwCS2NybAocl
-# bcaZutF0hPRH8H14s6REsBACTHiy1PrA0i/FSZE9HyBVDvN/DmEMsja5I9ONV91k
-# oRdGY7JcugQaR1rfyCFAhL4y3qRSG06oyoAyo3F6Wd4liX1ZU9PE8pFQfzER5buo
-# RBQbhr6Ah/Q+7FsQFRULdutIWLyCyjurwh9JeFZQ5a7VXtcK9DzzZIA7LyDxxy6a
-# uhgUGTRqhcUlqRykyqWhxkj364nt1meSfgXjs2tau8ykLouuPKR8tIMBc1St
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkxOTA5MTAzM1owLwYJKoZI
+# hvcNAQkEMSIEIAIJor5tVbqfJ399tGboojHCFdaRTs/hYBhUBwIyzG7WMA0GCSqG
+# SIb3DQEBAQUABIICAFCwqEcfMQvuamPVs18qY4WvlqIxYiBSHhbn5BPQ7SbaAAkL
+# Afl/nFS4V9O9WDSEc3oLpiKeDI9ErEMF8WJjI8ZgBTXg7y/Yn9Dqa80kDRaf7ktj
+# GuNyMo9pvfBv8eJd5YzKBwrVlp8ukibfajo8vmvDYDMB3TodN0u2WohOU4ClAexZ
+# 1W07nmh916VDpgS5/R04EH+940pfzH6UF7NKpSvuiexY0vygzFA3J4WeBmsWmzvA
+# fyQMfosOKGaNaoQQphVwlcfIvBj7vH1nbLZ6F3UahowC+gQOrVJYIaUYR/ZnMyWP
+# xjuow14qBYCVmOBJqdybjpiry/pOlyWANbhNQbXjDPh9/V+TjEbTnbHq7egqhG1L
+# 02YqCn5Fzec+LI0JSQCLs2jPjeF7GuoqCkEZ0P+SPwHE7j7qvy38Yely9gNXVTNW
+# Br5pg1qmBpYbn1sO/lq5A3KYGzSr35PDytLRQARkLIqVM5S3YnRijC3jrn7Xcy6l
+# KMnHlkd99g8now2naGEPpdMKDCt4z6a1KkKUDXB1AZCqrZJx2hOk7DvltKzY4OHW
+# h8nT04ic1IUOYrrVDuGSyns9KiFIsIQ+N9RCUzVN1XVAFMqOPoXIpsU2L4mSxDCP
+# mpTkgtMDkiuZHeo1Aa1etHtrrN0AX8xUqk+xUJQyUs4Z0aWsSGwxwW0FZafT
 # SIG # End signature block
