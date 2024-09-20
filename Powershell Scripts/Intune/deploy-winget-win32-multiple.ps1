@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 5.0.3
+.VERSION 5.0.4
 .GUID f08902ff-3e2f-4a51-995d-c686fc307325
 .AUTHOR AndrewTaylor
 .DESCRIPTION Creates Win32 apps, AAD groups and Proactive Remediations to keep apps updated
@@ -30,12 +30,12 @@ App ID and App name (from Gridview)
 .OUTPUTS
 In-Line Outputs
 .NOTES
-  Version:        5.0.3
+  Version:        5.0.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  30/09/2022
-  Last Modified:  05/04/2024
+  Last Modified:  20/09/2024
   Purpose/Change: Initial script development
   Update: Special thanks to Nick Brown (https://twitter.com/techienickb) for re-writing functions to use MG.graph
   Update: Fixed 2 functions with the same name
@@ -59,6 +59,7 @@ In-Line Outputs
   Update: Path fix
   Update: Added logic around Git logging
   Update: Removed device scope
+  Update: Fixed MailNickname now appid has versions
 .EXAMPLE
 N/A
 #>
@@ -2285,12 +2286,12 @@ function new-aadgroups {
     switch ($grouptype) {
         "install" {
             $groupname = $appname + " Install Group"
-            $nickname = $appid + "install"
+            $nickname = ($appid + "install").ToLower() -replace '[^a-z]', ''
             $groupdescription = "Group for installation and updating of $appname application"
         }
         "uninstall" {
             $groupname = $appname + " Uninstall Group"
-            $nickname = $appid + "uninstall"
+            $nickname = ($appid + "uninstall").ToLower() -replace '[^a-z]', ''
             $groupdescription = "Group for uninstallation of $appname application"
         }
     }
@@ -2313,11 +2314,11 @@ function new-aadgroupsspecific {
     )
     switch ($grouptype) {
         "install" {
-            $nickname = $appid + "install"
+            $nickname = ($appid + "install").ToLower() -replace '[^a-z]', ''
             $groupdescription = "Group for installation and updating of $appname application"
         }
         "uninstall" {
-            $nickname = $appid + "uninstall"
+            $nickname = ($appid + "uninstall").ToLower() -replace '[^a-z]', ''
             $groupdescription = "Group for uninstallation of $appname application"
         }
     }
@@ -2975,8 +2976,8 @@ if (!$WebHookData) {
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC0uWa+SewRyWnW
-# hSQoxipLPN63BoNVahIAWQBUbxOxTaCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCGN+IMZ3OPzL0c
+# A3S70ebtfZNZPBn11S3br8sYjPLjsqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3158,33 +3159,33 @@ if (!$WebHookData) {
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOF+lrXCi3ZgzXZkydacd16IbW3zFRXKtznX
-# GnB59V7OMA0GCSqGSIb3DQEBAQUABIICADZs8Qbi9fbTyG8xZk1jyIkpOC9PyT7a
-# S0Y81+6fFD0mvclLJm9S49WW5BzLPmpvhCxAsoAJWoNg1auYQ5anC+vFcKQKdnta
-# KcXCklxFEl2R20i8dKluD17S8c3F02G3TvmuXCS/CU6spngtTuUel7mOFXUMif1x
-# nZz0mSB2vdKjnOyaheReNI6UZu2C+fFMr/1dfJq2+OuHyMJ2csBoihKJLmVvCsMX
-# cpV3GjDWFSsJTKtlu0QObLa6FM5mpsaQOFRQEnIdakw+21uPE/PC5vjpvWhRt1hx
-# ik1fHEerPrRjyWHNU6dUk5XlbMWmqov2NbpXAMNuYOxFfsMQRMnXvCYkmU9Biv/j
-# YdjgYekyHqXG4hRUCLio3imLoabbyieniaHmGinC74bSIpWjKoodmRgX2wonWSJq
-# /w616uaT6akWIOomd8ZgDC7/qivY/roffpzH6yiFycnVSan95okdHp1Jm1Og5yOp
-# Xz1hzG18TDZDuuCWSoK8ZELo6vlJmtLA2ZlvZHTcD/KfLY0WjU9B+qgGHWe+Y3Nk
-# vDsa8dS6O06ad5Iu/BUa5gzuNZS0vrb89F5kFLtw9fsAKOPECS/EMyC2GiKYRGG5
-# /gpotOpn91ucEfM6hny/p3hkONz2mLEFVuUI8NlXF7LS17Odba8urKPXZbdUrsYB
-# MjYWFMSCBUzaoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFV0IXW9XIAe9shpFMzfkj0IQU2QmiGLqeGa
+# 7bF/pQ9bMA0GCSqGSIb3DQEBAQUABIICAL3g2mUxNFlY2KzQuVJocL8zRXFMMhl5
+# VCZeoJk3/XKrCZroG3nMzAZFCmHEXWEpPHzI8kVdl5fdBplYyVqoAINXyU4pupIY
+# 8TLFDAx2tFoguFaeVQalYp5nmX8mrY0402OBOqtMvW7QoQiybbvZq2vAv0TU18EM
+# N5kjb3Pod0o06TBkDXjhW0zYwubkDCc2X3lasDIt0kgEtKQSnS6Djlxr95HLEkSO
+# PVB0qvRloEosxYd13dYKtiQUhAADkD8/Akx92C6RviL7Ig/KOdrn2dLra7hhCBQh
+# gmDSOa9vfbBkQ2mimpVi7YeRIqnOUj2CH+hjYxwTXKpl2rf9zaOnQvyq1DJhA74C
+# UJ4S6A02P2twXxt8JEeQOaR7M3ev2HUiMusX4yYBwokLG8P8L047hposxNKTR40J
+# ud56CMRfVzau7pE7VCNCneLL3+Jt/H0wZK/V3SxuoUiUfynR5pk97jNkYUm++Zq7
+# oRK7kAFnmBpCmC9NkCbVmmrbhuELZKMnU3pVvdjYDl8EWbbv70Ku4/9nsIu+ZU/V
+# 5SqkQpyJqUVP9nDBzUaQu/0f1GhleI0WrW4AWKi41tFNfJIFb627M31pcDca8xZd
+# jtBKznVP3oFP395j8Z2lQFoWAEKhRqE8JPYCqeG9G1LOTglC1R/R3mPIpsLYuJQW
+# vA/95zY6aeSpoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDcyOTE0MjMyNVowLwYJKoZI
-# hvcNAQkEMSIEIHXNS3E8USkTHksmcy0gmZNqCMF7EtjaXdmJE3dPFZvOMA0GCSqG
-# SIb3DQEBAQUABIICAELo8Z/Jpe+VSWrLGiVQasxcEKp8kitI2+ER6JLEblDL9SOo
-# Yp8TdxZX2ChHgvOtlnGyMJ032uGZ23aE+Va3nvRlTJ1PalBpZ7881Q39TOdT2WGq
-# 8QqkB2eiDdj21sO8t0GS9ynosxcorgCD2nbXFeb+/9JTLrqYcVtdv+4KdNrBJ5nt
-# SajXAmUu+GpWlA+7b0S0M36gWOeI+Nkh0+68njllvu6SBXuQmfS7uXOY3MzTBrhj
-# EOcaMxJK1al60wTeZBHWxq4ghxsawnoSq4haqQHLbKIiWM8LAq6HKKRcBUyZD6La
-# jE91LqMtZMa0wyIB70pq7mFH15yXjFAjpN1XdtMF6LJyo68MJ2agRKEpKTtqIsYT
-# Fj8qqtHX5SNhCpgwyTLQCYGCSypTpDF3VpeiQANt9prFKhkLqV6cPP4eS7QNRD4I
-# RZYRTNv0lXMs9k3G0AiuuNVY8I0vo9+DIQ7LLrMYhQ0ocAxhKvChccWBnVH0rqRl
-# X9dz8tDnw+AtDDYJsGN6AwruWvvw16zejjTTeb4X+XVkbaajj7Tclmx2A7/yPgYc
-# T9EWPcl/do/Hvi/XwNXBnJ5KKEk5XyPMfIPhL7eVUn5ZxoEiZVqwfap67RFXLdfY
-# ZXRskhuMBWfFlqNII07KE+H9Q3YyiiomluY4sSWRdppbX1mXTZCLTXmGxUsA
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkyMDA5NDg1NFowLwYJKoZI
+# hvcNAQkEMSIEIFdB1MRgqjaBPsaAKRCLdkroz2ROlmL9/ecVkcBbHy7PMA0GCSqG
+# SIb3DQEBAQUABIICAGMQX6Gb38+5p3+//LIwkdbpruzws/BO/0pHoFQwqgAUKlpP
+# zz7UZzHiHOhFJ1SLYf0IOX8yWTJTkQicbEvBztGe+s2nwRwBCC4DAcdwkXTG3ibS
+# VBEerSFSv4Ih5pVJr+OgUNTOdMPhHbO624UhG/87eHwXWAz9rNz3WYgbIMHCJi2G
+# tuTpdFmcDxPpRI6JjPkxFb5rqTXJONUt2Ah+wPFhRZzBpyHVlnNZbiAtHV5/Pp7e
+# sSRiW6wO4oMBrnSzbGvAeMqNs7mBh8jcAKWCX4K4bcHOgOquJWXfyxOOK96LCIeI
+# xlBq4D0P4OMOUNNZituuz2rInIuslGy+f1UPPMleH2X1hxF35DgKlbJcMfwyZFzE
+# hmkRFbcq+jfQ9EnE1xorA4gQ8F73YfzAJYnSfm7k6u2ul5R5fCW0+FqLj9JKKSsB
+# iiqdjBrJR4o79eVYBZqLJt1F3NInXf1lv3GlRlV4R5hjhNfO8HWzEIp6f8NIZVmT
+# kT0mDAjka5PFhO7ORm/33R0zxwLZNa8hkuAJzoeXHYxT7YKlN3JxJi5DxKpSo0Rz
+# 03PQDdxZcPPLADFJIpcdOQZ6cnTJuoQu5nd9p1NGDHF1AYaM9FxUE1WuyfrlT8I/
+# //lKMJnPGxYzyO4F7m2vSINs73n4ljsKu77Tc33FlcUqI39jm6i0R+FhvPha
 # SIG # End signature block
