@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 .Removes bloat from a fresh Windows build
 .DESCRIPTION
@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.26
+  Version:        5.0.27
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -118,6 +118,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 04/09/2024 - Lenovo updates
   Change 17/09/2024 - Added HP Wolf Security
   Change 18/09/2024 - Removed ODT for office removal to speed up script
+  Change 24/09/2024 - Fixed uninstall for HP Wolf Security
 N/A
 #>
 
@@ -1574,9 +1575,9 @@ if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Unin
 
 
     ##Remove Wolf Security
-    wmic product where name="HP Wolf Security" call uninstall
-    wmic product where name="HP Wolf Security - Console" call uninstall
-    wmic product where name="HP Security Update Service" call uninstall
+    wmic product where "name='HP Wolf Security'" call uninstall
+    wmic product where "name='HP Wolf Security - Console'" call uninstall
+    wmic product where "name='HP Security Update Service'" call uninstall
 
     write-output "Removed HP bloat"
 }
@@ -2242,8 +2243,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC89qqRYrGDLs03
-# DIlUb0yT8iVBIaRcjL85MTJXoBsTLqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBSagRhEQ3wDPbB
+# aYd4EAT4grO+qVe+5H/CRFsRgHl7+aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2425,33 +2426,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFU+oSU57pSNBMarHBuT2iIUn9Yd/jH6Ob6T
-# kcNb1PT/MA0GCSqGSIb3DQEBAQUABIICAD2wLAlvKtyiKYUSq6XFxqW7GbbfK0J7
-# CG0OZXaxfrEQ2QL42DYr925ED5BU97qzBN/SQNXbFsNu0ojttziIUbNsrYB47R+8
-# GBjgPjp/tkRLoFotFTxsPc4o0AeK3V+7lxlc4hc3xEexo9Sz+cT0fV34ettPpcJz
-# 3pjKnLYd/MzOTnpDrRXc6JseQa6uPwY4hZrAsSreDollv3p0P7Yy1bNQdmULSw0y
-# iQv++U7n6PWsk+tHPPv6XQwkcR4prXRPIk5Z8cDQ3FB2ZPqFz2pcPmckde4LvsOX
-# DgPeFlhf6dfTyevXu715BsihQksig3X4wozaT6Do5M3SzKckh4QNlEhswDMltw45
-# MbTMo1si+ckv3xjJ241AqKrwQjlus1e7l5taTqqoWMQgTDpLRpzlwpy/LjuDppQu
-# XU2dvFZHBqxBLXmuUZzIk9hZEYbiq013JpQR7Bj9v4rBNhhYU73hA9UZOK2WAdfa
-# Ue2Ttt6qbXiYUdqVeu4MxhJxUDEVlBIVU7BEXtKhC+NIPe+/SffGVe5cVqt8NiJ6
-# Bnido4q0LX2tmFBHxNs4bIFaPjjwE9GkFp5M5+2+gSdDXALu/7MJKqDPnUOewQ5Z
-# rrrSTjG7kdEDMom2/AgDwEHh9G3qRnpkaeJEIfyBx3RBLzZN4/OJehkSlwJqRHD7
-# DqXlvRwtyb2DoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMYXeLVasEeDp9BGQVXLyvpQqAC25RJ5JTzt
+# fn4YpUBfMA0GCSqGSIb3DQEBAQUABIICAJbNxbj2/cmIo3s1NwWWO7ViszoYrSmm
+# tTU2utVMCKZ1kr5Y9o2qOoGIdYqx1/YwKaDvD8YXFY3atNGuiLj1FJ7tBuDHIhNA
+# 0lwOG15rk9opZ7w65MJx/N20MZBVPy7PUekFcucIiD65jk75fKgmXDigE240A9gK
+# gKpEYyUBVo211/1YH8/PNweY6h8MEsDKA6y2BvEMD+c9QKIQUCA3GSFWI/rgZOXd
+# ViMwh2umbRmApXT4nkwH7coSHcSSyFgrUrf0gg1uPb3MYopq9Rhqup81Ic7MxOIE
+# aSwUq180z9/+OjY1CBYZzoPCLCUFZ4J0K01uxeoInKOv0v0ipc5jJ+9ac9CT0ksx
+# fOXP/AyqRoRVz+yXCjpRcpmvr1YJGI3eTuIT5nHY0s24UXMLyv+iNRqIHSuZ4VCi
+# pDwNhboTQeeXwD/wt9v1s71umRlskI+3A9wBMQ5IU9Ejgbj5RqbqnC5t0Gb6LxYx
+# G0Wy1fzKqH/M6u65eNikHTqpQViT6po7Or8D8Aj5Z753PGRLOh0KQ8aIvSbuCjlV
+# Df/1NqZQvnvYxt4ko2S7sj50EelNgURNBE9npBMGmTe1W54HF7UinqUnqUopuzyN
+# +qH7B+lUSrlm/KcndqbZN1mNRWcV4+GrtNR/jMXjbulQ/MSMu4AvMSxFL19JukGF
+# gaEnnSV0ym+9oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkxODE0NTUxMlowLwYJKoZI
-# hvcNAQkEMSIEIKoFpZ2r2aBkT6dARtuZDK2dSsFDRsTkC3cJ55JtXvvZMA0GCSqG
-# SIb3DQEBAQUABIICAHvefWtgFiYaBl07+q7oaPNo2WToDxklOxbSZVdLj/VU33cF
-# utGHq9kjcx/LSXD8yID62d/FFkqXTXev67FhLLALc69J6hRP7s5sSiosRrkza3lb
-# lUcBqOC1WEsBr+XRL/G33cy5hZZgkAGL2t/SjKoqWeTJj/czzleNmb1VnugwrwiQ
-# uVSHHoOfbVq3ZtXMkX4LreU11CJ1lFdr2jDBQOzPzcdYTeaA+fxVXQHOyOX4PT7+
-# s6KBiGYNk2L51FqYGz18vj3wuSfAAJWFpyknsIk0wiwwnt+gx9FYnH7aMXzFFXDK
-# C7rWTsw4/JjVT2KjlPtrSudyLa6Lr3F5YF5FuF43dJ6XlYPbSN3nlo7Mmbrzwr+Z
-# O/XW/WOTjNoOYL+75u6evuUqK4Dm6j86vO7aOvtDBdqCV746VUsQfNws9NRPknqL
-# /xZepoec890TQRPaOLPmymHTK7DPZlXlKUh57r8TF+5Si0ENDSPzn+0jF+11sD61
-# AcgDr06XNswlf8GtZnRYJz9qiKd8LiESX7719T/vLIZ68EMh9yMPh7kDupLiSh+v
-# U+3lcDjnLWL9q7pJMFtmVBq+pZIvxC2pQIR0d4g6BknU8qp9xvI/FPx9cF1Stg3W
-# Eo3bZZsHAs8Tegc/qv6SvA4u677kX3dTy8YbW3dn/GDVFcGv14x9/uKrlpnb
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkyNDEzNTYzM1owLwYJKoZI
+# hvcNAQkEMSIEIEoD/eTi2gB5Z4wYtUkrkn+zewzAQ/TTaY0N/5KdHpnDMA0GCSqG
+# SIb3DQEBAQUABIICAKFtxy3KfiX0m+aUUxm2lbs5qF81773m1MBpd21tQKTVAbRX
+# tIeNTiglikqSIucj7aVm7SJI6hgJsIiyc9lCNAy3sqayuijkIb9Oko6TgjgvVsHz
+# 3Tj1dSsD/G9kfVSo+ykOxvB/6QQb7aak4Aa0n9UnfBMvcanotz6IsNC067DADwBu
+# c1I3BjdO0gIka/51oK2V8wmeaQACRUF+7/gz/NSxc01+p0mEFyuXAQBnQSbH6Jv6
+# u4hW3e1A4ifUFyFdauoxRuglWr2KMVEp4tpYmNW+kUGfKhKwnRNbCbT+ICeKsv93
+# ah53gdmQvamyekHBl6aJs4B1ijg62sLMRKqtKgI6GSjPABMOQwV0v5tjiiPM/MQZ
+# la4bl4tmHt04LZnoEdqxWbQcaW2PAspVg3C/42qEFsVI4hJZg7NHzTJieRrsPzuL
+# DBGsl+AgLcM7Jq9xHZVIZbIjJBtzRX2jbI0KmtebXmbfmuGcCaMCAbXwQh8T015w
+# HWIVyr/mbYBYa99P/8gjKjp4qDxLJHf7+uT7uuwfUOmh3ar7ngrNSevAegmFXR/S
+# h2ZpyBrghBbFsTKgpy2Woc0piJzsP8ahNSt1o9pVVJ7Bzo1D2qhwozA2rkUV8IQI
+# ftVXaZcycRr4jK/u6sh2J3GRXqOOJxMgpAbCL5nS9O+JiLKRF3JeUjuOrFn4
 # SIG # End signature block
