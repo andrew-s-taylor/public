@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.27
+  Version:        5.0.28
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -119,6 +119,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 17/09/2024 - Added HP Wolf Security
   Change 18/09/2024 - Removed ODT for office removal to speed up script
   Change 24/09/2024 - Fixed uninstall for HP Wolf Security
+  Change 25/09/2024 - Removed locales as Teams is now combined
 N/A
 #>
 
@@ -162,161 +163,6 @@ Else {
 }
 
 Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
-
-$locale = Get-WinSystemLocale | Select-Object -expandproperty Name
-write-output "Script version is 5.0.19 on locale $locale"
-##Switch on locale to set variables
-## Switch on locale to set variables
-switch ($locale) {
-    "ar-SA" {
-        $everyone = "الجميع"
-        $builtin = "مدمج"
-    }
-    "bg-BG" {
-        $everyone = "Всички"
-        $builtin = "Вграден"
-    }
-    "cs-CZ" {
-        $everyone = "Všichni"
-        $builtin = "Vestavěný"
-    }
-    "da-DK" {
-        $everyone = "Alle"
-        $builtin = "Indbygget"
-    }
-    "de-DE" {
-        $everyone = "Jeder"
-        $builtin = "Integriert"
-    }
-    "el-GR" {
-        $everyone = "Όλοι"
-        $builtin = "Ενσωματωμένο"
-    }
-    "en-US" {
-        $everyone = "Everyone"
-        $builtin = "Builtin"
-    }
-    "en-GB" {
-        $everyone = "Everyone"
-        $builtin = "Builtin"
-    }
-    "es-ES" {
-        $everyone = "Todos"
-        $builtin = "Incorporado"
-    }
-    "et-EE" {
-        $everyone = "Kõik"
-        $builtin = "Sisseehitatud"
-    }
-    "fi-FI" {
-        $everyone = "Kaikki"
-        $builtin = "Sisäänrakennettu"
-    }
-    "fr-FR" {
-        $everyone = "Tout le monde"
-        $builtin = "Intégré"
-    }
-    "he-IL" {
-        $everyone = "כולם"
-        $builtin = "מובנה"
-    }
-    "hr-HR" {
-        $everyone = "Svi"
-        $builtin = "Ugrađeni"
-    }
-    "hu-HU" {
-        $everyone = "Mindenki"
-        $builtin = "Beépített"
-    }
-    "it-IT" {
-        $everyone = "Tutti"
-        $builtin = "Incorporato"
-    }
-    "ja-JP" {
-        $everyone = "すべてのユーザー"
-        $builtin = "ビルトイン"
-    }
-    "ko-KR" {
-        $everyone = "모든 사용자"
-        $builtin = "기본 제공"
-    }
-    "lt-LT" {
-        $everyone = "Visi"
-        $builtin = "Įmontuotas"
-    }
-    "lv-LV" {
-        $everyone = "Visi"
-        $builtin = "Iebūvēts"
-    }
-    "nb-NO" {
-        $everyone = "Alle"
-        $builtin = "Innebygd"
-    }
-    "nl-NL" {
-        $everyone = "Iedereen"
-        $builtin = "Ingebouwd"
-    }
-    "pl-PL" {
-        $everyone = "Wszyscy"
-        $builtin = "Wbudowany"
-    }
-    "pt-BR" {
-        $everyone = "Todos"
-        $builtin = "Integrado"
-    }
-    "pt-PT" {
-        $everyone = "Todos"
-        $builtin = "Incorporado"
-    }
-    "ro-RO" {
-        $everyone = "Toată lumea"
-        $builtin = "Incorporat"
-    }
-    "ru-RU" {
-        $everyone = "Все пользователи"
-        $builtin = "Встроенный"
-    }
-    "sk-SK" {
-        $everyone = "Všetci"
-        $builtin = "Vstavaný"
-    }
-    "sl-SI" {
-        $everyone = "Vsi"
-        $builtin = "Vgrajen"
-    }
-    "sr-Latn-RS" {
-        $everyone = "Svi"
-        $builtin = "Ugrađeni"
-    }
-    "sv-SE" {
-        $everyone = "Alla"
-        $builtin = "Inbyggd"
-    }
-    "th-TH" {
-        $everyone = "ทุกคน"
-        $builtin = "ภายในเครื่อง"
-    }
-    "tr-TR" {
-        $everyone = "Herkes"
-        $builtin = "Yerleşik"
-    }
-    "uk-UA" {
-        $everyone = "Всі"
-        $builtin = "Вбудований"
-    }
-    "zh-CN" {
-        $everyone = "所有人"
-        $builtin = "内置"
-    }
-    "zh-TW" {
-        $everyone = "所有人"
-        $builtin = "內建"
-    }
-    default {
-        $everyone = "Everyone"
-        $builtin = "Builtin"
-    }
-}
 
 ############################################################################################################
 #                                        Remove AppX Packages                                              #
@@ -910,6 +756,20 @@ foreach ($sid in $UserSIDs) {
     }
 }
 
+
+############################################################################################################
+#                                     Disable Consumer Experiences                                         #
+#                                                                                                          #
+############################################################################################################
+
+#Disabling consumer experience
+write-output "Disabling consumer experience"
+$consumer = 'HKLM:\\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+If (Test-Path $consumer) {
+    Set-ItemProperty $consumer -Name "DisableWindowsConsumerFeatures" -Value 1
+}
+
+
 ############################################################################################################
 #                                        Remove Scheduled Tasks                                            #
 #                                                                                                          #
@@ -959,41 +819,6 @@ if ($null -ne $task6) {
 ############################################################################################################
 #Windows 11 Customisations
 write-output "Removing Windows 11 Customisations"
-
-#Remove Teams Chat
-$MSTeams = "MicrosoftTeams"
-
-$WinPackage = Get-AppxPackage -allusers | Where-Object { $_.Name -eq $MSTeams }
-$ProvisionedPackage = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $WinPackage }
-If ($null -ne $WinPackage) {
-    Remove-AppxPackage  -Package $WinPackage.PackageFullName -AllUsers
-}
-
-If ($null -ne $ProvisionedPackage) {
-    Remove-AppxProvisionedPackage -online -Packagename $ProvisionedPackage.Packagename -AllUsers
-}
-
-##Tweak reg permissions
-invoke-webrequest -uri "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/SetACL.exe" -outfile "C:\Windows\Temp\SetACL.exe"
-C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn setowner -ownr "n:$everyone"
-C:\Windows\Temp\SetACL.exe -on "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" -ot reg -actn ace -ace "n:$everyone;p:full"
-
-
-##Stop it coming back
-$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications"
-If (!(Test-Path $registryPath)) {
-    New-Item $registryPath
-}
-Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
-
-
-##Unpin it
-$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
-If (!(Test-Path $registryPath)) {
-    New-Item $registryPath
-}
-Set-ItemProperty $registryPath "ChatIcon" -Value 2
-write-output "Removed Teams Chat"
 
 
 ##Disable Feeds
@@ -1247,9 +1072,6 @@ if ($null -ne $task) {
 ##Check if GamePresenceWriter.exe exists
 if (Test-Path "$env:WinDir\System32\GameBarPresenceWriter.exe") {
     write-output "GamePresenceWriter.exe exists"
-    C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn setowner -ownr "n:$everyone"
-    C:\Windows\Temp\SetACL.exe -on  "$env:WinDir\System32\GameBarPresenceWriter.exe" -ot file -actn ace -ace "n:$everyone;p:full"
-
     #Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
     $NewAcl = Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
     # Set properties
@@ -2243,8 +2065,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBSagRhEQ3wDPbB
-# aYd4EAT4grO+qVe+5H/CRFsRgHl7+aCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDxMNniF07dmGDC
+# v2UgIPj3QoeyN0RM9N27XxM8fXyAoqCCIRwwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2426,33 +2248,33 @@ Stop-Transcript
 # aWduaW5nIFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDp
 # MA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIMYXeLVasEeDp9BGQVXLyvpQqAC25RJ5JTzt
-# fn4YpUBfMA0GCSqGSIb3DQEBAQUABIICAJbNxbj2/cmIo3s1NwWWO7ViszoYrSmm
-# tTU2utVMCKZ1kr5Y9o2qOoGIdYqx1/YwKaDvD8YXFY3atNGuiLj1FJ7tBuDHIhNA
-# 0lwOG15rk9opZ7w65MJx/N20MZBVPy7PUekFcucIiD65jk75fKgmXDigE240A9gK
-# gKpEYyUBVo211/1YH8/PNweY6h8MEsDKA6y2BvEMD+c9QKIQUCA3GSFWI/rgZOXd
-# ViMwh2umbRmApXT4nkwH7coSHcSSyFgrUrf0gg1uPb3MYopq9Rhqup81Ic7MxOIE
-# aSwUq180z9/+OjY1CBYZzoPCLCUFZ4J0K01uxeoInKOv0v0ipc5jJ+9ac9CT0ksx
-# fOXP/AyqRoRVz+yXCjpRcpmvr1YJGI3eTuIT5nHY0s24UXMLyv+iNRqIHSuZ4VCi
-# pDwNhboTQeeXwD/wt9v1s71umRlskI+3A9wBMQ5IU9Ejgbj5RqbqnC5t0Gb6LxYx
-# G0Wy1fzKqH/M6u65eNikHTqpQViT6po7Or8D8Aj5Z753PGRLOh0KQ8aIvSbuCjlV
-# Df/1NqZQvnvYxt4ko2S7sj50EelNgURNBE9npBMGmTe1W54HF7UinqUnqUopuzyN
-# +qH7B+lUSrlm/KcndqbZN1mNRWcV4+GrtNR/jMXjbulQ/MSMu4AvMSxFL19JukGF
-# gaEnnSV0ym+9oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHuZjVzfTwafqPVGNQvSRF00ELlw64sFzVTB
+# iwtZgDPTMA0GCSqGSIb3DQEBAQUABIICAF87x0zsg/QXMsVbyceQkV0SEuNMFjKP
+# cidOM6xXEhOJkT1XTGWASrVV57pMXxynGT0Ve55tuNGQUqpzjrbb3QQbqvMB+J3i
+# iaEZBTEqd5oPzVYbhqaelo+agwY+bS0rC2CaJXAxcyMaTFS1VC0AxDA43KHy7L6b
+# kDAmPjTO32lY90Fp8PVsRn2ag9Zzu0ma0DjYHpqpxPzIH0VBP/BGHZ7Q9mNxBVpe
+# L191fRj2jX2AbOXTjVtMjba0cuGyjrhU2n9QNzRXiV0De6wysX4k3yla+Rx/JHXB
+# HQ9SWXiVnkYiolJYeOhimK5ikFSTkU+qs+8JzTRkbkvfz2F5KJGfp6RDkBp28Dl8
+# QDTAl2W18w4i6jgkRp1xRhetKOmjIAZX4vmG1fFUiv3x43+/XirndLI9JLBhkWLs
+# fvpY2M2T0vCHdYWYEPnRSOJtFw7tZJdyvJ7DZclapghielAtz+NylWO4Kr+hg4Ll
+# xcsv9Oc33Gj+HbhzgetQLUYbJ/KQ0MzD+YTuDSTwRt0kZ1SihnbfObx4FEvFTjJc
+# IoxPEaBVHG5MIPblFpmWYCoGeQq/8aL6Rg4yK37Yit2mL20WeSwWGdOG/FgrsmQh
+# 5Bv2YPH2uc8ALYZqAemat0h04NGhCi49vEwXBW8kuiLwDrgVgqgQeWg9b5rLh3Fw
+# gDxaXhhjnr8CoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkG
 # A1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdp
 # Q2VydCBUcnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQ
 # BUSv85SdCDmmv9s/X+VhFjANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzEL
-# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkyNDEzNTYzM1owLwYJKoZI
-# hvcNAQkEMSIEIEoD/eTi2gB5Z4wYtUkrkn+zewzAQ/TTaY0N/5KdHpnDMA0GCSqG
-# SIb3DQEBAQUABIICAKFtxy3KfiX0m+aUUxm2lbs5qF81773m1MBpd21tQKTVAbRX
-# tIeNTiglikqSIucj7aVm7SJI6hgJsIiyc9lCNAy3sqayuijkIb9Oko6TgjgvVsHz
-# 3Tj1dSsD/G9kfVSo+ykOxvB/6QQb7aak4Aa0n9UnfBMvcanotz6IsNC067DADwBu
-# c1I3BjdO0gIka/51oK2V8wmeaQACRUF+7/gz/NSxc01+p0mEFyuXAQBnQSbH6Jv6
-# u4hW3e1A4ifUFyFdauoxRuglWr2KMVEp4tpYmNW+kUGfKhKwnRNbCbT+ICeKsv93
-# ah53gdmQvamyekHBl6aJs4B1ijg62sLMRKqtKgI6GSjPABMOQwV0v5tjiiPM/MQZ
-# la4bl4tmHt04LZnoEdqxWbQcaW2PAspVg3C/42qEFsVI4hJZg7NHzTJieRrsPzuL
-# DBGsl+AgLcM7Jq9xHZVIZbIjJBtzRX2jbI0KmtebXmbfmuGcCaMCAbXwQh8T015w
-# HWIVyr/mbYBYa99P/8gjKjp4qDxLJHf7+uT7uuwfUOmh3ar7ngrNSevAegmFXR/S
-# h2ZpyBrghBbFsTKgpy2Woc0piJzsP8ahNSt1o9pVVJ7Bzo1D2qhwozA2rkUV8IQI
-# ftVXaZcycRr4jK/u6sh2J3GRXqOOJxMgpAbCL5nS9O+JiLKRF3JeUjuOrFn4
+# BgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MDkyNTE1MTMzNVowLwYJKoZI
+# hvcNAQkEMSIEIOX9PB1/CaJBiucxEjktubLW5R8KurKCmmCaUggicV2UMA0GCSqG
+# SIb3DQEBAQUABIICAIM4a9ovChhptSZnQUqUbkPjpeoFQt3YEwa8Dpu32htc4aIk
+# J25evob391j7hn8CLtNPlCG2RYgpjAzXCw+v9QgSNFsoE2bqg8LI6Y4hTUXMFTJZ
+# XK7IWGJGXKm0COHsGUDCebGs554oCQSU1FoBCtJ59ylYgqCvemV6CSVSg1K0YoJk
+# KUHWNq4MekRQxRnnvwANuYHn2evo4ey4QImAzlYEIfFvo9e0qMl3TL9YDv4hhFpm
+# 0cy87/qBdrD35wJaXorbZ+pIX7OXik06QeJ1aXBZmBFZ3GAkFCeJSygDQw353Mo9
+# +PUMKkNUYMTqkUbb1P2BB7tXrboFUb1tUnlyS9tNgAKXBeD20jg66KV6TBpQEpW0
+# b/ja8AQf9HzYRx49Yi7EQFkr/r62jAyhd9rKXaH8Gi+twcXnW5woBp5NkCqgXgmO
+# DLc+R9UusIPwYEFiv+buAbcB6I5ryQkuB/KlC4ukkzdWpHV+wth5F0Z2suYMoqxx
+# j0SKD1f+0jV8YN+U8W+m2M5TRBGcQoPo7IsYt8AIQRzu6wZw8nyQYgPpPbHf26Su
+# y1+8SSam8kPQdK0L/VITORyYsjzujXM1zNDtwqOY4qlQSSKN/s2uky/9IJFmGsu8
+# dO/cg6EbVU0Zb9dzdcPI/DENK5/KpJ1zHukcVLaRLQRHq1bBz/ty5aOf6TkN
 # SIG # End signature block
