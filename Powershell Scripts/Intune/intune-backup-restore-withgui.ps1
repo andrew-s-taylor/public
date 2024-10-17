@@ -341,7 +341,6 @@ writelog "Installing Microsoft Graph modules if required (current user scope)"
 
 
 #Install MS Graph if not available
-#Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication) {
     write-output "Microsoft Graph Authentication Already Installed"
     writelog "Microsoft Graph Authentication Already Installed"
@@ -450,7 +449,12 @@ else {
                 }
          
                 $response = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token -Body $body -UseBasicParsing
-                $accessToken = $response.access_token
+                $Global:Tokenresponse = [pscustomobject]@{
+                    access_token = $Response.access_token
+                    expires_in   = $Response.expires_in
+                    granted_on   = [datetime]$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+                }
+                $accessToken = $Global:Tokenresponse.access_token
          
                 $accessToken
                 if ($version -eq 2) {
@@ -477,7 +481,56 @@ else {
                 write-output "Connected to Intune tenant $($graph.TenantId)"
             }
         }
-    }    
+    }
+
+    Function Get-TokenStatus {
+        <#
+    .SYNOPSIS
+    Get the token status and checks if it is not expired.
+     
+    .DESCRIPTION
+    The Get-TokenStatus cmdlet Get the token status and checks if it is almost expired. When it is almost expired it will use the Connect-ToGraph cmdlet to refresh the token.
+     
+    .PARAMETER Tenant
+    Specifies the tenant (e.g. contoso.onmicrosoft.com) to which to authenticate.
+     
+    .PARAMETER AppId
+    Specifies the Azure AD app ID (GUID) for the application that will be used to authenticate.
+     
+    .PARAMETER AppSecret
+    Specifies the Azure AD app secret corresponding to the app ID that will be used to authenticate.
+     
+    .EXAMPLE
+    Get-TokenStatus -Tenant $tenantID -AppId $app -AppSecret $secret
+     
+    -#>
+        [cmdletbinding()]
+        param
+        (
+            [Parameter(Mandatory = $false)] [string]$Tenant,
+            [Parameter(Mandatory = $false)] [string]$AppId,
+            [Parameter(Mandatory = $false)] [string]$AppSecret
+        )
+
+        try {
+
+            # Calculate Token Expiry time
+            $TokenExpiryTime = $Global:Tokenresponse.granted_on.ToUniversalTime().AddSeconds($Global:Tokenresponse.expires_in)
+
+            # If token expires in 5 minutes then generate new token
+            If ($TokenExpiryTime.AddMinutes(-5) -lt [DateTime]::UtcNow) {
+
+                # Regenerate token
+                Connect-ToGraph -Tenant $tenant -AppId $clientId -AppSecret $clientSecret
+                $message = "Token renewed."
+                Write-Output $message
+            }
+        }
+        catch {
+            $message = "An error has occurred!"
+            Write-Output $message
+        }
+    }
 
 # Load the Graph module
 Import-Module microsoft.graph.authentication
@@ -5860,6 +5913,11 @@ $id = $_.ID
 write-output $id
 writelog $id
 ##Performance improvement, use existing array instead of additional graph calls
+
+# Check Token status
+if (($automated -eq "yes") -or ($aadlogin -eq "yes")) {
+	Get-TokenStatus -Tenant $tenant -AppId $clientid -AppSecret $clientsecret
+}
 
 if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
     $policy = $configuration | where-object {($_.ID -eq $id) -and ($_.Type -eq "Config Policy")}
