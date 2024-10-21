@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        7.0.8
+  Version:        7.0.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 17/10/2024
+  Updated: 21/10/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -81,13 +81,14 @@ Creates a log file in %Temp%
   Change: Date fixes for quality and feature update policies
   Change: Fixed issue with named locations in CA policies
   Change: Added support for token refresh (thanks to https://github.com/FerryBodijn)
+  Change: When used with Live Migration, it will replace both tenant ID and tenant name in the JSON
 
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 7.0.8
+.VERSION 7.0.9
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -5757,7 +5758,9 @@ return $policy, $uri, $oldname, $assignments
 
 if (($type -eq "backup") -or ($type -eq "livemigration")) {
 
-
+    $uri = "https://graph.microsoft.com/beta/organization"
+    $tenantdetails = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+    $currentdomain = ($tenantdetails.VerifiedDomains | Where-Object isDefault -eq $true).name
 
 ###############################################################################################################
 ######                                          Grab the Profiles                                        ######
@@ -6638,6 +6641,10 @@ if ($type -eq "livemigration") {
         #Select-MgProfile -Name Beta
         Connect-ToGraph -Scopes "Policy.ReadWrite.ConditionalAccess, CloudPC.ReadWrite.All, DeviceManagementServiceConfig.ReadWrite.All, RoleAssignmentSchedule.ReadWrite.Directory, Domain.Read.All, Domain.ReadWrite.All, Directory.Read.All, Policy.ReadWrite.ConditionalAccess, DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access, DeviceManagementRBAC.Read.All, DeviceManagementRBAC.ReadWrite.All"
         }
+
+        $uri = "https://graph.microsoft.com/beta/organization"
+        $tenantdetails = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).value
+        $newdomain = ($tenantdetails.VerifiedDomains | Where-Object isDefault -eq $true).name
         
 
 }
@@ -6949,6 +6956,7 @@ else {
             }
             elseif ($type -eq "livemigration") {
                 $policyjson = $policyjson -replace $tenant, $secondtenant
+                $policyjson = $policyjson -replace $currentdomain, $newdomain
                 
             }
             else {
@@ -7238,8 +7246,8 @@ $tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'"
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDWiHAVjjz2ptfk
-# 8UF6wWnsA3B1UOjqYX0mETji13y97KCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBPAF2J7gxlCg7G
+# hIxS5Qmo754hUcH3fNgJK2rlRpbXsKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7421,33 +7429,33 @@ $tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'"
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIH8dH9ThXwTxrqQSRZtAd15iYA7Nv9ripJQ4D6SyNigV
-# MA0GCSqGSIb3DQEBAQUABIICALT2NY12yEzYXeOEzdHTrcv+UPABqNhFwf8S0Y27
-# c/T4I2M4HoHaU3LcoYmvRNu0qHwSn77EDCFNGXUAHTaCvUsUYVOMBZ068szLnF1A
-# THEbtM1SHdFqzR2vHCy/RRiWVJSTr+QOwW6uMbWU/j5geIjSYym+qixCqva/y7lw
-# N9KVCjVjfYEPoyw7dl0n2aJqafGUbY6WsjkY022JhxyiXWTxNUURQHQplDxmgpi/
-# +ud3fkF3ein6VsLEkr9BkDIrpy/lzPx48eaE3ppcHPFRa/V0ObQ7UoJYOLnemslt
-# u4PA7xGIil5XlsPljXkbW6BFM7ZDGfw9fbredYJ25r1r1K0wrdJaBeEz2Da/QZqO
-# LgwCECqr9yISP7bf3TgM7io4frHSqY+4naKD4plb91XD1gOlWsI6VHJKh9d0cs4h
-# LdgYyx0YJ6cbCU0UNF/8Vv+wIulItl5N+6rJPAo/FXuDTh56E+ul/clAXpojBIF8
-# 2XF3Hbs2Mx2uvivCIKY4jP/twWk3Yhu+TrnVPzI7Jacs4q/tRavnOEsYl1LdpF7+
-# xerqQGzp9S7znLBqFzSWV/IIA/zCyI1bY0dx30w1fGiw9Q+QS8LKxJy2dL44IGIr
-# ujuG5YEvMMuB47O9puFAugxbOoYCPXdSQ1w+O9T+TsoWSSxuBJjdr8fbr6x1RMQm
-# PEX0oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIP+OOPZvDsRkILxJJ9Ej22C1xexjwy0oO7dBSuurxdHL
+# MA0GCSqGSIb3DQEBAQUABIICABJIlrEpEByrPFbbQBBQGGd7Ksc1yPGytHoU4h4s
+# fa1SE0M43nyWwJY2cX32SrY3do9ldQO+HXcU8wAT1WkVagIf8oi/2GbZ5C8bTtyf
+# VhP9flAPyorO59HCUYuYrZO/iDc0L++wY7W8ButHna5A7bRK+8Cjp9OaefEJTiDC
+# s/3xfP4T76qJMxhUHLIyUUjSuvmcBNMmKFiaitlAlQ12ppJRWPJdcLRgHzFKmN+i
+# UwouyACfsrbAytAUVWD/Mh3nJF14oMpm9ZwZYD/9ui3my/fIggE4i5wDq7KWmg5y
+# zJ0Yop5r96tdGrewJ2dVWh1B+C9JX4rPmG7YI8zHD7LXHOXrgn1VfX/XCF3Qi20Z
+# RpGWxN8GHGIbg3cjxLNkVdpsTsHwaY7Mmwn772iDWRdgONK7p4sDmZgCEEjyWKMT
+# K/6asRWtBWoCbz6PgeA4XQfvQz42+55RimqJJkZvaR+t/EdOSiACVwF6zwEzet+i
+# W6QCc9Y9yLrO1/VXcvsfFctX6AOQcvcWNGUbm/xGDdZo6fBOTOEmXSODEWHgrh42
+# iykt+3B4Gs9YiU2wI/HgUkhswQR/3r0XuIpRP0G9MKacBx6n6S2598B0yU0+1T4m
+# Yr1fYNOdctruxRzoJOTExITTtGOyelgbVqAWw199W3puTb7dTlVyJcEDjmk9/01X
+# 6M7VoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTAxNzEyNTgyMFowLwYJKoZIhvcNAQkE
-# MSIEICVi+EhRVL9rDVw6juB1PuXB+FPXbwVMucT0A7tcTo4CMA0GCSqGSIb3DQEB
-# AQUABIICAIcF2sOYBZaUDfpwIkx2SjsggE80MMwlmBtUqf2G5C8RFDZHKysmRxme
-# XPR6e8gnzENRY5gc32s/55bvBqnZWJeyIOIqeP+ct3rMFl/ERwDBKCls+5qzCL8n
-# WHs953Qj4HIG/NPiIMpc2780ko+lIaCrPA6PoANPSvGjHyFPD27INpzQm1vE1eTH
-# hNzqEpfhLm7fnDoF6oFIqqNMD/VZaRGeJTP2l8eTAAGoJKBHHtCILa++6tAgvvpz
-# 23fSW+dLLx2G40geV4PgZqhRppr6XMHHp8BI7Q7MYGNzdQ36jkSjM+XongkO++a3
-# jhtu6ijlGPbz7Wq5bHlTqyHRzTpdUVRu0PL00x1MXqESSthE1APuxSMcwjg6Mm84
-# K71ZJTgI4W1ivuXXzn3TCDy72aVM9evnE0u3YYnewZx9nBQ8hJUz0g8jyYWeN9FA
-# LVpUVwNGUtmJ8UXD3vYhuyb6gCvUNspaISkKD5m/vegt+yjYAPhK+Xun0XgrJz9s
-# hy++SKlkffLPVe6DfmLlu0coQTi3YGrwHEIuYZLkZs5QVVfGn9QimWzVeeRH/xbv
-# EwhI3RDORTGNcdU91P86K/oNKakRgGV5BOZ5/zGX+lvxM2XexIiPiNg81PeRmpLi
-# fO6Htf7k8L1CF6fyiSpLvd0XWSgycOtoZ7rU5pgPhWKDCzNmHw0G
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTAyMTA4NDc0NFowLwYJKoZIhvcNAQkE
+# MSIEIDiSQCDUbpBfOiMRaYUL7hueEsaY35jeN85sQt4BPWvvMA0GCSqGSIb3DQEB
+# AQUABIICAEGGF+wOlxjVcutxU2KXTeOfVOVIEQgxhUhNuVjFq6uIhih2I5zmSxGz
+# e+nIoWzH1xEvlEDpZVa6mhRj5Q/PP9vRW2j0J7UVGJB8HJQIxMvD0r2ZxZ1ZbFDp
+# q3kaGg6DhkbKdrylTJpuyCN0lbkODd+JqYD6oC4VzONzii/jZe0Kj1iC48x3TYid
+# 9xIcmda+xrNL+tfJmkPHriF57BjjEH1PcGszFIRhmoGncCLEcmGpCEVvT1gAf8hC
+# 2lblzo+p6xZtOSNig+nNcW4EyXgoCdxDBos+jJSDOXKGh5kuI3Rdau/pYjCPcU3X
+# pMAKbyP3fM3yJZqXzLxuTHJrAk1CtkZB5QncrbbFHvixI+cdtTYBr/J1n3PGXinh
+# lPf+aVzDyu1MPufYGCk1iehKgJcQST5DByZZBlOruqrIObNLtwdxZuAqyBhX7y/G
+# veGYr2olD1x16SWstmnE5fqLE0eh3nihzL0rv5YdrM9Popu4VGn0dENnCi+vthIY
+# 98mz6l253hYWxCbFlhzEEvGtBawdHMTZ91x7GTSyB8pMoF/gcr9GbOff0WYBlB8e
+# NwkC9a+CT3lpqfAcQPUfVSNMwE9Lm+SPEU8w+uyXmUkifgGqNv6m7h3Lc/YCuHeQ
+# oQ3eXV2LYZe7fMUQ6IjDq+xEjRCsRt7KpIAibKRiulgAchJTTnLf
 # SIG # End signature block
