@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.29
+  Version:        5.0.30
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -121,6 +121,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 24/09/2024 - Fixed uninstall for HP Wolf Security
   Change 25/09/2024 - Removed locales as Teams is now combined
   Change 08/10/2024 - ODT Fix
+  Change 04/11/2024 - Block games in search bar
 N/A
 #>
 
@@ -543,6 +544,14 @@ foreach ($sid in $UserSIDs) {
     }
     Set-ItemProperty $Period PeriodInNanoSeconds -Value 0
 }
+
+##Disables games from showing in Search bar
+write-output "Adding Registry key to stop games from search bar"
+$registryPath = "HKLM:\	SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+If (!(Test-Path $registryPath)) {
+    New-Item $registryPath
+}
+Set-ItemProperty $registryPath EnableDynamicContentInWSB -Value 0
 
 #Prevents bloatware applications from returning and removes Start Menu suggestions
 write-output "Adding Registry key to prevent bloatware apps from returning"
@@ -2066,8 +2075,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCS/D2iQrAppDf+
-# f3vdBJogPHvBIBhJCu2bWW5uubZA36CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBiRwNpMuNubGob
+# qb/SXfIti7u+gF4/IcmePi34Z5aSkKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2249,33 +2258,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIAr59fHfA7sFzYiQPwp2O8COJcWP4yXLCzjIkF31m8yH
-# MA0GCSqGSIb3DQEBAQUABIICAGqT4U0qa95SoCtHtMoAThdExi3T9nZChYoFSyIz
-# Hh3hpjl8a5WJUSLxm4s/AOuK4m6VheAq0bQIqlTwO1PsLrtGjzRFy9vUTKVTtvTU
-# 6AgIk47L6AR/xywcgc8ELntOFbvkDnHXa6IHqogyPN0NdQxw43EHYKgDAePJ8/zi
-# rLRBN9Ns5cki1k2maFn0uS9NEL9IaotrTSXQIkVZL1UKWN+qp1PQz4buQB6eX+z7
-# OP536pm5GYZ2w/A5ak2qiwFsE4ViSigQQV8MCBIlVlUw9Oj+BV5/ZXU8/r2maC5h
-# 3y0xHfb6uRya5E8/y5wPmVI9oMEGQqrcQiBM/oEZYX/9W5Lovef+CuX+MqZuJ9V0
-# 4s8zjwfBE+qvKuEi4LZ9w5G+U13poJnbisL+t9s8rABzScuGy0lW68l+C7GropZS
-# gAmGnPmdEjUwW/tzBgx7NNJ4bR2USFcVl318OxJDMg0Qwdroqqnly+jftmMzraEo
-# javF7gBdm7Wo7zxKkIW3nzYIbmpnEJiMWnS/HKD/4VwUKOcBMFozs3Orfk9qDMX5
-# 6hhI+F7+wu/arcZsuCMhpPhZyiHp8BOFMfh1Ch/Z++CCYr0K8vzsdA0sg1w+nl7/
-# hZ7Z2Ok1xOIPI1ylyTZMZCFgd4kg4dcqvP7D1O6ekDLAtsbHtltHIeGNU0hu1yqq
-# tzQBoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIP3XaXJPu3OxF2hBagkt028RXCUSwwc/+658f11POMgi
+# MA0GCSqGSIb3DQEBAQUABIICAIA3tat/aogGbxucUgvFKAOW3c4zw0SSsy0K71J+
+# a51vZta6ma9ZsqSjUKGwwAldN+4n1dB7CBmHr+oOsbl38AlrLrfFlnXL2VClcluC
+# seE1i22cPtnaDjCvGUtgc95mmb7aWCxUNvOOex+24GGQwAr6n0h0Lzmm/0muFBuh
+# RLJH6xYfjoXULkqfsW74CAPmQJQL9qJA7LDjgr8boFnaQu4kTMnkaZyS2MMGLVwH
+# zeit12uku8uVhB4cLmDgCJIkyc3X4qipMy0Blo2zGXqLgXCytroF/B/aeNdQX+Cf
+# iDgHv1jA4EoD0QF/ah6ml0AV9tL/Uyh4xJDMk7bnJ/E8FlTdzIiiWr2ogoOn/fKN
+# WIyqQKk0GrssR4FnS4agghoklUKB+3iFQV/cpkfTfi8ryMYu1sGrOJyN5n4MZ1aL
+# 57/kD0bXqbabB5piWiDZmv6CaVPsPfkTlkOs2pybSt+ktyxwij4UiBhaC6NgGa/+
+# ZLpSn8MtdyXWa3mWHhQZIQqMiiUFBHVN5r/uQrMO9X3fNKByue9Bu9mPcV8vRIBu
+# SjZGX9HeNbQVpsqCRAijVC7NGHK9V57wNOCUxxpM25ocEJRgOSmJLPqxBTno5aZM
+# MACV+MfSxYEw2zV5T5v/nLSCU1B5Hp/yNSaiMyDzVMxSSms2GE0lIXd+21xWCMs0
+# yNmLoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTAwODA3MTgzMVowLwYJKoZIhvcNAQkE
-# MSIEIJuGsPSDNBphnkNxCEC/HXUIF97A1evqOHr0TjLxscqgMA0GCSqGSIb3DQEB
-# AQUABIICAD9K5QoNLVnsCogoRTngx+V2gvLDWD2onPV3gDpKsmr479TI17PC1ZfD
-# hImCfVLl5qkvGorRs3GTW1mFTIsqKQQFGDbSLnYyfswkSZkAsA4A6zzkYITm0Ugc
-# 7LhcKWSkA34tRHfWm5D8eE113pqmpU0RlexJJ6qk6GhKZIfT3cyHNcVsMJo/Pfoe
-# Gw+EldM9ex9ip6XhkxbTeZTDkSge5043vIr0EpFuu/GASY1l08PkJVq+KI5hegCi
-# plM+OzlhXop214Bdfr76XJhcI3ceoJuZBYwlBSJhveNwRCs72q4Khtn5owMkYWY+
-# ddbzFWSph2B+XpniIoIH4x7/C/mg7zSLLHCgGm+g4eQ/VlxKxpMlTh+KprOL5wvS
-# b84U5HzESiVA+5Hmx9CfjIDWHY5iNeuEyJTa3XHod6Vf/JlBcUwr7d1v7Nx4qlsw
-# +MNw1e9tYNPVL6FI9WFyeHQu0mREF76FdZY2T8i9Jx8hrXjFNwfE908UbyXnO2B6
-# FHrzVkSy5kSEg6TPLIB61CHq3YTTkiK72wEP5GrvWSKVxxh8x2gVlY5ZKTNlHwxW
-# mk7zSh5RA6Ig4MD5KBc496TV4motAQuDKw0NtFbEZ/gI+baQqey+HJmEahJOhR1T
-# 73E/D1ZZHZyamajtWi/hmnQ3HzCa3gA8+7//tmpZ0HY2C5WlRNGh
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTEwNDIxMjU1MFowLwYJKoZIhvcNAQkE
+# MSIEIC+Eynorlg1v9LRvNAAHcqADcG7B+FtvjzLumyT3vgi+MA0GCSqGSIb3DQEB
+# AQUABIICAEzWRfy8OCu+oxoJJZEtJ8VqX9yrgUft18H9GcCAlJ1h1u1FDvucU/wT
+# DLrZxFrCL+v5emlYo/BirEYmGn9240v5QHSoz1F1ETu49d2GzvsGMIhfxDa1VUni
+# 6n6M+f6NH0+eQFDSeY/2MLnRDOBbqXTUqugozPuNFsQSvqn8jUutA1teVD1RNzsC
+# ERfEOuQz3K/AqsZmywYyOSLKSSmR5plhgOcBAE61pckX/yf9dH4eT+DsmxNpOQ3K
+# y5P5JDHbnfbi6hS/V9669kNFmj/dAHbTeaslx5hlwH3q978InpaR3miJVgY5AxDF
+# 3uZP8f3326xslEQPv6TsubhQpg1WZ0tu1umLfYvZdtHmv0K6vYo5zgStZKaUi+Af
+# V6YvOgPCTQ3wiUrQ+7n+vgqgYl63XQpH+P1SrPQ9/CE4ghCE8oBjOTQHmpIkhkZE
+# U7PBIZLbfqgvY7waEFX+xfy/u3DF8KlMpSP3CmsD7eSYmKyXowX43AMlu3aIuq8Z
+# uQBcrEUW2w2/CQLbKLB1mF/mvBlrgd7b0thYs5PiBvpY5CMwOAkvQhjrppOUiH6f
+# xdOHzLrGTcsYlpAFbvk6NcyYNyhasRGtSEKKEPh/ZLiLizUONIFRzfXo+La3Gx5b
+# ScQvEsLaHED6CvrPWH+NFGJwBaPjzqGPRlm0SkAzApwb3H/kfXy+
 # SIG # End signature block
