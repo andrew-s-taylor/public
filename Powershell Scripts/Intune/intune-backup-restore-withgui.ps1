@@ -16,12 +16,12 @@ None
 .OUTPUTS
 Creates a log file in %Temp%
 .NOTES
-  Version:        7.0.10
+  Version:        7.0.11
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
   Creation Date:  24/11/2022
-  Updated: 04/11/2024
+  Updated: 05/11/2024
   Purpose/Change: Initial script development
   Change: Added support for W365 Provisioning Policies
   Change: Added support for W365 User Settings Policies
@@ -83,13 +83,14 @@ Creates a log file in %Temp%
   Change: Added support for token refresh (thanks to https://github.com/FerryBodijn)
   Change: When used with Live Migration, it will replace both tenant ID and tenant name in the JSON
   Change: Fixed error in rename
+  Change: Fixed commit message error
 
   .EXAMPLE
 N/A
 #>
 
 <#PSScriptInfo
-.VERSION 7.0.10
+.VERSION 7.0.11
 .GUID 4bc67c81-0a03-4699-8313-3f31a9ec06ab
 .AUTHOR AndrewTaylor
 .COMPANYNAME 
@@ -6540,7 +6541,7 @@ if ($templatecheck -eq "yes") {
     }
 else {
     if (($namecheck -ne $true) -and ($idcheck -ne $true)) {
-        $backupreason = "Automated Backup on $id"
+        $backupreason = "Automated Backup on $tenant"
     } else {
 ##Prompt for Message
 [void][Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
@@ -7247,8 +7248,8 @@ $tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'"
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDh5fRaAs2/z3Md
-# z/MzbG5hNpD0rKO9/9OMes/qoodt46CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDYw0clKoSP/U53
+# uPOF9czs6FPoxtCeFTjfNu5Yhkh6X6CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -7430,33 +7431,33 @@ $tempconfigout = ($tempconfig2 | ConvertTo-Json -Depth 100).replace("\u0027","'"
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIId+r10bDs93y6nQNADHbmMZGpEGzaDKGI1NDTFC5C0D
-# MA0GCSqGSIb3DQEBAQUABIICAH2my3FlzCEd7KdQkfJ5r7iaZS+d5wK/SZqZY2OE
-# BTYXTDO3AJjoAhxuRGI+JV2HraWPBb3EP7UNJ1gH3geGPqdnORrZVpANkHeqxCZ9
-# 8v+CyF6NjFuV6prBq8XUO5MCO9U09VlFbBCgvA8dmOZRXmNdo1VKsuqcZfbb4oaA
-# pdOooSgiiEIUKEmx7PRnbQ5vgp0xXhgce4oUpWmkutGRcoTtNVQYDFCF8wUB6Y64
-# QIxpOWOqoZX1eLyXohw5Q72ysBuCJsEG+zTPV6JCU2mwJUtYcXb+VPQezyAMA3uX
-# VdjxNLDDUqNE3A28Jpdme1klp4/TORlMevDjs4VhSWOuMmeAh8u5nRjLgE0B/OoB
-# Z9ZCPHPqnqnGDOuJ6kwmgjdViFIO55wFaMG4ovNw+XK9ZEJjYi7/LUPyLzG6NsZb
-# 94NE4YgWa6FAvkJ1ja81iknwdUoWYpqSf1LcVfJdqaFj090SzskflS+jVO8aPVgA
-# y8+Wq7MbUEXyvtg68dOss9G5crY7nHS6IKaieMpBxZBoW2HzEvFivOlzaBZBg1Ja
-# +oftxZx+ZmBCEQCB8GERyvqit8xiCzB3WZflJZE8HuxKLlVg5PIY5y6Z6iJ5wJgS
-# /YC47vJlenoA3BJ9BKW0CQasHP1BnqeHFB/7sCDtWLYSzvp/P5QPbBp1R4bSIqAy
-# oNaooYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIN1qDsz9L6c3rv+/vaIINsR1Ipe3aYtmUWXsXLk+7UoD
+# MA0GCSqGSIb3DQEBAQUABIICAAav6T4WsgcbwqUx2vDKnBtrPu18lrqv1UiBwmvF
+# I4LEA4pZcLe9/IAM2HOls3HC8YsfCz0FID2Pfb6rY0DvvDMRNa49NQRw4bylDRkL
+# JJcj4WM7LTFmpuLc6sPoiNjDwbpPHWxm3xkAeCD/RtKfDEWYxH2+pYitRIc64E51
+# VBgyNqX/YaehMqRywD4d5w8yJ2E66x4vOnhfjW+kPtVy5NheFeNXm0EMhBzaFV0/
+# H1unXTOED42qR0YhoaET4VE8K3XCK+E3Fej1ydUgNADPeywJFjBDBh0mRmkj6kqD
+# 0WZGJ7hUaRjIjWOQo9NtRjQ2pyjf3QV6qJXsSPKz1WwTMypzoMszoF9G229EnnPx
+# +CsjoKxFinCeSP0dEh1Gzf8uE9gH6IxsFaFL8Bi+RcwdJUtertzt9Bzu8ceBhxeC
+# IjeQios00djUAFcrWDOX3fZsUJKvchelSJu6mI4fRhEJk3zO7OorxB7IconmYaZO
+# jXDGfKlOWbFmRFRXzC109ehzRdmbHmZbJA3kKQThf0ojvdmTac3W4xXXtgWAC7b/
+# NylAxLLhU7oDaetceSVvEY79sf0QAxbGb+rWQPNOtqqhIhHo5FQCrtcdmmGxDlnk
+# EOJkdKfk+S3jvEZj4J/MhgC7Us3hlE6N8He+G9vIDAKhwOT4pOyHRwSVFeOOw1TF
+# fWQSoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTEwNDIxMjY1MVowLwYJKoZIhvcNAQkE
-# MSIEIGKUWnqNN0tmB7kURyOwm1xxgaerxeAogGLhkDZ/SfmrMA0GCSqGSIb3DQEB
-# AQUABIICABuHGCUWzj46ezXJvaIZQuvIGvae3vM4KPCm2pwtNi4S1FjRPWuJ/kwM
-# UEIJ83GKibn9CByjmgngT7uwQCbUB2pEfTflZRmrRGU3V4Z9omTn8m54iKrofq4H
-# ldJMT7Plg2roSeX/0Cynz1ydGttXlkrYERvy885Q2ZQ4ec0RWbifXZD5CwbCg9H7
-# PMGGQFXi4IjYtKiwsU+nHQ4QqOjSjuxvdvLv5bWgGmnLiMyqbeWCIuuVZOBEd7+4
-# dm7oKMps1xcSnjwJwRqMENAXha8sLJ0HgEQe33TInhT3WB+ANYt0fNY7lIZAI0X8
-# jcVNMJLsFtzblpUHo3Q1dDo0t7bhkzzLzgMZGKqiSNjeJk0MYavnzw8E8yFlh9L1
-# bNqJPrLv2/r+oaVAb1ke96ARE1PxbBzKMgBreU+9bKmb8yX+cF8gjowehMJBQKxs
-# 5lxXISAmAcx8nnabkowF4bFa0evOi+1fch8ADSUmF/QxJ0a0yJR4V2xmieVRJ+EU
-# LBrfYlAPNPHo14kTrhTTGPQ3KETrSi+zc6C/MNtcghhM08qMpWGk21NpXUNzjP/1
-# Y7njU16ab+gv+LIYDmGbgZX8nqOv18ThygEjGi8A44y2bJHRaVZs8wCtjtdahE5e
-# hWiy/EvtU12r3ZFXmmAW6xLt/CHiso3UGxliz/If+aNp+cxH5uMA
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTEwNTEwMDg1NVowLwYJKoZIhvcNAQkE
+# MSIEIFAx5fOlmot3eZPbOzFuZmYCiGswXm65p+HOC1MaAlTiMA0GCSqGSIb3DQEB
+# AQUABIICAJnuDRdjXnfGVZlZiHGT9INjNLpcbcMrKmpGNcs6Ab4s5iBtfpyAwZmw
+# 1o9bOw/nM2YR2kA24Z0HMCz9Y3TWsSWDVEViyplOzceipvaeIbKKCUEzurMXUkCA
+# udk/yqmaN51/XnHjinUWrTuMA7lVuHUp8rekvtg8ZJ493Da/O0UJ4rZzHsCVTPjL
+# WB2QarrqlQg/V9tAvXndWL1rTGacHGwlUl7I2JOakG5N91ar7Dr7cP+j0gffK5l9
+# 5QdNgWK3z6Z0XKptPhPrfOshjJR5WmmzFV4yBfaazkQ3YFhPlGidFuVurEq3bCjb
+# 8EPZ0zTWBemodDOzhBd4BW19J060q69YBnxaaM7Tta8iovFNS7zTELBOMdOpBu0H
+# 5oQhbQeBL0z6EOnUjyo5cbNATCJWm4GAUUsaG/IiZKehohi5J45WerlnlO9c7JGB
+# XwrEH8InamgGCxbQU9eFXYKcAByjdvHCuaxkY/Ph6nYYNBmICAshjcXF07hYoQmc
+# rhizxkrPtL77pQmwoLqDqf1WlE/k7mezj+mEq+Pzoi3PuKUstPpxbyI0Vqqu6TQ0
+# fkRumJki/ptxm51qs+/l7yPCjZjQdFGIkaks4uvHKhQT8Qd4qhabZT4J6gSeVG32
+# oc4DV/VDpXgSW6RGP7SgTjPRxv/zhXpxQA5LCNwBsV7DObZPJxTA
 # SIG # End signature block
