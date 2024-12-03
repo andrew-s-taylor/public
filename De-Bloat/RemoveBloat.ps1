@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.30
+  Version:        5.0.31
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -122,6 +122,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 25/09/2024 - Removed locales as Teams is now combined
   Change 08/10/2024 - ODT Fix
   Change 04/11/2024 - Block games in search bar
+  Change 03/12/2024 - Fix for HP AppxPackage Removal
 N/A
 #>
 
@@ -1355,7 +1356,7 @@ if ($manufacturer -like "*HP*") {
             write-output "Provisioned package for $app not found."
         }
 
-        if (Get-AppxPackage -Name $app -ErrorAction SilentlyContinue) {
+        if (Get-AppxPackage -allusers -Name $app -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
             write-output "Removed $app."
         }
@@ -1475,7 +1476,7 @@ if ($manufacturer -like "*Dell*") {
             write-output "Provisioned package for $app not found."
         }
 
-        if (Get-AppxPackage -Name $app -ErrorAction SilentlyContinue) {
+        if (Get-AppxPackage -allusers -Name $app -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
             write-output "Removed $app."
         }
@@ -1665,7 +1666,7 @@ if ($manufacturer -like "Lenovo") {
             write-output "Provisioned package for $app not found."
         }
 
-        if (Get-AppxPackage -Name $app -ErrorAction SilentlyContinue) {
+        if (Get-AppxPackage -allusers -Name $app -ErrorAction SilentlyContinue) {
             Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
             write-output "Removed $app."
         }
@@ -2075,8 +2076,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBiRwNpMuNubGob
-# qb/SXfIti7u+gF4/IcmePi34Z5aSkKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAdocKaOVOP2nxn
+# sDCfiXiJ/fGk466pCXxrS8fc/GJHdqCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2258,33 +2259,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIP3XaXJPu3OxF2hBagkt028RXCUSwwc/+658f11POMgi
-# MA0GCSqGSIb3DQEBAQUABIICAIA3tat/aogGbxucUgvFKAOW3c4zw0SSsy0K71J+
-# a51vZta6ma9ZsqSjUKGwwAldN+4n1dB7CBmHr+oOsbl38AlrLrfFlnXL2VClcluC
-# seE1i22cPtnaDjCvGUtgc95mmb7aWCxUNvOOex+24GGQwAr6n0h0Lzmm/0muFBuh
-# RLJH6xYfjoXULkqfsW74CAPmQJQL9qJA7LDjgr8boFnaQu4kTMnkaZyS2MMGLVwH
-# zeit12uku8uVhB4cLmDgCJIkyc3X4qipMy0Blo2zGXqLgXCytroF/B/aeNdQX+Cf
-# iDgHv1jA4EoD0QF/ah6ml0AV9tL/Uyh4xJDMk7bnJ/E8FlTdzIiiWr2ogoOn/fKN
-# WIyqQKk0GrssR4FnS4agghoklUKB+3iFQV/cpkfTfi8ryMYu1sGrOJyN5n4MZ1aL
-# 57/kD0bXqbabB5piWiDZmv6CaVPsPfkTlkOs2pybSt+ktyxwij4UiBhaC6NgGa/+
-# ZLpSn8MtdyXWa3mWHhQZIQqMiiUFBHVN5r/uQrMO9X3fNKByue9Bu9mPcV8vRIBu
-# SjZGX9HeNbQVpsqCRAijVC7NGHK9V57wNOCUxxpM25ocEJRgOSmJLPqxBTno5aZM
-# MACV+MfSxYEw2zV5T5v/nLSCU1B5Hp/yNSaiMyDzVMxSSms2GE0lIXd+21xWCMs0
-# yNmLoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIEPRCsf9qBO2Jv0WI2h8wZ2PoeC46/jbk1AszcZqpg6l
+# MA0GCSqGSIb3DQEBAQUABIICAK16NHYBmDcm39Y68DiNNb/V0MAvdu/AjYGIAX8R
+# Rjcbt0wXsHioLb5XxsIPhmcEvknPDxWSzS2NNvezcrnfQDih6Ie2iXS2QVJkkKx9
+# ltG5R00/tIrcCFPoDf2Kc62njrU2MYwVHQhOyhVGEmapEysmSGjDykFn926ZCIWS
+# WqUec4kWjXJ1ckW/t+3sErTyq9EWYmuPUxpOJPGF3AjZ7IP3ybMmnyLDnhgyBGck
+# Wdl8L/Bb9PtnxVciwEPbZqLEeUW1TDLT2lBvjbxFcfCWE9K8SfS4nRdv5M+e+DOK
+# KtQP9dzC0FOnc7VTcMpHgTEON7YYhp/Uf9NSE3mi1xIMrc2suGyTqAeZzDJwJ7uE
+# RSdRKSg1kmYSk74Hb1BfHqE/NBE+qyNdyNWznKo+WITRtUAHhrvgP25D95TZKCiS
+# mKM42s6o3M4NcNGLrWUUtCYyxCEDb1XuK3cJYmK5zcvKPgMH8G7QYaI+5v59NxWn
+# Af2pv/8+luwX0ed46aZN241rmBxec8PElBgKh52qVjERQx/q0+o5MdRighOjm/5Q
+# NPy5eMRZvB6iF6qzcfoJ4Jb0P9JZdlL2Vdk/Thng9E8J98AEwiNVxibaqJY5PlLI
+# nd+itH2neETn+P8o/llLR14fCQLHfB68ZnNvH9I3ubqsPT3A7tTrrw8ILJaHheDT
+# hmbhoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTEwNDIxMjU1MFowLwYJKoZIhvcNAQkE
-# MSIEIC+Eynorlg1v9LRvNAAHcqADcG7B+FtvjzLumyT3vgi+MA0GCSqGSIb3DQEB
-# AQUABIICAEzWRfy8OCu+oxoJJZEtJ8VqX9yrgUft18H9GcCAlJ1h1u1FDvucU/wT
-# DLrZxFrCL+v5emlYo/BirEYmGn9240v5QHSoz1F1ETu49d2GzvsGMIhfxDa1VUni
-# 6n6M+f6NH0+eQFDSeY/2MLnRDOBbqXTUqugozPuNFsQSvqn8jUutA1teVD1RNzsC
-# ERfEOuQz3K/AqsZmywYyOSLKSSmR5plhgOcBAE61pckX/yf9dH4eT+DsmxNpOQ3K
-# y5P5JDHbnfbi6hS/V9669kNFmj/dAHbTeaslx5hlwH3q978InpaR3miJVgY5AxDF
-# 3uZP8f3326xslEQPv6TsubhQpg1WZ0tu1umLfYvZdtHmv0K6vYo5zgStZKaUi+Af
-# V6YvOgPCTQ3wiUrQ+7n+vgqgYl63XQpH+P1SrPQ9/CE4ghCE8oBjOTQHmpIkhkZE
-# U7PBIZLbfqgvY7waEFX+xfy/u3DF8KlMpSP3CmsD7eSYmKyXowX43AMlu3aIuq8Z
-# uQBcrEUW2w2/CQLbKLB1mF/mvBlrgd7b0thYs5PiBvpY5CMwOAkvQhjrppOUiH6f
-# xdOHzLrGTcsYlpAFbvk6NcyYNyhasRGtSEKKEPh/ZLiLizUONIFRzfXo+La3Gx5b
-# ScQvEsLaHED6CvrPWH+NFGJwBaPjzqGPRlm0SkAzApwb3H/kfXy+
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTIwMzEyMjAyM1owLwYJKoZIhvcNAQkE
+# MSIEIIGu76nP7NmowCtmb8qChZhnct8c8aUEkSILFCiQCqolMA0GCSqGSIb3DQEB
+# AQUABIICAE07ltA0V6nPQlx1MI2EgymTTbfJ7lsC4GQkEf865HeLEbAYdmu51Dvq
+# kN9IzIoqLOqEWBaeuH3lyly4G6R12VEGSUUlWq0HCvp3fcAF7YtioIeSJIYIsHNy
+# eUMbJymPW+wJtYJX4/BP7zg8npLp3QkiaS9Ei4b2zi/B7qOR+nTNlWMkuZ9dQ+nt
+# zCXBkF+xdXjrMDmU4IDjcc0c80UXlDGJzGa8o2lSjsz+YffKaBD3mTZHKyNj+55r
+# N5p/bUco8d1Ho3yvn7zKDvC+U4zs42nkz9gCc7rCE9esUAU8dw3fZ2/53i5qgUPE
+# tN6eJTXNwAo6slGYR6C8Da+rXeCrwKP7QcJYuMmwekL5sLmEeTb/5IyECDJg6HNo
+# Fk0/t28HPfu9KQnp1fLx9amSB9e34NeJ1aIofbRzU/kwpqrkIy4ie8OQSGtu1TwP
+# LtUjRkO+ChIGKN9QzbIT5NJmrHWYNfsyHx2KIp5X2Zzad3piYeB4+jhy5GJtLpEH
+# LnahivAzvyx1bd96cnr9BgF6ITo8INKusfmGTFVi0DWFG4VBziumsqDeoenY4rbz
+# nRHuZqtrHXpngFH8QcPe0dIWtIvffdBT/hmEQBm4o3kmN1tssLSpyergdjm9Rtsn
+# sb1WD0u1GevhA7ymGVUcFK8435p3fw2jd+QIIxcsaXevNYff8A0L
 # SIG # End signature block
