@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.0.31
+  Version:        5.1.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -123,6 +123,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 08/10/2024 - ODT Fix
   Change 04/11/2024 - Block games in search bar
   Change 03/12/2024 - Fix for HP AppxPackage Removal
+  Change 10/12/2024 - Added registry keys to not display screens during OOBE when using Device prep (thanks Rudy)
 N/A
 #>
 
@@ -747,6 +748,31 @@ else {
 
 ##Kill Cortana again
 Get-AppxPackage Microsoft.549981C3F5F10 -allusers | Remove-AppxPackage
+
+
+
+############################################################################################################
+#                                   Disable unwanted OOBE screens for Device Prep                          #
+#                                                                                                          #
+############################################################################################################
+
+$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE"
+$registryPath2 = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System"
+$Name1 = "DisablePrivacyExperience"
+$Name2 = "DisableVoice"
+$Name3 = "PrivacyConsentStatus"
+$Name4 = "Protectyourpc"
+$Name5 = "HideEULAPage"
+$Name6 = "EnableFirstLogonAnimation"
+New-ItemProperty -Path $registryPath -Name $name1 -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path $registryPath -Name $name2 -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path $registryPath -Name $name3 -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path $registryPath -Name $name4 -Value 3 -PropertyType DWord -Force
+New-ItemProperty -Path $registryPath -Name $name5 -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path $registryPath2 -Name $name6 -Value 1 -PropertyType DWord -Force
+
+
+
 ############################################################################################################
 #                                        Remove Learn about this picture                                   #
 #                                                                                                          #
@@ -2076,8 +2102,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAdocKaOVOP2nxn
-# sDCfiXiJ/fGk466pCXxrS8fc/GJHdqCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCQDedbIu16G5hA
+# JAfBawg/QvKC3qb6Ld8vXdl/d+Vfg6CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2259,33 +2285,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIEPRCsf9qBO2Jv0WI2h8wZ2PoeC46/jbk1AszcZqpg6l
-# MA0GCSqGSIb3DQEBAQUABIICAK16NHYBmDcm39Y68DiNNb/V0MAvdu/AjYGIAX8R
-# Rjcbt0wXsHioLb5XxsIPhmcEvknPDxWSzS2NNvezcrnfQDih6Ie2iXS2QVJkkKx9
-# ltG5R00/tIrcCFPoDf2Kc62njrU2MYwVHQhOyhVGEmapEysmSGjDykFn926ZCIWS
-# WqUec4kWjXJ1ckW/t+3sErTyq9EWYmuPUxpOJPGF3AjZ7IP3ybMmnyLDnhgyBGck
-# Wdl8L/Bb9PtnxVciwEPbZqLEeUW1TDLT2lBvjbxFcfCWE9K8SfS4nRdv5M+e+DOK
-# KtQP9dzC0FOnc7VTcMpHgTEON7YYhp/Uf9NSE3mi1xIMrc2suGyTqAeZzDJwJ7uE
-# RSdRKSg1kmYSk74Hb1BfHqE/NBE+qyNdyNWznKo+WITRtUAHhrvgP25D95TZKCiS
-# mKM42s6o3M4NcNGLrWUUtCYyxCEDb1XuK3cJYmK5zcvKPgMH8G7QYaI+5v59NxWn
-# Af2pv/8+luwX0ed46aZN241rmBxec8PElBgKh52qVjERQx/q0+o5MdRighOjm/5Q
-# NPy5eMRZvB6iF6qzcfoJ4Jb0P9JZdlL2Vdk/Thng9E8J98AEwiNVxibaqJY5PlLI
-# nd+itH2neETn+P8o/llLR14fCQLHfB68ZnNvH9I3ubqsPT3A7tTrrw8ILJaHheDT
-# hmbhoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIF8yQbZkfNzt+wLe5HP9wpUorKyssTBnsxp/FgnWpsE7
+# MA0GCSqGSIb3DQEBAQUABIICAIhMe7fdnzwFQ+Ca+jHv0hPBtHC5WrWhdiK6OVfu
+# Ylm8kHPL4Vh9QW0qp4gcHHWWUrFvPQZdLyo6tTuvdPQxb2qc8rz0NU3iw1jZiqTK
+# Rwj6ZKABIq82aArWigrg+DwepO40fq9XtvANSDpOr6uWqctahngIDdYWS7IaUrzA
+# EsiYFovI3ammOA7w8aiBMXXW6C6//TcmMgFJvOwCzlVZqntMFKyu4CskLTF1C2Hy
+# D7hwf6up2WEt7GpSOP/9/yZxUE3Od7NY06F17ZtJZeM4UmH+HNfQRCXPWC4q4M7O
+# 1ZLA7epELcp6SC/Rv32nYsf7yJtNggZep75gHdieTNtHlm9KUVsDBgkPi5czcLKZ
+# jc2yMUa9L6PN6pmUvm0e6Hghp4TKN5KBydCYrx2XVVEJ2c2XtadXtTmA+sUiCvFa
+# jYiRTByzxfBj7/+KcVTHgwtCqUkzWEHHT1EkVCS9+qPB6tDH5zUlyaW1k56IArk1
+# ELGYNVTkto3zhgAcsMJ9WB8J8OHMvUhtMfN5UYy2xsvtprXDoBUTb5y63yVR53xP
+# L0kg+Qq4kMdo9DjjVC/LnINweYAoAzo7AmxuleEudMmuya7tlXiV/HiUNeebr0Lx
+# bWpV8qMD9Mp+w60uppC0mnKOfra6+OwS0nGL5XClOP6ujfVQPvJN61lUKgrTtFZG
+# In9AoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTIwMzEyMjAyM1owLwYJKoZIhvcNAQkE
-# MSIEIIGu76nP7NmowCtmb8qChZhnct8c8aUEkSILFCiQCqolMA0GCSqGSIb3DQEB
-# AQUABIICAE07ltA0V6nPQlx1MI2EgymTTbfJ7lsC4GQkEf865HeLEbAYdmu51Dvq
-# kN9IzIoqLOqEWBaeuH3lyly4G6R12VEGSUUlWq0HCvp3fcAF7YtioIeSJIYIsHNy
-# eUMbJymPW+wJtYJX4/BP7zg8npLp3QkiaS9Ei4b2zi/B7qOR+nTNlWMkuZ9dQ+nt
-# zCXBkF+xdXjrMDmU4IDjcc0c80UXlDGJzGa8o2lSjsz+YffKaBD3mTZHKyNj+55r
-# N5p/bUco8d1Ho3yvn7zKDvC+U4zs42nkz9gCc7rCE9esUAU8dw3fZ2/53i5qgUPE
-# tN6eJTXNwAo6slGYR6C8Da+rXeCrwKP7QcJYuMmwekL5sLmEeTb/5IyECDJg6HNo
-# Fk0/t28HPfu9KQnp1fLx9amSB9e34NeJ1aIofbRzU/kwpqrkIy4ie8OQSGtu1TwP
-# LtUjRkO+ChIGKN9QzbIT5NJmrHWYNfsyHx2KIp5X2Zzad3piYeB4+jhy5GJtLpEH
-# LnahivAzvyx1bd96cnr9BgF6ITo8INKusfmGTFVi0DWFG4VBziumsqDeoenY4rbz
-# nRHuZqtrHXpngFH8QcPe0dIWtIvffdBT/hmEQBm4o3kmN1tssLSpyergdjm9Rtsn
-# sb1WD0u1GevhA7ymGVUcFK8435p3fw2jd+QIIxcsaXevNYff8A0L
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTIxMDE1NDA0NVowLwYJKoZIhvcNAQkE
+# MSIEIA3UfGp+QyHn1rrDQKkaKYC7bmCkVZJLYsbgNA8bNff6MA0GCSqGSIb3DQEB
+# AQUABIICALpgvCNSVFtpJflaiM0Q6KbVVmV5VO4P66j7Vr27Ixo8TRc3kqICdDnc
+# 20CpQp6jHD70mXGVrAsbweaXYNcToPBcvo6x4oLU02gJg9AZLxMfFZZM12rsxOD3
+# ExglzYVrV9Fx3EXYntcjil5Xy/Zc4v8tJuCXuU4D2Bzk5ETUZKcwnNyOt0u4HT+f
+# axA30e2+M/JHSpf/9AmLTJ+lQ/fp22zqV1FcnFS2xoIvFEn/tlRnAQkamnTqqHoX
+# Wd3V8TCaKXtHDrEV11BzvQq9OWZZ8M3wALFuSziz0lGkumrAKT9Q40iCF1p3veUR
+# 9WWq+xIg+1vHAmL1CA+GylPLo3lbrepyq7tZVCnteB5wURkviMOlt1bKS/SLysBB
+# NITHxcoZ+h7+M6kIAkqFpLESjYgg7FBKE+4QOtLAqU0QiCym//iblwg/d038KNUE
+# mBgfFeafWfL4F6KtCQrEX/KTHdVGGUQqSq+3hVHaXtgNj2ObaO4h0s9ABCOWKVy1
+# 4ofDzxoaQSaZYsOjjW+4oEqHKnJbQw2IWjPCnx6HudxZmxVEMni+x6F3VMNVcBkI
+# oob59y2JB44ggH0KLhytC2cTqvJsxyOVugBSp9e2dtJ+3zdEBujq0OW/YdNZmE27
+# vE9hUevuomaFaxIATSZEPyPFRlAzVDCHG8FtPUkOVGZrh1rWft1p
 # SIG # End signature block
