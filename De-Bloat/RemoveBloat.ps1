@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.0
+  Version:        5.1.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -124,6 +124,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 04/11/2024 - Block games in search bar
   Change 03/12/2024 - Fix for HP AppxPackage Removal
   Change 10/12/2024 - Added registry keys to not display screens during OOBE when using Device prep (thanks Rudy)
+  Change 07/01/2024 - Added spotlight removal keys
 N/A
 #>
 
@@ -806,6 +807,43 @@ If (Test-Path $consumer) {
     Set-ItemProperty $consumer -Name "DisableWindowsConsumerFeatures" -Value 1
 }
 
+
+############################################################################################################
+#                                                   Disable Spotlight                                      #
+#                                                                                                          #
+############################################################################################################
+
+write-output "Disabling Windows Spotlight on lockscreen"
+$spotlight = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+If (Test-Path $spotlight) {
+    Set-ItemProperty $spotlight -Name "RotatingLockScreenOverlayEnabled" -Value 0
+    Set-ItemProperty $spotlight -Name "RotatingLockScreenEnabled" -Value 0
+}
+
+##Loop through users and do the same
+foreach ($sid in $UserSIDs) {
+    $spotlight = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    If (Test-Path $spotlight) {
+        Set-ItemProperty $spotlight -Name "RotatingLockScreenOverlayEnabled" -Value 0
+        Set-ItemProperty $spotlight -Name "RotatingLockScreenEnabled" -Value 0
+    }
+}
+
+write-output "Disabling Windows Spotlight on background"
+$spotlight = 'HKCU:\Software\Policies\Microsoft\Windows\CloudContent'
+If (Test-Path $spotlight) {
+    Set-ItemProperty $spotlight -Name "DisableSpotlightCollectionOnDesktop" -Value 1
+    Set-ItemProperty $spotlight -Name "DisableWindowsSpotlightFeatures" -Value 1
+}
+
+##Loop through users and do the same
+foreach ($sid in $UserSIDs) {
+    $spotlight = "Registry::HKU\$sid\Software\Policies\Microsoft\Windows\CloudContent"
+    If (Test-Path $spotlight) {
+        Set-ItemProperty $spotlight -Name "DisableSpotlightCollectionOnDesktop" -Value 1
+        Set-ItemProperty $spotlight -Name "DisableWindowsSpotlightFeatures" -Value 1
+    }
+}
 
 ############################################################################################################
 #                                        Remove Scheduled Tasks                                            #
@@ -2102,8 +2140,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCQDedbIu16G5hA
-# JAfBawg/QvKC3qb6Ld8vXdl/d+Vfg6CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAUJZ0bQNKN3weT
+# W3h9vPpcXwguuhYYmvL3K3i6/VeetaCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2285,33 +2323,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIF8yQbZkfNzt+wLe5HP9wpUorKyssTBnsxp/FgnWpsE7
-# MA0GCSqGSIb3DQEBAQUABIICAIhMe7fdnzwFQ+Ca+jHv0hPBtHC5WrWhdiK6OVfu
-# Ylm8kHPL4Vh9QW0qp4gcHHWWUrFvPQZdLyo6tTuvdPQxb2qc8rz0NU3iw1jZiqTK
-# Rwj6ZKABIq82aArWigrg+DwepO40fq9XtvANSDpOr6uWqctahngIDdYWS7IaUrzA
-# EsiYFovI3ammOA7w8aiBMXXW6C6//TcmMgFJvOwCzlVZqntMFKyu4CskLTF1C2Hy
-# D7hwf6up2WEt7GpSOP/9/yZxUE3Od7NY06F17ZtJZeM4UmH+HNfQRCXPWC4q4M7O
-# 1ZLA7epELcp6SC/Rv32nYsf7yJtNggZep75gHdieTNtHlm9KUVsDBgkPi5czcLKZ
-# jc2yMUa9L6PN6pmUvm0e6Hghp4TKN5KBydCYrx2XVVEJ2c2XtadXtTmA+sUiCvFa
-# jYiRTByzxfBj7/+KcVTHgwtCqUkzWEHHT1EkVCS9+qPB6tDH5zUlyaW1k56IArk1
-# ELGYNVTkto3zhgAcsMJ9WB8J8OHMvUhtMfN5UYy2xsvtprXDoBUTb5y63yVR53xP
-# L0kg+Qq4kMdo9DjjVC/LnINweYAoAzo7AmxuleEudMmuya7tlXiV/HiUNeebr0Lx
-# bWpV8qMD9Mp+w60uppC0mnKOfra6+OwS0nGL5XClOP6ujfVQPvJN61lUKgrTtFZG
-# In9AoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIFH8ZhA6eJibBtdpRDVxgEeX30kHvZISDpjuQRis7E7g
+# MA0GCSqGSIb3DQEBAQUABIICABvjf7E2iYQNi6mtLCSklbNRIJ9v4mqIZx66yfHf
+# NCGeOSVGUVBjIZMg7Nk5eryAtgK9EVzyl/Yxg36ZL/650j2I57SA5d7bNg5wgjzP
+# CmN8jDRHgGlNLDOqVABuLFxEnPecfWhrquXFEl1KNsz1N+3aTuKnYRpQorchlAVv
+# 0C5GN+byM5MfTQuuGd3+8I0CaESubcibVbdv9hHAv69BnYKWVnV64DBdBPZ9l7rd
+# qqrrXtG5KCVAITWKfDEOLbrZGRVbJVgjDppCLWAyIR8RHKyhvIxoEfNKgQEtdS90
+# aUcmdSj3WRAWzx76z/7Np/j23ljrb3pqfUaG9EZ2Vm4VdCjr9Sql8MV3e2gZml0n
+# sa+JPpt9Kn7WaawxOobU1gIy95rtjUzv8CGiALLsEfbsKIPXrKIN2QOV1GBSaYkW
+# 4AV+0Prlm0begZH5ADps4SlfP8Tr5b/FbpYoSlfK+rycHTL63envehs2xgrzdSUU
+# 5cvaHvfsVgMQ3zY4tASYm4r+CXkwQ3PvwQ6dSiV4IfpXHE1KcGZ61SSYHlYOoh6D
+# O0zw3REfA1AAEZ/o4CVexAgCCQT5YNiJ5BgzS1RfZum11THwZZMwTM4Y9ZlZmmcD
+# EmJWrSNK7WoONeKIG2C5eUuzCxbgLI6fzwMoWysinAodam8UfET55iez3z5H/y3W
+# aSySoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTIxMDE1NDA0NVowLwYJKoZIhvcNAQkE
-# MSIEIA3UfGp+QyHn1rrDQKkaKYC7bmCkVZJLYsbgNA8bNff6MA0GCSqGSIb3DQEB
-# AQUABIICALpgvCNSVFtpJflaiM0Q6KbVVmV5VO4P66j7Vr27Ixo8TRc3kqICdDnc
-# 20CpQp6jHD70mXGVrAsbweaXYNcToPBcvo6x4oLU02gJg9AZLxMfFZZM12rsxOD3
-# ExglzYVrV9Fx3EXYntcjil5Xy/Zc4v8tJuCXuU4D2Bzk5ETUZKcwnNyOt0u4HT+f
-# axA30e2+M/JHSpf/9AmLTJ+lQ/fp22zqV1FcnFS2xoIvFEn/tlRnAQkamnTqqHoX
-# Wd3V8TCaKXtHDrEV11BzvQq9OWZZ8M3wALFuSziz0lGkumrAKT9Q40iCF1p3veUR
-# 9WWq+xIg+1vHAmL1CA+GylPLo3lbrepyq7tZVCnteB5wURkviMOlt1bKS/SLysBB
-# NITHxcoZ+h7+M6kIAkqFpLESjYgg7FBKE+4QOtLAqU0QiCym//iblwg/d038KNUE
-# mBgfFeafWfL4F6KtCQrEX/KTHdVGGUQqSq+3hVHaXtgNj2ObaO4h0s9ABCOWKVy1
-# 4ofDzxoaQSaZYsOjjW+4oEqHKnJbQw2IWjPCnx6HudxZmxVEMni+x6F3VMNVcBkI
-# oob59y2JB44ggH0KLhytC2cTqvJsxyOVugBSp9e2dtJ+3zdEBujq0OW/YdNZmE27
-# vE9hUevuomaFaxIATSZEPyPFRlAzVDCHG8FtPUkOVGZrh1rWft1p
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDEwNzIzMTE0OFowLwYJKoZIhvcNAQkE
+# MSIEIPtkV0mNyF0oOrML6dg9eX5dVnPef5ir4Q4KdtQZ4h/hMA0GCSqGSIb3DQEB
+# AQUABIICAESVSM8bk1ielh0WWbZQpoPAOCKWuAWnAPWkw6rdl+XHwnmCXyneqm4y
+# ve7QUkms3RtTg0SSthifpcp6PcGUmNKxZ6NvPKrgHc1EPnJi9tPs7/mAOYVy8b59
+# rces63V3y2gktfKrNXMm4bPjkfAR6bmtf4hFkZept4y4fwalr6kyN8KcfcAGHy6k
+# U3cxRX+FGKB4ojVytDIsZVKbipon+rHEuUkgT85t9qE19jQnD85Ku+nU1zIJstnx
+# VaauQxhYk3Q3dCOO3maatUqeQXtB7Kiwidcy20QztY7Vr3FRmSgTRZOO9fgyqinT
+# 23u8eDJUqimvt8TizA2LnbyxEXqEkVGZGTRRNHBGvS86H0VFhEv6gITTKVrfDFXJ
+# bShKyQN75FBjyUcB7knmbKEXjruA60/lPkO4TmrriZ6HFcvjW13hReBOo3TKETGJ
+# 2mkUHdIM761ylgZ6R9C4VEiU98kGePHE+ESEdTmwlir7vyl3ZobmDDEnIxuWFrvN
+# awvDZJDYIb2hdcgQ7l0Xje4whrnOxxkJIPLFo/xSjAojm4Fb0cEOqvTbfgNkRYvk
+# X6YgRYKMiGxN1oDR+regeikvNmCw4hqx1cs1KI6+fHX4qw7kzzhSffKLn21nQQWO
+# UxnuraGYdRFx7JhP5cH/uO+zxSKU/3CIE7L832jsCVmJavUTN8RE
 # SIG # End signature block
