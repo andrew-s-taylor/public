@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.2
+  Version:        5.1.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -126,6 +126,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 10/12/2024 - Added registry keys to not display screens during OOBE when using Device prep (thanks Rudy)
   Change 07/01/2025 - Added spotlight removal keys
   Change 10/01/2025 - Added Lenovo Now
+  Change 21/01/2025 - Edge Surf game fix
 N/A
 #>
 
@@ -1176,7 +1177,7 @@ Remove-Item C:\Windows\Temp\SetACL.exe -recurse
 #                                        Disable Edge Surf Game                                            #
 #                                                                                                          #
 ############################################################################################################
-$surf = "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge"
+$surf = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
 If (!(Test-Path $surf)) {
     New-Item $surf
 }
@@ -2149,8 +2150,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAujVe6Dq6y749Z
-# pLmvrWd0wWqst++Ye8zBcD1wmxJg/qCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDbP01haw3+K4r4
+# idXXWToTFTc6kuu6u/pVm6GKyb5SCqCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2332,33 +2333,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIC1oYywvS5wLUCThPh9c2eRPsRuVE0lgABMsVPOi4gFC
-# MA0GCSqGSIb3DQEBAQUABIICACeD+RrxEHUlVo3RvoGRSyJ4/1YLDZsnEr4yzjb0
-# WfOEIFifyhy7xcqenMMYTgE5WAHTrUiTEc97Ea52xqGhzGGVq3ZSI+7NO7W/1Irz
-# IF9nTDuDgSJ/0HDzGqHntjElL66jhp07/m973C6ijXNjlkPLS65DiVgm84g4dOcm
-# EiANhjiug4c2HgGmcIcdouM3O1vgek/lnfbNWTaVb4ilI/bxdlRUZnG7DnBTzcSE
-# 7npxhBkyhP4ql/qsuKxjHzK8kqw+BK/X4hm4DVrllXeLuX9vCq5bsNyGnSNPWypf
-# cs2vfLTvtFBIli9ef2DE+Oh9XNP+WRV/rsqP/OXQ16TBBk50TYzxoW3rMWWUiu6I
-# 5cT8oQekKocmNqGVCe6aD/Qvr9DlP/8QbZQEsuel/MpPel+cjkEpquFfU0LOXYR9
-# oXm1UKind8W1u1FI7XRYPXQk1R//BuOPtr6eBy+nR7Y7dIfHLdsCCcbsm6kFNuLa
-# LTiZyi/iLliH5wldRVTOoKUwzOhdkNXE9g6mc1DAGpbuFPvQrbBRerdiuRCPQbY8
-# mS2VRMmvn8SReG7LSKGE5pPSI/tFMV6lPcu+47eFz8LRQKDS4ua/F9nlzC5CPFHg
-# qLd4PTFNjcx6v9MZ6s+Q2HBELRUzxiMGIp0HnCGMjo4Ii0cSVIj3Ft0MPnwdqfGC
-# mcJWoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIIyXF00f1H6yfwQMawpHp5l06pIuu9N5Eo8s/gj6GTot
+# MA0GCSqGSIb3DQEBAQUABIICAEsjLf9ZHwVZumcX+yPfeTumQrtNfihxpBWsbLNp
+# f+Qpb9S6K9EmBkjw7MtFrtjqJn79v139VzfsnNczQbV+vmeKSU7BBuOI9e1AmpBR
+# e5OJrYnw5bSCeUYjxFSXRKYxAI4hP9mh8eLHQCgYTX3zYwPn9BHJzgJ9131WY/oW
+# +0monQB8caFr9la9OsT++6sTAMpVXHpnuesyNXZzm4oa87cPxLIXhjoWwdRopYGv
+# Iy5CfbrEmTX2yNFb5s1TGua+sSXm0fwQPWncV7TelI08+MfjOMlW4Acm0baGNLvZ
+# cV7rFQpAhDmVWf6E8q98gzjyJeLlkqjLJRVjKKZD267qpqjqDkdT/h7g2wqMcy8v
+# EFh9UrXdb1KSt7eX0GKTp3voSQsPw1CrA1Xo9C2LiM8xBI82d3h45Iegu9BkdGvS
+# dZDdIBf2xgIL1fheMq/pnbHZDxx4h04iDDO/YkuKQPOw/bvLS/pFD1y/VUqFBajO
+# 7trNlRwmvUGvfD3I3YkI6DhGi3tWOvyD7+WQBgdxOSTEj/Kqc26Ans65IvC6tuNG
+# gTLQuv1bNwypzfTdasCA8DlcZHBSsDdAXabmcfVmOxJWgPuO9nNH/1TW6AfIT7GZ
+# 14hPjP8ODA3SmtlVuDFdrFMvlU48UYpstFltcXkBpoFLGXBAoi6GHeg0cPjXbRnG
+# C4/doYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDExMDE1MjIwOVowLwYJKoZIhvcNAQkE
-# MSIEILPEob8lTI2mO2OGiwXjmdymn6Jo5OyqGa2yyeNdnAiLMA0GCSqGSIb3DQEB
-# AQUABIICABBrnaFBRWidGL43+f1p1CuyLQe4+ES7J7lNKF2Nl+DmcDX2BzkerFtA
-# w/Q7yrFVBfO4fuxyGgiNdo2B0eiHIuFXnHDx6+APbOB2CnTbPbfnD784sbFA9tt1
-# rP6ieRxQv0CasyvaixYo703jFK/I62zIZaawR5oerrEmAFVBbM7YJri7STM7cuso
-# PAuwLHwOm++Mlsw4F0E9/GVa307DKXMHEXKNxyWLDKlJpp/hyhZQ4emkDTOqCxIC
-# aeYyilnD7G8sdhG6cB/ran+b8U4Y/kgjsckRXiVgR4jS2sfuvjLqnCGF4+1jsNC8
-# pOj8v25HyVTGKlYUSLUSYacn/vIHl1j7jtLoCBpzUabZmsN6MR+92AApKo4G/CvU
-# SX2QEUp/1l6jWoJZv2Pz4ryZJeWVRaFvt+HVIs++rODM1EBvR18QNCZ00I2PsNUO
-# 8QxFGCPTG3SrIz+HsUtzfEaZrqSBEIKabMRczi9eHuFEZFscvFD5OMbF9ol0GZkq
-# tHSekpUAk1bj/FbVnRBFbFXmPklPBgbyaitBPKtswODovlyrnAYF5SWpQksjwipo
-# bzwrsMA1ouW2/kPAwzWB21FDmSyByJpAc8NEsOXHLWNkn9pBRXnl6mrp3maU/6HB
-# MuNfJ3TuNGd8F5//jxex9pcdGKMURxZ4qtCIZof4exUoNBkOayMZ
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDEyMTE1NDgyOVowLwYJKoZIhvcNAQkE
+# MSIEIIvRXI7uijscr0Oc6XvnKPiBh6sScHz9kCNvfx1/QwN1MA0GCSqGSIb3DQEB
+# AQUABIICADpqDj9lblb4pXo1AWn+jlmv2UGbDN8AOdUASqvRnW/UaVGsldihdP8G
+# 9ty0A5I0cMCU6mHzqpO5/roMa0zYz4Pw5xkCdNypFEB04CE6Dgd+lVbmCZ4IEM8z
+# CVBC1uuSI7dTCKQEp7nHHq6gfBZMiKNfu8xBGDPeUWAJlwQ1AmIfXvZTPsL0x55E
+# Mcr+9BpbFV8ji0XE90UqBkWCpr+h+kaVMlbzsXsPI25pY0tuqfZdDV5CEorCSCYb
+# 5olfeahY1V/QSyZy5OHaYdL3KEgugXZ70S6Dfv8pPWlIDuwer1A3Xp6nUW6Urb2A
+# REjUQ57vRdIyVt7rnX1eqQth9rzq5pu2iRAH6cms8l/bDJdQliBrIY7oTN0kFKZx
+# ej3a8afCOzmYZqVJpw0pusShGBnukg7CPIguXfgXXCh6zfHA776siUOCQ3LtxbyH
+# Lsmd6/UfnweNh6fpDVxlGZx/qQ+GDRt79GOphgMpusRlKV6NKw3PC+lD/6D3TtAq
+# n0Clk4zfwTVuJV7jElwQsD+RXlwW6AZMZyHKlFkHF//TIYeIA+99l6C4fU3m1bYc
+# V8efJmlc1E9wuxxm5jux8TX2qfxj5Ba74Aepxdto7iqAvXfD/W1LtnytGV8iT05T
+# fcw2u54EoJSDxyZwENr9mRQ9K8bvP06iVgjxavC30AXL7/PFOm94
 # SIG # End signature block
