@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.3
+  Version:        5.1.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -127,6 +127,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 07/01/2025 - Added spotlight removal keys
   Change 10/01/2025 - Added Lenovo Now
   Change 21/01/2025 - Edge Surf game fix
+  Change 27/01/2025 - Added Logitech Download assistant
+  Change 27/01/2025 - Converted from CRLF to LF
 N/A
 #>
 
@@ -1183,6 +1185,28 @@ If (!(Test-Path $surf)) {
 }
 New-ItemProperty -Path $surf -Name 'AllowSurfGame' -Value 0 -PropertyType DWord
 
+
+############################################################################################################
+#                                       Remove Logitech Download Assistant                                 #
+#                                                                                                          #
+############################################################################################################
+$logi = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+If (!(Test-Path $logi)) {
+    ##Delete the key
+    Remove-ItemProperty -Path "HKLM:\$logi" -Name "Logitech Download Assistant"
+    Write-Output "Logitech Download Assistant Registry key removed."
+
+}
+
+##Remove the dll
+$logidll = "C:\Windows\System32\LogiLDA.dll"
+if (Test-Path $logidll) {
+    Remove-Item $logidll -Force
+    Write-Output "Logitech Download Assistant DLL removed."
+} else {
+    Write-Output "Logitech Download Assistant DLL not found."
+}
+
 ############################################################################################################
 #                                       Grab all Uninstall Strings                                         #
 #                                                                                                          #
@@ -2146,12 +2170,11 @@ else {
 write-output "Completed"
 
 Stop-Transcript
-
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDbP01haw3+K4r4
-# idXXWToTFTc6kuu6u/pVm6GKyb5SCqCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBSps/NXZdfv/YZ
+# Wlv4kA3Itly9qzohxnMM8bmMQ2pV0aCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2333,33 +2356,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIIyXF00f1H6yfwQMawpHp5l06pIuu9N5Eo8s/gj6GTot
-# MA0GCSqGSIb3DQEBAQUABIICAEsjLf9ZHwVZumcX+yPfeTumQrtNfihxpBWsbLNp
-# f+Qpb9S6K9EmBkjw7MtFrtjqJn79v139VzfsnNczQbV+vmeKSU7BBuOI9e1AmpBR
-# e5OJrYnw5bSCeUYjxFSXRKYxAI4hP9mh8eLHQCgYTX3zYwPn9BHJzgJ9131WY/oW
-# +0monQB8caFr9la9OsT++6sTAMpVXHpnuesyNXZzm4oa87cPxLIXhjoWwdRopYGv
-# Iy5CfbrEmTX2yNFb5s1TGua+sSXm0fwQPWncV7TelI08+MfjOMlW4Acm0baGNLvZ
-# cV7rFQpAhDmVWf6E8q98gzjyJeLlkqjLJRVjKKZD267qpqjqDkdT/h7g2wqMcy8v
-# EFh9UrXdb1KSt7eX0GKTp3voSQsPw1CrA1Xo9C2LiM8xBI82d3h45Iegu9BkdGvS
-# dZDdIBf2xgIL1fheMq/pnbHZDxx4h04iDDO/YkuKQPOw/bvLS/pFD1y/VUqFBajO
-# 7trNlRwmvUGvfD3I3YkI6DhGi3tWOvyD7+WQBgdxOSTEj/Kqc26Ans65IvC6tuNG
-# gTLQuv1bNwypzfTdasCA8DlcZHBSsDdAXabmcfVmOxJWgPuO9nNH/1TW6AfIT7GZ
-# 14hPjP8ODA3SmtlVuDFdrFMvlU48UYpstFltcXkBpoFLGXBAoi6GHeg0cPjXbRnG
-# C4/doYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIJNxUSxmBRGKTej3BXJjeAiZuahYQSI0Ptu7G8dvmeCw
+# MA0GCSqGSIb3DQEBAQUABIICAJuqFmTqNMNX63OcSZH4VEtFWsdKvTQLMiWU3fYS
+# 3qgvcSCH77QiwfFdYMxvqpYDcIsZ5TkeUSU8IxmJHhtRBGmW3kAzaRdwZHAKE1i2
+# Od6ZwxrF60+/zVz4XsTHnKPablbfH6dtf3NfvD4sWlL1gpuSA/8smhW73q32cHM3
+# SGj1AZZzTZdl+sOdS1xYoCkQF3H1epZiWMpJjeqhEI/+d2dxdgtvNijepGsF8+WU
+# q78hpxtXqARuIfMyohEh8KfxlZeFSPcKmgI29G1cp98u3L9EZbGQd92Dl91fSNhh
+# /ZnaqnA6udqyqL42jD99Deqb2v3HCTHH83/TqsUbhc9fmJPH7u/d2+IcBxNZjgoZ
+# e+/CEZYZf369g99Re4xS4msOD9gyPHV1I4wWwBDI1xfw8aIKj/IwwYknZSyNUf/k
+# BSxnAG9c2FUyNw+iM3RfwXjxo6ABDG5ay3jvt2Xu21wYsnXvyGw9fcTBtHx+/uw8
+# n6JIqzWKjWZArhLHr5Mo/INV80/NZHFjAl/pntbW6u3p/CKRSFfjYB2aJVvHiM2W
+# +zuywJXtUEMlyWFUaZpdup4Z86TAPCEJmEvLrpN0QiMGjjOBfhMtRN+cRZWq8yQe
+# 3j4IL6uYkoVcgEJcLp03NOBpYCGFrmjPvc55rJjDREcL6M6c2vjkjJOPEGxNfKKN
+# fLQKoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDEyMTE1NDgyOVowLwYJKoZIhvcNAQkE
-# MSIEIIvRXI7uijscr0Oc6XvnKPiBh6sScHz9kCNvfx1/QwN1MA0GCSqGSIb3DQEB
-# AQUABIICADpqDj9lblb4pXo1AWn+jlmv2UGbDN8AOdUASqvRnW/UaVGsldihdP8G
-# 9ty0A5I0cMCU6mHzqpO5/roMa0zYz4Pw5xkCdNypFEB04CE6Dgd+lVbmCZ4IEM8z
-# CVBC1uuSI7dTCKQEp7nHHq6gfBZMiKNfu8xBGDPeUWAJlwQ1AmIfXvZTPsL0x55E
-# Mcr+9BpbFV8ji0XE90UqBkWCpr+h+kaVMlbzsXsPI25pY0tuqfZdDV5CEorCSCYb
-# 5olfeahY1V/QSyZy5OHaYdL3KEgugXZ70S6Dfv8pPWlIDuwer1A3Xp6nUW6Urb2A
-# REjUQ57vRdIyVt7rnX1eqQth9rzq5pu2iRAH6cms8l/bDJdQliBrIY7oTN0kFKZx
-# ej3a8afCOzmYZqVJpw0pusShGBnukg7CPIguXfgXXCh6zfHA776siUOCQ3LtxbyH
-# Lsmd6/UfnweNh6fpDVxlGZx/qQ+GDRt79GOphgMpusRlKV6NKw3PC+lD/6D3TtAq
-# n0Clk4zfwTVuJV7jElwQsD+RXlwW6AZMZyHKlFkHF//TIYeIA+99l6C4fU3m1bYc
-# V8efJmlc1E9wuxxm5jux8TX2qfxj5Ba74Aepxdto7iqAvXfD/W1LtnytGV8iT05T
-# fcw2u54EoJSDxyZwENr9mRQ9K8bvP06iVgjxavC30AXL7/PFOm94
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDEyNzEwMzA1MlowLwYJKoZIhvcNAQkE
+# MSIEIBYpUfEYEaQyelGgGcL9iUErIV8FUW4ai/aCUMGk0gHNMA0GCSqGSIb3DQEB
+# AQUABIICAHDuRT7OU0JxQBOvtctKyAD36Jqs3rVnBppFQvQIwrJKBqCaZXvUGF1J
+# CXPzS+i1VCjwoCRUYDluNVZ1tH9W0fu6evVFpRyrMoMisejGogJC/OBwJeItbIbu
+# XvfNn1sJp+5hCpcTDUCdjqLcVW+UJSPv/+Fdclv5fM5LEOhwTJFuUruh8jRL0jkn
+# QpbQgBRPHIn3iBH2EW70aJXSkQ9LhYVLmzYAB+WrpLpMHD4EAVy2ZnuL5272Buss
+# 4jlYB41Y7k63xu+gMSOpneaDir03xQ38VKqZc2xmw0c4KnNbzu1VgGYuUZ9K9KYa
+# K88lajnVqbQZEEn0e2qJg9egnHQiMHbftguHXcnmDVZshs782Hv9tvY0LHKKkrC+
+# 5SMZB/SpGvyp2Mp+DdhgUU07KfvZC5mz/XK99cJ8Huu/P4biXnRnNyFTN9JpqpHJ
+# Wf0SkdbhGfpOc0kA69M+VQLUcLvjUDoiMoTMuhthmtXNfL3tKXvfWUblsVfnd5a7
+# Cb530xs8ttfZ6zt/En6dxr9P8HhnrsWQVp51a2FUaipS8orypcuUjxk+ZUL7LH8q
+# ykAQFDgfnpazbDBhwrb15wFTCNGg61QsMK8GFi0doYHnzYCwuAnwvvf6GKYp1AxO
+# 75F2Rp+EGN2QuPWOwKU5DL/fIgAiqx9c+g9THOqCsFa13Gl8Y9ac
 # SIG # End signature block
