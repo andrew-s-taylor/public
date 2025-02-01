@@ -1423,6 +1423,9 @@ if ($manufacturer -like "*HP*") {
         "HP Wolf Security - Console"
         "HP Wolf Security Application Support for Chrome 122.0.6261.139"
         "Windows Driver Package - HP Inc. sselam_4_4_2_453 AntiVirus  (11/01/2022 4.4.2.453)"
+        "HP Insights"
+        "HP Insights Analytics"
+        "HP Insights Analytics - Dependencies"
     )
 
 
@@ -1495,7 +1498,7 @@ if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Unin
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TCO Certified.lnk" -Force }
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Booking.com.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Booking.com.lnk" -Force }
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Adobe offers.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Adobe offers.lnk" -Force }
-
+    if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Miro Offer.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Miro offer.lnk" -Force }
 
     ##Remove Wolf Security
     wmic product where "name='HP Wolf Security'" call uninstall
@@ -2169,12 +2172,12 @@ else {
 
 write-output "Completed"
 
-Stop-Transcript
+Stop-Transcrip
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBSps/NXZdfv/YZ
-# Wlv4kA3Itly9qzohxnMM8bmMQ2pV0aCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAdMRCYcxBsBtGt
+# aVBkmIld3U7rTEJ2xi8JDqFyQMZUNKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2356,33 +2359,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIJNxUSxmBRGKTej3BXJjeAiZuahYQSI0Ptu7G8dvmeCw
-# MA0GCSqGSIb3DQEBAQUABIICAJuqFmTqNMNX63OcSZH4VEtFWsdKvTQLMiWU3fYS
-# 3qgvcSCH77QiwfFdYMxvqpYDcIsZ5TkeUSU8IxmJHhtRBGmW3kAzaRdwZHAKE1i2
-# Od6ZwxrF60+/zVz4XsTHnKPablbfH6dtf3NfvD4sWlL1gpuSA/8smhW73q32cHM3
-# SGj1AZZzTZdl+sOdS1xYoCkQF3H1epZiWMpJjeqhEI/+d2dxdgtvNijepGsF8+WU
-# q78hpxtXqARuIfMyohEh8KfxlZeFSPcKmgI29G1cp98u3L9EZbGQd92Dl91fSNhh
-# /ZnaqnA6udqyqL42jD99Deqb2v3HCTHH83/TqsUbhc9fmJPH7u/d2+IcBxNZjgoZ
-# e+/CEZYZf369g99Re4xS4msOD9gyPHV1I4wWwBDI1xfw8aIKj/IwwYknZSyNUf/k
-# BSxnAG9c2FUyNw+iM3RfwXjxo6ABDG5ay3jvt2Xu21wYsnXvyGw9fcTBtHx+/uw8
-# n6JIqzWKjWZArhLHr5Mo/INV80/NZHFjAl/pntbW6u3p/CKRSFfjYB2aJVvHiM2W
-# +zuywJXtUEMlyWFUaZpdup4Z86TAPCEJmEvLrpN0QiMGjjOBfhMtRN+cRZWq8yQe
-# 3j4IL6uYkoVcgEJcLp03NOBpYCGFrmjPvc55rJjDREcL6M6c2vjkjJOPEGxNfKKN
-# fLQKoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIMHIAUiAilTDlBtzycvtXHgfYPhCLbMI9LUpAtSlTQFG
+# MA0GCSqGSIb3DQEBAQUABIICADGKngWAOWmoX88q+tgkI/BOAMbhGEkeBTX7HwXs
+# /4GVK3+PU4N4U0dEbRMXNLiEdp8Sn9dgQMwre2dirsU047BZykPpA9+pgV68Bpdc
+# b1OkJKoti8Uym0dHag47DyRqxx9FKBaKm7vp7Se5g5KPWdxjG224vgWDi7BkqHiN
+# IHkiY2AVTcn7rOJA/2N0siiCEWiUlX0AliAVsADedxXuaxH3Zu6xdJx6y7Z/sbmy
+# BaACYN2koMLzZ5FDiM7yGeQr4HkOeD1Rj72hFERstJdZxrUZ+IA0T0I/bMsblGlV
+# jd69qeMh/UeWbAUxWDYbHgmEPZG/EF2agqkOfysqI6Zfj7nghMRtUQcjF/oNzLqG
+# 3TfRPukyHBBFVGvUtDVHsxGOjMpLvJvV1ha7+cUnAnNRsU++w7jT6ttIrtJyeE4a
+# A5FvafeuXoKTiDa3hY9z/BnBLzdr6dCMTA+MIZNZntJ3MGGkD2AEAXbO4uYrg/UY
+# qiNBrMLV7p/MH0/57xCbY5GtiKDB4rRi67U6rHVJZLs0QLSJpegCGPuq4JsFytgE
+# Obz0ix/A8mZeEonQllIP088HEvOddbJtRI7n9gFtsYqcbX/KnSk5I5wd8hMaUDrl
+# jpiioruv0aBXSmc/YUw5ck4nk0WLmIOxuOof07p5PXAnYdWtjlIakso1oQJR8foR
+# Qwf+oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDEyNzEwMzA1MlowLwYJKoZIhvcNAQkE
-# MSIEIBYpUfEYEaQyelGgGcL9iUErIV8FUW4ai/aCUMGk0gHNMA0GCSqGSIb3DQEB
-# AQUABIICAHDuRT7OU0JxQBOvtctKyAD36Jqs3rVnBppFQvQIwrJKBqCaZXvUGF1J
-# CXPzS+i1VCjwoCRUYDluNVZ1tH9W0fu6evVFpRyrMoMisejGogJC/OBwJeItbIbu
-# XvfNn1sJp+5hCpcTDUCdjqLcVW+UJSPv/+Fdclv5fM5LEOhwTJFuUruh8jRL0jkn
-# QpbQgBRPHIn3iBH2EW70aJXSkQ9LhYVLmzYAB+WrpLpMHD4EAVy2ZnuL5272Buss
-# 4jlYB41Y7k63xu+gMSOpneaDir03xQ38VKqZc2xmw0c4KnNbzu1VgGYuUZ9K9KYa
-# K88lajnVqbQZEEn0e2qJg9egnHQiMHbftguHXcnmDVZshs782Hv9tvY0LHKKkrC+
-# 5SMZB/SpGvyp2Mp+DdhgUU07KfvZC5mz/XK99cJ8Huu/P4biXnRnNyFTN9JpqpHJ
-# Wf0SkdbhGfpOc0kA69M+VQLUcLvjUDoiMoTMuhthmtXNfL3tKXvfWUblsVfnd5a7
-# Cb530xs8ttfZ6zt/En6dxr9P8HhnrsWQVp51a2FUaipS8orypcuUjxk+ZUL7LH8q
-# ykAQFDgfnpazbDBhwrb15wFTCNGg61QsMK8GFi0doYHnzYCwuAnwvvf6GKYp1AxO
-# 75F2Rp+EGN2QuPWOwKU5DL/fIgAiqx9c+g9THOqCsFa13Gl8Y9ac
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDIwMTE0NDAzNFowLwYJKoZIhvcNAQkE
+# MSIEICJo+PsWYEtneVaZ8GfMKY2I6ktqCcF4nv1t7mlYUH+xMA0GCSqGSIb3DQEB
+# AQUABIICAJMyjjgXxnzt9dR36JFb4+f3vAEgo91p0zDVS7Sd0Oes0nkLLhwRi2R/
+# 3rAuZuT+ZkZpj9z8gQa3L1shNMi3qJo+dR3vNB3owR6If9EDJcvILADjNY5E+bKX
+# SfPP5GsUNxlYNJjLZhvq3tSlBW85kyP0Odp0Pfc0wQtYlgs7CVAw3tCuTEyok48t
+# rF2TPxiNr1uXpSjhufCQEKHe5fakgWR1IcPy0Bvyo7XsWOjyciLsI1vJjjTFWRD/
+# LDIyxSaCVZ7LsqBM2gv6HLlVRIRWbFRG5z7PW6fqvYYrmiuo8//fZsAQK8NzszgM
+# IEQ44SMmjDsA6ZabHNTZ0f85/07SgH7tyT3/oL15KZt3eCGLEVaBO4IhutijSu6A
+# s0mXxf6VHucQdcNhhLirVpmC1RSsFir3P1mLVT9b3UbI1We959n0LWcYKb14tx6E
+# MDSuD2ZNjRtRu8hB5BvRoQ4OLRXKMSRw0yc76B7Id03WaC6cR8OenNBeaRoDrCpi
+# WVH1ahliXYV7fsu745pM9YJ1LdZMazSEca/toKLfE30SOhUPy8kUJSA298jkXLeO
+# vCYYAOwep0TbCc5SWLB383i2y5qcp0z0VtDywJzcpNqcsKlYu0E26tnecjsb2/cz
+# ym5ijkzfklJDeQslnXqsJ5MecPDRDDUiX2Pg6QDE6HZ8agRKWPCF
 # SIG # End signature block
