@@ -41,7 +41,7 @@ N/A
 
 ##Install Module
 
-#Install MS Graph if not available
+# Install MS Graph if not available
 if (Get-Module -ListAvailable -Name Microsoft.Graph) {
     Write-Host "Microsoft Graph Already Installed"
 } 
@@ -55,6 +55,7 @@ else {
     }
 }
 import-module microsoft.graph.intune
+
 ##Authenticate
 
 Function Connect-ToGraph {
@@ -92,6 +93,7 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 
     Process {
         Import-Module Microsoft.Graph.Authentication
+        Connect-MgGraph
         $version = (get-module microsoft.graph.authentication | Select-Object -expandproperty Version).major
 
         if ($AppId -ne "") {
@@ -135,9 +137,9 @@ Connect-ToGraph -TenantId $tenantID -AppId $app -AppSecret $secret
 Connect-ToGraph -Scopes "DeviceManagementApps.ReadWrite.All, DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, openid, profile, email, offline_access"
     
 
-    ####################################################
+####################################################
     
-Function Get-IntuneApplication(){
+Function Get-IntuneApplication() {
     
     <#
     .SYNOPSIS
@@ -161,25 +163,25 @@ Function Get-IntuneApplication(){
     $graphApiVersion = "Beta"
     $Resource = "deviceAppManagement/mobileApps"
     
-        try {
+    try {
     
-            if($Name){
+        if ($Name) {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
             (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { ($_.'displayName').contains("$Name") -and (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp")) }
     
-            }
+        }
     
-            else {
+        else {
     
             $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
             (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value | Where-Object { (!($_.'@odata.type').Contains("managed")) -and (!($_.'@odata.type').Contains("#microsoft.graph.iosVppApp")) }
     
-            }
-    
         }
     
-        catch {
+    }
+    
+    catch {
     
         $ex = $_.Exception
         Write-Host "Request to $Uri failed with HTTP Status $([int]$ex.Response.StatusCode) $($ex.Response.StatusDescription)" -f Red
@@ -193,16 +195,16 @@ Function Get-IntuneApplication(){
         write-host
         break
     
-        }
-    
     }
     
+}
     
-    ####################################################
+    
+####################################################
 
-Function Get-ApplicationAssignment(){
+Function Get-ApplicationAssignment() {
 
-<#
+    <#
 .SYNOPSIS
 This function is used to get an application assignment from the Graph API REST interface
 .DESCRIPTION
@@ -214,141 +216,47 @@ Returns an Application Assignment configured in Intune
 NAME: Get-ApplicationAssignment
 #>
 
-[cmdletbinding()]
+    [cmdletbinding()]
 
-param
-(
-    $ApplicationId
-)
+    param
+    (
+        $ApplicationId
+    )
 
-$graphApiVersion = "Beta"
-$Resource = "deviceAppManagement/mobileApps/$ApplicationId/assignments"
+    $graphApiVersion = "Beta"
+    $Resource = "deviceAppManagement/mobileApps/$ApplicationId/assignments"
 
     try {
 
-        if(!$ApplicationId){
+        if (!$ApplicationId) {
 
-        write-host "No Application Id specified, specify a valid Application Id" -f Red
+            write-host "No Application Id specified, specify a valid Application Id" -f Red
+            break
+
+        }
+
+        else {
+
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
+        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
+
+        }
+
+    }
+
+    catch {
+
+        $ex = $_.Exception
+        $errorResponse = $ex.Response.GetResponseStream()
+        $reader = New-Object System.IO.StreamReader($errorResponse)
+        $reader.BaseStream.Position = 0
+        $reader.DiscardBufferedData()
+        $responseBody = $reader.ReadToEnd();
+        Write-Host "Response content:`n$responseBody" -f Red
+        Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+        write-host
         break
 
-        }
-
-        else {
-
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
-        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-
-        }
-
-    }
-
-    catch {
-
-    $ex = $_.Exception
-    $errorResponse = $ex.Response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($errorResponse)
-    $reader.BaseStream.Position = 0
-    $reader.DiscardBufferedData()
-    $responseBody = $reader.ReadToEnd();
-    Write-Host "Response content:`n$responseBody" -f Red
-    Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
-
-    }
-
-}
-
-####################################################
-
-Function Get-AADGroup(){
-
-<#
-.SYNOPSIS
-This function is used to get AAD Groups from the Graph API REST interface
-.DESCRIPTION
-The function connects to the Graph API Interface and gets any Groups registered with AAD
-.EXAMPLE
-Get-AADGroup
-Returns all users registered with Azure AD
-.NOTES
-NAME: Get-AADGroup
-#>
-
-[cmdletbinding()]
-
-param
-(
-    $GroupName,
-    $id,
-    [switch]$Members
-)
-
-# Defining Variables
-$graphApiVersion = "v1.0"
-$Group_resource = "groups"
-
-    try {
-
-        if($id){
-
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Group_resource)?`$filter=id eq '$id'"
-        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-
-        }
-
-        elseif($GroupName -eq "" -or $GroupName -eq $null){
-
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$($Group_resource)"
-        (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-
-        }
-
-        else {
-
-            if(!$Members){
-
-            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Group_resource)?`$filter=displayname eq '$GroupName'"
-            (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-
-            }
-
-            elseif($Members){
-
-            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Group_resource)?`$filter=displayname eq '$GroupName'"
-            $Group = (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-
-                if($Group){
-
-                $GID = $Group.id
-
-                $Group.displayName
-                write-host
-
-                $uri = "https://graph.microsoft.com/$graphApiVersion/$($Group_resource)/$GID/Members"
-                (Invoke-MgGraphRequest -Uri $uri -Method Get -OutputType PSObject).Value
-
-                }
-
-            }
-
-        }
-
-    }
-
-    catch {
-
-    $ex = $_.Exception
-    $errorResponse = $ex.Response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($errorResponse)
-    $reader.BaseStream.Position = 0
-    $reader.DiscardBufferedData()
-    $responseBody = $reader.ReadToEnd();
-    Write-Host "Response content:`n$responseBody" -f Red
-    Write-Error "Request to $Uri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
-
     }
 
 }
@@ -356,48 +264,47 @@ $Group_resource = "groups"
 ####################################################
 
 
+$Intune_Apps = Get-IntuneApplication | Select-Object displayName, id | Out-GridView -Title "Intune Applications" -passthru | ForEach-Object {
 
-$Intune_Apps = Get-IntuneApplication | Select-Object displayName,id | Out-GridView -Title "Intune Applications" -passthru | ForEach-Object {
+    $thisapp = get-intuneapplication -Name $_.displayName
 
-$thisapp = get-intuneapplication -Name $_.displayName
-
-$apptype = switch($thisapp.'@odata.type') {
-"#microsoft.graph.win32LobApp" {"Win32 App"; break}
-"#microsoft.graph.microsoftStoreForBusinessApp" {"Store for Business App"; break}
-"#microsoft.graph.officeSuiteApp" {"M365 App"; break}
-"#microsoft.graph.windowsMicrosoftEdgeApp" {"Microsoft Edge"; break}
-"#microsoft.graph.windowsUniversalAppX" {"MSIX Package"; break}
+    $apptype = switch ($thisapp.'@odata.type') {
+        "#microsoft.graph.win32LobApp" { "Win32 App"; break }
+        "#microsoft.graph.microsoftStoreForBusinessApp" { "Store for Business App"; break }
+        "#microsoft.graph.officeSuiteApp" { "M365 App"; break }
+        "#microsoft.graph.windowsMicrosoftEdgeApp" { "Microsoft Edge"; break }
+        "#microsoft.graph.windowsUniversalAppX" { "MSIX Package"; break }
 
 
-}
+    }
 
-$appname = $thisapp.displayName
-$appid =  $thisapp.id
-$apptyef =  $apptype
+    $appname = $thisapp.displayName
+    $appid = $thisapp.id
+    $apptyef = $apptype
 
-$App_Assignment = Get-ApplicationAssignment -ApplicationId $_.id
+    $App_Assignment = Get-ApplicationAssignment -ApplicationId $_.id
 
-    if($App_Assignment){
+    if ($App_Assignment) {
 
-    $assignedtype =  "Application Assigned"
+        $assignedtype = "Application Assigned"
 
-        foreach($Assignment in $App_Assignment){
+        foreach ($Assignment in $App_Assignment) {
 
-        $assignedgroup = (Get-AADGroup -id $Assignment.target.GroupId).displayName 
-        $intent = $Assignment.intent
+            $assignedgroup = (Get-MgGroup -GroupId $Assignment.target.GroupId).displayName 
+            $intent = $Assignment.intent
 
         }
 
     }
     else {
 
-    $assignedtype = "No Application Assignment"
+        $assignedtype = "No Application Assignment"
 
     }
 
-    Write-Host
 
-$Appoutput = @"
+
+    $Appoutput = @"
 Name: $appname
 ID: $appid
 AppType: $apptype
@@ -406,11 +313,11 @@ Assigned Group(s): $assignedgroup
 Assigned Intent: $intent
 "@
 
-
-
     [System.Windows.MessageBox]::Show($Appoutput)
 
 }
+Write-Host $all
+
 
 # SIG # Begin signature block
 # MIIoGQYJKoZIhvcNAQcCoIIoCjCCKAYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
