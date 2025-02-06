@@ -1342,7 +1342,7 @@ $DetectionRule = @($FileRule)
 $ReturnCodes = Get-DefaultReturnCodes
 
 # Win32 Application Upload
-Upload-Win32Lob -SourceFile "$SourceFile" -DisplayName "Microsoft-Project" -publisher "Microsoft" `
+    Invoke-UploadWin32Lob -SourceFile "$SourceFile" -DisplayName "Microsoft-Project" -publisher "Microsoft" `
 -description "Microsoft Project x64 Current Branch" -detectionRules $DetectionRule -returnCodes $ReturnCodes `
 -installCmdLine "ServiceUI.exe -Process:explorer.exe Deploy-Application.exe" `
 -uninstallCmdLine "ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType Uninstall"
@@ -1437,7 +1437,7 @@ $DetectionRule = @($FileRule)
 $ReturnCodes = Get-DefaultReturnCodes
 
 # Win32 Application Upload
-Upload-Win32Lob -SourceFile "$SourceFile" -DisplayName "Microsoft-Visio" -publisher "Microsoft" `
+Invoke-UploadWin32Lob -SourceFile "$SourceFile" -DisplayName "Microsoft-Visio" -publisher "Microsoft" `
 -description "Microsoft Visio x64 Current Branch" -detectionRules $DetectionRule -returnCodes $ReturnCodes `
 -installCmdLine "ServiceUI.exe -Process:explorer.exe Deploy-Application.exe" `
 -uninstallCmdLine "ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType Uninstall"
