@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.5
+  Version:        5.1.6
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -130,6 +130,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 27/01/2025 - Added Logitech Download assistant
   Change 27/01/2025 - Converted from CRLF to LF
   Change 06/02/2025 - Added the t back to transcrip(t)
+  Change 10/02/2025 - Fixed logic for Logitech Registry key
 N/A
 #>
 
@@ -1192,11 +1193,10 @@ New-ItemProperty -Path $surf -Name 'AllowSurfGame' -Value 0 -PropertyType DWord
 #                                                                                                          #
 ############################################################################################################
 $logi = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-If (!(Test-Path $logi)) {
-    ##Delete the key
-    Remove-ItemProperty -Path "HKLM:\$logi" -Name "Logitech Download Assistant"
-    Write-Output "Logitech Download Assistant Registry key removed."
-
+If ((Get-ItemProperty $logi).PSObject.Properties.Name -contains 'Logitech Download Assistant') {
+    # Delete the key
+    Remove-ItemProperty -Path $logi -Name 'Logitech Download Assistant'
+    Write-Output 'Logitech Download Assistant Registry key removed.'
 }
 
 ##Remove the dll
@@ -2173,12 +2173,12 @@ else {
 
 write-output "Completed"
 
-Stop-Transcrip
+Stop-Transcri
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCy61KBC9ug1zn8
-# PgVY9XEz1+dA2oXZUlRVXqZvHhAodKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC6NIICxk4KVPxD
+# BtZyHEoCwumJ625Aq07K5xLNz5OmdKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2360,33 +2360,33 @@ Stop-Transcrip
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIBhRI/TArrXGQQtaG6PCtNdRxGRtkP9ZPJMLe08O3Wne
-# MA0GCSqGSIb3DQEBAQUABIICAFc15/1KFlD6kdBgxdkT4+2w96ClBGmpRrugyuXM
-# 0/PlnqLBq4+ZcOlwc31cVAoGHdki5qLcnHFLfwyyCk4H9Vn7BkIk0qEmwM9yS2D4
-# etENb/omcq7AV+N6lPEuRUmFo+N8bO1pDph5tCmnk0NN1koJ1WdQ5cvG1q40cxt8
-# 245SQ3fEcpDGlXNqEd2FpHrkNaYuOtDAF86B0alcj61s/SUcsby08Xvlbaz03zw/
-# PWQpWNGJF4IW/Ae1cy0/011KSVCn5sQQ7lMA2Po5voZD60ukuTx+d7npBmw1z8pO
-# zcdFNJ/m00F6+mDPtJ91T+Fc71iDCJHKkbalf9M9g7VWEl8dcXmg+Drf/KZJ+VeW
-# krUkJUSeYsCNc5KHc3dYkmzAO9qYM8mNvGhsNVLFo6UrHlwzcAtMXFkfwjTyaUMB
-# fRN1ehgaHIRwBobuKeMvt36zrWI44psEy2ku1kbutglHukmSGktjxxF7TO8x4Qow
-# CXGrUzjEF9YLsPOLeuJWMwrH3ZRVC6Iv6mCqOrex4SUaNp4hmkh1AdSE6ILTRl+C
-# 62ZaHVoX5Kmc2i9sQsdVJgHyjlGmEqhR//AfKBxVhCCX/kqnpGkwRsIZ+OLtwRde
-# bbFqctzYwIZ1MWbjRa6EG67KiGh/y5lmYtq5wEsHSXfEIwSljDD4SvVBbDZy+WPo
-# mHsRoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEID23MYAsz8X9fc6+SaVO7VBf6gVAe//p2DW6yPvcevVc
+# MA0GCSqGSIb3DQEBAQUABIICAEP9yyDXmRVvYCKVGwKBww9+fHbjymTpGsaK9eLW
+# /Aw4gDrhB75CUxizu7uIEdPg7hADPjF1D2ganGJDzl/rC1xig+/wIQZYAtsV/uHt
+# DrRAqXaY0XvG+RLYVAIb57aw9FaX+fJtyy7tLSYqWxf0FM3fkDVvBbmnJsxOyr/C
+# oYUyVDy5+Giq9DjabZYTNIWS+PeNSLPLU7ekGd9Mnt46KPZzvi+seJ3dtHDFi6pr
+# nz7yjRNNAltEArIk13tZrPhZPmxApqasld1ajCx8WDpWajJagh1tPz18UAuU2KCC
+# m7rPCYjfwRu0Fg92XvAqtoOPA7zZke0mw5IAryhtkncbu4EAQawxwIaD4DG5tQKA
+# qk5ZHnGeiCUPGwfP5qzFpKkwqK5S0GVHiLHS22t+0je8v7EhrE5weXf8CKDDc7N8
+# WsM8pCctJvWkVhzvdWX9DvWIeSKOpa7QA884ymO3QbakDLuPWunnp0QjCt7swFHM
+# 6cFcMZh30Z37J8yMkww4rY0PMbT9NTOZpTcO/V+Ea82iV7PvLO8z5gJDMrEnnnFo
+# f/3CUbrkGvKWW786WJ24Fiv4f3qdGMNRo+lrNqiCrzwatsLpd3FlW8hx7AFeiBxb
+# H8c0HQ8EYQtabbTWPU67CZmwSxVCDFA6o+kz6bf8cJRaQgim03aHzPp5LsAtmr8l
+# lwdPoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDIwNjE2MjgwNVowLwYJKoZIhvcNAQkE
-# MSIEIOc5pOJ76gMdN/Jj6fGEF4Zp4cShUj6iuzHnmmI/ydCfMA0GCSqGSIb3DQEB
-# AQUABIICAI4xbD7ytgHkSqURpfJP5keCcMkzsFBzZcdf8cimtHq+NmIF+aEZL32S
-# PUe4jeIBXOHgvRbGyyYIFa2GjjlqeqKZL63n3jj2hXsERL/4UP8w5VRGyARpRK2t
-# kSl4ev0J90iND2EfDtaPTcG8Be43KUoKjCXoib3Mq8UqFdeJ7CPEugiK21rYuerS
-# LleFNiDqJQ5c9mIWJ2E7vtA4L/JE5bj2pGs1TqQXISHErxc5Go5fdg0XqCuJ8bXT
-# Kzjs4FkEbXhlWXncSjiqKt9M1F0sZEf+go5f3aHDVtV4jHed2wxu+qk1H0RWDXor
-# VYZXQJ6rOUtDcCHFF6gqAI6EP0UhQcMiphaFUXZOPM8Eq9MqE5pxo61lyVimIDbz
-# ChlEUA4LMI4kvDNRZMUPlvUtvdRR5qG5o/7y51fCmnQmOl504/DRdlXFwI/5L/XP
-# cuVFPnTuXYgiev3XqPK4s1gxkk/hgqnU/Uw4mLxc/xjKeQDag/dbyEaleBjZ+F/y
-# 6Rhisre6ccSV79YG8XXNL1fbb59yao7NWwAFl1BOfI0HLAfuBi86fAd2ibmDok+7
-# zuqSH05JsjARQmHwDjAuNLLQ2QvCmLqBBFuYyB2BOGQ58g+IfIs0oQLt/l0lOJp6
-# VodmstdHHEcU3BHu/198T5LbXUScc/yWhbvuQrLJzIQfZx3r2f+j
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDIxMDA4NDIxNVowLwYJKoZIhvcNAQkE
+# MSIEIKVbYUCWNOWAJHfvpDJ26Av4QA9RoGIeBn9zlq/zG9btMA0GCSqGSIb3DQEB
+# AQUABIICAAi4Bkk0dNFi7vwcmDqpvz5/ZwT6A09p1EScjIj9r5eb2kEDphLXcXMU
+# SzJTKdGu7a5MIYejsl9nmfQuFxEY0kHyUSTihGiqNIIOw3TV6vK8LQPt+AhhyhHy
+# L9ITzPZRFrXEmJ0g6E4cVT/FxvcBAx0yUHgbz98KbxW+8dd2jQdJe86jssBd2f5j
+# WTzjtBXLRjObf3EYqHXba+rHkpCLNZSIRczUrpSKAReSvvIUeGng42PGdDIpqynz
+# Vk89NqsR9nCu+wWNO9r/KvRjDZ/M7RMeS7ZSRacsvYkB1Y4p+yD0YhQV72Mvzibt
+# AyMHdQQ6bR2UwHW7XQOzfCHS9oYvh4VtUg1WqmYVg17IDke6HuzZfvo4RW45xWCa
+# IFMwmG4aguqkGNFL4S8UkAv0FqKEMnDIgMMguR/F28zmPHTjFNNXgocVOm9De8ds
+# wyG6aQZg9nstozZfV1yOXkOindaIf1DeMtbuiCgLMdpcktW71EAUFI5ekCixv9vF
+# JSvciNA+TkfFUPMASjZHki8xV3SLqCWa70hlqK1XpPLG36OTzqHv7+kSmbZ3l1Tm
+# QrUR64OhEnNf3HJww/vDbNuARwQs8oOBqayhrfzVXjlLrtRqTMcp43icBdpxpHkY
+# R3wvJwNoAYg13cq2fOLyujJ/RDSvSzpQojFFnP9BJao3UrWEq3z8
 # SIG # End signature block
