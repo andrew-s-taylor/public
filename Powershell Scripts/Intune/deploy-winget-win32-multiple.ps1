@@ -467,7 +467,7 @@ function UploadAzureStorageChunk($sasUri, $id, $body) {
     }
         
     if ($logRequestUris) { Write-Verbose $request }
-    if ($logHeaders) { WriteHeaders $headers }
+    if ($logHeaders) { Write-Verbose $headers }
         
     try {
         Invoke-WebRequest $uri -Method Put -Headers $headers -Body $encodedBody -UseBasicParsing
