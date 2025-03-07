@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.6
+  Version:        5.1.7
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -131,6 +131,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 27/01/2025 - Converted from CRLF to LF
   Change 06/02/2025 - Added the t back to transcrip(t)
   Change 10/02/2025 - Fixed logic for Logitech Registry key
+  Change 07/03/2025 - commented out Logitech pending further testing
 N/A
 #>
 
@@ -1192,21 +1193,21 @@ New-ItemProperty -Path $surf -Name 'AllowSurfGame' -Value 0 -PropertyType DWord
 #                                       Remove Logitech Download Assistant                                 #
 #                                                                                                          #
 ############################################################################################################
-$logi = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-If ((Get-ItemProperty $logi).PSObject.Properties.Name -contains 'Logitech Download Assistant') {
-    # Delete the key
-    Remove-ItemProperty -Path $logi -Name 'Logitech Download Assistant'
-    Write-Output 'Logitech Download Assistant Registry key removed.'
-}
+#$logi = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+#If ((Get-ItemProperty $logi).PSObject.Properties.Name -contains 'Logitech Download Assistant') {
+#    # Delete the key
+#    Remove-ItemProperty -Path $logi -Name 'Logitech Download Assistant'
+#    Write-Output 'Logitech Download Assistant Registry key removed.'
+#}
 
 ##Remove the dll
-$logidll = "C:\Windows\System32\LogiLDA.dll"
-if (Test-Path $logidll) {
-    Remove-Item $logidll -Force
-    Write-Output "Logitech Download Assistant DLL removed."
-} else {
-    Write-Output "Logitech Download Assistant DLL not found."
-}
+#$logidll = "C:\Windows\System32\LogiLDA.dll"
+#if (Test-Path $logidll) {
+#    Remove-Item $logidll -Force
+#    Write-Output "Logitech Download Assistant DLL removed."
+#} else {
+#    Write-Output "Logitech Download Assistant DLL not found."
+#}
 
 ############################################################################################################
 #                                       Grab all Uninstall Strings                                         #
@@ -2173,12 +2174,12 @@ else {
 
 write-output "Completed"
 
-Stop-Transcri
+Stop-Transcr
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC6NIICxk4KVPxD
-# BtZyHEoCwumJ625Aq07K5xLNz5OmdKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDrU5uuz6FFfuDb
+# B7FM69JOQtB5t/bBAUfSY1W59uw0RaCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2360,33 +2361,33 @@ Stop-Transcri
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEID23MYAsz8X9fc6+SaVO7VBf6gVAe//p2DW6yPvcevVc
-# MA0GCSqGSIb3DQEBAQUABIICAEP9yyDXmRVvYCKVGwKBww9+fHbjymTpGsaK9eLW
-# /Aw4gDrhB75CUxizu7uIEdPg7hADPjF1D2ganGJDzl/rC1xig+/wIQZYAtsV/uHt
-# DrRAqXaY0XvG+RLYVAIb57aw9FaX+fJtyy7tLSYqWxf0FM3fkDVvBbmnJsxOyr/C
-# oYUyVDy5+Giq9DjabZYTNIWS+PeNSLPLU7ekGd9Mnt46KPZzvi+seJ3dtHDFi6pr
-# nz7yjRNNAltEArIk13tZrPhZPmxApqasld1ajCx8WDpWajJagh1tPz18UAuU2KCC
-# m7rPCYjfwRu0Fg92XvAqtoOPA7zZke0mw5IAryhtkncbu4EAQawxwIaD4DG5tQKA
-# qk5ZHnGeiCUPGwfP5qzFpKkwqK5S0GVHiLHS22t+0je8v7EhrE5weXf8CKDDc7N8
-# WsM8pCctJvWkVhzvdWX9DvWIeSKOpa7QA884ymO3QbakDLuPWunnp0QjCt7swFHM
-# 6cFcMZh30Z37J8yMkww4rY0PMbT9NTOZpTcO/V+Ea82iV7PvLO8z5gJDMrEnnnFo
-# f/3CUbrkGvKWW786WJ24Fiv4f3qdGMNRo+lrNqiCrzwatsLpd3FlW8hx7AFeiBxb
-# H8c0HQ8EYQtabbTWPU67CZmwSxVCDFA6o+kz6bf8cJRaQgim03aHzPp5LsAtmr8l
-# lwdPoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIKD1kGJu/rb6zNHGvEPbAYd/MMlpujwb3Ess1OwfcszN
+# MA0GCSqGSIb3DQEBAQUABIICAAeG+IZIdXJ/R7wgCnNAvmHO2zjmyGpFoOennrkj
+# /esp1tjvuv0h48yM6kHg0m+3Rw+To3LUUhV1HCKux9beLbyx6aNOR31R9zeKjb8p
+# jnWO5iJ+WIEwNnrL72P2HC25NRbqt9bFZ2+3zc0B2eZI1vgLKuk7mQ7ua06bsjCh
+# mfOn+0na4hsyvzbOV1PJ/mb9/1FXhljRXBKqh4xa2Z97G5PXKG6BX43gMtiFwpCy
+# k3UwNaz6zwyh4Pv4MWG0KLbawove97045N+vdQbrrTmwk0O+4muV+epuvGeNkvnD
+# yqQkANaJFApH8OA2XwN8RPFKzVDh3tNNo8PrKXqAwLnmGQjc7UWW8VNGTowPkVZy
+# PfJv81vuU0VE9VR9pI2HsWeIqIPPw3UCG1+Lsz4mYR4qpifktsH8/xlVyUP2iNo1
+# W/QpGk0Bxa8E1nZM8h4nUIT7OM873wvDUZVrdqEM9z/Kba/V760J4jVBXpTiohys
+# B9lL9KdanLZUJ5rOKBONafZsxcPzR6r44H6ybxMoSVG5bONRISI0SppvInCm1AYp
+# 8AjgiSXT1pe+wslmvKFp1xMDEQR/y7+q4iEJKmiXynoCpEVkv6shbXTqh9OlTSvO
+# //3tvyIaFnOuDsDsVO89ZDdMk2wBzpzg32hakRJ1uZMkuoU7lmKVNpKefSBBxiHn
+# 5ys0oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDIxMDA4NDIxNVowLwYJKoZIhvcNAQkE
-# MSIEIKVbYUCWNOWAJHfvpDJ26Av4QA9RoGIeBn9zlq/zG9btMA0GCSqGSIb3DQEB
-# AQUABIICAAi4Bkk0dNFi7vwcmDqpvz5/ZwT6A09p1EScjIj9r5eb2kEDphLXcXMU
-# SzJTKdGu7a5MIYejsl9nmfQuFxEY0kHyUSTihGiqNIIOw3TV6vK8LQPt+AhhyhHy
-# L9ITzPZRFrXEmJ0g6E4cVT/FxvcBAx0yUHgbz98KbxW+8dd2jQdJe86jssBd2f5j
-# WTzjtBXLRjObf3EYqHXba+rHkpCLNZSIRczUrpSKAReSvvIUeGng42PGdDIpqynz
-# Vk89NqsR9nCu+wWNO9r/KvRjDZ/M7RMeS7ZSRacsvYkB1Y4p+yD0YhQV72Mvzibt
-# AyMHdQQ6bR2UwHW7XQOzfCHS9oYvh4VtUg1WqmYVg17IDke6HuzZfvo4RW45xWCa
-# IFMwmG4aguqkGNFL4S8UkAv0FqKEMnDIgMMguR/F28zmPHTjFNNXgocVOm9De8ds
-# wyG6aQZg9nstozZfV1yOXkOindaIf1DeMtbuiCgLMdpcktW71EAUFI5ekCixv9vF
-# JSvciNA+TkfFUPMASjZHki8xV3SLqCWa70hlqK1XpPLG36OTzqHv7+kSmbZ3l1Tm
-# QrUR64OhEnNf3HJww/vDbNuARwQs8oOBqayhrfzVXjlLrtRqTMcp43icBdpxpHkY
-# R3wvJwNoAYg13cq2fOLyujJ/RDSvSzpQojFFnP9BJao3UrWEq3z8
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDMwNzE3NTExOFowLwYJKoZIhvcNAQkE
+# MSIEIF9t+vCh6V7a5hTbzVA6a9hZvBvoGdJ1/87BgdbOhCg7MA0GCSqGSIb3DQEB
+# AQUABIICAHfzyYzc0Ep733fO1lb2dsHp/Qds4FDiKp71FwnDC/Kop0PGIfMlV9ta
+# eN8Lh2GUs98QxXM6HDpnZNGAgI8P5yGBuRoqmHtFKTKBwZuL2LzDa2P4tmjbf3ip
+# vEm3MwxfU2aydzmv05NfDMV6r3cwIFa4iuJZ4yDNsoSA1HXGVafM7kQ4QAGXREtt
+# gvfYmU45nDW1+OYhHIrg/51zSh7EIDIZj7qMRIk1eJq0hTmkFDxgVtx/MG4KuReS
+# WvzJ85vFP8V4sUX31SNwcbzQ9TL2WF1+tQCCxSUIUAuuxlIMYGI238aZnyyHIHaF
+# xuMKXYxgZveerS5IQgQU1wbEh6FXg93i4H1v2WZuU0+R9rR4RaG2xliFas+x8Gm+
+# e4+HZ1fwHDFtM23QoSxXEDnV4+QiAipdOXwrJlrdYDdyTKvwDPNY8jAT/UWOs9EF
+# Hv4Py/yymHkhDcJ/AbfxxBr9k6uNi1p/Iad3Ach62tT9rdgRlSxzAhd4K9LNpyps
+# Y9jU17C4DJ72Yj8OBkqFOduv5jCwWSFtUemV9pvkcDCJrpbUmzCyW9viW5DPXgCV
+# lhk8CI5pamSrzmThvVXGVCQUfXHuPv2qdYWdN3qfUGDEarilXDiSbEN+uH1SDAHw
+# Tmf/yR0lpMBZ/5gAjH3x3whzd4P5h/8PewVyhQK2iSmzEOlp5UzQ
 # SIG # End signature block
