@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.7
+  Version:        5.1.8
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -132,6 +132,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/02/2025 - Added the t back to transcrip(t)
   Change 10/02/2025 - Fixed logic for Logitech Registry key
   Change 07/03/2025 - commented out Logitech pending further testing
+  Change 10/03/2025 - Fix for Windows backup version number
 N/A
 #>
 
@@ -920,7 +921,9 @@ if ($version -like "*Windows 10*") {
     write-output "Removing Windows Backup"
     $filepath = "C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\WindowsBackup\Assets"
     if (Test-Path $filepath) {
-        Remove-WindowsPackage -Online -PackageName "Microsoft-Windows-UserExperience-Desktop-Package~31bf3856ad364e35~amd64~~10.0.19041.3393"
+
+        $packagename = Get-WindowsPackage -Online | Where-Object {$_.PackageName -like "*Microsoft-Windows-UserExperience-Desktop-Package*"} | Select-Object -ExpandProperty PackageName
+        Remove-WindowsPackage -Online -PackageName $packagename
 
         ##Add back snipping tool functionality
         write-output "Adding Windows Shell Components"
@@ -2174,12 +2177,12 @@ else {
 
 write-output "Completed"
 
-Stop-Transcr
+Stop-Transc
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDrU5uuz6FFfuDb
-# B7FM69JOQtB5t/bBAUfSY1W59uw0RaCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAoC9TY5odmO8nt
+# nBXaMpVQvpCoIgeR+BMSUv7m3FBvOKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2361,33 +2364,33 @@ Stop-Transcr
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIKD1kGJu/rb6zNHGvEPbAYd/MMlpujwb3Ess1OwfcszN
-# MA0GCSqGSIb3DQEBAQUABIICAAeG+IZIdXJ/R7wgCnNAvmHO2zjmyGpFoOennrkj
-# /esp1tjvuv0h48yM6kHg0m+3Rw+To3LUUhV1HCKux9beLbyx6aNOR31R9zeKjb8p
-# jnWO5iJ+WIEwNnrL72P2HC25NRbqt9bFZ2+3zc0B2eZI1vgLKuk7mQ7ua06bsjCh
-# mfOn+0na4hsyvzbOV1PJ/mb9/1FXhljRXBKqh4xa2Z97G5PXKG6BX43gMtiFwpCy
-# k3UwNaz6zwyh4Pv4MWG0KLbawove97045N+vdQbrrTmwk0O+4muV+epuvGeNkvnD
-# yqQkANaJFApH8OA2XwN8RPFKzVDh3tNNo8PrKXqAwLnmGQjc7UWW8VNGTowPkVZy
-# PfJv81vuU0VE9VR9pI2HsWeIqIPPw3UCG1+Lsz4mYR4qpifktsH8/xlVyUP2iNo1
-# W/QpGk0Bxa8E1nZM8h4nUIT7OM873wvDUZVrdqEM9z/Kba/V760J4jVBXpTiohys
-# B9lL9KdanLZUJ5rOKBONafZsxcPzR6r44H6ybxMoSVG5bONRISI0SppvInCm1AYp
-# 8AjgiSXT1pe+wslmvKFp1xMDEQR/y7+q4iEJKmiXynoCpEVkv6shbXTqh9OlTSvO
-# //3tvyIaFnOuDsDsVO89ZDdMk2wBzpzg32hakRJ1uZMkuoU7lmKVNpKefSBBxiHn
-# 5ys0oYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIM1roK4alslUZFs1a9hrXSexnrkSAPlynck8M9HKr28+
+# MA0GCSqGSIb3DQEBAQUABIICAIgyCXJbLyeu2qMcSvqOKmbWKZQMaf+M6t+WFvhQ
+# 0L0CYkpHiNFqDoTBYAQVXjnP4TPaneab36PjPiX5NMZMMNrmXegxVyJVmjJYhJLw
+# PDW8iJ0OCDeWsCmEfomeaHKztP1Bt69CryaoILidkrlqUu4g2QUhKQVDnaUTgmdX
+# X+r9EEec303xei0QUTMLIXaBt4JsAQtjSD169737aWmNCwR+xcDo6E7DAAg0/8YR
+# h76avyQBuesfVjQwFUT5d2GN4u4DaaLQVafB7ayAS+sN8fireqVJzIK+LF5e0hxu
+# WlegKDSaLcRLj3hMTdJrN2oGev6gXqYo3nlXY/n75zMYk0yzwcjl0RsSlDULQW7l
+# vROGKcSkM+43vjGCDEG7kY9vqfseCkt7QI4AwwedRfUtml/weeiW5JKeGUHxsm1L
+# 5cTAklM3U7lyKNGlyE/hNMKnw87Eu1rdNrCPud0iaEzVqbsuu/T6egLgtInoIDiv
+# 4N6xmWWTg6XdryFyl/LQeGs0H+0SuicegeTe3SzawQzbpkS+4hGn5GGt0cs6VXDa
+# LzejdtAjVJmmIpm/C7iGEh0t1vLf7l/PkcmE91BMs1BVyJd+qvi1ojIJZ8Iv6dYn
+# x2SY76W3Po3PA/Qga10qUBNpuc7v3NXeAzRQuounv5gzt+6i20+LOc0IkbDBR+5o
+# i66BoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDMwNzE3NTExOFowLwYJKoZIhvcNAQkE
-# MSIEIF9t+vCh6V7a5hTbzVA6a9hZvBvoGdJ1/87BgdbOhCg7MA0GCSqGSIb3DQEB
-# AQUABIICAHfzyYzc0Ep733fO1lb2dsHp/Qds4FDiKp71FwnDC/Kop0PGIfMlV9ta
-# eN8Lh2GUs98QxXM6HDpnZNGAgI8P5yGBuRoqmHtFKTKBwZuL2LzDa2P4tmjbf3ip
-# vEm3MwxfU2aydzmv05NfDMV6r3cwIFa4iuJZ4yDNsoSA1HXGVafM7kQ4QAGXREtt
-# gvfYmU45nDW1+OYhHIrg/51zSh7EIDIZj7qMRIk1eJq0hTmkFDxgVtx/MG4KuReS
-# WvzJ85vFP8V4sUX31SNwcbzQ9TL2WF1+tQCCxSUIUAuuxlIMYGI238aZnyyHIHaF
-# xuMKXYxgZveerS5IQgQU1wbEh6FXg93i4H1v2WZuU0+R9rR4RaG2xliFas+x8Gm+
-# e4+HZ1fwHDFtM23QoSxXEDnV4+QiAipdOXwrJlrdYDdyTKvwDPNY8jAT/UWOs9EF
-# Hv4Py/yymHkhDcJ/AbfxxBr9k6uNi1p/Iad3Ach62tT9rdgRlSxzAhd4K9LNpyps
-# Y9jU17C4DJ72Yj8OBkqFOduv5jCwWSFtUemV9pvkcDCJrpbUmzCyW9viW5DPXgCV
-# lhk8CI5pamSrzmThvVXGVCQUfXHuPv2qdYWdN3qfUGDEarilXDiSbEN+uH1SDAHw
-# Tmf/yR0lpMBZ/5gAjH3x3whzd4P5h/8PewVyhQK2iSmzEOlp5UzQ
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDMxMDE0NTIwOVowLwYJKoZIhvcNAQkE
+# MSIEIPpSfe9gjQJ8T5PpxBEES/RcOTIW9VnblGeP12gLtK1tMA0GCSqGSIb3DQEB
+# AQUABIICALsjRqoeLA5m+Fwheil9/2G6o1wRr61PyguGvpICOGiy6akHmpFB0MeO
+# hdQE13w+d9U87HINGJY8LJuDEpxCMHsRz5NxVY0xoOGWPCsAsCd/sYHNnT62Xz0B
+# Cb9vAlfsMXMd5Jw4w8nz0YRDuCaafjtKjsSNZzXh4Td8X13ZkgK6ULsa51Y+s2p8
+# vbh4ZhWHB+T+6GoCuoV9OQWJ3vAoN3nxEEaePan/LFa5nOMtR4beJaEncagQrTSd
+# TT9VxTf4hNF3/9aLFlIZ0LI8AVkfM7+5fNM+mgbgRE2gkFRQPbVYKk/LXRyx5zQX
+# Hd5shOgpMD33z9rDpTab4rpLGSVePVRcNo7dq5BMAYfAwjkIap3SL55vk+cNlV+A
+# hxfYS9AJms1nk4pMoaqe8VvbwlobvPpkCXrW3bYi7Dbo/cI1GLr99Xbmx/7oLsxZ
+# pnsvBFQ+JJsEXXkaCe4DMNVt3l0AkLViPBYMDATy+HW5JSPaItsRFNYZcZcqzG1H
+# mxGwpoeIQxXcZoAYTKzkXhwkyaRrM00zewFukOj1tV31Ha3NHhf/9x7diknsb8jx
+# hEryZCUGEA6uODr8Si/peSiSDeIAS1DAuhUu0RFjvZxTHGhe3bNamlvccH9rf+MQ
+# pjftnOivvFrpDO8SUBRhCrF2my8l3ONaiI+oCOGowFJj8yGbtZ7H
 # SIG # End signature block
