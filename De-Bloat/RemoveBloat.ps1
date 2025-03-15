@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.8
+  Version:        5.1.9
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -133,6 +133,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 10/02/2025 - Fixed logic for Logitech Registry key
   Change 07/03/2025 - commented out Logitech pending further testing
   Change 10/03/2025 - Fix for Windows backup version number
+  Change 15/03/2025 - Added McAfee AppX package
 N/A
 #>
 
@@ -395,6 +396,8 @@ $Bloatware = @(
 "MSTeams"
 "RealtimeboardInc.RealtimeBoard"
 "SpotifyAB.SpotifyMusic"
+"5A894077.McAfeeSecurity"
+"5A894077.McAfeeSecurity_2.1.27.0_x64__wafk5atnkzcwy"
 #Optional: Typically not removed but you can if you need to for some reason
 #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
 #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
@@ -558,7 +561,7 @@ foreach ($sid in $UserSIDs) {
 
 ##Disables games from showing in Search bar
 write-output "Adding Registry key to stop games from search bar"
-$registryPath = "HKLM:\	SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
 If (!(Test-Path $registryPath)) {
     New-Item $registryPath
 }
@@ -2177,12 +2180,12 @@ else {
 
 write-output "Completed"
 
-Stop-Transc
+Stop-Trans
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAoC9TY5odmO8nt
-# nBXaMpVQvpCoIgeR+BMSUv7m3FBvOKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA6H4XehSOPEQKq
+# dLLzT7bifmvFvOk5/QPNi1sUeX6Q7qCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2364,33 +2367,33 @@ Stop-Transc
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIM1roK4alslUZFs1a9hrXSexnrkSAPlynck8M9HKr28+
-# MA0GCSqGSIb3DQEBAQUABIICAIgyCXJbLyeu2qMcSvqOKmbWKZQMaf+M6t+WFvhQ
-# 0L0CYkpHiNFqDoTBYAQVXjnP4TPaneab36PjPiX5NMZMMNrmXegxVyJVmjJYhJLw
-# PDW8iJ0OCDeWsCmEfomeaHKztP1Bt69CryaoILidkrlqUu4g2QUhKQVDnaUTgmdX
-# X+r9EEec303xei0QUTMLIXaBt4JsAQtjSD169737aWmNCwR+xcDo6E7DAAg0/8YR
-# h76avyQBuesfVjQwFUT5d2GN4u4DaaLQVafB7ayAS+sN8fireqVJzIK+LF5e0hxu
-# WlegKDSaLcRLj3hMTdJrN2oGev6gXqYo3nlXY/n75zMYk0yzwcjl0RsSlDULQW7l
-# vROGKcSkM+43vjGCDEG7kY9vqfseCkt7QI4AwwedRfUtml/weeiW5JKeGUHxsm1L
-# 5cTAklM3U7lyKNGlyE/hNMKnw87Eu1rdNrCPud0iaEzVqbsuu/T6egLgtInoIDiv
-# 4N6xmWWTg6XdryFyl/LQeGs0H+0SuicegeTe3SzawQzbpkS+4hGn5GGt0cs6VXDa
-# LzejdtAjVJmmIpm/C7iGEh0t1vLf7l/PkcmE91BMs1BVyJd+qvi1ojIJZ8Iv6dYn
-# x2SY76W3Po3PA/Qga10qUBNpuc7v3NXeAzRQuounv5gzt+6i20+LOc0IkbDBR+5o
-# i66BoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIFWPt6gKDIK//RN426IlEANhSIEraeIaaNoo2mGcM0ga
+# MA0GCSqGSIb3DQEBAQUABIICAL1wF0HOvhLlRM6dqthB1McTCfr860IUQO9wC+pv
+# OJBISf1Z+nzRO2U/kwpGOB13kBgd70n9eicAX9z8TGy20Ma1IPkboty9xKQpA542
+# FKF/F5Se6PB7WAYL+G1K0V9SU1oYGZCS8G1lKJCe0oNeBE6Fr8LHi3bq2GfUFVND
+# LMb6tOdrnjBA4/W/xMAlc8hph2OngPTFdWiWR/u75QfCNu7rINk6zLskQf30yBgU
+# IotFmOEg6IVZiUFejRANDROlASOrHbAeZ5EH1Y9zYFHNfVNwWQv7OF5PmBqcf2+7
+# 9MJmsVbYFRpg++WGdOY4xa53m/C5W8ImtuBq09j6/d2FrRQTejOa7SGx3cgDILzE
+# FVSAhJ5A7R6TOUVPrpXETPQwHW0tHFYW66ZKlEXul7/HdqVoUPS1xasp/+way9Rx
+# HzLN9bao24qjUx9zSOjCuzVefIbn+eH03MvcLVjjvgmW5gDZZ1eKICsop0KPew+v
+# e5BnjwLuL0wpu08QM+zVQKFMvQU8mEPUDawgKrK6RBCadNpjATkV3BSSpfWYhIyT
+# ZwmM3IpF0cXt2PGIHL7PM9lj92mCJ9CEiNKPJaP2C3gVLEDLmVchCdDGgBj5XoRR
+# o3x6Gat7JjQ1BggMeX0PqaGaodjeyOWtvV4ZvJLNgbW6lQCWSKE5AwLticXZ6VnO
+# fWLroYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDMxMDE0NTIwOVowLwYJKoZIhvcNAQkE
-# MSIEIPpSfe9gjQJ8T5PpxBEES/RcOTIW9VnblGeP12gLtK1tMA0GCSqGSIb3DQEB
-# AQUABIICALsjRqoeLA5m+Fwheil9/2G6o1wRr61PyguGvpICOGiy6akHmpFB0MeO
-# hdQE13w+d9U87HINGJY8LJuDEpxCMHsRz5NxVY0xoOGWPCsAsCd/sYHNnT62Xz0B
-# Cb9vAlfsMXMd5Jw4w8nz0YRDuCaafjtKjsSNZzXh4Td8X13ZkgK6ULsa51Y+s2p8
-# vbh4ZhWHB+T+6GoCuoV9OQWJ3vAoN3nxEEaePan/LFa5nOMtR4beJaEncagQrTSd
-# TT9VxTf4hNF3/9aLFlIZ0LI8AVkfM7+5fNM+mgbgRE2gkFRQPbVYKk/LXRyx5zQX
-# Hd5shOgpMD33z9rDpTab4rpLGSVePVRcNo7dq5BMAYfAwjkIap3SL55vk+cNlV+A
-# hxfYS9AJms1nk4pMoaqe8VvbwlobvPpkCXrW3bYi7Dbo/cI1GLr99Xbmx/7oLsxZ
-# pnsvBFQ+JJsEXXkaCe4DMNVt3l0AkLViPBYMDATy+HW5JSPaItsRFNYZcZcqzG1H
-# mxGwpoeIQxXcZoAYTKzkXhwkyaRrM00zewFukOj1tV31Ha3NHhf/9x7diknsb8jx
-# hEryZCUGEA6uODr8Si/peSiSDeIAS1DAuhUu0RFjvZxTHGhe3bNamlvccH9rf+MQ
-# pjftnOivvFrpDO8SUBRhCrF2my8l3ONaiI+oCOGowFJj8yGbtZ7H
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDMxNTE3MDY1MlowLwYJKoZIhvcNAQkE
+# MSIEIEPvH2xygHtQ5BYjMzd5TE8d3JsksH6w8eo1cstn2A92MA0GCSqGSIb3DQEB
+# AQUABIICAHKP65C7kMZo9ngWcI3yGLPxK3vkFGRPR/2Zh/jm28L3KkeaUARly/Ac
+# arOPB9TluGGg50PDoS2zTIWcEVw00H+BoAr7b6ZQs865eWM6Es6gYMms4R0M865s
+# opRoYcDLaGrfFFVSjNn4fgGejNB6WrvyWCPahumDDqtRAy0FBswRAL7OLi9UPmmb
+# VzImP9XwFu/y1BNIrSxav53zmMC3bVBqETG3kGv0yY+tsxBIDOkAmr9yDy7++IzU
+# oKDc/lwtu59TL6anOJverAqjlybN8kvLbO+436U3p60WeU9ZuBMnYi0d179gfuZr
+# gAXg+L0cvD/Lu/CQrTQy94A/je8m6ea1M9hTQbgFzdqePMRlpMxHNOATSxF6pAIC
+# LYVJPosc9WkWZaj5ffGzM4JOmi3LiSuoHmHoQyuH8l0NEs6b6qrQb0T+d++Qj5sp
+# /corHsuDJ3MvVt4fjtiI26lGdIBvmK2rvlPY5ENx6xlvIsplE5X8dBqYA9tXDwfh
+# HWt/W2Oeyhx4Wfkm3y4XWIIlRvRLEp4WHCoI8u2CrQKf0D9aLu4hkdmRcwgRV5Hh
+# 7wqqif/MDWTZQFQdCeYxhkQjs7voGMtTacj8uo662ieqwX+1I88E1FySygmXA3gG
+# FcETKySqEidFxYXTtmryxvfxO5XLs4eNurUcJPO4lhUPIz1LSDCw
 # SIG # End signature block
