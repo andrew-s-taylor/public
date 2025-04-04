@@ -203,7 +203,6 @@ $WhitelistedApps = @(
     'Microsoft.WindowsCamera',
     '.NET Framework',
     'Microsoft.HEIFImageExtension',
-    'Microsoft.ScreenSketch',
     'Microsoft.StorePurchaseApp',
     'Microsoft.VP9VideoExtensions',
     'Microsoft.WebMediaExtensions',
@@ -375,14 +374,11 @@ $Bloatware = @(
 "Microsoft.StorePurchaseApp"
 "Microsoft.SysinternalsSuite"
 "Microsoft.Teams"
-"Microsoft.Todos"
-"Microsoft.Whiteboard"
 "Microsoft.Windows.DevHome"
 "Microsoft.WindowsAlarms"
 "Microsoft.windowscommunicationsapps"
 "Microsoft.WindowsFeedbackHub"
 "Microsoft.WindowsMaps"
-"Microsoft.WindowsSoundRecorder"
 "Microsoft.Xbox.TCUI"
 "Microsoft.XboxApp"
 "Microsoft.XboxGameOverlay"
@@ -390,7 +386,6 @@ $Bloatware = @(
 "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
 "Microsoft.XboxIdentityProvider"
 "Microsoft.XboxSpeechToTextOverlay"
-"Microsoft.YourPhone"
 "Microsoft.ZuneMusic"
 "Microsoft.ZuneVideo"
 "MicrosoftCorporationII.MicrosoftFamily"
@@ -398,7 +393,6 @@ $Bloatware = @(
 "MicrosoftWindows.Client.WebExperience"
 "MicrosoftWindows.CrossDevice"
 "MirametrixInc.GlancebyMirametrix"
-"MSTeams"
 "RealtimeboardInc.RealtimeBoard"
 "SpotifyAB.SpotifyMusic"
 "5A894077.McAfeeSecurity"
@@ -417,6 +411,7 @@ $Bloatware = @(
 #"Microsoft.WindowsSoundRecorder"
 #"Microsoft.YourPhone"
 #"Microsoft.Todos"
+#"MSTeams"
 #"Microsoft.PowerAutomateDesktop"
 )
 
