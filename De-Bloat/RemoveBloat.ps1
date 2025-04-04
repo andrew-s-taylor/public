@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.13
+  Version:        5.1.14
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -138,6 +138,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 01/04/2025 - Changed WMIC to CIM
   Change 02/04/2025 - Removed duplicate camera
   Change 03/04/2025 - Added Codecs to whitelist
+  Change 04/04/2025 - Removed store from blacklist
 N/A
 #>
 
@@ -383,7 +384,6 @@ $Bloatware = @(
 "Microsoft.WindowsFeedbackHub"
 "Microsoft.WindowsMaps"
 "Microsoft.WindowsSoundRecorder"
-"Microsoft.WindowsStore"
 "Microsoft.Xbox.TCUI"
 "Microsoft.XboxApp"
 "Microsoft.XboxGameOverlay"
@@ -412,7 +412,6 @@ $Bloatware = @(
 #"*Microsoft.MicrosoftStickyNotes*"
 #"*Microsoft.Windows.Photos*"
 #"*Microsoft.WindowsCalculator*"
-#"*Microsoft.WindowsStore*"
 #"Microsoft.Office.Todo.List"
 #"Microsoft.Whiteboard"
 #"Microsoft.WindowsCamera"
@@ -2186,12 +2185,12 @@ else {
 
 write-output "Completed"
 
-Stop-Transcri
+Stop-Transcr
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDG0cIoTPwDqJWE
-# SEKgDh0v42rtxWYHUxiirzO9AyDwm6CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDdfmfFONlNuWoN
+# IGhU9qZfzzvUYKaR6RC8FrjpKwu1XKCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2373,33 +2372,33 @@ Stop-Transcri
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEILyVJK9kovH1hE+PaGg4kQgyJlwbB9vrrs8fn5VvVJbl
-# MA0GCSqGSIb3DQEBAQUABIICALwqpuDWnVFNrcTRagX+MrUnDW+xUNxALQ50G5Bi
-# T9dOdY2KGh3KqmTWzRDMbljkGK7kgq2q9cu5/APDdQbBB1PY2WR+sZnpwP5K7SgL
-# wPgb2lyS/AYjThWDcoWNJKacpWn9kx3lQm9j80tlMs7RcFHwXtIR1CFFKqcXTnkI
-# LSsXIkxRDwjthRS44L/yuZJnhhJnGwQSkfm8e5Sy0XNySxUr/4+0WTCSuRavRW9P
-# L9Gq9QJ2LN/QnkNpCHCVksfM10AfHqWqenwYJWVm3JwXjkqjvTbF0QDXSN8BEpA6
-# fQTD8t/wDiIFVWElWU2YuMxbe+sTr0JPb+NKgvHHdpatR90ogdiicVmoNnrYUoGX
-# +S2xisWi5/KZy/L7JtwZcQZGrVEh7p/3elaYS+Nu5SGCI61xfNTrnLlRL8MIThKS
-# 3Z2iBFMb8RlP9RIrrxeARATk1Agoaso5AoM0ZooUFQbqpXwatT3QT4SyDH8Ro7A8
-# wIig6sFRbJHKLh/p5k/i2glKHz5AFgjaNMNNX8LYAL3FnD96dM7A/LrbR4bYqTF4
-# 78vDT2BiT4n+vNO1JCtptDXru9mceer7cJ3/8fW/nqbsWPDVZqHRAGXM/P+IhvAt
-# gMKU3wGh/SzwekDtyJ+Zp19hdSBuJcbAnenULVTV9ubo4faw99vJnntHZM76XXMO
-# B+bQoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIOHbEerloYLNSd6Ns0AEEDZ2DpX16V37KQ6RMTDj1kTd
+# MA0GCSqGSIb3DQEBAQUABIICAGYODdGB0tjcwQWcgbLKVUYC8s8ASgxmrcoAMKdA
+# uuDVGQGO95QY6PUBLbhr47aeE1EsdyDsXExYxBVROSMpN5YEp0kiGA0aoZ/qn6EO
+# o5PgnfCSwfNVVTTn+xw18X4SacwCZ12jXhn5Bc9daq3vbg8HTHhAujygffNH9SU+
+# K49Ndm6O656iy/Pfszbb5363aY2GTX3wxS9u0X9lzCqZXf4dTSd3q3Ab0UxBUhih
+# OmzX5a1rJEMoQNbXS0wDPIFyVeAsaWlGwqHY6X7i7i0nOO9X8XeygvB0iMNHZeaj
+# uKR/+cEbG6YrIny9QTFN756zBE6jGcP3OCYivHoZD4gqQ6TAF6WchQ0WfSAE3jmy
+# u77swSE2KYDGH5nJLlONiNFBJfsCk1pIBjtBi4seCOgbvz0/GPs3vrmNfqS2Fa9p
+# F0gdSK+oz7+GTtQ8VLYWPkwtoFOnbKE6uUq2gvX/qFzaS/2MEZH2w+fm2AS+8s+M
+# s0HFj0PALBPQg3g0u6lfBChxh38Bf69K2XFIHfwFQq0vZbcsrl0JinjJt2c6+DJ/
+# C9wfkifUmByChrM3dn36I/beU6U+Ayr5J/t7tcktA/j5VkIwxkXRJBFvXhEvdoW3
+# oMn+31ZK6yKUhcTBZlBPCPshyhcaUftWdYgBpg//SiGXauVXhuFPH4PzZRhOooqo
+# 3EyfoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDQwMzExMTUwOVowLwYJKoZIhvcNAQkE
-# MSIEIEKJ9J9buXQybw3vEKdgh5BXigorZE8W7rOgaY5OzPqfMA0GCSqGSIb3DQEB
-# AQUABIICAD7pSNSKkDLR7j84nq+U+bYv5xnMkefPj6hYGJ/ljOvS+IlmWe9kx/HR
-# xwUOXXNGWIwwRT9atnyKMLM2kSy8w+idGB7ogUS/x80wY1nAIeocCI3T0zxXeVW1
-# 5X35ub71ju9CDjmBYjemv8KI3E1jt+z45RdUdxmGkJ5hKHNpztp+j9c4f+1JkhBq
-# kqMwTn17Z6d7fFeJAsLmPS3hQLGlksQUZ1SgNL8WZI6joXZZPemr2dIbW6oDUb7c
-# cM93fZiJwpaFiwTTEUhb01Q/eubdIbFmsTSe6vztPYuCtgT33Di7yHNZEcV3FCtd
-# l6F3TkgxiyoY2Eq3CNOtvwVQulrL+S66XSEJhii4B1lti5ZrGvno57f6uzkIqZUT
-# pYva4Rb8XwTxHtzhVy3stJv0va9mqK723+Tkzeh3O5Js9JKqN6c/qOeMdVJg8w5g
-# hF77Yq7yfznVrlc8N3WFYJAw7OHTLgYnsQC/mKJAfE1cSXC9FoL0HN2ooyhxAyH7
-# iOmE0ReUL/JcrklTeNqUxFR6sNGilW5DOAG5Aco1dc4InYU0pddBF/vD6dUzS7O3
-# lxZNS5pQpBklaBn2S+dZQqL1naWww2Qxc1hTMxgpnKO3PProAZuRLYyncplfhp/w
-# /tmjbZ9VPs2WeM4NvOrQEv0H2YfgtpFxSQxbfTsEurF17CdlZsjM
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDQwNDEzMzI1OVowLwYJKoZIhvcNAQkE
+# MSIEIB1jLMQSVlO04huEodM1RXhSm5jpBHwuY4IMNOJ74ISsMA0GCSqGSIb3DQEB
+# AQUABIICAFDYrq4XVTJeutLZbTsyWCS29S2veWUmYOgIKDidPp4gK7/tOjtym/pc
+# rljpqVM4sQdXvMpcL1XOFoU+c6krVPrj+Hg+p83isqaSlvNqRiGr/HL4qSawzyEo
+# CWOKxpWDCrNPkZI0KQ2hkNthEw36gn/jkD7Z8XHfqRRmrzXkXIZA1KQqtxqEsnSw
+# AayptKfhlhnk2QstQE3jV4kLsHC0vOUDzdKpt7RKCU6m+pD/lxaSk6MFuBe4bSVM
+# UqlrN2ynqzeNa2VdnTo7vr88xuQbRmX2iINDidgwebw6H5KdLNao4CnBWqk3s4xp
+# cmFjIHipLExi0aXNXgWZKlfJh5zgTZ0MjrdlV/AeqlazUM8B/GfM+qZ5Dgiuqqwl
+# 6MSmVg/f9JcWavoVQ66N7PI/bAquFctkpD8py32IuyThdlTBwkGaTsGMSzS7Odg3
+# EetAV3jdgrj/+hW8SGdQOSHo/ebUxTwXhqI1NoHVrkytg7399dMQgH/sgtt502dn
+# Ey0Ngf7+U511GtcgoMJdRfi79hGqRLbIxKOTjaF3sarrt4uAUr4xlEQ4lR3D2RLo
+# ERVQOXjRJGrtJ+5OdiAbWIj8DaWG3ZV8zZY/adVC9/z+MNJSBsSMWHloaTb+7Jfk
+# hyqh+t6j8qGyDX6bv26t1PiEqs/ta1cSH70O6R2See8Go2aPrhth
 # SIG # End signature block
