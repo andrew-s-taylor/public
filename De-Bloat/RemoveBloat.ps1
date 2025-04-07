@@ -780,7 +780,7 @@ New-ItemProperty -Path $registryPath -Name $name2 -Value 1 -PropertyType DWord -
 New-ItemProperty -Path $registryPath -Name $name3 -Value 1 -PropertyType DWord -Force
 New-ItemProperty -Path $registryPath -Name $name4 -Value 3 -PropertyType DWord -Force
 New-ItemProperty -Path $registryPath -Name $name5 -Value 1 -PropertyType DWord -Force
-New-ItemProperty -Path $registryPath2 -Name $name6 -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path $registryPath2 -Name $name6 -Value 0 -PropertyType DWord -Force
 
 
 
