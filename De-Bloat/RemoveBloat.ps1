@@ -2149,11 +2149,12 @@ if ($IsOOBEComplete -eq 0) {
 
 
     }
+
+## Create XML to Remove Retail Copies of Office 365 and OneNote.
 $xml = @"
 <Configuration>
   <Display Level="None" AcceptEULA="True" />
   <Property Name="FORCEAPPSHUTDOWN" Value="True" />
-  #<Remove All="TRUE">  <#Remove All Click To Runs (C2R) found on the Mahcine regadless of product or Language un comment this line and comment or remove the lines below.#>
   <Remove>
     <Product ID="O365HomePremRetail"/>
     <Product ID="OneNoteFreeRetail"/>
