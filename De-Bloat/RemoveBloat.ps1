@@ -995,15 +995,12 @@ if ($version -like "*Windows 11*") {
     if (!(Test-Path $registryPath)) {
         # If the registry key doesn't exist, create it
         [Microsoft.Win32.RegistryKey]$HKUCoPilot = [Microsoft.Win32.Registry]::Users.CreateSubKey("temphive\Software\Policies\Microsoft\Windows\WindowsCopilot", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree)
-        $HKUCoPilot.SetValue("TurnOffWindowsCopilot", 0x1, [Microsoft.Win32.RegistryValueKind]::DWord)
+        $HKUCoPilot.SetValue($propertyName, $propertyValue, [Microsoft.Win32.RegistryValueKind]::DWord)
+
+        $HKUCoPilot.Flush()
+        $HKUCoPilot.Close()
     }
 
-
-
-
-
-    $HKUCoPilot.Flush()
-    $HKUCoPilot.Close()
     [gc]::Collect()
     [gc]::WaitForPendingFinalizers()
     reg unload HKU\temphive
