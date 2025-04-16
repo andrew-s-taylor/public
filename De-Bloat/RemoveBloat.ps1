@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.14
+  Version:        5.1.15
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -140,6 +140,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 03/04/2025 - Added Codecs to whitelist
   Change 04/04/2025 - Removed store from blacklist
   Change 06/04/2025 - PR Merge to remove duplicates
+  Change 15/04/2025 - PR Merge to fix reg flush/close
 N/A
 #>
 
@@ -995,15 +996,12 @@ if ($version -like "*Windows 11*") {
     if (!(Test-Path $registryPath)) {
         # If the registry key doesn't exist, create it
         [Microsoft.Win32.RegistryKey]$HKUCoPilot = [Microsoft.Win32.Registry]::Users.CreateSubKey("temphive\Software\Policies\Microsoft\Windows\WindowsCopilot", [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree)
-        $HKUCoPilot.SetValue("TurnOffWindowsCopilot", 0x1, [Microsoft.Win32.RegistryValueKind]::DWord)
+        $HKUCoPilot.SetValue($propertyName, $propertyValue, [Microsoft.Win32.RegistryValueKind]::DWord)
+
+        $HKUCoPilot.Flush()
+        $HKUCoPilot.Close()
     }
 
-
-
-
-
-    $HKUCoPilot.Flush()
-    $HKUCoPilot.Close()
     [gc]::Collect()
     [gc]::WaitForPendingFinalizers()
     reg unload HKU\temphive
@@ -2203,12 +2201,15 @@ else {
 
 write-output "Completed"
 
-Stop-Transc
+Stop-Transcript
+
+
+
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBNT8IvNDWl5nfv
-# y0hQHo1PUfw7U9gCdC2qJqw/AYJQcaCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDlJGqcS5uVjZuM
+# 1qLJJbHwH7IqAQHJwR9mPLho+9o6v6CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2390,33 +2391,33 @@ Stop-Transc
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIDs258B1IDW1WWJwLSE43p+BaeeMmaEOT75oABLCIWHv
-# MA0GCSqGSIb3DQEBAQUABIICABeQm1C6nrujfrxil5jwF872oesMcLdnkDT265Ge
-# uM/QONAU/AacPBjiMSKSJAs5BrK6Mef1H567cMnVQwc2dTtPJR3cpvDL4HpcHdCS
-# NukUKkx3vGuvFR+jOOy/9PbzRxH0Br5AVIZ2hgQDAMmpLeFsEXyi2DSE+FxvV22P
-# Utz9MucgHr1ep8b0Mz69hfARlgaDyW4ooUZrdkuc60NUyRs7F8GzKtzve1OzGvuN
-# etFNdQybsBCgWzi86S3eieDzd14IVzbNpNve5pwkac16hsFUSAdnsaVMAG0WwGG2
-# efh/YzseIIuWPIRJrBkjhxIAUqR8Y6c3BJmkWi/DNCeosi5CTvrnor5O+bYpLHKI
-# K4dLDSPnS5NFeS564ATC4EryiSr/gaRmHSXLa9jP0G0+YTlnFMPEN7t5TbgSWtKa
-# eTs6RrAppY/fnyiMAmlqAt32+HfLCnYsWmFqOL6vbHGAnUYHwqruEp8WHALHVp55
-# X3l7o5wBFdxpUz7elnniBsTCSWBVX3AlmdcHPCjs/S9Dtwp2D4o0/fADJEn5Wrsk
-# aD+8tRC6LiF5YaWZpSiAjQTviN3piCfgw2plPD9EMV0iA9JBZt4ZJd+vzDTAlLTL
-# PzyqzOUW1lClqrIlcZohJqTBakXJExk3BOqd2ZbBNijBrKXvlZEmMQLlKxol+V/V
-# BrIMoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIFin63YIc/zgeCcViuW440mA5F18iNbJpTvtyJNdbdpn
+# MA0GCSqGSIb3DQEBAQUABIICABF/P8PFQv3KS433nsoYIdevUn+PVzSgkb+cANxz
+# mxjkWpsbxTd4kHoVVrw/FE3cZSF6jlHtjqlr6NtqdEArIbroV+TdWwhKYyQP08Nn
+# lD8PC9Zy9TmEMU6JG0biE/BpsmxD0BrDlNFyVpxuOidS6ydQVkr5FlbfFpmvPCnE
+# g+vVAQRxE/oLW5ivdCrQCDFbuBBoIG6IzpcDVVDGRdOxcl/4AK4+U+oy+4zwG/kk
+# W4QmK1EzkqxFdN+mAGew9bo+J9DfF22nW3LAJtgZkxm3Yze/0ntjQKVvQNgdCB9p
+# wDYol0nAi0joVJgvAGWjm3iDrn/wSbrK8KpMxhUyoVpRZhErLVf9dt9cM03B0cD4
+# djYIs3cjx8GoRH3nRTRyNI2SKrtUSxRG2kbifraMoaxCL4GEKAtFx5wsSK9/o580
+# bHdx09tTpuI8EdCnucTxPR7bd/lp1Dzz2le4RFmYodOfPavKzPrU98/7jUDfLM8Q
+# P4X+wfTp22+DmvhyziLMFplkyUrhmAIGqh0G2poP5N1wE7HoWDAS/RpJd4KtkTtC
+# RpG0rFTbQF/R6c4D5xljt2XvNfZHEl5wHmLSv4XLpQCqwmv5jjIkCiNuT3rjoWXy
+# G4gMyaYo7I6t6qL9j0+WnEBbXMRfmo0WDsTCLAfLSvEFrqZ7SEG9r2Rl/Momcvok
+# aeCUoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDQwNjE3MjA1MVowLwYJKoZIhvcNAQkE
-# MSIEIKtiqnqTjjuJu+Ykjdu4zqL+2KUuu6FQkraar5IEGYehMA0GCSqGSIb3DQEB
-# AQUABIICAI+P7VoYHEztrpLio68e4QMywHo7OtmS6ShEusceRZ38Y94TAHQr2zm0
-# 25qhF7e9ELWWRKp5frH4S51GkISHgU+8fxQRdxa/hvKbYX4Ki8BmENAXyTY5k696
-# JMOeWJlbk63jBu5sRoTLVv6aaX2thS3CQCCREVvqIqFDTK75Fv41VCUI0XFeVXG9
-# oi58wAUkCe/nX4AWy2Ct1QXuNKPfWDStVJ+VySJ1dB35KULfO0oeSatFoyLtPlAF
-# zX0mz7xIeDuytFNMfMG8VEbOJ/lwfL+JNi6yZqowR8QaKvZg4LoF/iekTcWw0450
-# moIgeLnVKmydhbgFUQrAiK4bjZDhZw82bmPcMruh1y6KFSXruLxgzqO2XM7hNMQF
-# nb5wlchqb/ZrPsHV8JinPjMDtdKQR3qsmFbjHUnBQy5zRC3794wbAXq5MFHQfwN1
-# GVKIvASbpwWFHz9NMkmxFAGkvRb15Eqmtoj60fSCbyQDWMk2jkZRbHQhBtcclUga
-# vSS73Pv2SC8tdZ8xAz4zhLYJLEpiQG54m+PVpVoXb2TjHoL9tMfdjhiuRz9lA3Qm
-# qerQdfum4Cj+gJhayZg86NBb5KEy0slOWuKjPsRvvWzRPHVMtN1oQl1UG8RPiSkf
-# Oz0D+QmLCtY9w+pft/XcE4QfOkYxTF+qF/Kh63LWZdK5VidecFfl
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDQxNTA4MTYyOFowLwYJKoZIhvcNAQkE
+# MSIEIGV3v78YovoULbikIhppKeQqm2wYhyiX0AGyN6ZIs8QaMA0GCSqGSIb3DQEB
+# AQUABIICAFU+CHaIWy0f+tEHArDVh+7L7GdQxZ2Kyo1b3Pap/fsb10nqOedMpgBq
+# p1W0EC2QNRKjJo+kQforHasnn6uXgvxhx6iCS8UcYE25f9G7vLwang5oDFXUX3G6
+# /FG0wz3RqF+gq6rvjH4dqV8K6rTrKw4UMA8A61iAMtJ0etgmvgGFfuCyEMt/tdFS
+# OX+VVxuKelEw36OOd5qwBHsBgDWx9zWKscbg/FzXgUj+mz5VpV/RwNgFf+0PFyxS
+# 95Z0QRQPDO8jejSAWMPWlJAigHmJGrt0S1jOY70bQe+/+OsfJ+JEZFDcoLuJrzGd
+# 3P0GDy3y3+YdgMwo+d0U0WVuBSc3lZkaWBruCuveOHiJSeK84flsCYYdJI5TFhbF
+# bNgBQ35izI2XS2+YE1sP+O4pcTTHwjlGikF9MjZXk+N+bXtvHLErjAiwYRNp4pNc
+# 7Dpuie8QHyPXqjsTYQoLGvv4bn28ZevjMw2PMcGsxnr9f1wMXqeDIPxjChyg5dmm
+# mfYbp5MkrAI9LIyETvtbRy947Rvk06K3f2dGDVnUOFYXwVQRFJ4OzQZemaL4r11v
+# GrEHMgqQ9d2tjlSV8gevBvML6DOP86xsVpgT8tTQd9O7I5ztKD8yJbNKVH/FT72s
+# VVFkLVuKcdlitKOM9nQklru8QAYoi4r/1EiR0nRv8HsZ3KKKte11
 # SIG # End signature block
