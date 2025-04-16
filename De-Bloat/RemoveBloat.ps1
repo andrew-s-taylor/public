@@ -2150,7 +2150,11 @@ if ($IsOOBEComplete -eq 0) {
 
     }
 
-## Create XML to Remove Retail Copies of Office 365 and OneNote.
+
+
+## The XML below will Remove Retail Copies of Office 365 and OneNote, including all languages. Note: Office Apps for Entreprise Editions will remain.
+
+## Remove Retail Copies XML Start ##
 $xml = @"
 <Configuration>
   <Display Level="None" AcceptEULA="True" />
@@ -2161,6 +2165,23 @@ $xml = @"
   </Remove>
 </Configuration>
 "@
+## Remove Retail Copies XML End ##
+
+
+## The XML below will Remove All Microsoft C2Rs ( Click-to-Runs), regardless of Product ID and Languages. To remove All Comment out or remove the XML block between Start and End above. Then Uncomment the XML below.
+
+## Remove All Office Products XML Start ##
+
+#$xml = @"
+#<Configuration>
+#  <Display Level="None" AcceptEULA="True" />
+#  <Property Name="FORCEAPPSHUTDOWN" Value="True" />
+#  <Remove All="TRUE">
+#  </Remove>
+#</Configuration>
+#"@
+
+## Remove All Office Products XML End
 
 ##write XML to the debloat folder
 $xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
@@ -2171,7 +2192,7 @@ $odtdestination = "C:\ProgramData\Debloat\odt.exe"
 Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
 
 ##Run it
-Start-Process -FilePath "C:\ProgramData\Debloat\odt.exe" -ArgumentList "/configure C:\ProgramData\Debloat\o365.xml" -Wait
+Start-Process -FilePath "C:\ProgramData\Debloat\odt.exe" -ArgumentList "/configure C:\ProgramData\Debloat\o365.xml" -WindowStyle Hidden -Wait
 
 }
 else {
