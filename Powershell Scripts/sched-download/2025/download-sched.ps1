@@ -1,6 +1,6 @@
 ##############################################
 #                                            #
-# File:     CopyMEM2018Files.ps1             #
+# File:     download-sched.ps1               #
 # Author:   Duncan Russell                   #
 #           http://www.sysadmintechnotes.com #
 # Edited:   Andrew Johnson                   #
@@ -51,6 +51,13 @@ function Invoke-BasicHTMLParser ($html) {
     
     return $html
   }
+
+  # Check PowerShell Version
+  if ($PSVersionTable.PSVersion.Major -lt 7) {
+        Write-Host "INFO: This script is recommended to be run in PowerShell 7 or higher." -ForegroundColor Yellow
+        Write-Host "If you encounter any problems, please try running it in PowerShell 7: https://aka.ms/powershell-release?tag=stable" -ForegroundColor Yellow
+    }
+
   ## Hide Invoke-WebRequest progress bar. There's a bug that doesn't clear the bar after a request is finished. 
   $ProgressPreference = "SilentlyContinue"
   
@@ -82,7 +89,7 @@ function Invoke-BasicHTMLParser ($html) {
   
     $schedname = $web.links.outertext | select-object -first 1
     
-    $baseLocation = "C:\Temp\Conferences\$schedname"
+    $baseLocation = "$env:temp\Conferences\$schedname"
     ##Create if it doesn't exist
     if((Test-Path -Path $($baseLocation)) -eq $false) { New-Item -ItemType Directory -Force -Path $baseLocation | Out-Null }
     Write-Output "Logging in to $schedurl"
@@ -193,6 +200,7 @@ function Invoke-BasicHTMLParser ($html) {
           }
         } # end procesing downloads
       } # end processing session
+      Write-Host "Downloads completed and stored in: $baseLocation" -ForegroundColor Cyan
     } # end connectivity/login check
     else {
       Write-Output "Login to $schedurl failed."
