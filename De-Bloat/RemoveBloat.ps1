@@ -170,8 +170,13 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
+#Get the Current start time in UTC format, so that Time Zone Changes don't affect total runtime calculation
+$startUtc = [datetime]::UtcNow
 #no errors throughout
 $ErrorActionPreference = 'silentlycontinue'
+#no progressbars to slow down powershell transfers
+$OrginalProgressPreference = $ProgressPreference
+$ProgressPreference = 'SilentlyContinue'
 
 
 #Create Folder
@@ -2204,8 +2209,24 @@ else {
 
 }
 
-write-output "Completed"
+$stopUtc = [datetime]::UtcNow
 
+# Calculate the total run time
+$runTime = $stopUTC - $startUTC
+
+# Format the runtime with hours, minutes, and seconds
+if ($runTime.TotalHours -ge 1) {
+    $runTimeFormatted = 'Duration: {0:hh} hr {0:mm} min {0:ss} sec' -f $runTime
+}
+else {
+    $runTimeFormatted = 'Duration: {0:mm} min {0:ss} sec' -f $runTime
+}
+
+write-output "Completed"
+write-output "Total Script $($runTimeFormatted)"
+
+#Set ProgressPreerence back
+$ProgressPreference = $OrginalProgressPreference 
 Stop-Transcript
 
 
