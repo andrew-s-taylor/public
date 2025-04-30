@@ -170,8 +170,13 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
+#Get the Current start time in UTC format, so that Time Zone Changes don't affect total runtime calculation
+$startUtc = [datetime]::UtcNow
 #no errors throughout
 $ErrorActionPreference = 'silentlycontinue'
+#no progressbars to slow down powershell transfers
+$OrginalProgressPreference = $ProgressPreference
+$ProgressPreference = 'SilentlyContinue'
 
 
 #Create Folder
@@ -395,7 +400,6 @@ $Bloatware = @(
 "Microsoft.ZuneVideo"
 "MicrosoftCorporationII.MicrosoftFamily"
 "MicrosoftCorporationII.QuickAssist"
-"MicrosoftWindows.Client.WebExperience"
 "MicrosoftWindows.CrossDevice"
 "MirametrixInc.GlancebyMirametrix"
 "RealtimeboardInc.RealtimeBoard"
@@ -418,6 +422,7 @@ $Bloatware = @(
 #"Microsoft.Todos"
 #"MSTeams"
 #"Microsoft.PowerAutomateDesktop"
+#"MicrosoftWindows.Client.WebExperience"
 )
 
 
@@ -2189,9 +2194,9 @@ $xml = @"
 ##write XML to the debloat folder
 $xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
 
-##Download the ODT
-$odturl = "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/odt.exe"
-$odtdestination = "C:\ProgramData\Debloat\odt.exe"
+##Download the Latest ODT URI obtained from Stealthpuppy's Evergreen PS Module
+$odturl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
+$odtdestination = "C:\ProgramData\Debloat\setup.exe"
 Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
 
 ##Run it
@@ -2204,8 +2209,24 @@ else {
 
 }
 
-write-output "Completed"
+$stopUtc = [datetime]::UtcNow
 
+# Calculate the total run time
+$runTime = $stopUTC - $startUTC
+
+# Format the runtime with hours, minutes, and seconds
+if ($runTime.TotalHours -ge 1) {
+    $runTimeFormatted = 'Duration: {0:hh} hr {0:mm} min {0:ss} sec' -f $runTime
+}
+else {
+    $runTimeFormatted = 'Duration: {0:mm} min {0:ss} sec' -f $runTime
+}
+
+write-output "Completed"
+write-output "Total Script $($runTimeFormatted)"
+
+#Set ProgressPreerence back
+$ProgressPreference = $OrginalProgressPreference 
 Stop-Transcript
 
 
