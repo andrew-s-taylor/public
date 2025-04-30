@@ -395,7 +395,6 @@ $Bloatware = @(
 "Microsoft.ZuneVideo"
 "MicrosoftCorporationII.MicrosoftFamily"
 "MicrosoftCorporationII.QuickAssist"
-"MicrosoftWindows.Client.WebExperience"
 "MicrosoftWindows.CrossDevice"
 "MirametrixInc.GlancebyMirametrix"
 "RealtimeboardInc.RealtimeBoard"
@@ -418,6 +417,7 @@ $Bloatware = @(
 #"Microsoft.Todos"
 #"MSTeams"
 #"Microsoft.PowerAutomateDesktop"
+#"MicrosoftWindows.Client.WebExperience"
 )
 
 
@@ -2189,8 +2189,8 @@ $xml = @"
 ##write XML to the debloat folder
 $xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
 
-##Download the ODT
-$odturl = "https://github.com/andrew-s-taylor/public/raw/main/De-Bloat/odt.exe"
+##Download the Latest ODT URI obtained from Stealthpuppy's Evergreen PS Module
+$odturl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
 $odtdestination = "C:\ProgramData\Debloat\odt.exe"
 Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
 
