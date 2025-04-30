@@ -2196,7 +2196,7 @@ $xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
 
 ##Download the Latest ODT URI obtained from Stealthpuppy's Evergreen PS Module
 $odturl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
-$odtdestination = "C:\ProgramData\Debloat\odt.exe"
+$odtdestination = "C:\ProgramData\Debloat\setup.exe"
 Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
 
 ##Run it
