@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.22
+  Version:        5.1.23
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -148,6 +148,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 01/05/2025 - Removed StorePurchaseApp from bloat
   Change 09/05/2025 - Added TrackPoint Quick Menu (Lenovo)
   Change 13/05/2025 - Fixed TrackPoint (hopefully)
+  Change 04/06/2025 - Addex X-Rite for Lenovo
 N/A
 #>
 
@@ -1938,6 +1939,15 @@ if ($manufacturer -like "Lenovo") {
             Remove-ItemProperty -Path $registryPath -Name "DesktopBackground"
         }
 
+        ##Remove X-Rite if it exists
+        $xritePath = "C:\Program Files (x86)\X-Rite Color Assistant\unins000.exe"
+        if (Test-Path $xritePath) {
+            Start-Process -FilePath $xritePath -ArgumentList "/SILENT" -Wait
+            write-output "X-Rite Color Assistant uninstalled."
+        } else {
+            write-output "X-Rite Color Assistant uninstaller not found."
+        }
+
 }
 
 
@@ -2238,8 +2248,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBcP6vRlf6iIIi5
-# dcImRmKLKbRJ+sVFSfFF8cPK9SBX0qCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBpMlwKUiGRLdMj
+# i3i7Z4QntslCGzLSz4t6Fv7tXA+22qCCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2421,33 +2431,33 @@ Stop-Transcript
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEINyFy/mGY2grGdEjb7FLIs1I608T08CH3OCbWvSIHSnG
-# MA0GCSqGSIb3DQEBAQUABIICAI9P0r8ULfer+muybvzMxFc9kqwUmpzwBa93t4ee
-# Xn0WAocZpymoPogc8xTlvjQ8HdogNLa1hn3wwnguZWPYyMuyzif8uBZO7mCF01dT
-# KH3ERrXugIuXTVlbrlPzTtb4oGzDQf/WWMWzCKAosiYOfYhWZsxFiFNJ2tULG7Pv
-# VbN6L1rnh5vR0aVPWI1fKn40Jy22xkFQyS4D1DIbG5AYMBAJtSE2y0bDIzEnv/cX
-# r9ZZlOrGWZiztQQY6b2sBvwoWaSx6PzQYEShFQ51Xhs6giojaaFkQpNB31dVj+sD
-# ZNkLnnY09FePgqtw4Cv/gYMgSB6lg5SmDuXXlDYZnvE8uJsbCqyp74WT95nDM/9c
-# 86IdH9EcwObphC5GLjGahGGJcTwXvb5ofEozL82dVPFh+SzIOIWnhV0ihPz5Q3xB
-# aWSd7S68DSzZqqEAX7hPS+udDTzWJ6fkg1UE4JUx44tuv/0yyR5ssMJhJ0byMrQH
-# YyrZnZlnlh+Mb0t971JaVl40Je7UaHLFfbmroxrbzatDIS/oPIK0JYxUTJIbL3qq
-# 7VklkQejV8UeygmcvEjHs0r6XyB1BiKsAEde0r7nFMxrkm3hDQOEV5TmlwB84QRo
-# M85YW8uoEMjvPu0XkOshYz2AquyXakSgsO1u7nFU6EbFMqcbgU5MOeHOPYOK0hnY
-# waGMoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEIFbXLwhR0oGoLw5yhvE9L6IhtaFxulZCCYHmpVTPrv1J
+# MA0GCSqGSIb3DQEBAQUABIICAGzK0vI9G/c5I9wgPIVr2UrTlqRGbaD2SlajLG+z
+# 6Eny27edo4ejGAk73gVpCfh97dU+ezSap+/jay454tN163Uttax/nlW9O3k4h1dW
+# fpu7KweK8S7KaiMG3DVUdoojewiilCApprJcdstkcRx/p8nOrlxVUCGppP36UKxn
+# n8c7c9Km9QeQyqm8BfQ3ADdiyCf5Lk2AaST92OrnhSLXjf3UpK0kGCUQmyEhurKl
+# /C5GcnUttxZDw7gY5fphvIdRNF8FhAX+zVLXBfQITwfpi0dZePq1M3tcHWxe/Syi
+# KUkKQfKH+PpIHbA1B5DgTeQRcRZpCruV5pzZNdORu0N6CiqnMkn66K8EhMc53mOS
+# +PGQ5rn513dfrn9h9xSSDn7Tfve3PxRAPKzbHiHHxYdU9erYRrLZQtSF9NFy97+S
+# bkdi385NWPXAyttwkmN7Ehmt4c9Ez3rBtnU85eVEV7hgUq3KwPaqJPP3ZZvkGGV7
+# G+yaTA06bWsuRl9imBoiCiUJYHiIRtaEbRxrdJ5c9zZmF8ZTDcecVMs4y2AIV9c5
+# B69KuiiGmG50H87YKH8pBdC5hdmUmDP4nmSJd3j88XjSRIfF2piPmylsUKewUI4Y
+# mhODnoxytlpjZw83xiEVEo8jS+EDvmh4Cy1ZYC0KZ3KwpA8WV84zqpafJ+crQmZi
+# lq4voYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDUxMzE1MTI1MlowLwYJKoZIhvcNAQkE
-# MSIEIEEbehMYKFwKievAXqATy6LxvwKdx5rs/1Q9Xv3ey+sUMA0GCSqGSIb3DQEB
-# AQUABIICABjJevvS6poHwk53dsp8+IcIs3KF5Qj94Mx2x6/7uAdBTzLS61D1cHD/
-# F1OWUjBBlbL/lXU8fMk4TsebHYPEk1Wpb81xf0QdqJKjP1EBd04YXFF/eWF+T08G
-# vJ0twEe+U/CCGJNaymm9IxPJXzxZPTEHANWV0S9jauKjl8sTY8gIxF9kBwf/aLto
-# GhFXOdze654rQMg5VOxJ7yc8vEEzmzMUdMAkaQi1MiwzNGP6qUmqXeIiGFLKWPzD
-# F3kOqQjCgL7jBlI0HkGCr2E/w3/1hhm7vthb7+30Dra8mIB/XFqoC++NxRQI39PM
-# GK41/4Nkz1qZOUM/meuVBBjoInd4DgPkotNtK3ezILHSS417Bb/0848B51rNLzJ9
-# herVIP6+2GpnbetNRYRCQTAHG8k2gNh+2qstwes2FnEJcShWMhp2OpqU9zZoNZqv
-# 7U/rnRj1xEWkdqgQAelaYbqM1HfOFZmHKIDupQpDE7I6gRpM0KvpLgdHI5v99cyd
-# 9G4zohzlyLbNiegUPIlevRm22gjE0jRHmta1dnsMLt/RQGMhueOB9hBCbJV8O5QH
-# 1iHjybbtJGAG/zjFVPwrzkvKWyx1TsT+McPyQj7GDi7oCEtTw6kYosRzGMvooyH2
-# bVSBJiFjRMsMn4xWbm0MlRd/4H6sAvZASytF+8mSGPDODzdvgyQp
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDYwNDIxNDkyNFowLwYJKoZIhvcNAQkE
+# MSIEICKJ8WAM4XKRT7IboE1RZ50zqXmznUAtCrXmXQR073s3MA0GCSqGSIb3DQEB
+# AQUABIICABdtfCbrrgoz8+ZlFAkVlmZHv9Z/PBVTO5MDGqYx7Hho/zfGx0zz/D8m
+# bPElMyKLep9TfeMBl9/BEK5m5y95lGv7TrLy90u6jBJ289LMMwaRU1TDko2AF3Nq
+# 6sxzVxQJbETweZMmDGWUTrv0YZ1P9IrvAfD5JEBO69mYKYsACIdKcLBe8lYvKnMW
+# d85HfI9F/KxeFIYvs2HDEkLOVoAa+9G6o9lX5pDDYeJrNjmhfurkJjL6ygWPIZQg
+# k7GJMaMcSaHxaoMkPFamRmnKLnqgydgaSkB2m4NoPs1BZ+bfflYcDxtkVy/ZTA7b
+# xVn62kMxRYxvUJzNpFj9b5FO3HAyzJzgQ9sCtcNiUdeIOToDE3vlzXh1RNQAQXCG
+# DuHND7eQmMrPQ3FZZ5IAhnwondG25aJmuUTJwmETC84bsKudM7NbremAJe2R+0kr
+# EAIv2+2C+DvTlt0Rj5T3sGwCRst8IGXgSghH0Hv20Sxue0QuNhgFzLqE6DiDT5HK
+# hKHyS50mVlNeXLqiuDd4JOKP2c69Os/NVtsJ1qEW+VawlUgLPnFESHju511W9fgj
+# Ukuzpozn2mlfiQ6WLrLEhjHtaUFcgYnCaZOW3YfwkCFYi0oKz7ca0ecSMvUgsKQk
+# YS+OAoBRmfxnLIOZdlwSGBwnYD06RD1oEDW6XDPdoBRuAHw8diXE
 # SIG # End signature block
