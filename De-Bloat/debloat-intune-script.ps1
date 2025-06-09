@@ -9,13 +9,14 @@ Else {
     Write-Output "The folder $DebloatFolder was successfully created."
 }
 
-$templateFilePath = "C:\ProgramData\Debloat\removebloat.ps1"
+$templateFilePath = "C:\ProgramData\Debloat"
 
-Invoke-WebRequest `
--Uri "https://raw.githubusercontent.com/andrew-s-taylor/public/main/De-Bloat/RemoveBloat.ps1" `
--OutFile $templateFilePath `
--UseBasicParsing `
--Headers @{"Cache-Control"="no-cache"}
+$zipUrl = "https://github.com/andrew-s-taylor/public/releases/download/DeBloat/RemoveBloat.zip"
+$zipPath = "$templateFilePath\RemoveBloat.zip"
+$extractPath = "$templateFilePath"
+
+Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
+Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
 
 
 ##Populate between the speechmarks any apps you want to whitelist, comma-separated
@@ -27,8 +28,8 @@ invoke-expression -Command "$templateFilePath $arguments"
 # SIG # Begin signature block
 # MIIoEwYJKoZIhvcNAQcCoIIoBDCCKAACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAPrDgqqcwyZG46
-# rY//nuEXqrZkE7MqslwhUdym9jOa96CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBQp7PVtocxDcq7
+# l3w9+WnjcDSARUJpF4uyf17XZ04m16CCIRYwggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -210,33 +211,33 @@ invoke-expression -Command "$templateFilePath $arguments"
 # IFJTQTQwOTYgU0hBMzg0IDIwMjEgQ0ExAhAIsZ/Ns9rzsDFVWAgBLwDpMA0GCWCG
 # SAFlAwQCAQUAoIGEMBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcN
 # AQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUw
-# LwYJKoZIhvcNAQkEMSIEIB0gig4FELMFwRKfcEMxC1qfRJQ6sP2WAgPKXuyXoeMN
-# MA0GCSqGSIb3DQEBAQUABIICADF6CxXjL7uilHLV5W9VCNt6TXygwNlXtH8KsSxu
-# 5hD082JeOZ6ZMhGllx4G7bGPoYzAgMxb0s2MfB6aJsM2tgOV0hrktwMGb1F/q1Kj
-# XJI9MDuJ9i8AQhPNNpdbLnYKmiTv4r5L+HE9HfNVYkvyGFdE+nCPH/AJgbZABHa8
-# ZL1x+TdfFcTtzrzXB1NyeziR87wpTOoVHESCKX0qn00Uu/ERZDBrxNY+83wTHEHO
-# x8wR8jIDeBbq2rPq9764UN6IxB7LIt0COv2gi+2GZNenlNO6j2nEiXNeDsMsxS4/
-# FPDJGeBniq1++UA82Zil8QZs/dta8XFpexT+hM6yn4+KuvvPaBx8uQvBACXgWCNx
-# spuiN6EaRxsYh46BnqCOGp1Bb1Gwx/NKt9xdLVRdo8g+FwGQS6/tfMMqOc2mRsYf
-# 1QzyJhyEtibwsyzchtoo1oW1o4AVn2n+Hw2b1133bqcnE2YcgVN4RAQ45v/LdTh2
-# P7VO1xmtCZSG3TvRtm3fxnLclHei9HUWI6wlBV4CWtnqUGyhJTQPIJCTwyfHRIC8
-# SWkNk90veZIw383/bUr5HMaIno/gy0wl+HxPqp7crs/PiY1SVeVfGPuY10hr47jR
-# RMScjWg7QWktrEsAuCXIECEW0ExJwvOPMgNwHH+ejosh1/aTlYamKanIZG6pSB27
-# SoncoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
+# LwYJKoZIhvcNAQkEMSIEICnt2pcVpEwlqpGOaKnbTJTTe2y51lrQcArlQlaKXrHJ
+# MA0GCSqGSIb3DQEBAQUABIICAD4s2yAp1rppFNs825wFCh6WnB2vn5IMon8cs5/o
+# hraSyUYZby2LKYdCFArjkhNZORNW2n5JWEdNnRXHioMjmcU6/GluL/myX4jmJQuC
+# PLqKGE6/Xt4g8QKvrRH5ArW4OPrGxltlYX4busfmDN7wCP6sLktFN1/VEraviT5o
+# ctLNA7NDuhK/JJwrNAmHUeuXMWXSmOnNopuOnSkDWzlgMv6Z4PTweMR8jFUNpT2Y
+# F0TLtDj4Qp3vrSKMsdB6coRVHG1xqmfkElIDsF+b/Qb+GFmv/pYQgAXdPqcXu5BF
+# qYQP9Tisa7otz7BVW/3gQNGX5QmVTleqrYnvYV7NnzYAftB3BuQ4i/qGoLr5p81/
+# fbeG6w+duucSxcNsiqa4iFQ5DHat2YS5Gbb+oSuETMezYpGpFXW5Emsbq2p6Diif
+# Lr7WpRUC7DKiQ6MlNkz15LMocJUtabTbpCHyyZKiV7Z0EcYtzrgwnDQfScFcp8oj
+# rTgAiLb/D4Z66tcdWlfbTt71qQuSpbAFSr149XCki/sYCE6ruiY+4tNED/Y3vDGn
+# sSHFzwcrh0zRhGQp2g3wtIucjxW4XRcw6AiB4oBTMzKQA1d4ISGNcMzxD0d8OpQJ
+# TpCnyjhXhfpETQT7g6lXcyLFSKZf7ZO4Ma3YK4k9hARmy9IOGrt+NgDlVF291aYl
+# qfyyoYIDIDCCAxwGCSqGSIb3DQEJBjGCAw0wggMJAgEBMHcwYzELMAkGA1UEBhMC
 # VVMxFzAVBgNVBAoTDkRpZ2lDZXJ0LCBJbmMuMTswOQYDVQQDEzJEaWdpQ2VydCBU
 # cnVzdGVkIEc0IFJTQTQwOTYgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQC65mvFq6
 # f5WHxvnpBOMzBDANBglghkgBZQMEAgEFAKBpMBgGCSqGSIb3DQEJAzELBgkqhkiG
-# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDIwNjE2Mjc1NFowLwYJKoZIhvcNAQkE
-# MSIEIJPE8OZbUbXouJhGFFX+SBaRcwbLSAYp6UV2HSH5BnV2MA0GCSqGSIb3DQEB
-# AQUABIICAHCYCmWnCPJE+OtxZn1U6FNeq0vYBCR03hU2QTrXGJSBRS+y91kpGk0n
-# zjK5gBsi21FtyykrfERftNu8V8hG84rRs9PZa9BN3jcGrtMA04Q294W3SIZt+f7T
-# 7gfpZ9q6OdrIV8tVDF/mV6dSLRavMAbw++ffe3BtkPf2ygrhwh8zcjXB0cD75M7T
-# WJjX9szc501C7J5DohiCSD+ytfDNcdvl33jzKnHmdY1ZO9zGzh7MZajyJrqKobHJ
-# IC04LS0kwXiFeeKIK1LIzH5b8wvjt2kBSJDNXGPG1GxuJUjwxq0egfOtbHDbEqTQ
-# fOXR/dXD3eINDizgr3gw61nd1IICs2tXM4IlfXsSwZtWUXIuRd87neypPnfldepw
-# 9Gs9WuyMgd4HjaMfoxbjeg7FtOk7hVVhXM5R6HRiqHLb7KWogNUR0ex6eqAYMSlX
-# 1U2TcV3KiNlQpi6b8+KryhLfi+sCuSWMQbdgXtCZePFSwm2PdcfrXME+08bfrFtz
-# z+mEEbu41QZ9x4dTJ+hBxYkGvl77ZKV2FyUIX9ua54GwHgjSlkvrODzOENVDDTHM
-# 2Mgy5MnP7crnEmPwtufvxYAYMRcla27R4wkPVi91A9A4ZUIgU+T2i2dJg3GFwGyL
-# NCOW6TAHLq+nFOg3Ic5/PjLOncl/f62KC/mQv4gLN6XaNrklxu7c
+# 9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI1MDYwOTA3MjM0MlowLwYJKoZIhvcNAQkE
+# MSIEILXeQhJUb/96HCYw7PmJg2G3vxoWSF6wV1G34qDjw1qVMA0GCSqGSIb3DQEB
+# AQUABIICAGHLs9GTEMUlvXbHnE/oxSlDlq28LH8Cu7+6zg0uYt6x2qfNFAn5kTTX
+# tQb0QCmKNvoUrRfQVO+Z0Zh/eY+YmhF1ie4OiwP6N3Bfg34Rd9GIDR9VNgs2cC34
+# n6RIT3XCh5jyZtwTxZTIfEeIPdvcbzi/bt4WlyNde3csE1P3jVClzFyBFEv3nXrT
+# +IBw/XkAY0vjz1kWh1wpkwBzPeYIaZtW/LT9nnmUyeZNS+IoHVIDWnKufw65fftI
+# cVYpJEu+uT02a+KjEIM8fYNMEt8+hjjBYLDFd842Z5KG/QY8YVrcYeYTnpwYjqMs
+# FfT4gs7W4j4o5I5JUG43mZf9AhIQH/ZjeWtyCNjWi57rsAQH4a9tjFDMfOc0bJnZ
+# 0klPViY39pClO+Bo5J/qsj9IZvOGodvZJSlnIiG6J3kFLBnWekjStx2fjx2cyh17
+# EvxMW1ccSHYs4znwrxfRgTx6wc5sOquwPqB1hLa1lMtWGnP3FzjxfmdTsZTCytBU
+# jNLWMR/skM9nDMH7snrRHlJEuZtuk5/UgaTV7ubpZlJycosU4DX4BV49elTTnRry
+# JG0JpqfUj/t2B5ViSz0S0sfvq3lldc9WZIZJmvT1idMHXbj1xuC0GyMwo7BPWqIN
+# IyV50vkTpexOfR1TyC3N+aeI5z7GQpgndF+lg0ENdAe2teh0Rnmg
 # SIG # End signature block
