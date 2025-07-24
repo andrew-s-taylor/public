@@ -1683,7 +1683,7 @@ if ($manufacturer -like "*Dell*") {
                 cmd.exe /c $sa.QuietUninstallString
             }
             catch {
-                Write-Warning "Failed to uninstall Dell Support Assist Remediation"
+                Write-Warning "Failed to uninstall Dell Support OS Recovery Plugin"
             }
         }
     }
@@ -1699,7 +1699,7 @@ if ($manufacturer -like "*Dell*") {
                 cmd.exe /c $sa.UninstallString /S
             }
             catch {
-                Write-Warning "Failed to uninstall Dell Optimizer"
+                Write-Warning "Failed to uninstall Dell Display Manager"
             }
         }
     }
@@ -1710,7 +1710,7 @@ if ($manufacturer -like "*Dell*") {
         start-process c:\windows\system32\cmd.exe '/c "C:\Program Files\Dell\Dell Peripheral Manager\Uninstall.exe" /S'
     }
     catch {
-        Write-Warning "Failed to uninstall Dell Optimizer"
+        Write-Warning "Failed to uninstall Dell Peripheral Manager"
     }
 
 
@@ -1720,7 +1720,7 @@ if ($manufacturer -like "*Dell*") {
         start-process c:\windows\system32\cmd.exe '/c "C:\Program Files\Dell\Dell Pair\Uninstall.exe" /S'
     }
     catch {
-        Write-Warning "Failed to uninstall Dell Optimizer"
+        Write-Warning "Failed to uninstall Dell Pair"
     }
 
 }
@@ -2283,8 +2283,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCuuDIv7CuzhZ5u
-# J6LAXgisDmkLfY246UVmb2P1Y60sPaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD6vS6C8DGzOX3I
+# zqsBpiG9dmkjG/fHlwUArEnKCQlmYaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2467,34 +2467,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCD6ShRLNMuAo2uJULB7Z+NBb42rZxncHjEZ
-# CkOA4gwbrjANBgkqhkiG9w0BAQEFAASCAgAFTvPFf2CLR6SeNtZ5ImBtDlsJciL6
-# 9MnnM4NXuEfuGf9VX6TO/jpNc7HG4RJrFQnp3s5FcM4nO6oMu9dlCa8EA478UEJU
-# F5tzHSruWlpjqhMurXVDYOAWnUzYoj+YCQOHDBEd0N9DavOH95Wtl6RaKu6Kz9zM
-# S0UEc4a9CEJ4u5Db8Z0PlWhD1HOmQ4n+PURj8OEBOTW/EqqMjUwUSYpifJAVvBSw
-# 6VLE/1s3lT9VdFT/jgbTKtAxuKjOxr5qvv2exT/OSPiBntpZ3UFpIryBi+NaRdey
-# MxSVQepqrwSxqcwAOjGzXgQ3I2KDX1Wk68DfH7Lye2Dqrxviqpt9pojjl8lnvjk/
-# wGd2CR0eTQXl9r0QOAsiXKwq6ZskNZLXUeK7h3U7g9FOxYWUCk/3ECSJ87YWkM7E
-# fmglUaYssDzbldL55lwJzGu+gzgabsOXH3SrR72tp0Lw7alNhhFx1BOTpNbvyruU
-# O4+nt9z0+wr+RKXQvC4v741xZnh0vy4cFAGWdZR0slVwVvzW9wASbyBWKomxZKyD
-# DRKaCq9zZH7SBQ2jsLTNhF+Qz7cqseSvk+xx1SdMtZOmtcUzHHYy8s4ot1AVjOe+
-# pafw8mp91cdup0B/JjkWQVOGPAET+VOz+qLcSqd3riGc0YM3tXXStz5PBj5eTO+T
-# /4i+6SFxiQM/PKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBpvikWaiInNi8JlqU//O12ZbWJKqEK8ERq
+# KF46N3zJBjANBgkqhkiG9w0BAQEFAASCAgC/9IvlkJYW7BagTqq6P4scrNwHCv3b
+# mYXZSynv3naopVSEgLV7eq80Pun7sOK3Q0HcIpRoxzgXYxGLX6ogA4Q10lZ2jAkB
+# r2lpj2LJPuHhslajf9sx0HKs2gCQd6rPdqa8jBdLtDPxoWWH1sNrl3YzEv9b/QL7
+# 8aSW8mwLPRalbZOeRUj5ngektLWYmbSeUteBqqh+eNFivVNsqzlsJHl9A/h9imtY
+# Tce+5IX1zn3u0oUS5ViNpVox2LuTcK4yYqmnYQUlGdAXcuzI4jWlSUw/at/1neaB
+# 7THxhHt8nzcO9JlT//h2YG/T/IfxpU/vsIxoBydlv/2n41Zhu5YrHMoF0g6ijb+w
+# 4JHzPFU2+qH0DQ/dirhH4+/wsFQrhkBLRNLs48rskfpz7FUeCFUo8rYm1ENEbofH
+# eKsn45+aF8OtaCLGwzmzl6ToTLZ6Hg8Yaz2EjBxLPudPRChtB5rFVajpfvW/9R8n
+# I2+EJWRIXExVdr4p9VCnzr2bKABaFdX8CsEeV8YH/1jsk57g70q9oqVYcBumzALU
+# 1A/IPWw1Vz8wVOmFe7bpUWXQ6HFM+FTlDXMX4p8nT6lkYnwq7CvjFA6Bjhvc6uiE
+# 0bTgtSPw8xI1SE2AdTmtRXz4iSv7nIv7Y1t8nihUBCDifVhIBqsAQDB3BUWv/KUM
+# JrYU7scU8z2SJKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA3MTQxMTE0MzNa
-# MC8GCSqGSIb3DQEJBDEiBCBquIYhN2K8eHXQgY0+zARJ1HIVxGdFAxpT2UVzPRTW
-# TTANBgkqhkiG9w0BAQEFAASCAgCHWJa+BXe57+4pjZMAYiV/I/EIBxZDeJCwj0xQ
-# MaQe8/Ysx26qZBeogXUwzvnWvKpLcxznFtQ7eaxwzWIl7lXpefQofzihrgisVkaC
-# sAHbaSlMN0vm7IGu6PrqPhzMDDBiZi00B6pbCS2MXDnhwk8hn2J+e6OegTLuoLnL
-# /li4nERlCsF6tJ4JPKWQj8MaRScm8OZ/hOKAknmNF2uUFMLDyTx9FWFhFA/dB48j
-# 448E+teMSQoXe5h3Lwtvn8GsjImOm11gPs1zcbeWaBAcDECRiTNCTIYrexenE76M
-# EXTAs+zOBl5wQY5DSt1iJQD067+RjGLFIf37leGy/HXMPwC5GUWgNrPk4bvezUbM
-# ZfPckqInX1gYQdqqk7+AJ5dksJQOCx+ZtWqlPCeXhmQspFPny+HVnoHUSNQBztJM
-# ynywoNy8MVHP9D8/WmiG4iHVIbY8xzHY5L2PLZlMWEbfVxhWnkv69zxkJYe/dA9o
-# x4vKtOwg2gzV9RePuKgaoWWUSRjB60nGQU/Z2+V72xy99ErojV97CpSlnJB77L6m
-# xVdjiroKtIesCiLkSqTroKaAeFGQdE6kyFLAD1y8DLrqE76+cUi4gApL2y/togWf
-# aSGtjHt/KY7VR75ozVM/SX7mUAOWFelnQL6nn3i/iAgAvN982TGV4Fni5ZarlsP3
-# a6/Stg==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA3MjQyMDA4Mzda
+# MC8GCSqGSIb3DQEJBDEiBCBO0pSUqjhk/kzYOx3YoD6AIePssFgLeNdVNa5g1iGL
+# mTANBgkqhkiG9w0BAQEFAASCAgAlZoHZRwUt82W1QEzgl6hc2X3ZvMSJLwZwsILA
+# kVUUh9YRN1G6rG3Efb6kDCWiemBHFE2qHAUNAIAXYhxE9JOTTR9DBVSBqNPwdRtV
+# /q6fUVT8WiHxxUWTIiK7xpcwG8toNI/m2cmDYEcL4kVQAAUbDDollCUhY1jJ56oI
+# 5CJQsjyMF8nQJS34SYeziKYRLsAvmVwNynoKIj/iQOStsnhixBP+r0z2UozEdmdM
+# fd1jhnDo8Jd89tANeX3YbG5lA1hL42SLpx8uTtKjM9iiYJCxVVKI0cwzdQx8yiM0
+# ofpFtD3rwqapZRq2FRIaTnJIwXKPkfkEvSNcfk9fZWogPyf5Y74A6iclSCiqT2x/
+# M0lCfKSVXni6N4sOjxK6HLhgkCwoJFmwy68lWU44p24qf1FAE4O1HEKOp3fQKMXT
+# 3fgBGu+JfMgcHxsuOd2DYt7FFK4Oo+SKczTSyKfQEf36Qg4MGgObHOIDCJXFbzKk
+# 5yrebhhv2c1a1Sjtlha5LxlcQDGXUUQQchLrXDdo8tqBOZmiY4YCCd5BmUdXAMIK
+# i0+DQzyto4C5CY4wouPMtf4GGDZi+OMvx8vACtzEpcI61hg/J8W5P+wth0r4nu2Q
+# WClGMR0XSlutKOV62sNqIHUmde0fO1X+sfyw5//W72wJtA6ec0WUG/mjl0Hdp5QW
+# fcWtcw==
 # SIG # End signature block
