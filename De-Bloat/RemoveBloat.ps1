@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.25
+  Version:        5.1.26
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -151,6 +151,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 04/06/2025 - Addex X-Rite for Lenovo
   Change 14/07/2025 - Added GameDVR Popup fix
   Change 13/08/2025 - Blocked consumer scheduled tasks
+  Change 13/08/2025 - Added option to add your own tasks via parameter
 N/A
 #>
 
@@ -159,7 +160,8 @@ N/A
 #                                                                                                          #
 ############################################################################################################
 param (
-    [string[]]$customwhitelist
+    [string[]]$customwhitelist,
+    [string[]]$TasksToRemove  # Add this parameter for scheduled tasks to remove
 )
 
 ##Elevate if needed
@@ -173,7 +175,8 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Start-Sleep 1
     write-output "                                               1"
     Start-Sleep 1
-    Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`" -WhitelistApps {1}" -f $PSCommandPath, ($WhitelistApps -join ',')) -Verb RunAs
+    #Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`" -WhitelistApps {1}" -f $PSCommandPath, ($WhitelistApps -join ',')) -Verb RunAs
+    Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`" -customwhitelist {1} -TasksToRemove {2}" -f $PSCommandPath, ($customwhitelist -join ','), ($TasksToRemove -join ',')) -Verb RunAs
     Exit
 }
 
@@ -199,6 +202,39 @@ Else {
 }
 
 Start-Transcript -Path "C:\ProgramData\Debloat\Debloat.log"
+
+function Remove-CustomScheduledTasks {
+    param (
+        [string[]]$TaskNames
+    )
+    
+    Write-Output "Removing specified scheduled tasks..."
+    
+    foreach ($taskName in $TaskNames) {
+        Write-Output "Attempting to remove task: $taskName"
+        
+        # Check if the task exists
+        $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        
+        if ($task) {
+            try {
+                # First disable the task
+                Disable-ScheduledTask -TaskName $taskName -ErrorAction Stop | Out-Null
+                
+                # Then unregister (remove) the task
+                Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Stop
+                Write-Output "Successfully removed scheduled task: $taskName"
+            }
+            catch {
+                Write-Output "Failed to remove scheduled task: $taskName. Error: $_"
+            }
+        }
+        else {
+            Write-Output "Scheduled task not found: $taskName"
+        }
+    }
+}
+
 
 ############################################################################################################
 #                                        Remove AppX Packages                                              #
@@ -950,6 +986,17 @@ if ($null -ne $task6) {
 ##Stop-Service "DiagTrack"
 ##Set-Service "DiagTrack" -StartupType Disabled
 
+
+############################################################################################################
+#                                             Disable Scheduled Tasks                                      #
+#                                                                                                          #
+############################################################################################################
+
+# Remove specified scheduled tasks if provided
+if ($TasksToRemove -and $TasksToRemove.Count -gt 0) {
+    Write-Output "Processing custom scheduled tasks removal..."
+    Remove-CustomScheduledTasks -TaskNames $TasksToRemove
+}
 
 ############################################################################################################
 #                                        Windows 11 Specific                                               #
@@ -2288,8 +2335,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC8vGZ/kaxZ29dq
-# jHDTKk2UlfQcwlVOV96dQtSjEWj8LKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAMJUa6IRvpLUva
+# P358KvS+ZZ6jsY+Pzeei0Rl/N64GqqCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2472,34 +2519,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCqCr/PtsxYaTVm2dLxp8DBirMva/6sJe8P
-# awUzc+4s1zANBgkqhkiG9w0BAQEFAASCAgBKN2ENQJoTwwTuWw2HlXYFDT1CDmz7
-# 7aMAnNnajA6XI8NrY+/i/8BLQ7iLNM656mmWxKa0H//KfyfZi/VzjlGT6XxklSM9
-# BhoM0eD0rIlJMlUsD2fKblPtycwRDKOeo/hAuzgjskldIf5YosZIt/VYrdupG1mV
-# BoNN1GMd8bi/d10aEhbPc1B2QWiKLtWdKqJ+HOxo7K2jSTzpbQuCWsMn2MzW7Ocm
-# +5ByOSyeJIfu+JTSucj/5enecVZTNsoJDmrcOs9Hxy8UStPTKRzWEEZAkDZjWSfE
-# tNCUncGCbiWv3cjKoO1j2iUOqmJkruBxCnE6ITLRdTrGcmgeT0LNne+Zi1C1cE+P
-# 5mG6H7G/5gzcTTJHdkV4OoBWkmNDhj7Pe5wwPBHKNEPoqxcMWIKiSsYLT7uvNDbj
-# zPUpEByzpXki/43p67G5+IJNN8S0H/Rdx+BVtVWceC+liS5ty+QHv5jfox9Tkchc
-# 6aEjFR5AimMwhSp1CeawU5C/R5ah89KXhVwCbi9GoumKC5SXj+4zdKpyjZlcJ4gm
-# SFhC49cFT8ZILrytR9L2kkRfq2w0MHVCvhIbgEB/smQnzTao4J3w0SdEvgf3x2tj
-# b7CIxDGtL7EQ1K6c+YLebz4Nr7rBMe5q7fFmdFlc6QtTppoUA7yOpZsHcXrwi9aw
-# XTINOFaEWOsFBqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCAB3NImC5oZpQ/GyoClImr33tRC/JU2bjS0
+# x8EX22L5UzANBgkqhkiG9w0BAQEFAASCAgAvj7gv6oTohLmXTnysU5iPCGIiX147
+# LydAbEHfn6GtMUnxBOFBCmromQo/VExYPQHIp+0k8DkLV3QNuTRd+vG1pBALqGfm
+# bSRV1dr10lufWAAcXv3v56aiI9D0ARa6D7Qh7FAdYS+EdyIBo4J5lqcy4AzfrPSa
+# ubNn9Jo+DQUs6ZtwKevEQNt3T01s0AiNDKjGK2scMsikOOx1QnMI0tnXU6/kWtV7
+# luob7Wf63NINfqKo/vTbihrN68ZW9TTTTvU+baL5SUcIquRgqbhOHyAC8ZI8MLtx
+# N8B0Oki7MmEDkMemWcq/8DpI0UQbkuIg66wQrqEsBJljx1OfVs+GJefZ7kob9N0E
+# wPOGFrn33S7VhlLVLFcPIxRpujSVkv6ltWOBCq+8HU3JgVA8CEa1NHgQWRVCRycS
+# S5flXRuF4sC9S0lpFfMClqqUrDeIWkaelaOdIDLbE/wsc25nJ2T9wLyknupb9H8M
+# WIa1ZQFh1/yjl9P4g96AQNsOFBpSe882E7+EL0s2fGy3ofFUxQbKzJrm1IujVoQh
+# XGUoIc5R5sjiWw6YWN3MpVYu2FZMkTSiNZpVYUoxeWZpwjiNBgUSFsoyrHsDoB77
+# 8QXlPvTmZyRTCh8uzxyjHgL3vCa6DBiQobwY2/R/tgLzCoBqxszZQoaqxtnNrhy7
+# UA5aRP41vYQvaaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MTMxNTU1MjRa
-# MC8GCSqGSIb3DQEJBDEiBCDv/9jz/MXojSnwguOHvpPM/5DniT80lpGuFB8DB1NH
-# AjANBgkqhkiG9w0BAQEFAASCAgB8ufAowiMTDWcTy6Q9tCIySb2UIGSsgb49aXsi
-# SUcUz01KvzucCCFfMGFQH2PDq05+1g53HFE43QB4hVrrhrPiyYf/aMX+S0RgyHFR
-# fZfBejyC6g4LxtQsrHi8MKY0nfGjyWRv9nUp33a+3p+kDEVrv2XfkPrqm1a4Mg6n
-# s4+KrW3fQBFwJ3RiSY0l/jL4kNq8kUpe/lpusbv4/DXvUlxCEgAKNvKBsTW+72OO
-# 2A5Eg6s09v7kU48zWEz6VY6HHCaRaDYz5N+ULtKL0OGPmtZvLbx6aimAt2E0RR6y
-# fgS6XJihJ4aKj86X5uWAu4RoNDNupPpYqfqTTcrskCNTdQ3nYjniI2ytedF/U954
-# RrKoegvHI1v+owsJ24lshACc9L0nBIAlMVvH8HmhtpyHRfkhEGUNaaOjlxaAyPc6
-# CVOsrPkosHE+0qegd1osPkUv8BM4Rz47vgStxlpaQnx8CLfbu1062zY9PT+9aTcx
-# 7N2CH0QcVCGSj/I54trz9cKkA6akWe4AQGP0Ts4GgARXPTYFAc9oMLd8F0w6Ll/Z
-# Y86BNUHQjh5ksuK652UGEiVFE+GyG0acu/8SthZ+TAo6RrGemW54vLZ+dTWVT4t1
-# GcSgej1BFK92/PTfYraBGePCL4Xvg46he0JtYNypZ7uj4EW/hmci1kkhtPuRS08y
-# S5it8g==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MTMyMDEzMTNa
+# MC8GCSqGSIb3DQEJBDEiBCBmxyVlJxhvBCz4F/Fseez2xm00UIUxGYKrgnccETb1
+# MzANBgkqhkiG9w0BAQEFAASCAgDJmOODQyNU9x/7bTiWSdA6y7+Qx1Slr/CedgWT
+# 0yniNqmUHt82tDu/8kcfOrJpiumL/nkDIm7bAGAmOexQHe7vz6XWh/kGRVWsv/ok
+# RXPEFQ8nZ+L4ro40kmCxUBqYcS2eKKuE5+LEz9S7dOH1DOGGU5GfedvUDAl1J8ea
+# jS6RnzNlvok1h+M/UumQq7ENagCClD892bOZkGqLFDf5ZnCuzrAg55QeeUrQLtl2
+# 4TWezBLjdt1N5hFoF95EXlRWmwp235Zpn6qmOO3obOiEZof+tqha+fUbYMPRpM7C
+# OwraHs9xHuGmGcwwLQC+RnDetZVXGHu2cK9ZOqNiJ9On0EnI4aBVLpNLa8jWmln4
+# 64u/yM8qcqhimWOst4Al2qnba0lYYT+6heGx6m6hDP+bQU3BPqwm5gSoifpW6dqX
+# 7Pp8aRDoUBJokW1VTHTB8qRscSuKlY+58om+pKY6nk7Jbu2thTMXYqKqEOEq3e02
+# k8WJo4NJCR9s/OqlxaV16qJgKPcsWQabMo4sOzvpqWsD/ZXEd7nyjHUz2sFJD1YC
+# 4Maw4baFG06W46+Vv9vYgElkH7VHFYKzYcFwbXXCeFjp76K6AKCPU2hkO20VQdax
+# AWGJH7FIGpTIyOb1RRZGR7f9ztJ2xcJ2mR2lChQ6L2nMXtK5aUqqrKan8GGrF73u
+# XyZHSA==
 # SIG # End signature block

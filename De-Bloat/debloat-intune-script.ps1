@@ -19,17 +19,30 @@ Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
 Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
 
 
-##Populate between the speechmarks any apps you want to whitelist, comma-separated
-$arguments = ' -customwhitelist ""'
+# Define apps to whitelist (comma-separated)
+$whitelistApps = ""
+
+# Define scheduled tasks to remove (empty by default).  Comma separated
+$tasksToRemove = @() -join ','
+
+# Build the arguments string with both parameters
+$arguments = " -customwhitelist `"$whitelistApps`""
+
+# Only add the TasksToRemove parameter if there are tasks to remove
+if ($tasksToRemove) {
+    $arguments += " -TasksToRemove `"$tasksToRemove`""
+}
+
 $pathwithfile = "$templateFilePath\removebloat.ps1"
 
+# Execute the script with parameters
 invoke-expression -Command "$pathwithfile $arguments"
 
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAxtBVbOspBH4Wi
-# 3scuoF4yOJblMPipeuOdpusbBKbD8KCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAGSpi2gKlwiVtn
+# KKeb5TP9SXHiPgxFki6w6puGuZ6Kr6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -212,34 +225,34 @@ invoke-expression -Command "$pathwithfile $arguments"
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBHpqZLS0bK9q3JZkhLmmjekJG41FgHxrZU
-# 9kiS9y70STANBgkqhkiG9w0BAQEFAASCAgC69oWN1OVHa6G//rmAMRK5GnXjUL9y
-# 1HTP556HDSAGmRqSgGXNKbFOE8srrCAAZ3jpa4zz+KscnypnfERubTTZhpRLrV+p
-# tx2zJqmXQ1wmccUslpmFC33YqBhmhrCVl0VAAcgBRc+qCbeaFWFuLVL3d04w3KlH
-# 8GHIPE5efZp3qlEzEFfAU8i0za7G9wFsSrq49s5+2FbByIGwt0B5w1tVuTtOfymR
-# rkpybca7++3jVWl8/6KZGxke5oMESnyos6kxXrYzS1ngqfKSt6j22ts7VJcbymBJ
-# 8AnLhgNPJlfJSGpV21AN9/3ITpQl6rovK6mpnERf6H94rkgcuK+RPExXKuY8I53a
-# jAyyXxE/pl94k5Uv4sOm8C91+20hQThiqRZkUbIEZQW25CRDiH+h5CrbqVREPuGE
-# eUXiEReNpUmSYqfyvbsUamGwrv4rMJEnDB589qFQKVkn7u+86FjcbSstUfYJCWaf
-# sGtid4X7sDj+GTMGOMBuyBpR3bICpAmW0ffzwRRBfV5rgQrW2AAXYD0h+W8gZubz
-# Lgj4pFm+LKUMZAO3pUK0dMjAvDlQXzXH3KyMxLMHot/CcUvAHiNhhC9u/FkmYPFa
-# gzDcSB0D462FP25vhsIT9NHtnQL/abQ9qJlYpgILAP/6rPsPbvZ20VYBei82vO6G
-# XxG6vnUlN4PQmaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBF9AVZGUTEPmRLVUPg9E61ZlO9oYuc4ok0
+# k4S0IJw9dTANBgkqhkiG9w0BAQEFAASCAgBtHHWk25zTnrvD1Iz3pn1b/Lr1kVs9
+# rTjg2jGCAqShwA7H8rYn1LDhfIRDVE2L6jNnuHoUl/KIeln5VuFrj1Y0rACuMiId
+# HR++Ik5fyDrmwWJiNILhxjm6tn95cFtZOdqiBfRFa3Nbx26dHcyfYlH0+q4w0LdA
+# bBRO9lR9FH8T4itrq5QeXjnMLczykkM52LLchr/TeNgkV/SApga/p+0jjNj5PnpG
+# LbTOZBsjdBkMMdLwdhiJXUBpar5Ub03o1sbGEycu8kN+O9VV/F+hJOvstVEh1V+N
+# Smql3AwmmWbGhPjRFJrR3l3IjhUT5rP/U2jmCp7SQ6+vKfK13Ayb8Y0v24qwedTJ
+# GsaWmUE+JnmAcwlxJX9PZ94PMRY8GFHB1YvfaN3WOATxjI1blEuuFEYA45aDwJLb
+# 0Uaa9bIsf0mIreWZNe7cBf14vrw9L8rZsOpAWDalk1nX8/4X6C0DlmF9Ds4hxI7L
+# bnpcG4HAU4xePfsm9GGE8jnWL5fSQxCrySErL2hu21higQ4a8MF7tLkc58A8o4P5
+# eTGYg3lp6KLcSoFL6H35trM3mHyZ8h0BKnS1WR1NAd6caYWlbsyRI894SwR4Hd/I
+# 15tn5zrLsc7wy8BD4zd3Qp4egGxOolCKm2Z/rs2T1n8eYRL3PMa2gzhbhKQ66l+t
+# GYN6fVYPTXGWE6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA2MTgxMjM3NTha
-# MC8GCSqGSIb3DQEJBDEiBCA9PhiEDhX5lBn5+5OjkEI4oducWp+bqCXd5F2791RI
-# ezANBgkqhkiG9w0BAQEFAASCAgAoIiqrl+F9RAPLnsaaXL//WFX5j79nFDQrO8xP
-# xYOEb5pORTsx//KrJmDsQnBw/Lf2sxIhBfwS7Cc4GNsDUyKdQrstk9p2D5E1RaWS
-# Bs9HFVmxdixC50arK+NjVujbeH3Fhb4K67syx6ObJ5JTggPPhlbwGV7Sc7YM2jBY
-# Ph3mpFPF3oI+4kE04HHfXOtPY9V4/kPp9oqHnNFgYCiOYFga65stpQDKIb/dx/p+
-# fqZ85Lad4Ks3Qf63ftR82x731dC8NQUBp3fu65calrY0jdwM5w+05kcxB5iBGlfH
-# HkmQQZf4QgrzyRjSOJTSmh/r92EU7lRxNk4uLdPP7cFrSk999T2J6BoP9tIyarh0
-# hlfl3JN5QSht76chLnsO7oLrFJMxqm/PFuk7Rt/E8M9SnXcXe/YWzGRFFU/UwDWR
-# V1jTKkB4OdGuaBhOo0JesrLZBj0uMTJCV/cEMd+jtSh9v534r/gN38a0coCRkIjd
-# pxa0U/8uF1mnX4R8TIHJ+UvVqDvtLXBcF9LdMhiUIk9f/m5XxKnjNOl3Ym7ViYoH
-# gb/IDdZ0vL0nIB+LTVkprQ2lqHNUazeTN8EiRnku9JxD6hbdp0bfFaGYAwHxk0Nx
-# o9BRoC7EIG+Drl3oSukOCV9UtT7aeKn8nylguPPGGjE9WgiozxJBDstdOLb/B9zO
-# +waaDw==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MTMyMDEzMzNa
+# MC8GCSqGSIb3DQEJBDEiBCBHM+dL+EiYtH6AZ7SLGkSmvWRi9ge0JC5U9+zpyvA1
+# izANBgkqhkiG9w0BAQEFAASCAgCQdqILlbItfuFi7m5I2tDbKldZ0vOnLVoKevQI
+# L3PSGmsGFZVkSLH5M8qG56bVE20DUzRZe6nkh0Vt98nkthBInTJejWXf8PILKT8f
+# YuKDvB7hrA4vBSt3xFIDfd4lwNogMgAXW6dA7gDGoZeZrZs0Gyq9YbP8yvwiQjtQ
+# uN4uUeks5Ex2Xz27UtkyHTGMMpOs7cIC4vcaPDgzNoc6TSffRk+fbL/VuVLJ+v1Y
+# 0oWQ6LzLFgzF31+LcvhOclU2JDu2nt81g9xXdRcTUGACbSuzdYj5SgjkVduVziDq
+# BY4OsXu8Rz+OprOzwk8XINVgoH+icI1f/kCZ5gTZMNXyUNQh1nDP7LbEJpM3/r3l
+# 5BPBKNBq+ENwl9q4fBLxCm4E71TEss7G5IcDq5A+5/ac29ZRS6fOwjTAWL64fehG
+# q6tPH3we0ug00h+XHnnZX1NgUW1iZL24VGwW/ZIy6sslGsi0qcKzIC1VQq0Nu91N
+# xc7wNlPFEizGlI64CaC1NNUQIw0twoDQevXMpMKE3F5umSU7g68zmCNgc0evN+mD
+# qqNADq1xXaWYU3dUMP9DBQK9XLiVapUGAVfR9a0Rbrd7MzDCGQXCVFw82Yga756H
+# sGWUtQLQszYHCG25QMxoCzPjk1NDfSx42jt9VdVRmlFEwjA/e817Pw0QDpyxaknK
+# STinmA==
 # SIG # End signature block
