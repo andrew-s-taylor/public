@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.24
+  Version:        5.1.25
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -150,6 +150,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 13/05/2025 - Fixed TrackPoint (hopefully)
   Change 04/06/2025 - Addex X-Rite for Lenovo
   Change 14/07/2025 - Added GameDVR Popup fix
+  Change 13/08/2025 - Blocked consumer scheduled tasks
 N/A
 #>
 
@@ -831,6 +832,10 @@ If (Test-Path $consumer) {
     Set-ItemProperty $consumer -Name "DisableWindowsConsumerFeatures" -Value 1
 }
 
+#Stop them coming back
+Disable-ScheduledTask -TaskName "Microsoft\Windows\CloudExperienceHost\CreateObjectTask"
+Disable-ScheduledTask -TaskName "Microsoft\Windows\Consumer Experiences\CleanUpTemporaryState"
+Disable-ScheduledTask -TaskName "Microsoft\Windows\Consumer Experiences\StartupAppTask"
 
 ############################################################################################################
 #                                                   Disable Spotlight                                      #
@@ -2283,8 +2288,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD6vS6C8DGzOX3I
-# zqsBpiG9dmkjG/fHlwUArEnKCQlmYaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC8vGZ/kaxZ29dq
+# jHDTKk2UlfQcwlVOV96dQtSjEWj8LKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2467,34 +2472,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBpvikWaiInNi8JlqU//O12ZbWJKqEK8ERq
-# KF46N3zJBjANBgkqhkiG9w0BAQEFAASCAgC/9IvlkJYW7BagTqq6P4scrNwHCv3b
-# mYXZSynv3naopVSEgLV7eq80Pun7sOK3Q0HcIpRoxzgXYxGLX6ogA4Q10lZ2jAkB
-# r2lpj2LJPuHhslajf9sx0HKs2gCQd6rPdqa8jBdLtDPxoWWH1sNrl3YzEv9b/QL7
-# 8aSW8mwLPRalbZOeRUj5ngektLWYmbSeUteBqqh+eNFivVNsqzlsJHl9A/h9imtY
-# Tce+5IX1zn3u0oUS5ViNpVox2LuTcK4yYqmnYQUlGdAXcuzI4jWlSUw/at/1neaB
-# 7THxhHt8nzcO9JlT//h2YG/T/IfxpU/vsIxoBydlv/2n41Zhu5YrHMoF0g6ijb+w
-# 4JHzPFU2+qH0DQ/dirhH4+/wsFQrhkBLRNLs48rskfpz7FUeCFUo8rYm1ENEbofH
-# eKsn45+aF8OtaCLGwzmzl6ToTLZ6Hg8Yaz2EjBxLPudPRChtB5rFVajpfvW/9R8n
-# I2+EJWRIXExVdr4p9VCnzr2bKABaFdX8CsEeV8YH/1jsk57g70q9oqVYcBumzALU
-# 1A/IPWw1Vz8wVOmFe7bpUWXQ6HFM+FTlDXMX4p8nT6lkYnwq7CvjFA6Bjhvc6uiE
-# 0bTgtSPw8xI1SE2AdTmtRXz4iSv7nIv7Y1t8nihUBCDifVhIBqsAQDB3BUWv/KUM
-# JrYU7scU8z2SJKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCqCr/PtsxYaTVm2dLxp8DBirMva/6sJe8P
+# awUzc+4s1zANBgkqhkiG9w0BAQEFAASCAgBKN2ENQJoTwwTuWw2HlXYFDT1CDmz7
+# 7aMAnNnajA6XI8NrY+/i/8BLQ7iLNM656mmWxKa0H//KfyfZi/VzjlGT6XxklSM9
+# BhoM0eD0rIlJMlUsD2fKblPtycwRDKOeo/hAuzgjskldIf5YosZIt/VYrdupG1mV
+# BoNN1GMd8bi/d10aEhbPc1B2QWiKLtWdKqJ+HOxo7K2jSTzpbQuCWsMn2MzW7Ocm
+# +5ByOSyeJIfu+JTSucj/5enecVZTNsoJDmrcOs9Hxy8UStPTKRzWEEZAkDZjWSfE
+# tNCUncGCbiWv3cjKoO1j2iUOqmJkruBxCnE6ITLRdTrGcmgeT0LNne+Zi1C1cE+P
+# 5mG6H7G/5gzcTTJHdkV4OoBWkmNDhj7Pe5wwPBHKNEPoqxcMWIKiSsYLT7uvNDbj
+# zPUpEByzpXki/43p67G5+IJNN8S0H/Rdx+BVtVWceC+liS5ty+QHv5jfox9Tkchc
+# 6aEjFR5AimMwhSp1CeawU5C/R5ah89KXhVwCbi9GoumKC5SXj+4zdKpyjZlcJ4gm
+# SFhC49cFT8ZILrytR9L2kkRfq2w0MHVCvhIbgEB/smQnzTao4J3w0SdEvgf3x2tj
+# b7CIxDGtL7EQ1K6c+YLebz4Nr7rBMe5q7fFmdFlc6QtTppoUA7yOpZsHcXrwi9aw
+# XTINOFaEWOsFBqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA3MjQyMDA4Mzda
-# MC8GCSqGSIb3DQEJBDEiBCBO0pSUqjhk/kzYOx3YoD6AIePssFgLeNdVNa5g1iGL
-# mTANBgkqhkiG9w0BAQEFAASCAgAlZoHZRwUt82W1QEzgl6hc2X3ZvMSJLwZwsILA
-# kVUUh9YRN1G6rG3Efb6kDCWiemBHFE2qHAUNAIAXYhxE9JOTTR9DBVSBqNPwdRtV
-# /q6fUVT8WiHxxUWTIiK7xpcwG8toNI/m2cmDYEcL4kVQAAUbDDollCUhY1jJ56oI
-# 5CJQsjyMF8nQJS34SYeziKYRLsAvmVwNynoKIj/iQOStsnhixBP+r0z2UozEdmdM
-# fd1jhnDo8Jd89tANeX3YbG5lA1hL42SLpx8uTtKjM9iiYJCxVVKI0cwzdQx8yiM0
-# ofpFtD3rwqapZRq2FRIaTnJIwXKPkfkEvSNcfk9fZWogPyf5Y74A6iclSCiqT2x/
-# M0lCfKSVXni6N4sOjxK6HLhgkCwoJFmwy68lWU44p24qf1FAE4O1HEKOp3fQKMXT
-# 3fgBGu+JfMgcHxsuOd2DYt7FFK4Oo+SKczTSyKfQEf36Qg4MGgObHOIDCJXFbzKk
-# 5yrebhhv2c1a1Sjtlha5LxlcQDGXUUQQchLrXDdo8tqBOZmiY4YCCd5BmUdXAMIK
-# i0+DQzyto4C5CY4wouPMtf4GGDZi+OMvx8vACtzEpcI61hg/J8W5P+wth0r4nu2Q
-# WClGMR0XSlutKOV62sNqIHUmde0fO1X+sfyw5//W72wJtA6ec0WUG/mjl0Hdp5QW
-# fcWtcw==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MTMxNTU1MjRa
+# MC8GCSqGSIb3DQEJBDEiBCDv/9jz/MXojSnwguOHvpPM/5DniT80lpGuFB8DB1NH
+# AjANBgkqhkiG9w0BAQEFAASCAgB8ufAowiMTDWcTy6Q9tCIySb2UIGSsgb49aXsi
+# SUcUz01KvzucCCFfMGFQH2PDq05+1g53HFE43QB4hVrrhrPiyYf/aMX+S0RgyHFR
+# fZfBejyC6g4LxtQsrHi8MKY0nfGjyWRv9nUp33a+3p+kDEVrv2XfkPrqm1a4Mg6n
+# s4+KrW3fQBFwJ3RiSY0l/jL4kNq8kUpe/lpusbv4/DXvUlxCEgAKNvKBsTW+72OO
+# 2A5Eg6s09v7kU48zWEz6VY6HHCaRaDYz5N+ULtKL0OGPmtZvLbx6aimAt2E0RR6y
+# fgS6XJihJ4aKj86X5uWAu4RoNDNupPpYqfqTTcrskCNTdQ3nYjniI2ytedF/U954
+# RrKoegvHI1v+owsJ24lshACc9L0nBIAlMVvH8HmhtpyHRfkhEGUNaaOjlxaAyPc6
+# CVOsrPkosHE+0qegd1osPkUv8BM4Rz47vgStxlpaQnx8CLfbu1062zY9PT+9aTcx
+# 7N2CH0QcVCGSj/I54trz9cKkA6akWe4AQGP0Ts4GgARXPTYFAc9oMLd8F0w6Ll/Z
+# Y86BNUHQjh5ksuK652UGEiVFE+GyG0acu/8SthZ+TAo6RrGemW54vLZ+dTWVT4t1
+# GcSgej1BFK92/PTfYraBGePCL4Xvg46he0JtYNypZ7uj4EW/hmci1kkhtPuRS08y
+# S5it8g==
 # SIG # End signature block
