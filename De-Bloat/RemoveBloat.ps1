@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.26
+  Version:        5.1.27
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -152,6 +152,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 14/07/2025 - Added GameDVR Popup fix
   Change 13/08/2025 - Blocked consumer scheduled tasks
   Change 13/08/2025 - Added option to add your own tasks via parameter
+  Change 20/08/2025 - Removed win32_product commands and changed HP wolf (thanks to Kevin Malinoski)
 N/A
 #>
 
@@ -1573,9 +1574,9 @@ if ($manufacturer -like "*HP*") {
 
 
     ##Belt and braces, remove via CIM too
-    foreach ($program in $UninstallPrograms) {
-        Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
-    }
+    #foreach ($program in $UninstallPrograms) {
+    #    Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
+    #}
 
 
     #Remove HP Documentation if it exists
@@ -1607,9 +1608,68 @@ if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Unin
     if (Test-Path -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Miro Offer.lnk" -PathType Leaf) { Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Miro offer.lnk" -Force }
 
     ##Remove Wolf Security
-    Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Wolf Security' } | Invoke-CimMethod -MethodName Uninstall
-    Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Wolf Security - Console' } | Invoke-CimMethod -MethodName Uninstall
-    Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Security Update Service' } | Invoke-CimMethod -MethodName Uninstall
+    #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Wolf Security' } | Invoke-CimMethod -MethodName Uninstall
+    #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Wolf Security - Console' } | Invoke-CimMethod -MethodName Uninstall
+    #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Security Update Service' } | Invoke-CimMethod -MethodName Uninstall
+
+function Uninstall-HPPackages {
+    param (
+        [string]$PackageNamePattern,
+        [version]$MinimumVersion = $null
+    )
+     
+    try {
+        Write-Log "Searching for packages matching pattern: $PackageNamePattern"
+         
+        $packages = Get-Package -AllVersions -ErrorAction Stop | 
+            Where-Object { $_.Name -match $PackageNamePattern }
+         
+        if ($packages) {
+            foreach ($package in $packages) {
+                if ($MinimumVersion -and [version]$package.Version -lt $MinimumVersion) {
+                    Write-Log "Skipping $($package.Name) version $($package.Version) - below minimum version $MinimumVersion"
+                    continue
+                }
+                 
+                Write-Log "Uninstalling $($package.Name) version $($package.Version)"
+                try {
+                    $package | Uninstall-Package -ErrorAction Stop
+                    Write-Log "Successfully uninstalled $($package.Name)"
+                }
+                catch {
+                    Write-Log "Failed to uninstall $($package.Name): $_"
+                }
+            }
+        }
+        else {
+            Write-Log "No packages found matching pattern: $PackageNamePattern"
+        }
+    }
+    catch {
+        Write-Log "Error processing packages for pattern $PackageNamePattern : $_"
+    }
+}
+ 
+# Main execution
+    Write-Log "Starting HP security package uninstallation process"
+     
+    # Define packages and criteria
+    $packagePatterns = @(
+        @{ Name = "HP Client Security Manager"; MinVersion = "10.0.0" },
+        @{ Name = "HP Wolf Security(?!.*Console)" },
+        @{ Name = "HP Wolf Security.*Console" },
+        @{ Name = "HP Security Update Service" }
+    )
+     
+    # Process each package pattern
+    foreach ($pattern in $packagePatterns) {
+        if ($pattern.MinVersion) {
+            Uninstall-HPPackages -PackageNamePattern $pattern.Name -MinimumVersion $pattern.MinVersion
+        }
+        else {
+            Uninstall-HPPackages -PackageNamePattern $pattern.Name
+        }
+    }
 
     write-output "Removed HP bloat"
 }
@@ -1690,10 +1750,10 @@ if ($manufacturer -like "*Dell*") {
     }
 
     ##Belt and braces, remove via CIM too
-    foreach ($program in $UninstallPrograms) {
-        write-output "Removing $program"
-        Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE name = '$program'" | Invoke-CimMethod -MethodName Uninstall
-    }
+    #foreach ($program in $UninstallPrograms) {
+    #    write-output "Removing $program"
+    #    Get-CimInstance -Query "SELECT * FROM Win32_Product WHERE name = '$program'" | Invoke-CimMethod -MethodName Uninstall
+    #}
 
     ##Manual Removals
 
@@ -1881,9 +1941,9 @@ if ($manufacturer -like "Lenovo") {
 
 
     ##Belt and braces, remove via CIM too
-    foreach ($program in $UninstallPrograms) {
-        Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
-    }
+    #foreach ($program in $UninstallPrograms) {
+    #    Get-CimInstance -Classname Win32_Product | Where-Object Name -Match $program | Invoke-CimMethod -MethodName UnInstall
+    #}
 
     # Get Lenovo Vantage service uninstall string to uninstall service
     $lvs = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object DisplayName -eq "Lenovo Vantage Service"
@@ -2263,6 +2323,9 @@ if ($IsOOBEComplete -eq 0) {
 
 ## The XML below will Remove Retail Copies of Office 365 and OneNote, including all languages. Note: Office Apps for Entreprise Editions will remain.
 
+##Check if they are installed first
+
+
 ## Remove Retail Copies XML Start ##
 $xml = @"
 <Configuration>
@@ -2335,8 +2398,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCG+JEzf8/mj61p
-# kp1HvxulwgBDnWiBft9GBKZvc620H6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBOziPnJEy7epq3
+# 38UtK2tEkCGsc+ji2r1TUEgpN2NvJKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2519,34 +2582,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBDKTaexXCqMwn1/Jovh6W+XYNM0mYO5hn6
-# Lhq0GeLw/DANBgkqhkiG9w0BAQEFAASCAgAiQy7OBmK1tOhmDkI+mfSbJFXGUk3c
-# ttlT6k2kxzZgxwLVlqSAlgr70QoCtTYz3zbKKASHDd/XVxiLZ9WDkp7IwyhvqndE
-# fgBSp74JWzTkRh/Y1iEUoLYNiWA2f4HGLTQ0QiyOfLAoiW5j/gCfLuVyAirnA7IV
-# ypFJuKY/YMCd41ZIpeaBSWpppX+BA+Xs8QYo6PAtyFLP8TqVI+4t2+5Ewa8Ebslj
-# Wl6XbVvtx2dwIJQ4eGH4dgf1KBJhFu/OpexeRoWIB+t8kF/W/XwB5xpEPieUWJBY
-# PbDPf2ueH/DuVHEEDL2e6GvKowhVk9JBYsrug6R2kZP1hhG39gaB+0K7NFODofpA
-# Huf5m2Z7wEDDfb75cZPWd6ivIMX8rDLAg/SOgVDdkrMNrAEZ2tXRpoR9oyaSGBh7
-# 99W46mn+KS4DKMKGSlxwqh7C9FJdmkcgX3KlqM2IkcONow1rPehU017LsMgKnGg9
-# 66fmFCk/FhkH2eMfEDH47GrQqSQlOc8yR2hb5563tf8YfMKk9REXJbCuGnyN4Sle
-# JBP0adJZOWmqd97bOPEzoN0x0JCrv2R8mXJ6FXtPgGGS8KPO3Sl5QDIN+O97OH88
-# RIPvNhQ2KE52Z928JH0pqx7w/TDq2J8radlEwol6r87xCF4HUcpmWuVpFBi85p8l
-# z/Z8cyQL9BA4NKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCA42/ty5fC+0J20lKK9B8a6Apja03M+Z196
+# 93bvW3p1STANBgkqhkiG9w0BAQEFAASCAgBVjearYwC3TfypJSfRLtsXyI6Rx9+C
+# ifkgUL9sDhutobtBbG6jJxPMX/9jDYD+9B3liZfVhJhtcFIpIFmnM5uJXS0/ko1A
+# dzhEcSAl7WigLSmKqL1i5sR9YrEgyKTpI1WOaI8dJ1mwoMcOZMJyGSFnX0DEVl29
+# sjTLBGzkPdRjQBEEMYH7aoIltDZW5yXsxmKvzR/YdjOcjC7DAWF7i4IjPdvl5WxS
+# OjGhR+hyyRZxcFACHkEZ7rISwWOXWa2dVw91K7aHoADy9wbqZVM8abPAerAGerHs
+# iHhr4/4ZY36IaQ/rGEp+Xg/4YxUHvN+sPs0bQ+WFzgXlJkO6rtEfhci2obaSbx3a
+# ttJ/Rmw5AACsBuD2TkjU/gj9prSW2xe8XmheycbnIOTAtnjn/Rr8e3oyNq2P9djV
+# EwCMPdjWQk+8wx6L8siIkxPxBzbozTvkMKAtWDvGh34SZm9BcI7102/FgNExDjIC
+# BpjPXhAkADxFLZJRPwo1e5ZJCQ3Iw/t8TCb094wLuux0RYZyUeP1UrOX3HroHGIg
+# HauAfOoxogatiSGiDi3p4/fdfafc4A28wYKmw5dMD336LLOZdHC0nRBTuBEz0gFz
+# vIshwKzUoR+Bvbu0ctYRBGAkvAK+nNyDw3pyG6S1z+ZMw7V0kg3b6rkf052BWRc2
+# GNZBkuf6hklTmqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MTUxMjIzMzFa
-# MC8GCSqGSIb3DQEJBDEiBCD/RCRPH7TuEskdnRTT6recq/0SVA70cvXIoh/ywVP1
-# MDANBgkqhkiG9w0BAQEFAASCAgARcaxk/OmxEM/SCLEbMKep1rcLzgkufVJAlVyb
-# Y6TH/5mel8T8YludevvpjLtwt76DhEaWziP6ObIejFSVHenDOVCCyhOrVye/r+0n
-# nHYJ6JkJJAuVFF5lzhQaqQ9Lo1IHeBw61bu6SAYGQR/4sQikU4Me/aznjncYWE7+
-# xiJC5l7uvp5GSGKW4iTMxLlwCVpfhDPPbQE0YE6eodHocPRwqGmS9P5scePxP1Ek
-# nyD+L5nt0dhpBy5US5GzXAPqyBZpUWzFeJ2YlzbM+3dEpWn5NjjSI2yXPpdiO9At
-# vh3HnotSuzoc27v/+IMMw2LWocEu84ThqOmSfz/8z9zNSl369++3NKT4HPioe7xV
-# hK8BUg26fBP26rZP9VFwNvl6IjVrefwZSSTzjXRmVaBXxdsNTHKccR46vud9JlON
-# WCPg3/CbbILBAVr3w1Hbn0TQ1D5CpL9jsPDVsqaMqQucLG4VlxCml/+BC1jF5DZ6
-# 0xsx+Xjw8S2/ONIi4ryE2eu2jBtcGDqaBWvEgnHvEgIPLxR/eKtOdlNTX0ZgNbEQ
-# pCvz+KN5sCYeICkvFplz3Kt/49JFdFhV5MUW8uE+4U02iAFRxPF/eFa3rMzMA+K0
-# AX+KKfjD8WvkgxSU+rALe2stKzaIsX2G7180UpVwXZvcjwR9v2SzqkZiRogU+ESa
-# iTPQ7Q==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MjAxOTQ4MDVa
+# MC8GCSqGSIb3DQEJBDEiBCAwEp5aisk1PZp1fUd6IWZcWsuDZnhKG1Fb2pRj1/Od
+# aTANBgkqhkiG9w0BAQEFAASCAgAeT1pKlYbpWZe/mhiqjqpcSq0gBo7EniM7X8oY
+# D+d2rWXh57YPP2t/2Nmh+VcF0+fiDVm4+SMDAN9+spOXIuJEv3xxPJf0qR+hr/6a
+# f4LkMEu98dasRL/5YjmyEWwN/ME29LQeqCfxf6P7PE9m6boVKwCUjxCxQtWvMOM+
+# OfkSQ500KqBUMmw71hhykyT0LQ/idvuD/DTL4tMBkLladcymAMJsJzvgyJFcEF/6
+# WFfnZKTpJ9vaLM2qsJi2b9+dMBuO2caUs/6lzl2oxFn3n+nsCLR5hci+MaGavcN2
+# XB57jqlS4bybwAcbwf4W+0riHpLoLkXBGPKJBXFfkU24mG3b4Tzykep0Pnbp2/t2
+# iZnDetsz2WbeqQ8jLtM63Isj1r3xfT6D8aUdZljFU6G0xZ2971NDpHzSOcl0Ba4y
+# LAF5hEA2XJCaLdLa+hQwNbBfBhhDPbIGLeqzHVoyg6d1UydTp8c0p0KqbpU4374s
+# gZcOKQy2IJbrWH5HkVmooNVebWBZyz2kFmZlVYTjz7CrvIdTiJYDApZ88dZ0T6ok
+# AQkvM1rg89rD5d9at2tl+8BuN1maaA3/2oHnv25N32NrYsZtVaHkTY1ZvqbgaGhI
+# UauAjHu21zcKyqRXOQ2aVw+GGJrghQWVnL94BzVsS2C2g8aMjkbmbFk7CId6AyuB
+# 6hi/yA==
 # SIG # End signature block
