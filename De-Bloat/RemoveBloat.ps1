@@ -208,20 +208,20 @@ function Remove-CustomScheduledTasks {
     param (
         [string[]]$TaskNames
     )
-    
+
     Write-Output "Removing specified scheduled tasks..."
-    
+
     foreach ($taskName in $TaskNames) {
         Write-Output "Attempting to remove task: $taskName"
-        
+
         # Check if the task exists
         $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-        
+
         if ($task) {
             try {
                 # First disable the task
                 Disable-ScheduledTask -TaskName $taskName -ErrorAction Stop | Out-Null
-                
+
                 # Then unregister (remove) the task
                 Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Stop
                 Write-Output "Successfully removed scheduled task: $taskName"
@@ -280,8 +280,8 @@ $WhitelistedApps = @(
     'Microsoft.OutlookForWindows',
     'Microsoft.WindowsTerminal',
     'Microsoft.MicrosoftEdge.Stable'
-    'Microsoft.MPEG2VideoExtension', 
-    'Microsoft.HEVCVideoExtension', 
+    'Microsoft.MPEG2VideoExtension',
+    'Microsoft.HEVCVideoExtension',
     'Microsoft.AV1VideoExtension'
 )
 ##If $customwhitelist is set, split on the comma and add to whitelist
@@ -368,103 +368,103 @@ $appstoignore = $WhitelistedApps += $NonRemovable
 
 ##Bloat list for future reference
 $Bloatware = @(
-#Unnecessary Windows 10/11 AppX Apps
-"*ActiproSoftwareLLC*"
-"*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
-"*BubbleWitch3Saga*"
-"*CandyCrush*"
-"*DevHome*"
-"*Disney*"
-"*Dolby*"
-"*Duolingo-LearnLanguagesforFree*"
-"*EclipseManager*"
-"*Facebook*"
-"*Flipboard*"
-"*gaming*"
-"*Minecraft*"
-"*Office*"
-"*PandoraMediaInc*"
-"*Royal Revolt*"
-"*Speed Test*"
-"*Spotify*"
-"*Sway*"
-"*Twitter*"
-"*Wunderlist*"
-"AD2F1837.HPPrinterControl"
-"AppUp.IntelGraphicsExperience"
-"C27EB4BA.DropboxOEM*"
-"Disney.37853FC22B2CE"
-"DolbyLaboratories.DolbyAccess"
-"DolbyLaboratories.DolbyAudio"
-"E0469640.SmartAppearance"
-"Microsoft.549981C3F5F10"
-"Microsoft.AV1VideoExtension"
-"Microsoft.BingNews"
-"Microsoft.BingSearch"
-"Microsoft.BingWeather"
-"Microsoft.GetHelp"
-"Microsoft.Getstarted"
-"Microsoft.GamingApp"
-"Microsoft.Messaging"
-"Microsoft.Microsoft3DViewer"
-"Microsoft.MicrosoftEdge.Stable"
-"Microsoft.MicrosoftJournal"
-"Microsoft.MicrosoftOfficeHub"
-"Microsoft.MicrosoftSolitaireCollection"
-"Microsoft.MixedReality.Portal"
-"Microsoft.MPEG2VideoExtension"
-"Microsoft.News"
-"Microsoft.Office.Lens"
-"Microsoft.Office.OneNote"
-"Microsoft.Office.Sway"
-"Microsoft.OneConnect"
-"Microsoft.People"
-"Microsoft.PowerAutomateDesktop"
-"Microsoft.PowerAutomateDesktopCopilotPlugin"
-"Microsoft.Print3D"
-"Microsoft.RemoteDesktop"
-"Microsoft.SkypeApp"
-"Microsoft.SysinternalsSuite"
-"Microsoft.Teams"
-"Microsoft.Windows.DevHome"
-"Microsoft.WindowsAlarms"
-"Microsoft.windowscommunicationsapps"
-"Microsoft.WindowsFeedbackHub"
-"Microsoft.WindowsMaps"
-"Microsoft.Xbox.TCUI"
-"Microsoft.XboxApp"
-"Microsoft.XboxGameOverlay"
-"Microsoft.XboxGamingOverlay"
-"Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
-"Microsoft.XboxIdentityProvider"
-"Microsoft.XboxSpeechToTextOverlay"
-"Microsoft.ZuneMusic"
-"Microsoft.ZuneVideo"
-"MicrosoftCorporationII.MicrosoftFamily"
-"MicrosoftCorporationII.QuickAssist"
-"MicrosoftWindows.CrossDevice"
-"MirametrixInc.GlancebyMirametrix"
-"RealtimeboardInc.RealtimeBoard"
-"SpotifyAB.SpotifyMusic"
-"5A894077.McAfeeSecurity"
-"5A894077.McAfeeSecurity_2.1.27.0_x64__wafk5atnkzcwy"
-#Optional: Typically not removed but you can if you need to for some reason
-#"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
-#"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
-#"*Microsoft.BingWeather*"
-#"*Microsoft.MSPaint*"
-#"*Microsoft.MicrosoftStickyNotes*"
-#"*Microsoft.Windows.Photos*"
-#"*Microsoft.WindowsCalculator*"
-#"Microsoft.Office.Todo.List"
-#"Microsoft.Whiteboard"
-#"Microsoft.WindowsCamera"
-#"Microsoft.WindowsSoundRecorder"
-#"Microsoft.YourPhone"
-#"Microsoft.Todos"
-#"MSTeams"
-#"Microsoft.PowerAutomateDesktop"
-#"MicrosoftWindows.Client.WebExperience"
+    #Unnecessary Windows 10/11 AppX Apps
+    "*ActiproSoftwareLLC*"
+    "*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
+    "*BubbleWitch3Saga*"
+    "*CandyCrush*"
+    "*DevHome*"
+    "*Disney*"
+    "*Dolby*"
+    "*Duolingo-LearnLanguagesforFree*"
+    "*EclipseManager*"
+    "*Facebook*"
+    "*Flipboard*"
+    "*gaming*"
+    "*Minecraft*"
+    "*Office*"
+    "*PandoraMediaInc*"
+    "*Royal Revolt*"
+    "*Speed Test*"
+    "*Spotify*"
+    "*Sway*"
+    "*Twitter*"
+    "*Wunderlist*"
+    "AD2F1837.HPPrinterControl"
+    "AppUp.IntelGraphicsExperience"
+    "C27EB4BA.DropboxOEM*"
+    "Disney.37853FC22B2CE"
+    "DolbyLaboratories.DolbyAccess"
+    "DolbyLaboratories.DolbyAudio"
+    "E0469640.SmartAppearance"
+    "Microsoft.549981C3F5F10"
+    "Microsoft.AV1VideoExtension"
+    "Microsoft.BingNews"
+    "Microsoft.BingSearch"
+    "Microsoft.BingWeather"
+    "Microsoft.GetHelp"
+    "Microsoft.Getstarted"
+    "Microsoft.GamingApp"
+    "Microsoft.Messaging"
+    "Microsoft.Microsoft3DViewer"
+    "Microsoft.MicrosoftEdge.Stable"
+    "Microsoft.MicrosoftJournal"
+    "Microsoft.MicrosoftOfficeHub"
+    "Microsoft.MicrosoftSolitaireCollection"
+    "Microsoft.MixedReality.Portal"
+    "Microsoft.MPEG2VideoExtension"
+    "Microsoft.News"
+    "Microsoft.Office.Lens"
+    "Microsoft.Office.OneNote"
+    "Microsoft.Office.Sway"
+    "Microsoft.OneConnect"
+    "Microsoft.People"
+    "Microsoft.PowerAutomateDesktop"
+    "Microsoft.PowerAutomateDesktopCopilotPlugin"
+    "Microsoft.Print3D"
+    "Microsoft.RemoteDesktop"
+    "Microsoft.SkypeApp"
+    "Microsoft.SysinternalsSuite"
+    "Microsoft.Teams"
+    "Microsoft.Windows.DevHome"
+    "Microsoft.WindowsAlarms"
+    "Microsoft.windowscommunicationsapps"
+    "Microsoft.WindowsFeedbackHub"
+    "Microsoft.WindowsMaps"
+    "Microsoft.Xbox.TCUI"
+    "Microsoft.XboxApp"
+    "Microsoft.XboxGameOverlay"
+    "Microsoft.XboxGamingOverlay"
+    "Microsoft.XboxGamingOverlay_5.721.10202.0_neutral_~_8wekyb3d8bbwe"
+    "Microsoft.XboxIdentityProvider"
+    "Microsoft.XboxSpeechToTextOverlay"
+    "Microsoft.ZuneMusic"
+    "Microsoft.ZuneVideo"
+    "MicrosoftCorporationII.MicrosoftFamily"
+    "MicrosoftCorporationII.QuickAssist"
+    "MicrosoftWindows.CrossDevice"
+    "MirametrixInc.GlancebyMirametrix"
+    "RealtimeboardInc.RealtimeBoard"
+    "SpotifyAB.SpotifyMusic"
+    "5A894077.McAfeeSecurity"
+    "5A894077.McAfeeSecurity_2.1.27.0_x64__wafk5atnkzcwy"
+    #Optional: Typically not removed but you can if you need to for some reason
+    #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
+    #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
+    #"*Microsoft.BingWeather*"
+    #"*Microsoft.MSPaint*"
+    #"*Microsoft.MicrosoftStickyNotes*"
+    #"*Microsoft.Windows.Photos*"
+    #"*Microsoft.WindowsCalculator*"
+    #"Microsoft.Office.Todo.List"
+    #"Microsoft.Whiteboard"
+    #"Microsoft.WindowsCamera"
+    #"Microsoft.WindowsSoundRecorder"
+    #"Microsoft.YourPhone"
+    #"Microsoft.Todos"
+    #"MSTeams"
+    #"Microsoft.PowerAutomateDesktop"
+    #"MicrosoftWindows.Client.WebExperience"
 )
 
 
@@ -484,7 +484,7 @@ foreach ($appxprov in $provisioned) {
 }
 
 
-$appxinstalled = Get-AppxPackage -AllUsers | Where-Object { $_.Name -in $Bloatware -and $_.Name -notin $appstoignore  -and $_.Name -notlike 'MicrosoftWindows.Voice*' -and $_.Name -notlike 'Microsoft.LanguageExperiencePack*' -and $_.Name -notlike 'MicrosoftWindows.Speech*'}
+$appxinstalled = Get-AppxPackage -AllUsers | Where-Object { $_.Name -in $Bloatware -and $_.Name -notin $appstoignore -and $_.Name -notlike 'MicrosoftWindows.Voice*' -and $_.Name -notlike 'Microsoft.LanguageExperiencePack*' -and $_.Name -notlike 'MicrosoftWindows.Speech*' }
 foreach ($appxapp in $appxinstalled) {
     $packagename = $appxapp.PackageFullName
     $displayname = $appxapp.Name
@@ -1025,7 +1025,7 @@ if ($version -like "*Windows 10*") {
     $filepath = "C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\WindowsBackup\Assets"
     if (Test-Path $filepath) {
 
-        $packagename = Get-WindowsPackage -Online | Where-Object {$_.PackageName -like "*Microsoft-Windows-UserExperience-Desktop-Package*"} | Select-Object -ExpandProperty PackageName
+        $packagename = Get-WindowsPackage -Online | Where-Object { $_.PackageName -like "*Microsoft-Windows-UserExperience-Desktop-Package*" } | Select-Object -ExpandProperty PackageName
         Remove-WindowsPackage -Online -PackageName $packagename
 
         ##Add back snipping tool functionality
@@ -1172,8 +1172,7 @@ $version = Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty
 if ($version -like "*Windows 10*") {
     write-output "Windows 10 Detected"
     write-output "Removing Current Layout"
-    If (Test-Path C:\Windows\StartLayout.xml)
-    {
+    If (Test-Path C:\Windows\StartLayout.xml) {
 
         Remove-Item C:\Windows\StartLayout.xml
 
@@ -1200,8 +1199,7 @@ if ($version -like "*Windows 10*") {
 if ($version -like "*Windows 11*") {
     write-output "Windows 11 Detected"
     write-output "Removing Current Layout"
-    If (Test-Path "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml")
-    {
+    If (Test-Path "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml") {
 
         Remove-Item "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml"
 
@@ -1590,10 +1588,10 @@ if ($manufacturer -like "*HP*") {
 
         &'C:\Program Files (x86)\InstallShield Installation Information\{6468C4A5-E47E-405F-B675-A70A70983EA6}\setup.exe' @('-s', '-f1C:\Windows\Temp\HPConnOpt.iss')
     }
-##Remove HP Data Science Stack Manager
-if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Uninstall Z by HP Data Science Stack Manager.exe') {
-    &'C:\Program Files\HP\Z By HP Data Science Stack Manager\Uninstall Z by HP Data Science Stack Manager.exe' @('/allusers', '/S')
-}
+    ##Remove HP Data Science Stack Manager
+    if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Uninstall Z by HP Data Science Stack Manager.exe') {
+        &'C:\Program Files\HP\Z By HP Data Science Stack Manager\Uninstall Z by HP Data Science Stack Manager.exe' @('/allusers', '/S')
+    }
 
 
     ##Remove other crap
@@ -1612,47 +1610,47 @@ if (test-path -Path 'C:\Program Files\HP\Z By HP Data Science Stack Manager\Unin
     #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Wolf Security - Console' } | Invoke-CimMethod -MethodName Uninstall
     #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Security Update Service' } | Invoke-CimMethod -MethodName Uninstall
 
-function Uninstall-HPPackages {
-    param (
-        [string]$PackageNamePattern,
-        [version]$MinimumVersion = $null
-    )
-     
-    try {
-        Write-Log "Searching for packages matching pattern: $PackageNamePattern"
-         
-        $packages = Get-Package -AllVersions -ErrorAction Stop | 
+    function Uninstall-HPPackages {
+        param (
+            [string]$PackageNamePattern,
+            [version]$MinimumVersion = $null
+        )
+
+        try {
+            Write-Log "Searching for packages matching pattern: $PackageNamePattern"
+
+            $packages = Get-Package -AllVersions -ErrorAction Stop |
             Where-Object { $_.Name -match $PackageNamePattern }
-         
-        if ($packages) {
-            foreach ($package in $packages) {
-                if ($MinimumVersion -and [version]$package.Version -lt $MinimumVersion) {
-                    Write-Log "Skipping $($package.Name) version $($package.Version) - below minimum version $MinimumVersion"
-                    continue
-                }
-                 
-                Write-Log "Uninstalling $($package.Name) version $($package.Version)"
-                try {
-                    $package | Uninstall-Package -ErrorAction Stop
-                    Write-Log "Successfully uninstalled $($package.Name)"
-                }
-                catch {
-                    Write-Log "Failed to uninstall $($package.Name): $_"
+
+            if ($packages) {
+                foreach ($package in $packages) {
+                    if ($MinimumVersion -and [version]$package.Version -lt $MinimumVersion) {
+                        Write-Log "Skipping $($package.Name) version $($package.Version) - below minimum version $MinimumVersion"
+                        continue
+                    }
+
+                    Write-Log "Uninstalling $($package.Name) version $($package.Version)"
+                    try {
+                        $package | Uninstall-Package -ErrorAction Stop
+                        Write-Log "Successfully uninstalled $($package.Name)"
+                    }
+                    catch {
+                        Write-Log "Failed to uninstall $($package.Name): $_"
+                    }
                 }
             }
+            else {
+                Write-Log "No packages found matching pattern: $PackageNamePattern"
+            }
         }
-        else {
-            Write-Log "No packages found matching pattern: $PackageNamePattern"
+        catch {
+            Write-Log "Error processing packages for pattern $PackageNamePattern : $_"
         }
     }
-    catch {
-        Write-Log "Error processing packages for pattern $PackageNamePattern : $_"
-    }
-}
- 
-# Main execution
+
+    # Main execution
     Write-Log "Starting HP security package uninstallation process"
-     
+
     # Define packages and criteria
     $packagePatterns = @(
         @{ Name = "HP Client Security Manager"; MinVersion = "10.0.0" },
@@ -1660,7 +1658,7 @@ function Uninstall-HPPackages {
         @{ Name = "HP Wolf Security.*Console" },
         @{ Name = "HP Security Update Service" }
     )
-     
+
     # Process each package pattern
     foreach ($pattern in $packagePatterns) {
         if ($pattern.MinVersion) {
@@ -1987,12 +1985,12 @@ if ($manufacturer -like "Lenovo") {
     }
 
 
-        # Uninstall Lenovo Now
-        $path = 'C:\Program Files (x86)\Lenovo\LenovoNow\unins000.exe'
-        $params = "/SILENT"
-        if (test-path -Path $path) {
-            Start-Process -FilePath $path -ArgumentList $params -Wait
-        }
+    # Uninstall Lenovo Now
+    $path = 'C:\Program Files (x86)\Lenovo\LenovoNow\unins000.exe'
+    $params = "/SILENT"
+    if (test-path -Path $path) {
+        Start-Process -FilePath $path -ArgumentList $params -Wait
+    }
 
     # Uninstall Lenovo Vantage
     $pathname = (Get-ChildItem -Path "C:\Program Files (x86)\Lenovo\VantageService").name
@@ -2073,27 +2071,28 @@ if ($manufacturer -like "Lenovo") {
     }
 
 
-        ##Remove Lenovo theme and background image
-        $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes"
+    ##Remove Lenovo theme and background image
+    $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes"
 
-        # Check and remove ThemeName if it exists
-        if (Get-ItemProperty -Path $registryPath -Name "ThemeName" -ErrorAction SilentlyContinue) {
-            Remove-ItemProperty -Path $registryPath -Name "ThemeName"
-        }
-    
-        # Check and remove DesktopBackground if it exists
-        if (Get-ItemProperty -Path $registryPath -Name "DesktopBackground" -ErrorAction SilentlyContinue) {
-            Remove-ItemProperty -Path $registryPath -Name "DesktopBackground"
-        }
+    # Check and remove ThemeName if it exists
+    if (Get-ItemProperty -Path $registryPath -Name "ThemeName" -ErrorAction SilentlyContinue) {
+        Remove-ItemProperty -Path $registryPath -Name "ThemeName"
+    }
 
-        ##Remove X-Rite if it exists
-        $xritePath = "C:\Program Files (x86)\X-Rite Color Assistant\unins000.exe"
-        if (Test-Path $xritePath) {
-            Start-Process -FilePath $xritePath -ArgumentList "/SILENT" -Wait
-            write-output "X-Rite Color Assistant uninstalled."
-        } else {
-            write-output "X-Rite Color Assistant uninstaller not found."
-        }
+    # Check and remove DesktopBackground if it exists
+    if (Get-ItemProperty -Path $registryPath -Name "DesktopBackground" -ErrorAction SilentlyContinue) {
+        Remove-ItemProperty -Path $registryPath -Name "DesktopBackground"
+    }
+
+    ##Remove X-Rite if it exists
+    $xritePath = "C:\Program Files (x86)\X-Rite Color Assistant\unins000.exe"
+    if (Test-Path $xritePath) {
+        Start-Process -FilePath $xritePath -ArgumentList "/SILENT" -Wait
+        write-output "X-Rite Color Assistant uninstalled."
+    }
+    else {
+        write-output "X-Rite Color Assistant uninstaller not found."
+    }
 
 }
 
@@ -2251,12 +2250,12 @@ foreach ($user in $userprofiles) {
     }
 }
 $TypeDef = @"
- 
+
 using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
- 
+
 namespace Api
 {
  public class Kernel32
@@ -2266,12 +2265,12 @@ namespace Api
  }
 }
 "@
- 
+
 Add-Type -TypeDefinition $TypeDef -Language CSharp
- 
+
 $IsOOBEComplete = $false
 $hr = [Api.Kernel32]::OOBEComplete([ref] $IsOOBEComplete)
- 
+
 
 if ($IsOOBEComplete -eq 0) {
 
@@ -2321,13 +2320,13 @@ if ($IsOOBEComplete -eq 0) {
 
 
 
-## The XML below will Remove Retail Copies of Office 365 and OneNote, including all languages. Note: Office Apps for Entreprise Editions will remain.
+    ## The XML below will Remove Retail Copies of Office 365 and OneNote, including all languages. Note: Office Apps for Entreprise Editions will remain.
 
-##Check if they are installed first
+    ##Check if they are installed first
 
 
-## Remove Retail Copies XML Start ##
-$xml = @"
+    ## Remove Retail Copies XML Start ##
+    $xml = @"
 <Configuration>
   <Display Level="None" AcceptEULA="True" />
   <Property Name="FORCEAPPSHUTDOWN" Value="True" />
@@ -2337,34 +2336,34 @@ $xml = @"
   </Remove>
 </Configuration>
 "@
-## Remove Retail Copies XML End ##
+    ## Remove Retail Copies XML End ##
 
 
-## The XML below will Remove All Microsoft C2Rs ( Click-to-Runs), regardless of Product ID and Languages. To remove All Comment out or remove the XML block between Start and End above. Then Uncomment the XML below.
+    ## The XML below will Remove All Microsoft C2Rs ( Click-to-Runs), regardless of Product ID and Languages. To remove All Comment out or remove the XML block between Start and End above. Then Uncomment the XML below.
 
-## Remove All Office Products XML Start ##
+    ## Remove All Office Products XML Start ##
 
-#$xml = @"
-#<Configuration>
-#  <Display Level="None" AcceptEULA="True" />
-#  <Property Name="FORCEAPPSHUTDOWN" Value="True" />
-#  <Remove All="TRUE">
-#  </Remove>
-#</Configuration>
-#"@
+    #$xml = @"
+    #<Configuration>
+    #  <Display Level="None" AcceptEULA="True" />
+    #  <Property Name="FORCEAPPSHUTDOWN" Value="True" />
+    #  <Remove All="TRUE">
+    #  </Remove>
+    #</Configuration>
+    #"@
 
-## Remove All Office Products XML End
+    ## Remove All Office Products XML End
 
-##write XML to the debloat folder
-$xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
+    ##write XML to the debloat folder
+    $xml | Out-File -FilePath "C:\ProgramData\Debloat\o365.xml"
 
-##Download the Latest ODT URI obtained from Stealthpuppy's Evergreen PS Module
-$odturl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
-$odtdestination = "C:\ProgramData\Debloat\setup.exe"
-Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
+    ##Download the Latest ODT URI obtained from Stealthpuppy's Evergreen PS Module
+    $odturl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
+    $odtdestination = "C:\ProgramData\Debloat\setup.exe"
+    Invoke-WebRequest -Uri $odturl -OutFile $odtdestination -Method Get -UseBasicParsing
 
-##Run it
-Start-Process -FilePath "C:\ProgramData\Debloat\setup.exe" -ArgumentList "/configure C:\ProgramData\Debloat\o365.xml" -WindowStyle Hidden -Wait
+    ##Run it
+    Start-Process -FilePath "C:\ProgramData\Debloat\setup.exe" -ArgumentList "/configure C:\ProgramData\Debloat\o365.xml" -WindowStyle Hidden -Wait
 
 }
 else {
@@ -2390,7 +2389,7 @@ write-output "Completed"
 write-output "Total Script $($runTimeFormatted)"
 
 #Set ProgressPreerence back
-$ProgressPreference = $OrginalProgressPreference 
+$ProgressPreference = $OrginalProgressPreference
 Stop-Transcript
 
 
