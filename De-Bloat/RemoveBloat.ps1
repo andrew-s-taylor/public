@@ -1049,7 +1049,7 @@ if ($version -like "*Windows 11*") {
     $propertyValue = 1
 
     # Check if the registry key exists
-    if (!(Test-Path $registryPath)) {
+    If (!(Test-Path $registryPath)) {
         # If the registry key doesn't exist, create it
         New-Item -Path $registryPath -Force | Out-Null
     }
@@ -1060,12 +1060,12 @@ if ($version -like "*Windows 11*") {
     # Check if the property exists and if its value is different from the desired value
     if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) {
         # If the property doesn't exist or its value is different, set the property value
-        Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
+        Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -Type DWord
     }
 
 
     ##Grab the default user as well
-    $registryPath = "HKEY_USERS\.DEFAULT\Software\Policies\Microsoft\Windows\WindowsCopilot"
+    $registryPath = "Registry::HKEY_USERS\.DEFAULT\Software\Policies\Microsoft\Windows\WindowsCopilot"
     $propertyName = "TurnOffWindowsCopilot"
     $propertyValue = 1
 
@@ -1081,7 +1081,7 @@ if ($version -like "*Windows 11*") {
     # Check if the property exists and if its value is different from the desired value
     if ($null -eq $currentValue -or $currentValue.$propertyName -ne $propertyValue) {
         # If the property doesn't exist or its value is different, set the property value
-        Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue
+        Set-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -Type DWord
     }
 
 
