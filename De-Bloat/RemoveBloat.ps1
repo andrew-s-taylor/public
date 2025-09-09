@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.27
+  Version:        5.1.28
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -152,8 +152,9 @@ C:\ProgramData\Debloat\Debloat.log
   Change 14/07/2025 - Added GameDVR Popup fix
   Change 13/08/2025 - Blocked consumer scheduled tasks
   Change 13/08/2025 - Added option to add your own tasks via parameter
-  Change 20/08/2025 - Removed win32_product commands and changed HP wolf (thanks to Kevin Malinoski)
+  Change 20/08/2025 - Removed win32_product commands and changed HP wolf
   Change 29/08/2025 - Fixed issue with Copilot registry key
+  Change 09/09/2025 - AHopefully fixed HP apps
 N/A
 #>
 
@@ -1611,44 +1612,6 @@ if ($manufacturer -like "*HP*") {
     #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Wolf Security - Console' } | Invoke-CimMethod -MethodName Uninstall
     #Get-CimInstance -ClassName Win32_Product | Where-Object { $_.Name -eq 'HP Security Update Service' } | Invoke-CimMethod -MethodName Uninstall
 
-    function Uninstall-HPPackages {
-        param (
-            [string]$PackageNamePattern,
-            [version]$MinimumVersion = $null
-        )
-
-        try {
-            Write-Log "Searching for packages matching pattern: $PackageNamePattern"
-
-            $packages = Get-Package -AllVersions -ErrorAction Stop |
-            Where-Object { $_.Name -match $PackageNamePattern }
-
-            if ($packages) {
-                foreach ($package in $packages) {
-                    if ($MinimumVersion -and [version]$package.Version -lt $MinimumVersion) {
-                        Write-Log "Skipping $($package.Name) version $($package.Version) - below minimum version $MinimumVersion"
-                        continue
-                    }
-
-                    Write-Log "Uninstalling $($package.Name) version $($package.Version)"
-                    try {
-                        $package | Uninstall-Package -ErrorAction Stop
-                        Write-Log "Successfully uninstalled $($package.Name)"
-                    }
-                    catch {
-                        Write-Log "Failed to uninstall $($package.Name): $_"
-                    }
-                }
-            }
-            else {
-                Write-Log "No packages found matching pattern: $PackageNamePattern"
-            }
-        }
-        catch {
-            Write-Log "Error processing packages for pattern $PackageNamePattern : $_"
-        }
-    }
-
     # Main execution
     Write-Log "Starting HP security package uninstallation process"
 
@@ -1660,15 +1623,119 @@ if ($manufacturer -like "*HP*") {
         @{ Name = "HP Security Update Service" }
     )
 
-    # Process each package pattern
-    foreach ($pattern in $packagePatterns) {
-        if ($pattern.MinVersion) {
-            Uninstall-HPPackages -PackageNamePattern $pattern.Name -MinimumVersion $pattern.MinVersion
+# Process each package pattern
+foreach ($pattern in $packagePatterns) {
+    $patternName = $pattern.Name
+    $minVersion = $pattern.MinVersion
+    Write-Output "Checking for packages matching pattern: $patternName"
+    
+    # Search for matching packages in the registry
+    $matchingPackages = @()
+    
+    # Check in 32-bit and 64-bit registry locations
+    $registryPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    
+    foreach ($registryPath in $registryPaths) {
+        $packages = Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue | 
+                    Where-Object { $_.DisplayName -match $patternName }
+        
+        # Filter by minimum version if specified
+        if ($minVersion -and $packages) {
+            $packages = $packages | Where-Object { 
+                if ($_.DisplayVersion) {
+                    try {
+                        [version]$_.DisplayVersion -ge [version]$minVersion
+                    } catch {
+                        # If version comparison fails, include it anyway for safety
+                        $true
+                    }
+                } else {
+                    # If no version information, include it for safety
+                    $true
+                }
+            }
         }
-        else {
-            Uninstall-HPPackages -PackageNamePattern $pattern.Name
+        
+        $matchingPackages += $packages
+    }
+    
+    if ($matchingPackages.Count -eq 0) {
+        Write-Output "No packages found matching pattern: $patternName"
+        continue
+    }
+    
+    Write-Output "Found $($matchingPackages.Count) package(s) matching pattern: $patternName"
+    
+    # Process each matching package
+    foreach ($package in $matchingPackages) {
+        $displayName = $package.DisplayName
+        $uninstallString = $package.UninstallString
+        $quietUninstallString = $package.QuietUninstallString
+        $version = $package.DisplayVersion
+        
+        Write-Output "Attempting to uninstall: $displayName (Version: $version)"
+        
+        # Try to use the UninstallAppFull function first
+        Write-Output "Trying to uninstall via UninstallAppFull..."
+        UninstallAppFull -appName $displayName
+        
+        # If UninstallAppFull doesn't work, fall back to direct uninstallation
+        # Check if uninstall string exists and attempt uninstall
+        if ($quietUninstallString) {
+            Write-Output "Using quiet uninstall string: $quietUninstallString"
+            try {
+                if ($quietUninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    $uninstallCommand = $quietUninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $quietUninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Quiet uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during quiet uninstall: $_"
+            }
+        } elseif ($uninstallString) {
+            Write-Output "Using standard uninstall string: $uninstallString"
+            try {
+                if ($uninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    if ($uninstallString -match "/I{") {
+                        # Change /I to /X for uninstall if needed
+                        $uninstallString = $uninstallString -replace "/I", "/X"
+                    }
+                    $uninstallCommand = $uninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $uninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    # Add silent parameters for common installers
+                    if ($uninstallString -match "uninstall.exe|uninst.exe|setup.exe|installer.exe") {
+                        $uninstallArgs += " /S /silent /quiet /uninstall"
+                    }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Standard uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during standard uninstall: $_"
+            }
+        } else {
+            Write-Output "No uninstall string found for: $displayName"
         }
     }
+}
 
     write-output "Removed HP bloat"
 }
@@ -2393,12 +2460,11 @@ write-output "Total Script $($runTimeFormatted)"
 $ProgressPreference = $OrginalProgressPreference
 Stop-Transcript
 
-
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA5OjG9qLOFNnq/
-# EtFi7fs07tbFjPgQoqDWIJ9+L+47qaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD1ehu75Sljjqih
+# nrdmPjEu5jqV2ruRzNJOABjaZpMBsaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2581,34 +2647,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCNlcTMYLEjN6J11YJUdQ5Aq+SweMPTyoNk
-# PB10PrTylDANBgkqhkiG9w0BAQEFAASCAgBr9nRg9UY75OydSDySxVNUGGVh+BsM
-# vM41d0/RgJzFBWFC+noLZ8qdScz8CMs5C3kLCbO+C+6ODSghTKHbjfGC9Cgv13Hm
-# lIfZ2i7qDjtu7Fr6n9MpKcDRP+tzkKlaecXtDhiHh/fPGNi8nc1SMpREmeym5UBi
-# B6KQqiek3/MNWjcSZK/2o4QqcNfe2qaJ8SDRcMUwFlKGr3j5oA5w8D/R3M/XyD6J
-# EmM6hEuPWSg06Bj/we/C5mltlrTv2odj5EQop3edRKoaJT/syHcMaPf8BpqZ2mZF
-# 0LxPWmre6iRyDEQc1NBd7lfB5oun/TDNCdNoug35Y6XaxAOOFSMQLKJa/M5i14jG
-# NPWxsJlsEsj4wYr6IKkb7TagNaA3A8PC2osKo+KAJnxS+zcjvDOTJXBbsnhz20sz
-# IY4db792uBt6F/IbC7MhDUQwdlmcxi1bVLRgUBgtojBRFtzquFTCyc4a/jW6o+tA
-# bRcDlg2UwMnfnK4+OSpc71WMeTf+BqYGnUcfWi/RKwrI3nfm2/2iq3u9oz2deu8g
-# Jb7sQKvpNuVaMJbJRw0BPKGNGYUL7WfWACvSrE2s0G7TErdkV4xeJEZ7ALL1EAn/
-# vNZ1Mf2WhUh1qoUO0KEeJY84Lw5jSeIVX3YdTRAxasFKTRKg1rzOGweAiAZnhi7G
-# CRgOZsFdeIB0v6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDFxrBHg/vYccVUht85sCz/fSwvoLRHkYO2
+# nodN91BKyjANBgkqhkiG9w0BAQEFAASCAgDAwwr/Y/+VuY6TSLrgfTwhi+kWPdv4
+# /0ou4Lk4zOk1Gtrl5cX1RG+XAnjLTpgOMsXZEfgIr+64XVo6Rfe5n3pO5KwDw6l2
+# tdLEPtbJ/EBLVdqADM0tmewH9gSp2nQfS/B0y3oWQTlFn4UPAIyjFFF3shuK1Ivz
+# tl3ONq1vo/AeC2ZWCXvAux0G+fyhkAZn1kJXz95OVFA8QqDOLdQ7MIsNRmqGl0MG
+# 5bLc+LYMudvVXVUjokgG+zUVA8+V7Fnse13U56aoQRn3mmLWplL9XBCReEmCZu2q
+# Rjj0Aa/vj7Qw7zOTzmR89h9U1KmZ9SueZ3RofFzFE0ADkslP3AjRlvKDMNh2hbgZ
+# nYQ0EQJjqQowqnKef44tjDNItjh9iXNJ4zkfgZIgXXzfTuQo+vV+s/SpBFx4DFwI
+# 2WZNjD6/jSV4luTXzJb068kCYmCcahiQdZF4ZgbCXBAyujFxBY8Vp2AikVLOAE9W
+# F+BQqUoy6bwn0ZmkCOJcufB0LnsDoTC2hl3bKZzYJpZtZdkmGSxNt3M7Uv9hN58k
+# rwoQJRZBGM9c+8n47IT1wL1NlTA+2cW9bGLUPTD2h2K3QDtO4fcqWp8eN2A1+cLv
+# j1VCYvfHymSpHOOzzz+SrwsHqI+zFEwmF5V+9b0KOVEgov30Df2W6d/OAJP6iTd5
+# eObCNAW6NmLFpaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA4MjkwOTA5NDFa
-# MC8GCSqGSIb3DQEJBDEiBCBum8nYVO5cYlXhBkoM6t/35/G2Bnz3QpsW+Yi9Q3nc
-# RjANBgkqhkiG9w0BAQEFAASCAgCTZHkXstRH7lpapeCuCeCqaQ5eKGudH5C/ytrE
-# RqRrFYR0Zcvd3/XAGkRfdaubzUjW3a0p0x1u2tjCmz/3mnNSM7cBAYgJgWNbagWq
-# Srp2oMfDrBf1XginDYNYWo8agkPod3WXmV5G4z/j376uLsaOumra9CvTfKvdbWtI
-# +VqFGSNi83QWL5ygCayWRmancJatfvOacZA6XzuIa/30x8xz5b7br++YsBzprGEr
-# Bu2KyF0LWrcNevaLNHQM7XBWsjWWluqCH1aCovTsic/DXhjbzn4eFxs+i8rZoSu9
-# IBeoernk1hWQxfuTaDcqlKCKGKiiyOr1bEsrWB7L0JXXqKO23P5oFImbRvFYvJy7
-# /Uf/jFSED6iFfeHZ2M6vY2W5suPdvGPxKssnInnlq7qGuQhjxzTC34d8SyX0tkye
-# ODYa8MhwPSTCR0l7pEMpCrvfo3tDUnm+ja0rio0GfE4SD8mOcCpCLGgCYl/iRsUX
-# UfUXt/4eSopAyZ5u8iRscMcJY2tOufXIyId0WBQu0dzTvAcH3r/1EP75D6IEQEar
-# h0bXzxXUUxYEhE65Q85FD+Au9L+Zk9n5QTMyeMwEvcPHp7o2r/DojvMdnOwIah28
-# UkA3vQFGqD/M9w5zL0T7/8eODqUBLPEifTruVinpuWLvnXe2ALWbraaLEH4EhVua
-# EwM7dQ==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MDkxNzMxNTNa
+# MC8GCSqGSIb3DQEJBDEiBCAovsCeML7ezwW0UHZ70eYtNgHZccS3SQqvIslUG4Ga
+# STANBgkqhkiG9w0BAQEFAASCAgC54fdpu+uuyeBSYiWvrI8SSOPZF0W0cOEVuE6O
+# dxRkSRtSsVeb4Ak0pRPuzk+6W4jdkbOIWmZjHcK5+lPc3HKOxpGuxF0iPZbqQIo7
+# oAff5Oin0r373raUqR2xOWV0+54xP29a3cNnwBXLPeBWf4Fwn4H1RgJbpPOXJtVZ
+# x2YuHDPrp2Hj07//8GcFlAvn8Sr0wZ1QlSETgIJ7bTqE+5zi7PYkgB3k6bJcEMZI
+# pTbexe9mbYkPdb84ibQnh0IWHDb6Wj5C3FpiceyjBYRiYqN25ED+SKQN1q+PdQqO
+# TNb56vNv0M0R5Drv788xUUDfzsEhnV+lxLBSJ7DBlizKdwNDG+OoY+jgdSElmx+n
+# Q5F2sKuJyjNplqJyqYeVWDLQz5EulnOh7zsu9bYoIbcVW43jdh7GoyViuh/sS/Yo
+# mSHqTNJAD9wQI5cRGrkU87jWl/GIlp67qisWkCa0+E2iv05GCFSPoYJHHDAHRNBp
+# B/d8Z5xMu2t9t7jNCMoq2Oh0u/RhyY/8H66V97BBiv7BCyAfF+GKJIuCt8XWxelT
+# w93gCMZhjQSDVeBa93SGan4n68I/2a4WcFG+vTfQ2vklDP7R+BfSbShAsGY+5K2V
+# p+bLsoHrkXjYflE4UjVKsA/yd8b+ss6GZ0kYFYcKn2X/Xfqqq16zzlz1zuGzyZbE
+# +fJtEg==
 # SIG # End signature block
