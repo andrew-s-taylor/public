@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.28
+  Version:        5.1.29
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -154,7 +154,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 13/08/2025 - Added option to add your own tasks via parameter
   Change 20/08/2025 - Removed win32_product commands and changed HP wolf
   Change 29/08/2025 - Fixed issue with Copilot registry key
-  Change 09/09/2025 - AHopefully fixed HP apps
+  Change 09/09/2025 - Hopefully fixed HP apps
+  Change 25/09/2025 - Updated uninstallers for HP apps
 N/A
 #>
 
@@ -1815,6 +1816,120 @@ if ($manufacturer -like "*Dell*") {
 
     }
 
+# Process each package pattern
+foreach ($pattern in $uninstallPrograms) {
+    $patternName = $pattern.Name
+    $minVersion = $pattern.MinVersion
+    Write-Output "Checking for packages matching pattern: $patternName"
+    
+    # Search for matching packages in the registry
+    $matchingPackages = @()
+    
+    # Check in 32-bit and 64-bit registry locations
+    $registryPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    
+    foreach ($registryPath in $registryPaths) {
+        $packages = Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue | 
+                    Where-Object { $_.DisplayName -match $patternName }
+        
+        # Filter by minimum version if specified
+        if ($minVersion -and $packages) {
+            $packages = $packages | Where-Object { 
+                if ($_.DisplayVersion) {
+                    try {
+                        [version]$_.DisplayVersion -ge [version]$minVersion
+                    } catch {
+                        # If version comparison fails, include it anyway for safety
+                        $true
+                    }
+                } else {
+                    # If no version information, include it for safety
+                    $true
+                }
+            }
+        }
+        
+        $matchingPackages += $packages
+    }
+    
+    if ($matchingPackages.Count -eq 0) {
+        Write-Output "No packages found matching pattern: $patternName"
+        continue
+    }
+    
+    Write-Output "Found $($matchingPackages.Count) package(s) matching pattern: $patternName"
+    
+    # Process each matching package
+    foreach ($package in $matchingPackages) {
+        $displayName = $package.DisplayName
+        $uninstallString = $package.UninstallString
+        $quietUninstallString = $package.QuietUninstallString
+        $version = $package.DisplayVersion
+        
+        Write-Output "Attempting to uninstall: $displayName (Version: $version)"
+        
+        # Try to use the UninstallAppFull function first
+        Write-Output "Trying to uninstall via UninstallAppFull..."
+        UninstallAppFull -appName $displayName
+        
+        # If UninstallAppFull doesn't work, fall back to direct uninstallation
+        # Check if uninstall string exists and attempt uninstall
+        if ($quietUninstallString) {
+            Write-Output "Using quiet uninstall string: $quietUninstallString"
+            try {
+                if ($quietUninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    $uninstallCommand = $quietUninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $quietUninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Quiet uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during quiet uninstall: $_"
+            }
+        } elseif ($uninstallString) {
+            Write-Output "Using standard uninstall string: $uninstallString"
+            try {
+                if ($uninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    if ($uninstallString -match "/I{") {
+                        # Change /I to /X for uninstall if needed
+                        $uninstallString = $uninstallString -replace "/I", "/X"
+                    }
+                    $uninstallCommand = $uninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $uninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    # Add silent parameters for common installers
+                    if ($uninstallString -match "uninstall.exe|uninst.exe|setup.exe|installer.exe") {
+                        $uninstallArgs += " /S /silent /quiet /uninstall"
+                    }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Standard uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during standard uninstall: $_"
+            }
+        } else {
+            Write-Output "No uninstall string found for: $displayName"
+        }
+    }
+}
+
     ##Belt and braces, remove via CIM too
     #foreach ($program in $UninstallPrograms) {
     #    write-output "Removing $program"
@@ -2459,12 +2574,11 @@ write-output "Total Script $($runTimeFormatted)"
 #Set ProgressPreerence back
 $ProgressPreference = $OrginalProgressPreference
 Stop-Transcript
-
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD1ehu75Sljjqih
-# nrdmPjEu5jqV2ruRzNJOABjaZpMBsaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDdN4JGOFvtJ7lK
+# VHk/A6r3B1SnUBLiKYIBNQLYdxezUKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2647,34 +2761,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDFxrBHg/vYccVUht85sCz/fSwvoLRHkYO2
-# nodN91BKyjANBgkqhkiG9w0BAQEFAASCAgDAwwr/Y/+VuY6TSLrgfTwhi+kWPdv4
-# /0ou4Lk4zOk1Gtrl5cX1RG+XAnjLTpgOMsXZEfgIr+64XVo6Rfe5n3pO5KwDw6l2
-# tdLEPtbJ/EBLVdqADM0tmewH9gSp2nQfS/B0y3oWQTlFn4UPAIyjFFF3shuK1Ivz
-# tl3ONq1vo/AeC2ZWCXvAux0G+fyhkAZn1kJXz95OVFA8QqDOLdQ7MIsNRmqGl0MG
-# 5bLc+LYMudvVXVUjokgG+zUVA8+V7Fnse13U56aoQRn3mmLWplL9XBCReEmCZu2q
-# Rjj0Aa/vj7Qw7zOTzmR89h9U1KmZ9SueZ3RofFzFE0ADkslP3AjRlvKDMNh2hbgZ
-# nYQ0EQJjqQowqnKef44tjDNItjh9iXNJ4zkfgZIgXXzfTuQo+vV+s/SpBFx4DFwI
-# 2WZNjD6/jSV4luTXzJb068kCYmCcahiQdZF4ZgbCXBAyujFxBY8Vp2AikVLOAE9W
-# F+BQqUoy6bwn0ZmkCOJcufB0LnsDoTC2hl3bKZzYJpZtZdkmGSxNt3M7Uv9hN58k
-# rwoQJRZBGM9c+8n47IT1wL1NlTA+2cW9bGLUPTD2h2K3QDtO4fcqWp8eN2A1+cLv
-# j1VCYvfHymSpHOOzzz+SrwsHqI+zFEwmF5V+9b0KOVEgov30Df2W6d/OAJP6iTd5
-# eObCNAW6NmLFpaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCC8LkCmHN9fx8fKa8ECYIHIEZm7frVJiYrl
+# tAyM33MIqzANBgkqhkiG9w0BAQEFAASCAgA6k4XdYhDPhx64gR7qzo50ySjvban5
+# KCv/HpB0Neamu3DoFwH1XKDN4Yn1BHfbg1n124SEOrMJTX77qC2Sh/mFquKCkuMC
+# SEl30lZcETYni6DAXxziASE6G9xqn//D9xLMoU0eZgwHuUlzFqUyRfLZBOHu/S+F
+# 0PugqOD/xTPucE2z1xy60q9hvJss6W/G1LfuYe81Ox0vHXxk1XL8+rSwyrdT8V4q
+# JkvGtJztjxJayHBmJKyqkO/zWdNr8ae/gIPwjjB4Rqk8k/xLKtdQ8X/GsdUirApt
+# SyoIH8q8m5PpmJyGuWg2DqcvJJErPHs+Mty3po5mj23dz20+/JtSBeDzigLVQ4Ag
+# CxZho+byRZOuXbaeibnBZotP/FfOuGNUFuAzsvGmb2bZthBO3py/SOZnEBS3sZ1W
+# qSHibLWmLlt7YURCty2Zx0K8yP3xILEz3GnH08GxvQ2B5Be2TWO5i+m4tcDMJbIM
+# Nq4plk4vlb6fpOMxZaQppOKbBZSV6JwhT3GYsanaglLIHKMwJk8nWxGlL4v3bJCU
+# GnAwKiPyDwbZPqljLtQyVxno4Lk94ljtSvAwIlgQOJyS7GaS46YY0cDxS9DU0Zs+
+# 84R4mkIRdswk5wPgSG1xcro2FxAoS0oFh3mPpyLfrWBe6CbG1Bsfe9irINzWCzPh
+# q/2nsbeP5hW61KGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MDkxNzMxNTNa
-# MC8GCSqGSIb3DQEJBDEiBCAovsCeML7ezwW0UHZ70eYtNgHZccS3SQqvIslUG4Ga
-# STANBgkqhkiG9w0BAQEFAASCAgC54fdpu+uuyeBSYiWvrI8SSOPZF0W0cOEVuE6O
-# dxRkSRtSsVeb4Ak0pRPuzk+6W4jdkbOIWmZjHcK5+lPc3HKOxpGuxF0iPZbqQIo7
-# oAff5Oin0r373raUqR2xOWV0+54xP29a3cNnwBXLPeBWf4Fwn4H1RgJbpPOXJtVZ
-# x2YuHDPrp2Hj07//8GcFlAvn8Sr0wZ1QlSETgIJ7bTqE+5zi7PYkgB3k6bJcEMZI
-# pTbexe9mbYkPdb84ibQnh0IWHDb6Wj5C3FpiceyjBYRiYqN25ED+SKQN1q+PdQqO
-# TNb56vNv0M0R5Drv788xUUDfzsEhnV+lxLBSJ7DBlizKdwNDG+OoY+jgdSElmx+n
-# Q5F2sKuJyjNplqJyqYeVWDLQz5EulnOh7zsu9bYoIbcVW43jdh7GoyViuh/sS/Yo
-# mSHqTNJAD9wQI5cRGrkU87jWl/GIlp67qisWkCa0+E2iv05GCFSPoYJHHDAHRNBp
-# B/d8Z5xMu2t9t7jNCMoq2Oh0u/RhyY/8H66V97BBiv7BCyAfF+GKJIuCt8XWxelT
-# w93gCMZhjQSDVeBa93SGan4n68I/2a4WcFG+vTfQ2vklDP7R+BfSbShAsGY+5K2V
-# p+bLsoHrkXjYflE4UjVKsA/yd8b+ss6GZ0kYFYcKn2X/Xfqqq16zzlz1zuGzyZbE
-# +fJtEg==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MjUxMzQyNDVa
+# MC8GCSqGSIb3DQEJBDEiBCCnW/RP+yXLJKuF0ZXZVxnyTXm198ajopfVZJ9M3DfU
+# 0DANBgkqhkiG9w0BAQEFAASCAgCihnph1zA635mLFQ8ISN0LSUBfCT630CWVMqf8
+# W9VzxnxkNRrQfbh2FR0SKJbnJqP0kiDSKz+OuZoWo8kY+aSXqlLdEPICNYTaz1nK
+# VmDEyLf7WpxzaxSacQEbnUEVULGrsgRIOpnvm4h1xZOoBpKpWogReJXWx82tIUdg
+# HT9HTfz/MtOX526pBtygI9fRZ/Nv/SuMgXMRLX0a8JxaS0Lqin2gtSc0astTUGWf
+# JvPDrV222ZmostRGooEKMtbuyoUgArrFmho7hQ5f1PuFQCa1v7npUIPBfVgBhJq+
+# XwCnSUqoitvQRTVc3CTGpByBNqvfbDUWmsxGxIOwV8U8+W+GW8+dNHpks7KpHhRG
+# L0xPOJ4qA+ikXpMQFenNSAICUmG1f0FXv0XYn4i5WXybxcEvw1qBZwgcYdtgk2mR
+# 4rAALBoMxvLJg9+Ek/y2gXmjgIZX1lHmPZKnSr31ee0m3gTqNYLVOuhQ0G7a7wr/
+# Ypp3Z+VAMKSNDU60cWK0WCGYsP2COx+DW4nlKJ1UHAYwIpqu621fHLxXAeY9shRh
+# zSeX+VaQxse3r8YyM+Kdq8J4eJU8H1VgGaiI6rBnuTo7Ej82YZBS62MuSGUWlgyb
+# oZFveYCZBFRr+iALoD+MKzP97VvVrkNvTnljNTkeypoeIJQs+JPYXtoWxFm++R6I
+# U/ILpQ==
 # SIG # End signature block
