@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.1.30
+  Version:        5.1.31
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -157,6 +157,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 09/09/2025 - Hopefully fixed HP apps
   Change 25/09/2025 - Updated uninstallers for HP apps
   Change 28/09/2025 - Added HP Analytics Service
+  Change 02/10/2025 - Fix on Dell uninstall
 N/A
 #>
 
@@ -1820,10 +1821,10 @@ if ($manufacturer -like "*Dell*") {
 
 # Process each package pattern
 foreach ($pattern in $uninstallPrograms) {
-    $patternName = $pattern.Name
+    $patternName = $pattern
     $minVersion = $pattern.MinVersion
     Write-Output "Checking for packages matching pattern: $patternName"
-    
+
     # Search for matching packages in the registry
     $matchingPackages = @()
     
@@ -2575,12 +2576,12 @@ write-output "Total Script $($runTimeFormatted)"
 
 #Set ProgressPreerence back
 $ProgressPreference = $OrginalProgressPreference
-Stop-Transcrip
+Stop-Transcri
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAWB95ocT1aMY0g
-# 70QVIOTuj9nXm5ZKx6WQqAOo4t4Ud6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA/GH9w2hH+MPAv
+# d6nW3R7mA1RMfy5DnnP9b3UHAqH9eaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2763,34 +2764,34 @@ Stop-Transcrip
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBNtwwYiC2ummLlX5GTG6BOsPMCpuXtVtBD
-# htG5qCAmmTANBgkqhkiG9w0BAQEFAASCAgAy2u1LwydKqa4EPzR1a8l4+pKKghUL
-# FhkKUyhhB0UWRkk2h32w2NAfA9dhTnt8HAHiF3YJX+d+ByULiDASWjrdLUdhgSa1
-# nVVR0l6CYu4NVPJp1c+L2PCNnl/AULhz2bo+bzTOXtZlBFsOrmLU5rCBTFGVFG9K
-# NZrpv3JUBLrFOgSVowIkOmI4Fof4fwz4Uf4GBqS3KAONRT0DAkIZPWzlHwvzJ/Mg
-# ny9u+ZFLiH4LPSrxdjeNREPve4YFe1V+w2T3uR4AmIETMMCXNHfd4QE1YTcFEgDh
-# 6ZMGpIDerYk9AYMSUYWfUP3rdiWavW79oYiT5cYT51MT9P/DM5OUawPBuKPW64mK
-# rpSmuqTekmW79dzcqMuLzKLBSrwHjOyFVdVJmEODYt+97KY+sPtXVioa6VO6lKJZ
-# bcyNnLG0Wn7eZ7UCqt/ppzLDiFkx86YLCcJUYEKsG3EvkwvocMV7maZ8EQhtylTt
-# 1q6h3CnKTzHGDidRulQi59A7qwNNqoKIsmxaSYZu40jxgySoNl9o7c+IBrNFF+jr
-# WC9KfeBCY55nM+tRMiLiOQA1+lUK16vUX+Yw1RQVCSPV/HDW7hR3CkDPgb0TuG+Z
-# z3OhLed4ITpAJ24/yJ2d2T4P8SXrt1dbtnQgm0dzQdkKsyZMNHHXaldlPrUDVN4g
-# jBnykvc6f2tT/KGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCub8+JIkiQnzh0lCTBRsKR/gAdDdXshtpV
+# zFElRIG1tzANBgkqhkiG9w0BAQEFAASCAgCqHVgxOTVJNH5WM7tuFZ29QRAzCava
+# qK18WwQmiHag1N5bEUpyeCnhfwGLTD8OA9d62tJC+LdytAUk3oKGPvtrEsWySQMr
+# 7OGSfQOwRFJrDL+++4SujldMgGiyIj+pUkkbrvwXrrOQs0ISEgRECQjnH4AqpAuG
+# gpzTWYeDZKQtkgrmzl15uZt845RTUhCXlwwaRcJakRt7ebZs0IpP4/ll+N6EFt2I
+# ewXJuv6XBMRMHMU9G4Rt5wFjMM9XoGjuobuGRUf32JH8m+4TZtyEp7twNLBCk6Vy
+# PPiYFhyyUMEt8aLnpzRlrCup1QFf9xTFIAsOJc82dfxV/EpVt6jRcCvKjjoWSIWV
+# 0OvUy/97Ju3pYsfUPOL+OJl2KoOD9aydBvof6wS73hqnNqbruNYC9RLav8pz0oWZ
+# l+1hIwL8IYQQ8Zrgz1S9zp2nYfRiKL7uU2HEdBKNP4qIKkwYhUHtizO8QOVlS/pI
+# kwRtP+PF6eznmM1KKZtaQ1CkflKP3We2G2xmOhuDyUWgylNy4cKTVGBAT24ttD16
+# dlT4ltbO0deKkNZppRC0llzT32NPjEf7btxrE57Q2Wt/6tLTO/sEYcrj8jSRru+k
+# KnPc8Kj1pyWm2oY75Ow4T+7laAZP9Dt9SDwFaPhaVZmhJqyAXlCI7GDnTtbx70W/
+# gzbKJow6Al6NmaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTA5MjgxMjAxMzNa
-# MC8GCSqGSIb3DQEJBDEiBCByk391NHVSAXsEOWfXRwOh1fscb/3w2cCo1jkKD6T8
-# 0DANBgkqhkiG9w0BAQEFAASCAgCc1rpe8hYwkbRW3w2W4WLqsU8zaBF8Cp1o0DFW
-# e3zhY3d3vrXTwDJY/TLiEnreSFquTOrZlkQvRkAGSmaRDdTR8pOVnr5O5iCsbgfQ
-# F+u/Ix5eZdYltAizT4G8cNXFmE4fvAmZlGOIwwhg6c6bb9CYcvjOqNu74y66GmjT
-# qOOkwTAjiqCxYpZtZGa4cGRk+6yWbzjT60N3vjmRclsqkrc6jQErgiFeJg3ZP+Tr
-# YDkgSWy3j4L8f9+k1/3tLJsl/+W35f4aFzbllGrNpCkFshgkUA71MbDfKPswy4Wm
-# KWXvxiR6ZHN9L2KDBTZqCh7ftGttE723d2/K6CaLNrKGfKws6PKkBUmrRCI+/eZW
-# uKQDK9IgnhwMmNf/4RtFreciglpIH2UrktGwe00EPZ4vUzwlW0lTB0ShJHUnTlSD
-# le8Z7b4sRm6qS4nxmFrdVRrxSgalotVAHRv4r3KaPYrrcjK9LO0R6ZEPZWfVtYA4
-# tefQuakYbwmB9ym/UST4Gy2U5WmTGdWDfbs2L0A9H1GJL8JWvWG6OB/ecfcnZqYy
-# Q80FOLvFDrzESNoJkPiwkIrwSYdeUqxfrWW+38oJ73WLaxYGMQVRwvvxFbrRS6CA
-# +ZJ7Kp2PKv433QX+3KHkHwODe5Ihu0iZ93j0cgZJ+yx0ZB7cadiWQncqCHEIx4CS
-# pTltgw==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEwMDIxMzM5MzFa
+# MC8GCSqGSIb3DQEJBDEiBCAQP8hYa3lCYoxWkGzutG8uAvopmkAocrE5OR/Gzzlq
+# dzANBgkqhkiG9w0BAQEFAASCAgAjRE8oosalM/eq+55ihwHPEJKmrJXATRAjYshA
+# S6D30pAG5FtDiOaYXtqX7iV7f7quQSZZkDc0DUG7fawK5ZGXywrXsG8ddm7IseCH
+# 4U4EoKo/5F13AEslIMGObpqXF+ik670GK9CLKdbKv+gipZakcPS/dgqUqJkygo/S
+# 9ivxQrDnbgSxSdLEfaKo+hAySz5E1sm5Zfj+0mSjkOllnxeVqFt53x4/gqnKeWBS
+# nLOEjn41pIfZFJwoe1bUA3YlNZkCBzOXOo53FWlnOJoyTRXicO7EtjHp+IueogtL
+# 5xoGaaUNjXxzB7tUDz+3IUmIeV/7U9C9VWAYpHFSk0XFfp0/r2L2fGJX5hhwN8C/
+# MsR37AxWBl5zpAxVpH7WLO1VdIrxeNmcFy9WxPIDrU3c7ehFZWn5+Bui5wxXkuty
+# Z3XM5zx2bkF2K6wEOKm7cgb8DNk+oZ13ith5Tu2P2b94GNYP5v+34kBylrIwFot6
+# x7y1o3nTM1JwxHIRM/fLnFQD4C0+Ai9QWxkKSX6gv1paJf4QqR/mTuNjlBZINmrR
+# rPXX2PL3L4R9OP2r0t68MejLzEvXRJ6H5O6dPy0EAZux1nWWKKL4mIRboU6K4n89
+# 0vaTgqYJwrtHHiAcvOKuxGPKY1c3LTocIP2h/H+j1onsSy/QcKuGEq2harpxVjv8
+# HFK2JA==
 # SIG # End signature block
