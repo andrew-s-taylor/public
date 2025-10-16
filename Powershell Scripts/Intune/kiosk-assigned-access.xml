@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AssignedAccessConfiguration xmlns="http://schemas.microsoft.com/AssignedAccess/2017/config" xmlns:rs5="http://schemas.microsoft.com/AssignedAccess/201810/config" xmlns:v4="http://schemas.microsoft.com/AssignedAccess/2021/config">
+  <Profiles>
+    <Profile Id="{64f010ec-c145-4a16-941c-3c245f435d6a}">
+      <KioskModeApp v4:ClassicAppPath="%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" v4:ClassicAppArguments="--enable-features=msEdgeDeleteBrowsingDataOnExit https://myapps.microsoft.com --no-first-run" />
+      <v4:BreakoutSequence Key="Ctrl+A" />
+    </Profile>
+  </Profiles>
+  <Configs>
+    <Config>
+      <AutoLogonAccount rs5:DisplayName="Edge Kiosk" />
+      <DefaultProfile Id="{64f010ec-c145-4a16-941c-3c245f435d6a}" />
+    </Config>
+  </Configs>
+</AssignedAccessConfiguration>
