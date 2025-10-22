@@ -2284,6 +2284,171 @@ if ($manufacturer -like "Lenovo") {
 }
 
 
+if ($manufacturer -like "*Samsung*") {
+    write-output "Samsung detected"
+    #Remove Samsung bloat
+
+
+    ##Samsung Specific
+    $UninstallPrograms = @(
+        "ColorEngine"
+        "Display Profile"
+        "Galaxy Book Smart Switch service"
+        "Live Wallpaper Service"
+        "Quick Search Service"
+        "Samsung Recovery Service"
+        "Samsung Update Service"
+        "Studio mode"
+    )
+
+
+
+    $UninstallPrograms = $UninstallPrograms | Where-Object { $appstoignore -notcontains $_ }
+
+
+    $InstalledPrograms = $allstring | Where-Object { $UninstallPrograms -contains $_.Name }
+    foreach ($app in $UninstallPrograms) {
+
+        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
+            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
+            write-output "Removed provisioned package for $app."
+        }
+        else {
+            write-output "Provisioned package for $app not found."
+        }
+
+        if (Get-AppxPackage -allusers -Name $app -ErrorAction SilentlyContinue) {
+            Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
+            write-output "Removed $app."
+        }
+        else {
+            write-output "$app not found."
+        }
+
+        UninstallAppFull -appName $app
+
+
+    }
+
+
+
+# Process each package pattern
+foreach ($pattern in $uninstallPrograms) {
+    $patternName = $pattern
+    $minVersion = $pattern.MinVersion
+    Write-Output "Checking for packages matching pattern: $patternName"
+
+    # Search for matching packages in the registry
+    $matchingPackages = @()
+    
+    # Check in 32-bit and 64-bit registry locations
+    $registryPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    
+    foreach ($registryPath in $registryPaths) {
+        $packages = Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue | 
+                    Where-Object { $_.DisplayName -match $patternName }
+        
+        # Filter by minimum version if specified
+        if ($minVersion -and $packages) {
+            $packages = $packages | Where-Object { 
+                if ($_.DisplayVersion) {
+                    try {
+                        [version]$_.DisplayVersion -ge [version]$minVersion
+                    } catch {
+                        # If version comparison fails, include it anyway for safety
+                        $true
+                    }
+                } else {
+                    # If no version information, include it for safety
+                    $true
+                }
+            }
+        }
+        
+        $matchingPackages += $packages
+    }
+    
+    if ($matchingPackages.Count -eq 0) {
+        Write-Output "No packages found matching pattern: $patternName"
+        continue
+    }
+    
+    Write-Output "Found $($matchingPackages.Count) package(s) matching pattern: $patternName"
+    
+    # Process each matching package
+    foreach ($package in $matchingPackages) {
+        $displayName = $package.DisplayName
+        $uninstallString = $package.UninstallString
+        $quietUninstallString = $package.QuietUninstallString
+        $version = $package.DisplayVersion
+        
+        Write-Output "Attempting to uninstall: $displayName (Version: $version)"
+        
+        # Try to use the UninstallAppFull function first
+        Write-Output "Trying to uninstall via UninstallAppFull..."
+        UninstallAppFull -appName $displayName
+        
+        # If UninstallAppFull doesn't work, fall back to direct uninstallation
+        # Check if uninstall string exists and attempt uninstall
+        if ($quietUninstallString) {
+            Write-Output "Using quiet uninstall string: $quietUninstallString"
+            try {
+                if ($quietUninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    $uninstallCommand = $quietUninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $quietUninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Quiet uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during quiet uninstall: $_"
+            }
+        } elseif ($uninstallString) {
+            Write-Output "Using standard uninstall string: $uninstallString"
+            try {
+                if ($uninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    if ($uninstallString -match "/I{") {
+                        # Change /I to /X for uninstall if needed
+                        $uninstallString = $uninstallString -replace "/I", "/X"
+                    }
+                    $uninstallCommand = $uninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $uninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    # Add silent parameters for common installers
+                    if ($uninstallString -match "uninstall.exe|uninst.exe|setup.exe|installer.exe") {
+                        $uninstallArgs += " /S /silent /quiet /uninstall"
+                    }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Standard uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during standard uninstall: $_"
+            }
+        } else {
+            Write-Output "No uninstall string found for: $displayName"
+        }
+    }
+}
+
+    write-output "Removed Samsung bloat"
+}
+
 ##Remove bookmarks
 
 ##Enumerate all users
@@ -2580,12 +2745,11 @@ $ProgressPreference = $OrginalProgressPreference
 Stop-Transcript
 
 
-
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDQt4ca99Fj84kR
-# CYKLqyz6YKiCWW4uHEo2RgbDHl3y5qCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDIWrpcD1L8y9Qx
+# SYnKVIvfiS1RoE3vK0oTbajIzRa6yqCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2768,34 +2932,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBvNC59N0UsRxPnKA4joZ6iy+nLactUvLvI
-# 9eqDoWRobDANBgkqhkiG9w0BAQEFAASCAgBpg4xuAMjML/sY7jRjeG2tNZm92PPb
-# GEgGCXJW/mcvIzAGjYFYmHr6lyyVMJuxuwTgetlW6BzLoTlguwPWstmg6V6jdCZu
-# SKC9P1ztkKhkYGk2YRelWi68ETj/yVH5qORAXA5mXe1kMQt181Z+3XGkzM9fDyxO
-# 33ybYan96peEmtl6z6DsJFDgRh5wBifXZ2tW8UHcE2D1w7ZgDe9Yg0vGeJwonQ00
-# mlcilG5oL8NJn03h66MS8mui3ZFmYbbgF2sgi0Kz3KBC6DjjY0F/1lEU26Z8HXsx
-# v8qXyMelm6ZRUqxlhFzP9bp2CXnI1dx4jEFXntEwZJ+twUNmQDGSOr5Eeq/bqVIE
-# 5L1+AfnrDU+sFSxF7soPExa3kmhA7OhB/INldBUlcIFBMAuWDpTd81FWHiPCwvm4
-# eFGBMu2xeCvCJbrwAvqxPKrc1pQTzdHY9PGby79sxGH/mE6DjtDFRVcpaozcCa80
-# mj1g1pZeAqSrDGmHgI/smTAzW3lWun7CfzzQQXyDbeWzvumZuMNtvOzHOcT8yEqL
-# DICCKSt50TlEAS+Ns87AsAKnzcmVpOiHCGvkHl1izCwGTCH2nUQnAVkHwN/Ux3bd
-# BmVRkai78Xe5sxi1KKMvQjjjjbEQP5DTZFGACJov61h77wd/MEXKjPfHLN1eopAH
-# 1S2M9I8dasutDqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDGBuHh6HztW6m5HODbl1haCqk4PvgO/bFp
+# Le6pt9avYjANBgkqhkiG9w0BAQEFAASCAgAlCGWqyL6Bfm1wi7PK+HHF4PrHaoql
+# jawTGFYSomqdU5sGREqeczwmCtQ/KFmR/M8VBbYU83qJW0sQVRkI6MbdvC5T1shN
+# CsN3s6HSnz+2pEGdD59UWHcvLnOLABr4Y93GQ5YvcpPFYzpD0URmkxmYbfGyVgiG
+# weWtEy76q9M/RjAlJVGL4qYvRT0ArRxFsXg2Q5LngesSfIFfU2Sk100J0DGUK4jl
+# hUjDuVrV0ao2wUtufyBBdkBTPJxSGY5zZOyhujTjX7UE9s/lQ+9NvCGfD3/Ym/zy
+# A8hHaw3YDUcaFzsROOc5qqLQpNByZSkOlmnn3XFzXVQnGE3brop6CPuQIa0x+xSW
+# PEY7A8+6nc0PfmwxczD1roK/CN5flUYFEfbQNRDnICQxV0huci+Xebw7EAmzsczu
+# fCCSy6pCZtUV5WQEJ4tijuEoi7cmfEpsuWn7CMpKo85qnk8Gmf0hxKCwO/tu/juG
+# pxCqydF/fGNylPnr2Nn374E1YVxtN+YLzMIHw90MRjWl5kq3TQku14h++QGh/jYD
+# 9sfKeKDt2/gk73JfLr/7/suH89gZeXmXlGWy55p8xA1F0hL+aJrwQin70VEzQ/wr
+# KV+Ha4FMjRqvH1snNXIgopTt3v/EbE58AMPuE8S/3bATuffnOH8fotZN0lUi701y
+# e0Ji3SUssWjE2aGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEwMDcxNjAzMDha
-# MC8GCSqGSIb3DQEJBDEiBCAeigK1AJiy91N3Vgsv/FbUCEYUOd8Y79nWT5SPDx2V
-# JjANBgkqhkiG9w0BAQEFAASCAgAeibKFclNM9QYaJVkYXPK10pQjLWDaD9YJLCc6
-# 6xEH/5Ah06D3mJg/QqbQEnwLTrWQr6rXxECXvquqrncB6nv/7QcFCuQs50i4w5Gw
-# dLYuJGg+QrC2HPatu48+vRhRH/EwlLNelOsegSSa+4wcKOWNVzdYn/3ZBe3kgv4g
-# HigYJcxJu1pywORAx2nlvrif1s6vdUwb/773uWlXcAccaVRx9KNKgh/YI3EHZKu3
-# ta3GNU8zLUVYhOIdRfH1iHeN95cghMOeuXWcoHEpgnBJtqMG5mRD0oK1eumFwCO4
-# Bg7zc2GwPTUQLCc6VCKeQkxHH1sQ9+0nHjLxYo0wvCMNmZS0IOgTxdbpXaTNbtCs
-# 5mEooKs075YfmD3nVW9nJRwlbnXZGWYOlSbi5ALMO6GYC3tKF3kCMnBFKUegVD1a
-# Cm/+fxKjaGWypVc4EzlS3Bfwmr+gPl1zXpvgTCX+qfKx7F8ypOxTwgOBT4OEv/lE
-# 4Oxhth8xdFc2g3CU+1q4xViVNtMMslO1KUbejO4NJIPYSYhssIHqLHc43ce0pGjy
-# s+3+mYfryKAy0mxtL/EIyf/mMb3ppm8gFO9qqDlJxGA4yZtj1GJjOGoAiDPyOYuM
-# yuMNoOccUZqSTVzq35tbl2x4j4RMGk9NyTg7cAoVBSvZIDKINuAob0WhgifGKDnV
-# bhbL0Q==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEwMjIwODIyNDNa
+# MC8GCSqGSIb3DQEJBDEiBCADu835m38FtZZwkkOiH6VwQfhQZhc2tXD0lwifKbpI
+# sjANBgkqhkiG9w0BAQEFAASCAgBJHHC+KvMi4ortk2dPeYWqZqRmsHxNsE4PvbGM
+# fuOWVImo/uiOhTzVpTKMHK9kZNhpXMa1dME6IOHp5D3EiJZoePai3x4BGtaZdulO
+# xoID7Dz8Da/a2d02a4r14cpSdEjVKlQrAjZvEzs0bGhkqg3jWu0o7Afc2ytqqz02
+# DttXqdk0jGxr+eXt6+Pjd6k6b1bdLz5YFWyepm/ryeskNeFU8bZq1z21f/VseVgV
+# qaLpVffgJfwK7d1pLOhHWfLJBE9eNVJSFiHqiu4yUVE9xDaur0Z8C3iVYxWfuYlN
+# Ut+G+2250RSYLC2F/11J+oR4Vk6bpzWa+sqx2x5uzU/21hTalaL5YR6S5ZG6xbi1
+# aCwA6H4ID7X4nLLKkGxoHZsd4CIu/wz3jjrBNpljv1UTmx9EC2oQq86WS0V1E9kv
+# sZLBOjWy82fNHtgXHZvm5kzzEfBP2VEOp/YMB8rY7nlwA2DEQkWScafLjcQ6T41V
+# l3u4GMga9+pTTKMW2iKS7MTHDKVLWiFUrq5yEcYvVtrX4Ff0Yhx/R9058NrJVhXi
+# Kakof1EDekYbWhDdSBaXTtKUMEPIXI8hvwDBh3xxxqaqa/3snWjqjxi7XP37/Pu6
+# IxBbvh0sXL4pdF6aZglZ2Bs71zZ+7gpU8IsVZmG6CIssOwkVMJY98FobNmwfg+1j
+# p3pwiA==
 # SIG # End signature block
