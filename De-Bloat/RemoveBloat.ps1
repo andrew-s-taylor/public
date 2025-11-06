@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.2.0
+  Version:        5.2.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -160,6 +160,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 02/10/2025 - Fix on Dell uninstall
   Change 07/10/2025 - Added the rest of stop-transcript which code signing keeps stealing
   Change 23/10/2025 - Added Samsung bloat
+  Change 06/11/2025 - Added new services to McAfee removal
 N/A
 #>
 
@@ -2537,7 +2538,7 @@ if ($mcafeeinstalled -eq "true") {
 
     write-output "Removing McAfee"
     # Automate Removal and kill services
-    start-process "C:\ProgramData\Debloat\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
+    start-process "C:\ProgramData\Debloat\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUEFWDRIVER,Redir,MSHR,WPS,MSSPlus -v -s"
     write-output "McAfee Removal Tool has been run"
 
     ###New MCCleanup
@@ -2557,7 +2558,7 @@ if ($mcafeeinstalled -eq "true") {
 
     write-output "Removing McAfee"
     # Automate Removal and kill services
-    start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
+    start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE,FWDRIVER,Redir,MSHR,WPS,MSSPlus -v -s"
     write-output "McAfee Removal Tool has been run"
 
     $InstalledPrograms = $allstring | Where-Object { ($_.Name -like "*McAfee*") }
@@ -2771,12 +2772,11 @@ write-output "Total Script $($runTimeFormatted)"
 #Set ProgressPreerence back
 $ProgressPreference = $OrginalProgressPreference
 Stop-Transcript
-
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCrztkBO2j+VVCF
-# lGCdDK9Bt7tMvJoecJJuiUvMc1i6JaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB8V3GmlN6+r/gF
+# TdLqIm68tTdrjQEmavgTUB7E2IOeuqCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2959,34 +2959,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCm47WlxjN94UxlFrLTjAy9XLhnID/njSKm
-# 928+lUwe0jANBgkqhkiG9w0BAQEFAASCAgAQcdL/DE2Hfiha6x22sMAgoCiF/rkr
-# EyAZ+paW+nMPkdaEmDInv91SfLTESiWhFyqQundRjunhhV74uUVfc/bVYEW9fxia
-# I9hmiTtfJu5tNmseUpTvdz0XyzbLnQ2Z7qFB/9yW/eTfqsGgKDqLpta9uVW12EXR
-# x2N5+yiNPaQN2bOXlAVmJK8iPl+QjTU6YBe07vZXU4hpSlxpNLjbu8+sP1gas7a1
-# CGI00uHAubFx3OJ3fPdpu8EPjCmIMbKqUrHv3IBov1VwQ2r3pO132MrvadFFCCz5
-# UPZTUGqNBhLUTIUrpovwuC1D2vsM5ijn7khUY5/aXM2svZjTXq6Ygd/GrQj13s7n
-# Bo0ED9pfm7/guPz1S5U7Hqr1VJ4RMe2FtTGHbIOVZCRionYZxsUqtKTRESHYVXuj
-# if5JsZlIEVi/vhnh3xY0QuW4L6fqpybnO5RJoJVM48Tyo5rPe1Vr+lEmidWGt8KN
-# dk52pR1Qepk65kkXMYN2ThaHtLfCdEkKo4N+isbDuyHyv+DGHz1kJl36wDP30kp5
-# HxdTANM2HHoT73himD14F5G7LgavKha9UMMUV485njvfFifpDc9e2I6f1pE+4H0I
-# gWBhzl67hhv7OyfcccYR6zQDEusRugB0nlN4BH4BgIIIph/czTAbOxwdYMstlNxq
-# ETnYC4Q6vAZc4qGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDOXYcAKekloqvdfSXN2IKa2X9i88ZUH271
+# aueADTCCuzANBgkqhkiG9w0BAQEFAASCAgArnO3Pod0Nk310MzuHXPEOHrf/Gnrk
+# AczY2o/nubY8QVF0QZ1+TKJdZ1Jg+AYLiaRyIoVnomSfns8BEsEEQyaeER7IEmJY
+# HLAo1hvaTsbM6dshK784wPRo5sMPJkZZ/eDs9GfBAgmizo67V2NAAglYG017lguU
+# kc4i3oqXPzFSQEQRh0EHUYj6rI92KhB8RKGyf9zrmSOVLJe85sRk1sApPgmvr63W
+# w95fwnIO0weYo5n4ZBOex2YYEhIisaOSSuqosrEvuyBxjllykh1ucqD9z0C5CqK7
+# M/zxM9IlvUPwfUOQ/DlzV+32fEu3RbLqYSS8rRzan4N6u/F4ydv5Lgszs/eRdvHE
+# BBo8OMpz0p8TKqDlSjmFaNyowUrPejI+JuwtFx/dhzHM3nebOl4pfKI5D6sClZ71
+# NSVq4BP3B/IgJJ2nT51S/RqhppSZdXTVZJqEgu5LDC4VeOhhPCX885T/HhlxT89G
+# aHdjh9CnWY6r6jTYDF0pzJWZs+oT24O564vVtS1OqVhXrehGM3fbIg8NcwwLFtdV
+# JvVmbuC8un4uuRIr2DPjDTqz9IvS6gT09TPOB5snjqphUpee10GLAu2OuWFDOdCr
+# ZrJ+HCNBSGwgcouo69VgA/PZHbOTqHHZO9h+7/ogxU1e8XE35u3vTUg6R3NQKmkn
+# RS6s49Xge7wlDaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEwMjMxMjIxMTZa
-# MC8GCSqGSIb3DQEJBDEiBCB4TOtRM5+m6gxH7MBOHxFkhcOSCykAjL+30BjyRcYV
-# djANBgkqhkiG9w0BAQEFAASCAgBqg/AdXHvmXIHU3VrELO9lq4JB4Ejj0PYrjMS5
-# 6hK64+2p0J8X8hSf1Ipu54pr5ToZQfIRcqHDm/J5Qqclx+uBBxyGi7aUov0suiV/
-# ZC8S2wD0x3pN0vhAPGd2AqOWxYCbUu1GTcDYGg46yhUf07oQn/iy5eSrwU5aDi8N
-# m5FtSbrqSxX+5aB7qszaTw5cYQqYyX1AxxWHY2Ubxr7ldzRYNtAyoYoQ74Gib0Ia
-# itp+zT7DechCn7bY826FvWpvTpAc10G1B8uhYWBVqXb0S7RZF5LgSBO+6Df5cmyl
-# owWVm8khdXF+ELVJzGqWXBjSC2x7Gxmop9OXLPz8Rgm5njknGeQ4cmxlgBiqJhF8
-# Zh4HG5jNKM2G7cdGFBLo+ECil9xU94z7qlYmIey2jfYG05eGuYzPop1h8l0RqLiW
-# KpUCnjR6EpSa/KGhLoqKTPmCh7XLa6kIT/UD8BkyNQOEGtFjs1+77qZDH8wXu2W/
-# OZlY6dcsPqmLqM/XxCCHjX+DWY5AbAakAwBuYmbul6hpoWjolrxCn9MyaOVgxPax
-# zwjdgiBlVR7jZDnqtA6lXSho5ut7/GXP+7PVBUIyOx+PbvfN+nydhNtMDAb2sEYP
-# sDpZBTNO64jwxOAMyM4u6uONWXxMPweSoy1K69spob+THyR80FD89kbEFma2I4QC
-# lYHMfA==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMDYwOTI2MDha
+# MC8GCSqGSIb3DQEJBDEiBCD+oaF+7rAwfpKQyaygtOZ1qcFsOHLyZbPCoaIY0S2y
+# 0TANBgkqhkiG9w0BAQEFAASCAgCugjiexz3VVQTGfAVH7kWjnCiefbwsbxIMThSh
+# uWuYJPQNWj6EwTR3coOjC2VMJ+mEshaicQCXw03h7QRkEJ7DkazfPOOIhXbnJWvj
+# Mau6KbtOhRfcDFduKdKCtUJ6Z+y3olTtRGrnGCMuYaXVPZJICnXV3WGNemz86eO7
+# 7xk7TGtcAhVEvpEv/8Y1JP5W3um36eESqGuAvrsw/g9YAwS2Jrry6ScCA5/jQKB3
+# 1JYctLrKxXE90MdtlN3jBl49zWlBLgvKuDparObjWgidP+FqMgKCCvYPkoJ0YnJK
+# pSFMXf+0VgErT7YyAlAuhEk1QppJIwI28RiPcKleSGtyx2M9ia58TRTYX/dO67v/
+# /a/zbXzc7dN9qxUXFpyNJWs0ysxNAPX0B9rPPkX40Kd0JS/67yw8gRb30R0aTlt1
+# Z3d5y5u3ykmOCZyvIueX3cXJ49kL6jOXIdYAfO6prjrzv7rwDBcXxD3ghSFXSZ94
+# 5ckPV/FuIwpnlU2PtP9k7VHXXF9oE6ditPiEvCfER+m0/O30yuT9qq1r8xf1Mjnc
+# VFqKiDAeUwRXaN6LbYgE3Zt61Iu2AjdGLAzpY7dRctMnLciNjK62h8U/LecEoM3r
+# /mitDzF5T6xt8EG0s0bUpD6eIprXunnDgPoUxuNZTf8aCv4IGMouUD8HecbBY/3f
+# Y1qrEg==
 # SIG # End signature block
