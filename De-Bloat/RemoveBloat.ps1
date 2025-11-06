@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.2.1
+  Version:        5.2.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -161,6 +161,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 07/10/2025 - Added the rest of stop-transcript which code signing keeps stealing
   Change 23/10/2025 - Added Samsung bloat
   Change 06/11/2025 - Added new services to McAfee removal
+  Change 06/11/2025 - Added Lenovo AI Now apps and processes
 N/A
 #>
 
@@ -2071,6 +2072,15 @@ if ($manufacturer -like "Lenovo") {
         "AIMeetingManager.exe"
         "DADUpdater.exe"
         "CommercialVantage.exe"
+        "lenovo ainow.exe"
+        "lenovo ainow helper.exe"
+        "lenovo ainow service.exe"
+        "lenovo ainow utility.exe"
+        "lenovo ainow mini.exe"
+        "lenovo ainow oobe.exe"
+        "lenovo ainow safetychecker.exe"
+        "lenovo ainow launcher.exe"
+        "lenovoainow.exe"
     )
 
     foreach ($process in $processnames) {
@@ -2093,6 +2103,7 @@ if ($manufacturer -like "Lenovo") {
         "Lenovo User Guide"
         "TrackPoint Quick Menu"
         "E0469640.TrackPointQuickMenu"
+        "Lenovo AI Now"
     )
 
 
@@ -2771,12 +2782,12 @@ write-output "Total Script $($runTimeFormatted)"
 
 #Set ProgressPreerence back
 $ProgressPreference = $OrginalProgressPreference
-Stop-Transcript
+Stop-Transcrip
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB8V3GmlN6+r/gF
-# TdLqIm68tTdrjQEmavgTUB7E2IOeuqCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD7Loqg6xfXiBqu
+# PqF/WeYnwKYw2+BEQBMwRboF/czChaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2959,34 +2970,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDOXYcAKekloqvdfSXN2IKa2X9i88ZUH271
-# aueADTCCuzANBgkqhkiG9w0BAQEFAASCAgArnO3Pod0Nk310MzuHXPEOHrf/Gnrk
-# AczY2o/nubY8QVF0QZ1+TKJdZ1Jg+AYLiaRyIoVnomSfns8BEsEEQyaeER7IEmJY
-# HLAo1hvaTsbM6dshK784wPRo5sMPJkZZ/eDs9GfBAgmizo67V2NAAglYG017lguU
-# kc4i3oqXPzFSQEQRh0EHUYj6rI92KhB8RKGyf9zrmSOVLJe85sRk1sApPgmvr63W
-# w95fwnIO0weYo5n4ZBOex2YYEhIisaOSSuqosrEvuyBxjllykh1ucqD9z0C5CqK7
-# M/zxM9IlvUPwfUOQ/DlzV+32fEu3RbLqYSS8rRzan4N6u/F4ydv5Lgszs/eRdvHE
-# BBo8OMpz0p8TKqDlSjmFaNyowUrPejI+JuwtFx/dhzHM3nebOl4pfKI5D6sClZ71
-# NSVq4BP3B/IgJJ2nT51S/RqhppSZdXTVZJqEgu5LDC4VeOhhPCX885T/HhlxT89G
-# aHdjh9CnWY6r6jTYDF0pzJWZs+oT24O564vVtS1OqVhXrehGM3fbIg8NcwwLFtdV
-# JvVmbuC8un4uuRIr2DPjDTqz9IvS6gT09TPOB5snjqphUpee10GLAu2OuWFDOdCr
-# ZrJ+HCNBSGwgcouo69VgA/PZHbOTqHHZO9h+7/ogxU1e8XE35u3vTUg6R3NQKmkn
-# RS6s49Xge7wlDaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCo2UUg+X6jMRfX7LeVui0fBlqLH1VK9t5j
+# Bi6pI0CpAzANBgkqhkiG9w0BAQEFAASCAgBSZjGLvjPxvdY0sQroLiw0QWsLW4t0
+# 9XAt2qbg1nGB0Gj6jRZiZ69+NuDIkquTsF3sJQQogcUIunUK6eFYyDZcBToAisa2
+# UMomidBq+aIOztDW5R/OJCR8x262K9rL/DBGmuuylAmgsnI2B1en7kpPNW1hIqbC
+# H5QLAr6rmRKLkJf1MAPdIdFMRnOikAyB3Q6DI+j1yMX/9wYQW+2GfdRSJ6JWHgKm
+# mwQizOtq4ta9zQ8Fm3BRO1mnCgmKsx7nWpOgM04MC3gK1wU+ltFQD458wuuat5R0
+# I7Mu+UKDI85hYGDlpqlqx9BcEjitYa0SZz+LjvG0mI1Lw0eBI0RHnQO/lU3BkY4F
+# E/juiqG8XVR3iZWhJoOgRD5gSCOWhDujEprxvlCNu8wL5YAqofc2LKkEzLXg1kqf
+# EgaF/o7BNHLkz9j/9/2B1oLqZjTTocSfRQfnnZSE4RvTpvjaBzrGzeuyR/nuencS
+# fQcEfGWJQ5vI4qio8omWNzJZSN5+dlE3iiWrqIrXNpBSjrvoJQSUQdYaTFx8W8d0
+# FRQFNkNujr2lQohScNhTKJdyiyil4u+AoeYWSKAykc3BE6l/uxNC5ds9LX9tTLuI
+# THBW6pCuILwGBtEGODD5YHbMcA5oPSRD6a7N4UjMynF9Krb3cyJ6iRuIkj8ql5ly
+# 09F2gwN+aeRvZqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMDYwOTI2MDha
-# MC8GCSqGSIb3DQEJBDEiBCD+oaF+7rAwfpKQyaygtOZ1qcFsOHLyZbPCoaIY0S2y
-# 0TANBgkqhkiG9w0BAQEFAASCAgCugjiexz3VVQTGfAVH7kWjnCiefbwsbxIMThSh
-# uWuYJPQNWj6EwTR3coOjC2VMJ+mEshaicQCXw03h7QRkEJ7DkazfPOOIhXbnJWvj
-# Mau6KbtOhRfcDFduKdKCtUJ6Z+y3olTtRGrnGCMuYaXVPZJICnXV3WGNemz86eO7
-# 7xk7TGtcAhVEvpEv/8Y1JP5W3um36eESqGuAvrsw/g9YAwS2Jrry6ScCA5/jQKB3
-# 1JYctLrKxXE90MdtlN3jBl49zWlBLgvKuDparObjWgidP+FqMgKCCvYPkoJ0YnJK
-# pSFMXf+0VgErT7YyAlAuhEk1QppJIwI28RiPcKleSGtyx2M9ia58TRTYX/dO67v/
-# /a/zbXzc7dN9qxUXFpyNJWs0ysxNAPX0B9rPPkX40Kd0JS/67yw8gRb30R0aTlt1
-# Z3d5y5u3ykmOCZyvIueX3cXJ49kL6jOXIdYAfO6prjrzv7rwDBcXxD3ghSFXSZ94
-# 5ckPV/FuIwpnlU2PtP9k7VHXXF9oE6ditPiEvCfER+m0/O30yuT9qq1r8xf1Mjnc
-# VFqKiDAeUwRXaN6LbYgE3Zt61Iu2AjdGLAzpY7dRctMnLciNjK62h8U/LecEoM3r
-# /mitDzF5T6xt8EG0s0bUpD6eIprXunnDgPoUxuNZTf8aCv4IGMouUD8HecbBY/3f
-# Y1qrEg==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMDYxMzQ5NTBa
+# MC8GCSqGSIb3DQEJBDEiBCAGws7cvYOI5VLXeXJ7+SRSI20BxLoZ8e/51f1TKpEs
+# RjANBgkqhkiG9w0BAQEFAASCAgB6g2Yu3+kQKwiBthss3HtqDruixvXNDcil+GF6
+# 6RdK1kvfrsbU1UdLF066GQNPw5xT+sV14SDF7baDkIhae3RqTP9KrF35W0U/EV4v
+# qBuaMdrq/3N3LS+KVhAvb1INBMJUs5GLD2gd2jaOSWc79/g4af7zJXDz9V43OV+9
+# JaPyVyqXOGsGwDrvoaBJlHP13LywZBrLdTryCNxMwJ85EjzzOc/x2TnCkU1MwUqd
+# yxJcTH9oiIFY4cGOwUwRYoCfiYL6E7fkj1tMNuhuYRknte0OVcZOt3DeFWY4FZZ2
+# ahMFVx3I5aG1K+hriM683FpYmgzVHpmrHKttJ0RMJlMJdjV2JAQHWxb2ygheQeXb
+# UJMM4ofonhgBJOC8RrkRa7gUocWlOux5fHkgam4oF1BHceNGRA9H8hlhjzwSp5q/
+# 9DXluN+n2/tFYYAMi46ezP/QkHZPUp/gciQShPEJyYMsbVDO6y8yMc2zN0NhZtn4
+# fGfy35FLr9PHRrtsGFzJIaqEdNTobdDYW2CqAy89NDK3x/4g3b4eDIHL2mVuLAD0
+# 8v5D8BEncFSk/PoLUl7ocg6ipgJq0F0NR7alOrcoRbfpK1n085KeyPE39rxQ+4SY
+# BmBaFH1Vd4K+rZlvg33qrZioN9ZfRjrTrz2+xxvaIXjGStIMmmL3pQeW4c/qPqfi
+# N3VpNQ==
 # SIG # End signature block
