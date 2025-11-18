@@ -458,6 +458,10 @@ $Bloatware = @(
     "SpotifyAB.SpotifyMusic"
     "5A894077.McAfeeSecurity"
     "5A894077.McAfeeSecurity_2.1.27.0_x64__wafk5atnkzcwy"
+    "Adobe Creative Cloud All Apps 2-month membership"
+    "Intel Connectivity Performance Suite"
+    "Intel Unison"
+    "McAfeeWPSSparsePackage_0j6k21vdgrmfw"
     #Optional: Typically not removed but you can if you need to for some reason
     #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
     #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
@@ -2105,6 +2109,7 @@ if ($manufacturer -like "Lenovo") {
         "TrackPoint Quick Menu"
         "E0469640.TrackPointQuickMenu"
         "Lenovo AI Now"
+        "Lenovo Subscription Marketplace"
     )
 
 
@@ -2570,7 +2575,7 @@ if ($mcafeeinstalled -eq "true") {
 
     write-output "Removing McAfee"
     # Automate Removal and kill services
-    start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE,FWDRIVER,Redir,MSHR,WPS,MSSPlus -v -s"
+    start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
     write-output "McAfee Removal Tool has been run"
 
     $InstalledPrograms = $allstring | Where-Object { ($_.Name -like "*McAfee*") }
@@ -2791,12 +2796,11 @@ Stop-Transcript
 ##And more padding
 
 
-
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAHaDdFaynSwAAx
-# mHcjOz9AsM6ESiSptNRWRglrezgfnKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD33ZZ9CGeWZwW7
+# BejcLr2Y6VHySaw2E5kaf93dxwVocKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2979,34 +2983,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCAc0wr/fjdRU9DUip1QapSVQQYxRl0LgpKU
-# ekv9RDrL+DANBgkqhkiG9w0BAQEFAASCAgBngJghVgufCKPWLy0Sb5YqJAMmBXts
-# jbIWQ+94iSnRWr6itI7Y+TZp/VWdJALkcoG1d3hzUaaSRG/MJXYA5Ut4ERe+wRWl
-# SV6+1LOhX5AnTAho0WLuwBcjqA7oJm56/b6D1fZNsdoj4yyDN/7B4OU8Hs88KGjz
-# w6gaAvgHamgXdUnwsA3EgDmxSs7pVxDahrm9arkTHTg7CJSep7OA+dtVLR5YwXnF
-# ogSWyLBRbptzLpDuSmyJZqxIYTgLjiZYQ9m6d9TNuCwTYqq79w5mS95b10hAudZC
-# 1NFZ6mPMq6Yr5nt/svh3bz7ZsehDwpEdlqWjvaucxi8Eg7CuZSxzC/sdyg8ILCa2
-# Lqk4QaxlkQFqFK4o1+Lb+D54ffwQOaGep0XrXrbpU0OvbpGHByUvVAiDlfSgHzVR
-# PoPMLcqTtkYOQeD4DE7GISdIyo/QLBdMfdUfHuCTpcsg9V4kAj/JJUE3PBQExiDt
-# LYMc+us++CnVpx729C0hGG6xletopCcdSKEcYmwUYpjL0o74LVog7tRtAoJixHEI
-# zlTb8ibPtzWudUvze1fkLVWiLnj71VahJgTd1qP0vBC8F1aE4yzpQsFfoNpYYeFL
-# h3gahasa1IWeFwo6ZzqPmFSXIq4v7oEXT+5GiPmBeH0oUlH6X/+DjyLFSW6cBaME
-# 4PQ+3A+pTc3OOaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCAuwhX97GjuHH4xz2brpQtNPxyRfAfsNVUG
+# JlTYToQk2zANBgkqhkiG9w0BAQEFAASCAgA9cWEt9CPpPc2ULO05qQ/FmuNJLMv1
+# X7eMigJm+vy7EzGjSZwaY8eA40LI/84h3TaG5mEQE1udna9KtqGSe1X62KC8aZ0/
+# 13jNDeqhmH2xxEjYgN2uuG7keQAOVN4MaLJiJMyFsaB4nk4HcDtqyEe4/5FANj7u
+# csMsDgdlg/l31YfIqtc7UZZsnp/BGVc1G5/A8UVX2okDfe3+vac1tMfJp6fc6DBm
+# Eh0CIMvSgomJ+HZzYb5sMfGMCu+NNOkNQanSkzbYMVC4tjc3Kb7pd6z24AyI2ltI
+# kXJUJUFIKU9duuBa120Wqq6dKWLxgPtpiMd7gaF1E59FDQ6RF2bBTvU8d2mk+9Ke
+# snZ8neDoMk62VEF2CvNyy3pHylrJyQEbNYuMugAenw5baPFbiH3yXngvnq/iZLJQ
+# ZD4RABkVNacuroiKQSS8Z3dpr1NN12k6lui+FSE1piBr5a0izQLaap8YCH1/puLN
+# 6tsis3zE8oXy5Yfkdyiuu991JxCNVSaaWZSfu/RP9ugHGauHsprsqL2BuX7vpMpO
+# k9zr/wm8hnJEBS9wn5GHNalMWciVMadMQxQ0G1r4awpJK0zPPh3WJEBe2gkfhMZd
+# tLqFczEMGwgvgoovlyVivQc4wKAIDw5h1scbcKn9YzmyUqIJS/tqbG7OXdxhoRbI
+# /sjPXBBeK+uOyqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMDYyMjE5MDha
-# MC8GCSqGSIb3DQEJBDEiBCCx35nbM/zwBLs0CtZJGto8gqRIyB1LVs9ugpCB+5qh
-# gzANBgkqhkiG9w0BAQEFAASCAgDBL9nY6vMUTBkLHJ5un7nBoIxIypAVo5rKrDo9
-# bba9GAsdENhqauW7sobCM3N0YPbwMZoK2em1ZVg7Kkd3W7r397kWaLfhzmsUv3vT
-# yDYw3SMXL8ZcPBK38Ze42hO42uU0pOnxWiyL28Zfo1KyUyuYrJt2afJNmzTH4qUy
-# 1pldYfY3A8Ga71OWpLeXPH05/fcF6EAo1fLN1Czq2XL7Ktf3ucs2XrgHGk/ed6Vd
-# SCSQvtKDMYfvoISnsBI2mPqQoXuDIcTnTUbGBI1FnEm9elJVYIUxNtpoj1recQS+
-# Q5z/W3Z9hkXJq0n3yYNVxutWcmor6fphrm6g9LJmT7qrO96T+LM/svcmpvJF+cml
-# 4xggr+oq6LMD1JYV3iHJ4UPbjDGNuvpEZ4xcoBxv9HWPegSH3LhzGVOmwzXr+IAE
-# 6utPy3MZtClaMh8gZ18BsyJN31v+3hJfjN5LLj3pSOa1pe4JnjTZ/r/PkPdBVMqg
-# 78whvwx5rnnyo1+LuuymCh9wneVNaUVDCDM9uXV/Tt52mUMXX+cscnGgIvn+o8B+
-# 0QeT12SK/J5l0udmEFt4HfAIP/+n5R2HsUmJYQJTtwwWOKLVG4MkrqPxS1L3c1/d
-# fiIG40mxeCFyehst1VJe59PHorl1WfIeeaGqpnBjGw3f594RVA49CQKzvVrMpMhy
-# XKo84w==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMTgyMTM1MzJa
+# MC8GCSqGSIb3DQEJBDEiBCAxmFzHz0CEtRDs8tW8xOBLZxq/uUnk1hRqc5ypz5r1
+# GDANBgkqhkiG9w0BAQEFAASCAgCscEEWhphb8hVjSVPCnFLTmSH266R3qryT2ubb
+# g0DgOl103DlonFQ2M4c3QIVxdj66F5kLrYRjDOC4G0BN0Z7SGNAtTSzJBNdgDHyG
+# vPW3ywwal4Obm72H1chi2UHtSOE4mYPwmLxtpv+qe7jOX3gexN32nwQ8qFTg01mJ
+# qIiZnuox4Go8ZNBspCQObR5Qr5W5+GpuUiiK0Sf0q4G7e2G88ASdPQFixS5irLui
+# n0zolzts+YCoeILufcuGuKjGHqGj5MIs5k4Ju7UsK/LYTuPg7KktwAaJhscIVRr+
+# PAG2WzCaiHmPkvbrNJbYi5qlT62I5XbW21/kK8/Erlvv7R/HTjhwOnnmFpzBc40m
+# OXuiyiSmwsOOnVGd61lqFc9/JSWdCJJoGwUQVgKi2Dzv0ugFKyUtsXiXe35juVLn
+# ETg7yS1vchAmU5CoikZnxIQdz+eDP+SaRROP6AMmsnUWdkd/xSd6aYtnp4VJCnUt
+# aS2HDLQhBA8+Txl1RPfet0i4loyj2+R2pKFwcMygpNqXP8m7pHnYEUBPjHSTorGX
+# 7xfAl880Zm8zKb+kD1VeP5LT/kVTILJirFmvrkB6WwJwsHFSZSO7/YiDFGKZl0yJ
+# 2lc3s1ABuI02+TGQGPTW5uvp9KXqZ5Q0r5oc/nlDDmFS4+C6WGEFkT5nSJUSsd7s
+# nDL88A==
 # SIG # End signature block
