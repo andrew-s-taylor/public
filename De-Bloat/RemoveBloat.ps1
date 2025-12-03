@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.2.4
+  Version:        5.2.5
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -164,6 +164,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/11/2025 - Added Lenovo AI Now apps and processes
   Change 06/11/2025 - The usual transcript fix
   Change 20/11/2025 - Added get-package uninstall for HP and Fixed McAfee (for now)
+  Change 03/12/2025 - Added Lenovo apps
 N/A
 #>
 
@@ -293,7 +294,9 @@ $WhitelistedApps = @(
     'Microsoft.MicrosoftEdge.Stable'
     'Microsoft.MPEG2VideoExtension',
     'Microsoft.HEVCVideoExtension',
-    'Microsoft.AV1VideoExtension'
+    'Microsoft.AV1VideoExtension',
+    'Microsoft.RawImageExtension',
+    'Microsoft.AVCEncoderVideoExtension'
 )
 ##If $customwhitelist is set, split on the comma and add to whitelist
 if ($customwhitelist) {
@@ -463,6 +466,7 @@ $Bloatware = @(
     "Intel Connectivity Performance Suite"
     "Intel Unison"
     "McAfeeWPSSparsePackage_0j6k21vdgrmfw"
+    "Microsoft.Edge.GameAssist"
     #Optional: Typically not removed but you can if you need to for some reason
     #"*Microsoft.Advertising.Xaml_10.1712.5.0_x64__8wekyb3d8bbwe*"
     #"*Microsoft.Advertising.Xaml_10.1712.5.0_x86__8wekyb3d8bbwe*"
@@ -1759,7 +1763,17 @@ foreach ($pattern in $packagePatterns) {
     }
 }
 
-    write-output "Removed HP bloat"
+##Use Winget to catch Wolf Security
+##    Write-Output "Attempting to uninstall HP Wolf Security via Winget"
+##    $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
+##        if ($ResolveWingetPath){
+##               $WingetPath = $ResolveWingetPath[-1].Path
+##        }
+    
+##    $Winget = $WingetPath + "\winget.exe"
+##    &$winget install --id "$appid" --silent --force --accept-package-agreements --accept-source-agreements --exact | out-null
+
+##    write-output "Removed HP bloat"
 }
 
 
@@ -2215,6 +2229,13 @@ if ($manufacturer -like "Lenovo") {
         Start-Process -FilePath $path -ArgumentList $params -Wait
     }
 
+       # Uninstall Lenovo Smart Connect
+    $path = 'C:\Program Files\Lenovo\Ready For Assistant\uninstall.exe'
+    $params = "/S"
+    if (test-path -Path $path) {
+        Start-Process -FilePath $path -ArgumentList $params -Wait
+    }
+
     ##Uninstall Smart Appearance
     $path = 'C:\Program Files\Lenovo\Lenovo Smart Appearance Components\unins000.exe'
     $params = '/SILENT'
@@ -2265,6 +2286,12 @@ if ($manufacturer -like "Lenovo") {
 
     if (Test-Path $filename) {
         Remove-Item -Path $filename -Force
+    }
+
+    ##Also delete this directory %programdata%\Lenovo\UserGuide\
+    $userguidepath = "C:\ProgramData\Lenovo\UserGuide"
+    if (Test-Path $userguidepath) {
+        Remove-Item -Path $userguidepath -Recurse -Force
     }
 
     ##Camera fix for Lenovo E14
@@ -2803,12 +2830,11 @@ Stop-Transcript
 ##Adding random padding to stop it removing actual useful text
 ##More padding
 ##And more padding
-
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA/czc2VHosKFR2
-# A+eT8nlxi1haCcihqJXtvwNJuOumr6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBI9qwOJOGVwGzC
+# KgR7eGCu4UyYuMgJzxsB/tiawfJ/tKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -2991,34 +3017,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCkd0iDtMtx5/hKYho4A97f4G9WTWMzYI5v
-# 5EalQ3WqLTANBgkqhkiG9w0BAQEFAASCAgAEiBvY+QN+uif3dIUKhO0MJgPAA7U4
-# O/sMCypEFZ9ni0bgg+Fim8oyd6n/plnl6fdl/ZbVQZjWCBlzYXEdJMKeXoWGjptS
-# wGNfbK4k9QL6a8Bsn3hK8uV02ndr7JmQ2UU/B16ZB4DsfYApCc6u8ct4nKWnEhoT
-# RfpNPpE/ywJuuYWkFUeNinide8jrtuoFYiI5bV58RLNQyCcvT3rdCtLoUp31lXFl
-# 1d42jeDas7be8MM9fr4Bfm5zLWNgUwp7ENGARYe2EHx58tAaTVWRttpoNc7Q0nMk
-# 7K0V+DqYTOzi+ddE5urbnDQr089TCGBBoBiPQQjt+sT8k5KSFaTXEMHvwcX7szo/
-# KB/Nan0G8oEM5EROtsMmBnpJwPvT7AdMAHsJbEnOZR/9VJLncdGWbvEFNfeQg18h
-# oBvw1o5TQGL5wDiLcbYwlY0K5x6KweCifJLmD6PiVJtQTpJVP5n34H5OA6YGeTd7
-# OWZ9bWWKHBhMH5HWrTxchhk+6slugHZTIqCvQYVQ2UEeGgJ8IrwZMfOKtzYK6Z/f
-# kJxdhVbzzbNOJJ6LcUbYnJBa8Jr1DAetBqxDRxS7rWXhxDq3CR2qq/sqKamcMz+C
-# 6wp68EhjIJLIJVJyZjcye17kq66Ayv89l6l0wyNIQ8mQRA62e5S1bH2B6axpbuYu
-# icqMBd68FLK1FqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCAFcvGH8iOpTZgZzMJ27unNh4/2AStCIy/R
+# fYiDtzeQHjANBgkqhkiG9w0BAQEFAASCAgARi2l6S1tnib9deKlnfRdZQ1cWYlxq
+# 75FHpxLc1Cd8g95V0hgKPbDq0y9sZcLdB7fEO7BYVWPh/Sex/fxaqdLk3mByVGcw
+# V3iotrsNr0eMp+7qxdBsU/h/5Ff049G9zwgrhXkyvMT4Ya8oM8a5LO87d+R0QSzK
+# 1FNM176bhtHx8Xo7L7TnxLJM53cFVAdMKq+ZIXvDMYnfkoZLipQChMNWmlYw62ts
+# D8QlqDPb2b4ZnhEK8WrN7Dk3nolNScqHfkurMAr+1nKoV3UeR7UQsD78a2RB6rUd
+# LlYK6cX5g6C9xfo8DqfAut48jCIBH+/IOXCUfrh64FZfN7xM1tXRNJGENJt5sPtg
+# XhSk4xKWxo/ca08wa5exRRdwomxt5P/lzc95QLR5hLb9r1Hw/MToo7aE+8KWYcnO
+# sqxgwPCloDgOypYQ97m3DXKI+o6+G+IV3OD+0zNzPTl0zM3kIBZLYRODeGG2y+y3
+# GMFTjIkWAU3UYeq2sGv6XQ6BFn0HaU6NA+k7fD4sFlxHBODgy+F3xH1lzfR1Xke3
+# hvGuiZYkK9MbboTODOEvSAC/LQmifpcLUdoCWA6IDWYwJKaN4ARU4XUtaIu6zHzI
+# +ErypRJYAFRCSG7LBjLrca0qX2hsCVKfF6S6fCZXr+XK90jYZUktpvwtXUX6D17m
+# cufWDH4Dd5RAI6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMjAxNzAzMjda
-# MC8GCSqGSIb3DQEJBDEiBCA9+bzNeNNHXD65HUOEFh8PWrV55qGUA7jymsYcvBbU
-# zDANBgkqhkiG9w0BAQEFAASCAgAywwCVkGP5MskM93sbWZzGtIrJLoKDjlo1AadC
-# eL1hs3sxO8B9Jf6gpSLJqcF8AdBvZ0j80p7dNuC0zyYiZcuU1Wf+1RyXd7ye/6oq
-# Ai3DiiIMkxyP2G++36JrwDLe19dofhLRxPkc/luu0gsBzIMr+Li/ZImXsbJz+caf
-# T/3cEoV/EPXcnM4Hu46D1VeTwGo3RaIbCyOeRF9v/JWoL0tll9jDLu0xeAb9SIDW
-# Z6z8ifEdHbEApUFXlVARsK5vXpr90nyVGej0yIk6X7siZXH9rcC2oJ1MJALyH7Aw
-# WhYjH4oWhykwng+Hs6frqDMd2oPJ1Y0Z1lUYeUaPSUAZgZMpitxn5FZeLV4uAyJT
-# WpejEpcgLlyVoVDtIgOyZ08mgtNUNvqHplJL5bYL0Eukzu4O8z3OV7guoT0iBBev
-# hj94fNxFHtjWfLGSkt34B5AxkOFRLU1xfGesDhgoNQvDo77qQI8KypRTjlIsZDVt
-# qtayZ834sy2G4IojIkNZGTM2ri5BsTL2G7EO8PtSg1fBEmSzdqwG/TKkJemMSKQ0
-# z6X5GLWeNi5iKskpwx3pX5IHQA5nTXpgKCMdzOjx/MgYVq99M8MO7jiDcadtLfEA
-# fIc3FHgjkerQ1GcxFcOCfwv7kH4jNp4EM/UJwOv5Yh/r+f27HAkgs7mVdS7N26eh
-# vzGi7A==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEyMDMxNTIxMjha
+# MC8GCSqGSIb3DQEJBDEiBCDs1b1nAzJ/lUq78ZA7Z1Gg3oaCuAwctzBv7A8ppDaE
+# ATANBgkqhkiG9w0BAQEFAASCAgAtoWdORZY7JQhDf3FuQJbTPZ6rrMNymkifPXq/
+# lq8YJFLJkOnagbt67QEBDynyJx/ARsrXNKJ4/bkmNkL++bX/odDyDXf6M7/5uCbZ
+# UsvwkEGYs10gamMjXnEwk9nTU6UV8nrwXaIqi0nkAwrKSGkpFiOBVQbYvgC/y/4O
+# ib7CY+S1MvR188cmA8NoWbZHqt1eZpzsG4Dv60ttCkR42QAQQGeXso+Ka/kMlHtp
+# WffGckv81gvxD0fhrIAKx6nIuChwKzRlHQB2abGttonvC7Pz8jF+cLL+zo8p/3CN
+# ZIECx8myRe1UW35hv1PwLyKva5QjOlV7PUtV/ibxpokgKLWm3L9cdqrNOS4h2d5m
+# zs94NdI40KpQPofykQrDZSGwBFP8ZdCORJgSSOB9PuDJGCW/XhgwFZc8aBADxF/l
+# jN3MoJk6bgIq8+hzVeEB/geeqZHyaVfMbiEL9NFw7PM3T6fe9p0PdBThDNgm5heo
+# 4/ql1LcBcDkP9rTQO/+zmuZU3Cyjbmigq1GN+lIyxjaSh8jugxPDmd8Lf0EmMkyx
+# pXyG59AZT9sD+InZ48VmUp7bKYIMibWNpmeB2RhYX0lnkEMP9AE2H/CQQfzSF6cg
+# wMWbfmmnFuCd95KiLu33U13QllAHXagZMDHA53cBPNZhZgIEP7Egel3TqO1BD1Oh
+# RkjG/Q==
 # SIG # End signature block
