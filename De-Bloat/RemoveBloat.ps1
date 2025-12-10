@@ -609,16 +609,20 @@ foreach ($sid in $UserSIDs) {
     Set-ItemProperty $WebSearch BingSearchEnabled -Value 0
 }
 
-Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
-
-
-#Stops the Windows Feedback Experience from sending anonymous data
-write-output "Stopping the Windows Feedback Experience program"
-$Period = "HKCU:\Software\Microsoft\Siuf\Rules"
-If (!(Test-Path $Period)) {
-    New-Item $Period
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
 }
-Set-ItemProperty $Period PeriodInNanoSeconds -Value 0
+
+# If not running in a system context...
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    #Stops the Windows Feedback Experience from sending anonymous data
+    write-output "Stopping the Windows Feedback Experience program"
+    $Period = "HKCU:\Software\Microsoft\Siuf\Rules"
+    If (!(Test-Path $Period)) {
+        New-Item $Period
+    }
+    Set-ItemProperty $Period PeriodInNanoSeconds -Value 0
+}
 
 ##Loop and do the same
 foreach ($sid in $UserSIDs) {
@@ -646,15 +650,17 @@ If (!(Test-Path $registryPath)) {
 }
 Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
 
-If (!(Test-Path $registryOEM)) {
-    New-Item $registryOEM
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (!(Test-Path $registryOEM)) {
+        New-Item $registryOEM
+    }
+    Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0
+    Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0
+    Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0
+    Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0
+    Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0
+    Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0
 }
-Set-ItemProperty $registryOEM  ContentDeliveryAllowed -Value 0
-Set-ItemProperty $registryOEM  OemPreInstalledAppsEnabled -Value 0
-Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0
-Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0
-Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0
-Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -673,8 +679,11 @@ foreach ($sid in $UserSIDs) {
 #Preping mixed Reality Portal for removal
 write-output "Setting Mixed Reality Portal value to 0 so that you can uninstall it in Settings"
 $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"
-If (Test-Path $Holo) {
-    Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $Holo) {
+        Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
+    }
 }
 
 ##Loop through users and do the same
@@ -703,10 +712,13 @@ Set-ItemProperty $WifiSense3  AutoConnectAllowedOEM -Value 0
 #Disables live tiles
 write-output "Disabling live tiles"
 $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
-If (!(Test-Path $Live)) {
-    New-Item $Live
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (!(Test-Path $Live)) {
+        New-Item $Live
+    }
+    Set-ItemProperty $Live  NoTileApplicationNotification -Value 1
 }
-Set-ItemProperty $Live  NoTileApplicationNotification -Value 1
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -752,8 +764,12 @@ foreach ($sid in $UserSIDs) {
 #Disables People icon on Taskbar
 write-output "Disabling People icon on Taskbar"
 $People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
-If (Test-Path $People) {
-    Set-ItemProperty $People -Name PeopleBand -Value 0
+
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $People) {
+        Set-ItemProperty $People -Name PeopleBand -Value 0
+    }
 }
 
 ##Loop through users and do the same
@@ -768,19 +784,22 @@ write-output "Disabling Cortana"
 $Cortana1 = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
 $Cortana2 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
 $Cortana3 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
-If (!(Test-Path $Cortana1)) {
-    New-Item $Cortana1
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (!(Test-Path $Cortana1)) {
+        New-Item $Cortana1
+    }
+    Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0
+    If (!(Test-Path $Cortana2)) {
+        New-Item $Cortana2
+    }
+    Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1
+    Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1
+    If (!(Test-Path $Cortana3)) {
+        New-Item $Cortana3
+    }
+    Set-ItemProperty $Cortana3 HarvestContacts -Value 0
 }
-Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0
-If (!(Test-Path $Cortana2)) {
-    New-Item $Cortana2
-}
-Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1
-Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1
-If (!(Test-Path $Cortana3)) {
-    New-Item $Cortana3
-}
-Set-ItemProperty $Cortana3 HarvestContacts -Value 0
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -863,8 +882,11 @@ New-ItemProperty -Path $registryPath2 -Name $name6 -Value 0 -PropertyType DWord 
 #Turn off Learn about this picture
 write-output "Disabling Learn about this picture"
 $picture = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
-If (Test-Path $picture) {
-    Set-ItemProperty $picture -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Value 1
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $picture) {
+        Set-ItemProperty $picture -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Value 1
+    }
 }
 
 ##Loop through users and do the same
@@ -900,9 +922,12 @@ If (Test-Path $consumer) {
 
 write-output "Disabling Windows Spotlight on lockscreen"
 $spotlight = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
-If (Test-Path $spotlight) {
-    Set-ItemProperty $spotlight -Name "RotatingLockScreenOverlayEnabled" -Value 0
-    Set-ItemProperty $spotlight -Name "RotatingLockScreenEnabled" -Value 0
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $spotlight) {
+        Set-ItemProperty $spotlight -Name "RotatingLockScreenOverlayEnabled" -Value 0
+        Set-ItemProperty $spotlight -Name "RotatingLockScreenEnabled" -Value 0
+    }
 }
 
 ##Loop through users and do the same
@@ -916,9 +941,12 @@ foreach ($sid in $UserSIDs) {
 
 write-output "Disabling Windows Spotlight on background"
 $spotlight = 'HKCU:\Software\Policies\Microsoft\Windows\CloudContent'
-If (Test-Path $spotlight) {
-    Set-ItemProperty $spotlight -Name "DisableSpotlightCollectionOnDesktop" -Value 1
-    Set-ItemProperty $spotlight -Name "DisableWindowsSpotlightFeatures" -Value 1
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $spotlight) {
+        Set-ItemProperty $spotlight -Name "DisableSpotlightCollectionOnDesktop" -Value 1
+        Set-ItemProperty $spotlight -Name "DisableWindowsSpotlightFeatures" -Value 1
+    }
 }
 
 ##Loop through users and do the same
@@ -937,9 +965,12 @@ foreach ($sid in $UserSIDs) {
 
 write-output "Adding GameDVR Fix"
 $gamedvr = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR'
-If (Test-Path $gamedvr) {
-    Set-ItemProperty $gamedvr -Name "AppCaptureEnabled" -Value 0
-    Set-ItemProperty $gamedvr -Name "NoWinKeys" -Value 1
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $gamedvr) {
+        Set-ItemProperty $gamedvr -Name "AppCaptureEnabled" -Value 0
+        Set-ItemProperty $gamedvr -Name "NoWinKeys" -Value 1
+    }
 }
 
 ##Loop through users and do the same
@@ -952,8 +983,11 @@ foreach ($sid in $UserSIDs) {
 }
 
 $gameconfig = 'HKCU:\System\GameConfigStore'
-If (Test-Path $gameconfig) {
-    Set-ItemProperty $gameconfig -Name "GameDVR_Enabled" -Value 0
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (Test-Path $gameconfig) {
+        Set-ItemProperty $gameconfig -Name "GameDVR_Enabled" -Value 0
+    }
 }
 
 ##Loop through users and do the same
@@ -1164,10 +1198,13 @@ Set-ItemProperty $recall DisableAIDataAnalysis -Value 1
 
 
 $recalluser = 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
-If (!(Test-Path $recalluser)) {
-    New-Item $recalluser
+
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    If (!(Test-Path $recalluser)) {
+        New-Item $recalluser
+    }
+    Set-ItemProperty $recalluser DisableAIDataAnalysis -Value 1
 }
-Set-ItemProperty $recalluser DisableAIDataAnalysis -Value 1
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -1402,25 +1439,58 @@ foreach ($64app in $64apps) {
 write-output "64-bit checks complete"
 
 ##USER
-write-output "Checking 32-bit User Registry"
-##Search for 32-bit versions and list them
-$path1 = "HKCU:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-##Check if path exists
-if (Test-Path $path1) {
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+    write-output "Checking 32-bit User Registry"
+    ##Search for 32-bit versions and list them
+    $path1 = "HKCU:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+    ##Check if path exists
+    if (Test-Path $path1) {
+        #Loop Through the apps if name has Adobe and NOT reader
+        $32apps = Get-ChildItem -Path $path1 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
+    
+        foreach ($32app in $32apps) {
+            #Get uninstall string
+            $string1 = $32app.uninstallstring
+            #Check if it's an MSI install
+            if ($string1 -match "^msiexec*") {
+                #MSI install, replace the I with an X and make it quiet
+                $string2 = $string1 + " /quiet /norestart"
+                $string2 = $string2 -replace "/I", "/X "
+                #Create custom object with name and string
+                $allstring += New-Object -TypeName PSObject -Property @{
+                    Name   = $32app.DisplayName
+                    String = $string2
+                }
+            }
+            else {
+                #Exe installer, run straight path
+                $string2 = $string1
+                $allstring += New-Object -TypeName PSObject -Property @{
+                    Name   = $32app.DisplayName
+                    String = $string2
+                }
+            }
+        }
+    }
+    write-output "32-bit check complete"
+    write-output "Checking 64-bit Use registry"
+    ##Search for 64-bit versions and list them
+    
+    $path2 = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
     #Loop Through the apps if name has Adobe and NOT reader
-    $32apps = Get-ChildItem -Path $path1 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
-
-    foreach ($32app in $32apps) {
+    $64apps = Get-ChildItem -Path $path2 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
+    
+    foreach ($64app in $64apps) {
         #Get uninstall string
-        $string1 = $32app.uninstallstring
+        $string1 = $64app.uninstallstring
         #Check if it's an MSI install
         if ($string1 -match "^msiexec*") {
             #MSI install, replace the I with an X and make it quiet
             $string2 = $string1 + " /quiet /norestart"
             $string2 = $string2 -replace "/I", "/X "
-            #Create custom object with name and string
+            #Uninstall with string2 params
             $allstring += New-Object -TypeName PSObject -Property @{
-                Name   = $32app.DisplayName
+                Name   = $64app.DisplayName
                 String = $string2
             }
         }
@@ -1428,43 +1498,11 @@ if (Test-Path $path1) {
             #Exe installer, run straight path
             $string2 = $string1
             $allstring += New-Object -TypeName PSObject -Property @{
-                Name   = $32app.DisplayName
+                Name   = $64app.DisplayName
                 String = $string2
             }
         }
     }
-}
-write-output "32-bit check complete"
-write-output "Checking 64-bit Use registry"
-##Search for 64-bit versions and list them
-
-$path2 = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
-#Loop Through the apps if name has Adobe and NOT reader
-$64apps = Get-ChildItem -Path $path2 | Get-ItemProperty | Select-Object -Property DisplayName, UninstallString
-
-foreach ($64app in $64apps) {
-    #Get uninstall string
-    $string1 = $64app.uninstallstring
-    #Check if it's an MSI install
-    if ($string1 -match "^msiexec*") {
-        #MSI install, replace the I with an X and make it quiet
-        $string2 = $string1 + " /quiet /norestart"
-        $string2 = $string2 -replace "/I", "/X "
-        #Uninstall with string2 params
-        $allstring += New-Object -TypeName PSObject -Property @{
-            Name   = $64app.DisplayName
-            String = $string2
-        }
-    }
-    else {
-        #Exe installer, run straight path
-        $string2 = $string1
-        $allstring += New-Object -TypeName PSObject -Property @{
-            Name   = $64app.DisplayName
-            String = $string2
-        }
-    }
-
 }
 
 
@@ -1480,9 +1518,12 @@ function UninstallAppFull {
     Where-Object { $null -ne $_.DisplayName } |
     Select-Object DisplayName, UninstallString
 
-    $userInstalledApps = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-    Where-Object { $null -ne $_.DisplayName } |
-    Select-Object DisplayName, UninstallString
+    
+    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
+        $userInstalledApps = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+        Where-Object { $null -ne $_.DisplayName } |
+        Select-Object DisplayName, UninstallString
+    }
 
     $allInstalledApps = $installedApps + $userInstalledApps | Where-Object { $_.DisplayName -eq "$appName" }
 
