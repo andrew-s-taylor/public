@@ -1528,60 +1528,6 @@ function UninstallAppFull {
     }
 }
 
-function UninstallAppFull {
-
-    param (
-        [string]$appName
-    )
-
-    # Get a list of installed applications from Programs and Features
-    $installedApps = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-    HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-    Where-Object { $null -ne $_.DisplayName } |
-    Select-Object DisplayName, UninstallString
-
-    $userInstalledApps = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-    Where-Object { $null -ne $_.DisplayName } |
-    Select-Object DisplayName, UninstallString
-
-    $allInstalledApps = $installedApps + $userInstalledApps | Where-Object { $_.DisplayName -eq "$appName" }
-
-    # Loop through the list of installed applications and uninstall them
-    foreach ($app in $allInstalledApps) {
-
-        $uninstallString = $app.UninstallString
-        $displayName = $app.DisplayName
-        
-        write-output "[Info] Uninstalling: $displayName"
-
-        if ($uninstallString -match "^msiexec*") {
-            if ($debugging) { write-output "[Debug] MSI Uninstall detected" }
-            #MSI install, replace the I with an X and make it quiet
-          
-            $uninstallString -match '(?<content>{.*})'
-            $GUID = $matches['content']
-            $uninstallArgs = @(
-                '/X',
-                $GUID,
-                '/quiet',
-                '/norestart',
-                '/qn'
-            )
-            
-            Write-Output "[Debug] $uninstallArgs"
-            Start-Process msiexec.exe -ArgumentList $uninstallArgs
-        }
-        else {
-            if ($debugging) { write-output "[Debug] EXE Uninstall detected" }
-            #Exe installer, run straight path
-            $string2 = $uninstallString
-            Write-Output "[Debug] $string2"
-            Start-Process $string2
-        }
-        Write-Output "[Info] Uninstalled: $displayName"
-    }
-}
-
 
 ############################################################################################################
 #                                        Remove Manufacturer Bloat                                         #
