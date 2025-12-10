@@ -1487,8 +1487,6 @@ function UninstallAppFull {
     $allInstalledApps = $installedApps + $userInstalledApps | Where-Object { $_.DisplayName -eq "$appName" }
 
     # Loop through the list of installed applications and uninstall them
-
-    # Loop through the list of installed applications and uninstall them
     foreach ($app in $allInstalledApps) {
 
         $uninstallString = $app.UninstallString
