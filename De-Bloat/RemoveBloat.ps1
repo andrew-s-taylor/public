@@ -1578,7 +1578,7 @@ function UninstallAppFull {
             Write-Output "[Debug] $string2"
             Start-Process $string2
         }
-        write-Host "[Info] Uninstalled: $displayName" -ForegroundColor Green
+        Write-Output "[Info] Uninstalled: $displayName"
     }
 }
 
@@ -2155,7 +2155,7 @@ if ($manufacturer -like "Lenovo") {
             $displayName = $app.DisplayName
             write-output "Uninstalling: $displayName"
             Start-Process $uninstallString -ArgumentList "/VERYSILENT" -Wait
-            write-output "Uninstalled: $displayName" -ForegroundColor Green
+            Write-Output "Uninstalled: $displayName"
         }
     }
 
@@ -2337,7 +2337,7 @@ if ($manufacturer -like "Lenovo") {
             write-output "Failed to execute uninstall.ps1"
         }
 
-        write-output "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+        Write-Output "All applications and associated Lenovo components have been uninstalled."
     }
 
     $lenovonow = "c:\program files (x86)\lenovo\LenovoNow\x86"
@@ -2354,7 +2354,7 @@ if ($manufacturer -like "Lenovo") {
             write-output "Failed to execute uninstall.ps1"
         }
 
-        write-output "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+        Write-Output "All applications and associated Lenovo components have been uninstalled."
     }
 
 
