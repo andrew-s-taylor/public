@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.2.5
+  Version:        5.3.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -165,6 +165,8 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/11/2025 - The usual transcript fix
   Change 20/11/2025 - Added get-package uninstall for HP and Fixed McAfee (for now)
   Change 03/12/2025 - Added Lenovo apps
+  Change 12/12/2025 - Various fixes with help from tlit60608-NKenny
+  Change 12/12/2025 - Added custom bloat list parameter
 N/A
 #>
 
@@ -174,7 +176,9 @@ N/A
 ############################################################################################################
 param (
     [string[]]$customwhitelist,
-    [string[]]$TasksToRemove  # Add this parameter for scheduled tasks to remove
+    [string[]]$TasksToRemove,  # Add this parameter for scheduled tasks to remove
+    [string[]]$custombloatlist
+
 )
 
 ##Elevate if needed
@@ -291,7 +295,7 @@ $WhitelistedApps = @(
     'Microsoft.Paint',
     'Microsoft.OutlookForWindows',
     'Microsoft.WindowsTerminal',
-    'Microsoft.MicrosoftEdge.Stable'
+    'Microsoft.MicrosoftEdge.Stable',
     'Microsoft.MPEG2VideoExtension',
     'Microsoft.HEVCVideoExtension',
     'Microsoft.AV1VideoExtension',
@@ -378,7 +382,7 @@ $NonRemovable = @(
 )
 
 ##Combine the two arrays
-$appstoignore = $WhitelistedApps += $NonRemovable
+$appstoignore = $WhitelistedApps + $NonRemovable
 
 ##Bloat list for future reference
 $Bloatware = @(
@@ -485,6 +489,15 @@ $Bloatware = @(
     #"Microsoft.PowerAutomateDesktop"
     #"MicrosoftWindows.Client.WebExperience"
 )
+
+##If $customwhitelist is set, split on the comma and add to whitelist
+if ($custombloatlist) {
+    $custombloatlistapps = $custombloatlist -split ","
+    foreach ($bloatyapp in $custombloatlistapps) {
+        ##Add to the array
+        $Bloatware += $bloatyapp
+    }
+}
 
 
 $provisioned = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -in $Bloatware -and $_.DisplayName -notin $appstoignore -and $_.DisplayName -notlike 'MicrosoftWindows.Voice*' -and $_.DisplayName -notlike 'Microsoft.LanguageExperiencePack*' -and $_.DisplayName -notlike 'MicrosoftWindows.Speech*' }
@@ -608,17 +621,19 @@ foreach ($sid in $UserSIDs) {
     }
     Set-ItemProperty $WebSearch BingSearchEnabled -Value 0
 }
-
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
-
+}
 
 #Stops the Windows Feedback Experience from sending anonymous data
 write-output "Stopping the Windows Feedback Experience program"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $Period = "HKCU:\Software\Microsoft\Siuf\Rules"
 If (!(Test-Path $Period)) {
     New-Item $Period
 }
 Set-ItemProperty $Period PeriodInNanoSeconds -Value 0
+}
 
 ##Loop and do the same
 foreach ($sid in $UserSIDs) {
@@ -645,7 +660,7 @@ If (!(Test-Path $registryPath)) {
     New-Item $registryPath
 }
 Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
-
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 If (!(Test-Path $registryOEM)) {
     New-Item $registryOEM
 }
@@ -655,7 +670,7 @@ Set-ItemProperty $registryOEM  PreInstalledAppsEnabled -Value 0
 Set-ItemProperty $registryOEM  PreInstalledAppsEverEnabled -Value 0
 Set-ItemProperty $registryOEM  SilentInstalledAppsEnabled -Value 0
 Set-ItemProperty $registryOEM  SystemPaneSuggestionsEnabled -Value 0
-
+}
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
     $registryOEM = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
@@ -672,11 +687,12 @@ foreach ($sid in $UserSIDs) {
 
 #Preping mixed Reality Portal for removal
 write-output "Setting Mixed Reality Portal value to 0 so that you can uninstall it in Settings"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"
 If (Test-Path $Holo) {
     Set-ItemProperty $Holo  FirstRunSucceeded -Value 0
 }
-
+}
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
     $Holo = "Registry::HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Holographic"
@@ -702,11 +718,13 @@ Set-ItemProperty $WifiSense3  AutoConnectAllowedOEM -Value 0
 
 #Disables live tiles
 write-output "Disabling live tiles"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
 If (!(Test-Path $Live)) {
     New-Item $Live
 }
 Set-ItemProperty $Live  NoTileApplicationNotification -Value 1
+}
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -751,11 +769,12 @@ foreach ($sid in $UserSIDs) {
 
 #Disables People icon on Taskbar
 write-output "Disabling People icon on Taskbar"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
 If (Test-Path $People) {
     Set-ItemProperty $People -Name PeopleBand -Value 0
 }
-
+}
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
     $People = "Registry::HKU\$sid\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People"
@@ -765,6 +784,7 @@ foreach ($sid in $UserSIDs) {
 }
 
 write-output "Disabling Cortana"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $Cortana1 = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
 $Cortana2 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
 $Cortana3 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
@@ -781,6 +801,7 @@ If (!(Test-Path $Cortana3)) {
     New-Item $Cortana3
 }
 Set-ItemProperty $Cortana3 HarvestContacts -Value 0
+}
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -862,9 +883,11 @@ New-ItemProperty -Path $registryPath2 -Name $name6 -Value 0 -PropertyType DWord 
 
 #Turn off Learn about this picture
 write-output "Disabling Learn about this picture"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $picture = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
 If (Test-Path $picture) {
     Set-ItemProperty $picture -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Value 1
+}
 }
 
 ##Loop through users and do the same
@@ -899,10 +922,12 @@ If (Test-Path $consumer) {
 ############################################################################################################
 
 write-output "Disabling Windows Spotlight on lockscreen"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $spotlight = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
 If (Test-Path $spotlight) {
     Set-ItemProperty $spotlight -Name "RotatingLockScreenOverlayEnabled" -Value 0
     Set-ItemProperty $spotlight -Name "RotatingLockScreenEnabled" -Value 0
+}
 }
 
 ##Loop through users and do the same
@@ -915,10 +940,12 @@ foreach ($sid in $UserSIDs) {
 }
 
 write-output "Disabling Windows Spotlight on background"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $spotlight = 'HKCU:\Software\Policies\Microsoft\Windows\CloudContent'
 If (Test-Path $spotlight) {
     Set-ItemProperty $spotlight -Name "DisableSpotlightCollectionOnDesktop" -Value 1
     Set-ItemProperty $spotlight -Name "DisableWindowsSpotlightFeatures" -Value 1
+}
 }
 
 ##Loop through users and do the same
@@ -936,10 +963,12 @@ foreach ($sid in $UserSIDs) {
 ############################################################################################################
 
 write-output "Adding GameDVR Fix"
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $gamedvr = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR'
 If (Test-Path $gamedvr) {
     Set-ItemProperty $gamedvr -Name "AppCaptureEnabled" -Value 0
     Set-ItemProperty $gamedvr -Name "NoWinKeys" -Value 1
+}
 }
 
 ##Loop through users and do the same
@@ -951,9 +980,11 @@ foreach ($sid in $UserSIDs) {
     }
 }
 
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $gameconfig = 'HKCU:\System\GameConfigStore'
 If (Test-Path $gameconfig) {
     Set-ItemProperty $gameconfig -Name "GameDVR_Enabled" -Value 0
+}
 }
 
 ##Loop through users and do the same
@@ -1162,12 +1193,13 @@ If (!(Test-Path $recall)) {
 }
 Set-ItemProperty $recall DisableAIDataAnalysis -Value 1
 
-
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 $recalluser = 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
 If (!(Test-Path $recalluser)) {
     New-Item $recalluser
 }
 Set-ItemProperty $recalluser DisableAIDataAnalysis -Value 1
+}
 
 ##Loop through users and do the same
 foreach ($sid in $UserSIDs) {
@@ -1346,7 +1378,7 @@ foreach ($32app in $32apps) {
     #Get uninstall string
     $string1 = $32app.uninstallstring
     #Check if it's an MSI install
-    if ($string1 -match "^msiexec*") {
+    if ($string1 -match "^\s*(C:\\Windows\\System32\\)?msiexec(\.exe)?\s+\S*") {
         #MSI install, replace the I with an X and make it quiet
         $string2 = $string1 + " /quiet /norestart"
         $string2 = $string2 -replace "/I", "/X "
@@ -1378,7 +1410,7 @@ foreach ($64app in $64apps) {
     #Get uninstall string
     $string1 = $64app.uninstallstring
     #Check if it's an MSI install
-    if ($string1 -match "^msiexec*") {
+    if ($string1 -match "^\s*(C:\\Windows\\System32\\)?msiexec(\.exe)?\s+\S*") {
         #MSI install, replace the I with an X and make it quiet
         $string2 = $string1 + " /quiet /norestart"
         $string2 = $string2 -replace "/I", "/X "
@@ -1400,7 +1432,7 @@ foreach ($64app in $64apps) {
 }
 
 write-output "64-bit checks complete"
-
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne "NT AUTHORITY\SYSTEM") {
 ##USER
 write-output "Checking 32-bit User Registry"
 ##Search for 32-bit versions and list them
@@ -1414,7 +1446,7 @@ if (Test-Path $path1) {
         #Get uninstall string
         $string1 = $32app.uninstallstring
         #Check if it's an MSI install
-        if ($string1 -match "^msiexec*") {
+        if ($string1 -match "^\s*(C:\\Windows\\System32\\)?msiexec(\.exe)?\s+\S*") {
             #MSI install, replace the I with an X and make it quiet
             $string2 = $string1 + " /quiet /norestart"
             $string2 = $string2 -replace "/I", "/X "
@@ -1446,7 +1478,7 @@ foreach ($64app in $64apps) {
     #Get uninstall string
     $string1 = $64app.uninstallstring
     #Check if it's an MSI install
-    if ($string1 -match "^msiexec*") {
+    if ($string1 -match "^\s*(C:\\Windows\\System32\\)?msiexec(\.exe)?\s+\S*") {
         #MSI install, replace the I with an X and make it quiet
         $string2 = $string1 + " /quiet /norestart"
         $string2 = $string2 -replace "/I", "/X "
@@ -1464,9 +1496,20 @@ foreach ($64app in $64apps) {
             String = $string2
         }
     }
-
+}
 }
 
+
+function parseExeUninstall {
+
+    param (
+        [string]$exeString
+    )
+
+    $pattern = ' +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)'
+    
+    return $exeString -split $pattern
+}
 
 function UninstallAppFull {
 
@@ -1480,29 +1523,86 @@ function UninstallAppFull {
     Where-Object { $null -ne $_.DisplayName } |
     Select-Object DisplayName, UninstallString
 
-    $userInstalledApps = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
-    Where-Object { $null -ne $_.DisplayName } |
-    Select-Object DisplayName, UninstallString
+    if ( [System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'NT AUTHORITY\SYSTEM') {
+        $userInstalledApps = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |
+        Where-Object { $null -ne $_.DisplayName } |
+        Select-Object DisplayName, UninstallString
+    }
 
-    $allInstalledApps = $installedApps + $userInstalledApps | Where-Object { $_.DisplayName -eq "$appName" }
+    # Wrapping the two arrays in @( ) forces them to resolve as arrays, including if they're NULL (such as if running in the system context and $userInstalledApps wasn't initialized above).
+    $allInstalledApps = @($installedApps) + @($userInstalledApps) | Where-Object { $_.DisplayName -eq "$appName" }
 
     # Loop through the list of installed applications and uninstall them
-
     foreach ($app in $allInstalledApps) {
+
         $uninstallString = $app.UninstallString
         $displayName = $app.DisplayName
-        if ($uninstallString -match "^msiexec*") {
+        
+        Write-Output "Calling Uninstaller for: $displayName"
+        if ($uninstallString -match "^\s*(C:\\Windows\\System32\\)?msiexec(\.exe)?\s+\S*") {
+            Write-Output "MSI Uninstall detected"
             #MSI install, replace the I with an X and make it quiet
-            $string2 = $uninstallString + " /quiet /norestart"
-            $string2 = $string2 -replace "/I", "/X "
+          
+            $uninstallString -match '(?<content>{.*})' | Out-Null # Out-Null avoids "True" being output without context.
+            $GUID = $matches['content']
+            $uninstallArgs = @(
+                '/X',
+                $GUID,
+                '/quiet',
+                '/norestart',
+                '/qn'
+            )
+           $uninstaller = "msiexec.exe"
+            
+            Write-Output "Uninstall Arguments: $uninstallArgs"
+            
+           # To refactorize back to a single uninstall call, remove here to the next comment. From here...
+            try {
+                Start-Process $uninstaller -ArgumentList $uninstallArgs
+                Write-Output "Successfully called MSI Uninstaller for: $displayName"
+            }
+            catch {
+                Write-Output "Failed to call MSI Uninstaller for: $displayName"
+                Write-Output "UninstallArgs: $uninstallArgs"
+                Write-Output "Error thrown: $($_.Exception.Message)"
+            }
+            # ... to here.
         }
         else {
+            Write-Output "EXE Uninstall detected"
             #Exe installer, run straight path
-            $string2 = $uninstallString
+            Write-Output "Retrieved Uninstall String: $uninstallString"
+            $parsedString = parseExeUninstall -exeString $uninstallString
+            $uninstallArgs = $parsedString | Select-Object -Skip 1
+            $uninstaller = $parsedString[0]
+            
+           # To refactorize back to a single uninstall call, remove here to the next comment. From here...
+            try {
+                Start-Process $uninstaller -ArgumentList $uninstallArgs
+                Write-Output "Successfully called EXE Uninstaller for: $displayName"
+            }
+            catch {
+                Write-Output "Failed to call EXE Uninstaller for: $displayName"
+                Write-Output "Uninstaller: $uninstaller"
+                Write-Output "UninstallArgs: $uninstallArgs"
+                Write-Output "Error thrown: $($_.Exception.Message)"
+            }
+            # ... to here.
         }
-        write-output "Uninstalling: $displayName"
-        Start-Process $string2
-        write-output "Uninstalled: $displayName" -ForegroundColor Green
+        
+       <# Remove this line and it's accompanying end cap to make this section live.
+       try {
+          Start-Process $uninstaller -ArgumentList $uninstallArgs
+          Write-Output "Successfully called uninstaller for: $displayName."
+       }
+       catch {
+            Write-Output "Failed to call Uninstaller for: $displayName"
+            Write-Output "Uninstaller: $uninstaller"
+            Write-Output "UninstallArgs: $uninstallArgs"
+            Write-Output "Error thrown: $($_.Exception.Message)"
+       }
+       I'm the end cap! Don't forget to remove me, if you remove my parent! #>
+       
     }
 }
 
@@ -1817,8 +1917,6 @@ if ($manufacturer -like "*Dell*") {
         "Dell Display Manager 2.0"
         "Dell Display Manager 2.1"
         "Dell Display Manager 2.2"
-        "Dell SupportAssist Remediation"
-        "Dell Update - SupportAssist Update Plugin"
         "DellInc.PartnerPromo"
     )
 
@@ -2079,7 +2177,7 @@ if ($manufacturer -like "Lenovo") {
             $displayName = $app.DisplayName
             write-output "Uninstalling: $displayName"
             Start-Process $uninstallString -ArgumentList "/VERYSILENT" -Wait
-            write-output "Uninstalled: $displayName" -ForegroundColor Green
+            write-output "Uninstalled: $displayName"
         }
     }
 
@@ -2261,7 +2359,7 @@ if ($manufacturer -like "Lenovo") {
             write-output "Failed to execute uninstall.ps1"
         }
 
-        write-output "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+        write-output "All applications and associated Lenovo components have been uninstalled."
     }
 
     $lenovonow = "c:\program files (x86)\lenovo\LenovoNow\x86"
@@ -2278,7 +2376,7 @@ if ($manufacturer -like "Lenovo") {
             write-output "Failed to execute uninstall.ps1"
         }
 
-        write-output "All applications and associated Lenovo components have been uninstalled." -ForegroundColor Green
+        write-output "All applications and associated Lenovo components have been uninstalled."
     }
 
 
@@ -2292,6 +2390,16 @@ if ($manufacturer -like "Lenovo") {
     $userguidepath = "C:\ProgramData\Lenovo\UserGuide"
     if (Test-Path $userguidepath) {
         Remove-Item -Path $userguidepath -Recurse -Force
+    }
+
+    $filenameDE1 = "C:\Users\All Users\Microsoft\Windows\Start Menu\Programs\Benutzerhandbuch.url"
+    if (Test-Path $filenameDE1) {
+        Remove-Item -Path $filenameDE1 -Force
+    }
+
+    $filenameDE2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Benutzerhandbuch.url"
+    if (Test-Path $filenameDE2) {
+        Remove-Item -Path $filenameDE2 -Force
     }
 
     ##Camera fix for Lenovo E14
@@ -2829,12 +2937,12 @@ Stop-Transcript
 
 ##Adding random padding to stop it removing actual useful text
 ##More padding
-##And more padding
+##And more paddin
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBI9qwOJOGVwGzC
-# KgR7eGCu4UyYuMgJzxsB/tiawfJ/tKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAp8paiSyaQCbtH
+# yqSgyUxx1hzjBproyCyvUxl/v0m/vqCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3017,34 +3125,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCAFcvGH8iOpTZgZzMJ27unNh4/2AStCIy/R
-# fYiDtzeQHjANBgkqhkiG9w0BAQEFAASCAgARi2l6S1tnib9deKlnfRdZQ1cWYlxq
-# 75FHpxLc1Cd8g95V0hgKPbDq0y9sZcLdB7fEO7BYVWPh/Sex/fxaqdLk3mByVGcw
-# V3iotrsNr0eMp+7qxdBsU/h/5Ff049G9zwgrhXkyvMT4Ya8oM8a5LO87d+R0QSzK
-# 1FNM176bhtHx8Xo7L7TnxLJM53cFVAdMKq+ZIXvDMYnfkoZLipQChMNWmlYw62ts
-# D8QlqDPb2b4ZnhEK8WrN7Dk3nolNScqHfkurMAr+1nKoV3UeR7UQsD78a2RB6rUd
-# LlYK6cX5g6C9xfo8DqfAut48jCIBH+/IOXCUfrh64FZfN7xM1tXRNJGENJt5sPtg
-# XhSk4xKWxo/ca08wa5exRRdwomxt5P/lzc95QLR5hLb9r1Hw/MToo7aE+8KWYcnO
-# sqxgwPCloDgOypYQ97m3DXKI+o6+G+IV3OD+0zNzPTl0zM3kIBZLYRODeGG2y+y3
-# GMFTjIkWAU3UYeq2sGv6XQ6BFn0HaU6NA+k7fD4sFlxHBODgy+F3xH1lzfR1Xke3
-# hvGuiZYkK9MbboTODOEvSAC/LQmifpcLUdoCWA6IDWYwJKaN4ARU4XUtaIu6zHzI
-# +ErypRJYAFRCSG7LBjLrca0qX2hsCVKfF6S6fCZXr+XK90jYZUktpvwtXUX6D17m
-# cufWDH4Dd5RAI6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCA9svGQuZbqIKtjr57bSzs+V3L0y4fNm4Wx
+# it906yLE+jANBgkqhkiG9w0BAQEFAASCAgBAgxlHhXB1XZgKKNEyYv6fjf4q5K/i
+# n0or1pQRyhOIQQwjyKzr5arnhIXEHcwmtR82d2G2vIrr2XCjWy+eTUpFjmFQlC8n
+# 14r4AtBCQXSU4LO7dkPFQIR0mhjaoG7ndjB9VENqHKssxZWWUvhow2rkDvRn0lsj
+# d4+uql131ar2DS/p/ltbSUeFKbyx6Fz58zPDILhNiOThp+JSY5o3bcKV/QPc7kb1
+# 4VlIogW1njZy1XiNb83ISCZQINyFaPMuSXkr7UPEWpOVH9nHpBtGi4mF+N93Nz90
+# WHCwcD/fvbDI0lh+2UJSY6LS4/fWec6kRnf6ZIUBYjSxeNl6namZwEK89mpqClrO
+# AphRFt54Kr+aFBb2352Swn9e5M/1IHW7cxePbNgensTQsHSzu59iTCjJ7Q2+TzTy
+# M3EzbasBtfpbjRVMx8u1Gwbpb/iY4ZMLSceLmweU5Ir5P16Yt06a7Yu3dav8dK8v
+# cAHBC80JUYxkDgWuFbEJIu5o+RT8crnilIb8fkFHdRBWzAR/sM9QItWkOzdeaFXg
+# Y6Rb6PiWIbTt/MNECZ4R63Qp1+5ys4f4z0XtZP1jIBS3/7ufWa3ltAb2zfHplzrQ
+# aZQA0IYS0eL0VQVWBl4TCB64MKR53DfymB9woCaFq8Rc3AbY91GJwV8TYUk2REYA
+# OwjzqcWO6NBt3qGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEyMDMxNTIxMjha
-# MC8GCSqGSIb3DQEJBDEiBCDs1b1nAzJ/lUq78ZA7Z1Gg3oaCuAwctzBv7A8ppDaE
-# ATANBgkqhkiG9w0BAQEFAASCAgAtoWdORZY7JQhDf3FuQJbTPZ6rrMNymkifPXq/
-# lq8YJFLJkOnagbt67QEBDynyJx/ARsrXNKJ4/bkmNkL++bX/odDyDXf6M7/5uCbZ
-# UsvwkEGYs10gamMjXnEwk9nTU6UV8nrwXaIqi0nkAwrKSGkpFiOBVQbYvgC/y/4O
-# ib7CY+S1MvR188cmA8NoWbZHqt1eZpzsG4Dv60ttCkR42QAQQGeXso+Ka/kMlHtp
-# WffGckv81gvxD0fhrIAKx6nIuChwKzRlHQB2abGttonvC7Pz8jF+cLL+zo8p/3CN
-# ZIECx8myRe1UW35hv1PwLyKva5QjOlV7PUtV/ibxpokgKLWm3L9cdqrNOS4h2d5m
-# zs94NdI40KpQPofykQrDZSGwBFP8ZdCORJgSSOB9PuDJGCW/XhgwFZc8aBADxF/l
-# jN3MoJk6bgIq8+hzVeEB/geeqZHyaVfMbiEL9NFw7PM3T6fe9p0PdBThDNgm5heo
-# 4/ql1LcBcDkP9rTQO/+zmuZU3Cyjbmigq1GN+lIyxjaSh8jugxPDmd8Lf0EmMkyx
-# pXyG59AZT9sD+InZ48VmUp7bKYIMibWNpmeB2RhYX0lnkEMP9AE2H/CQQfzSF6cg
-# wMWbfmmnFuCd95KiLu33U13QllAHXagZMDHA53cBPNZhZgIEP7Egel3TqO1BD1Oh
-# RkjG/Q==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEyMTIxNDU5Mjha
+# MC8GCSqGSIb3DQEJBDEiBCCrQbLJqDeAyRzQjb3Y3Ix7sYszZgElKH4tFHTXrm4C
+# mjANBgkqhkiG9w0BAQEFAASCAgBjVn8aNgdCq+q964sOItpKYYRVoloPTk78HgKq
+# UXP9FzJP/mDtlEwrkqQwkBj7gKl5OTem2N6B5Tu99Bpqwp2esz8m5apvpw490OWD
+# YvVs8NTKP6DZctlJvZFOLxUG6O1Zyv5tDPLDtmWsjVs0o3NsAUDYeGtXcHhHN89E
+# 0qFP80aZeMZ/QWrmoD0JTu+peGmncA9SO+4u/kvF4ynZHMf8/J57HIPC2QP2DJ82
+# /JyGOgK3VGFq10XY7VPcBhT+Nd29q7L0JR87m2m/B/tLmxGgvRydk5030rr0QWeJ
+# vklWqYXDA1NSBuu0R7H/tOTYskEc2BTo6U4elOsHA/rbX6Bfi3gstC+jOPsKsIm6
+# 743U74rVo/4bx1gtjhMfVdFiRoRU7MHLpgAqED3EH/8B88ZnNi0lTsa2OzMcjl0t
+# YUJ+8k8qEacFVpNJDlQvgz6VLQGBigPkLVxNTaac1elyD7kqoV4raXYqsTr6VD55
+# bltBb2VUOIVknwcvIrsDQ3Q1Kl+1TkMj4FfVPVtKQHuQ/+nIB+nhO8PoskcgF/AP
+# VickfK00sMJjQ+9OOyLipWENpKaVvKerf/b8SWo/nqSyymhR1XzkFXc2KTs83E5q
+# Ss7CNvkfeRfQMqfktMMHpUsM9KpxqSYzRHiCYt09KVVz09FTLXPyoCfUc1Bjhpvb
+# IhiHCQ==
 # SIG # End signature block
