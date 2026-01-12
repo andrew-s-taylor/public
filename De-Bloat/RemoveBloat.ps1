@@ -1682,8 +1682,8 @@ if ($manufacturer -like "*HP*") {
             write-output "$app not found."
         }
 
-        if (Get-Package -allusers -Name $app -ErrorAction SilentlyContinue) {
-            Get-Package -allusers -Name $app | Uninstall-Package -AllUsers
+        if (Get-Package -scope allusers -Name $app -ErrorAction SilentlyContinue) {
+            Get-Package -scope allusers -Name $app | Uninstall-Package -AllUsers
             write-output "Removed $app."
         }
         else {
@@ -1918,6 +1918,7 @@ if ($manufacturer -like "*Dell*") {
         "Dell Display Manager 2.1"
         "Dell Display Manager 2.2"
         "DellInc.PartnerPromo"
+        "Dell Trusted Device"
     )
 
 
@@ -2937,12 +2938,12 @@ Stop-Transcript
 
 ##Adding random padding to stop it removing actual useful text
 ##More padding
-##And more paddin
+##And more paddi
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAp8paiSyaQCbtH
-# yqSgyUxx1hzjBproyCyvUxl/v0m/vqCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCEu5VQQTzRvv1R
+# vRoZ3hRLq5THGA1uCbhoq451Egc2NKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3125,34 +3126,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCA9svGQuZbqIKtjr57bSzs+V3L0y4fNm4Wx
-# it906yLE+jANBgkqhkiG9w0BAQEFAASCAgBAgxlHhXB1XZgKKNEyYv6fjf4q5K/i
-# n0or1pQRyhOIQQwjyKzr5arnhIXEHcwmtR82d2G2vIrr2XCjWy+eTUpFjmFQlC8n
-# 14r4AtBCQXSU4LO7dkPFQIR0mhjaoG7ndjB9VENqHKssxZWWUvhow2rkDvRn0lsj
-# d4+uql131ar2DS/p/ltbSUeFKbyx6Fz58zPDILhNiOThp+JSY5o3bcKV/QPc7kb1
-# 4VlIogW1njZy1XiNb83ISCZQINyFaPMuSXkr7UPEWpOVH9nHpBtGi4mF+N93Nz90
-# WHCwcD/fvbDI0lh+2UJSY6LS4/fWec6kRnf6ZIUBYjSxeNl6namZwEK89mpqClrO
-# AphRFt54Kr+aFBb2352Swn9e5M/1IHW7cxePbNgensTQsHSzu59iTCjJ7Q2+TzTy
-# M3EzbasBtfpbjRVMx8u1Gwbpb/iY4ZMLSceLmweU5Ir5P16Yt06a7Yu3dav8dK8v
-# cAHBC80JUYxkDgWuFbEJIu5o+RT8crnilIb8fkFHdRBWzAR/sM9QItWkOzdeaFXg
-# Y6Rb6PiWIbTt/MNECZ4R63Qp1+5ys4f4z0XtZP1jIBS3/7ufWa3ltAb2zfHplzrQ
-# aZQA0IYS0eL0VQVWBl4TCB64MKR53DfymB9woCaFq8Rc3AbY91GJwV8TYUk2REYA
-# OwjzqcWO6NBt3qGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDsFr8CSgwuChPnINuhC9czS2XQG5+ZffOo
+# l9nVubgruzANBgkqhkiG9w0BAQEFAASCAgAV8j/tt+fiuu/6TxnDSnNXp0g0aKsc
+# 2zwcbP5oSLMzES2fZ5aF0isbkbrM6Ot0/lUMri1XxLbdDJ9aKs6hYOAjaaZVFSDQ
+# d/oREPFDZiXi6TDM/V2rG6YlcbES+fEZ0w9wbl+ete3QY24RvfhIXuxGOODxHkc8
+# o8DtpE7k76DKxayYTJNXpAa3R/W8lFzUCP6adlvXC7RR3CupHWpVtTvPXqKQGt6X
+# i4Bf+VzcxVRUqgVJzNVs2mxEaFyvS3t8JfNHtf9QKxQgPy3joZQwz4REcTzdzftM
+# MPYW9tVoCxUHNLaAstNtzXKjIxo5C95AP09CCwDE9wpRbgmRjnaUR/SoLfTUcGNu
+# juGGdUj0W5SIitPUOvWqb16mMZP2u5Vv53pd0noBXXWREHmpdX8njcCrCnHrkmVu
+# mpvzKtXL2p2dSUQ47fSj+90GifIc/PSajpFfQhh0/RjuFiIynzG2aUJvgzqg9/93
+# i/qkNcH+gRZ/CVml73SqkFlXeBZIJ4tecb99OUuTGfCPdg109SC9x5sIsy8xS/En
+# VwVShOMTmBWBleOj5lCVGEHboUkj8FMxN9UlZKaLNpKb5xqSieg5es+VJTBrstf9
+# NV0vuomNTTkl3iqaplDsftL2lTwsZVmFX3AdiouBqKn5hHi3lnEUQWVzQC7t/Ikx
+# Ih0ZbfOLE3p2RqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEyMTIxNDU5Mjha
-# MC8GCSqGSIb3DQEJBDEiBCCrQbLJqDeAyRzQjb3Y3Ix7sYszZgElKH4tFHTXrm4C
-# mjANBgkqhkiG9w0BAQEFAASCAgBjVn8aNgdCq+q964sOItpKYYRVoloPTk78HgKq
-# UXP9FzJP/mDtlEwrkqQwkBj7gKl5OTem2N6B5Tu99Bpqwp2esz8m5apvpw490OWD
-# YvVs8NTKP6DZctlJvZFOLxUG6O1Zyv5tDPLDtmWsjVs0o3NsAUDYeGtXcHhHN89E
-# 0qFP80aZeMZ/QWrmoD0JTu+peGmncA9SO+4u/kvF4ynZHMf8/J57HIPC2QP2DJ82
-# /JyGOgK3VGFq10XY7VPcBhT+Nd29q7L0JR87m2m/B/tLmxGgvRydk5030rr0QWeJ
-# vklWqYXDA1NSBuu0R7H/tOTYskEc2BTo6U4elOsHA/rbX6Bfi3gstC+jOPsKsIm6
-# 743U74rVo/4bx1gtjhMfVdFiRoRU7MHLpgAqED3EH/8B88ZnNi0lTsa2OzMcjl0t
-# YUJ+8k8qEacFVpNJDlQvgz6VLQGBigPkLVxNTaac1elyD7kqoV4raXYqsTr6VD55
-# bltBb2VUOIVknwcvIrsDQ3Q1Kl+1TkMj4FfVPVtKQHuQ/+nIB+nhO8PoskcgF/AP
-# VickfK00sMJjQ+9OOyLipWENpKaVvKerf/b8SWo/nqSyymhR1XzkFXc2KTs83E5q
-# Ss7CNvkfeRfQMqfktMMHpUsM9KpxqSYzRHiCYt09KVVz09FTLXPyoCfUc1Bjhpvb
-# IhiHCQ==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMTIxMTE2MTla
+# MC8GCSqGSIb3DQEJBDEiBCCjL5QIfrEp/TYEeWheP1flqviP1OjOjepoywkDUSso
+# MDANBgkqhkiG9w0BAQEFAASCAgBIaNLFF8yO2v1XS1kkbVHZ650wKg2iZGwhyddd
+# EXSEYxf0Wm24YNGjp5aPZYa8gq7RRJjloTHa0RFC3OeQbQc/dicCUhvIXAdvx46n
+# 5rW+dWU+0MIVwgm/ldA+RZoEIWY8OSSZ6nJlaZa6XO6bbmhtW8zVMzKohExt1Fmx
+# nZ8hgN2vhV6WY9LYJN1zWtUZXJorAkLiA7clY03P1OVOX8xRT16oyV2IIb1Ecaxx
+# hnbFkitPbWpDZ7qYkYRYWTxO/WhkyfmW/1L+q0D9HOwhWgIVviY4YG9dZjfaC0hl
+# baIwZS7mz2FDyYymfBlnFaX0452hSIJ1vUBcGVl2/DE7wOtyixR1q6QRCRPc4CsR
+# 8jPgtZMY+EjGNyZSqXzipy4t2TDfLCcNeX3Tc6X4yXAT+BfiU5w1TDqsdj9Q2Bed
+# K5z+l4AMYVhVsu7KK6FXkqFBdSH6RuJj5O7zc7DmbhwPJrTMCfnrifEyn93khISm
+# I1orG+G0uhNi0yyvxyXWshdHY4nKAw7Mcf20ine5IGnAjp0BmD4EL40NIvhI0xbo
+# CbaScyiKJIs05U7klKItoeS55KJaiFDX139zHLwQ1EmdAJ1LAAnDNJXF3XSReKaK
+# 38XAfYJ6rb77BsxZiAldhmJaQudpcrJ7Iw2hb6IoKfzU2KQY4dOE/nR6oBqwxCYa
+# jesABw==
 # SIG # End signature block
