@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.3.0
+  Version:        5.3.1
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -167,6 +167,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 03/12/2025 - Added Lenovo apps
   Change 12/12/2025 - Various fixes with help from tlit60608-NKenny
   Change 12/12/2025 - Added custom bloat list parameter
+  Change 13/01/2026 - HP get-package parameter fix
 N/A
 #>
 
@@ -1683,7 +1684,7 @@ if ($manufacturer -like "*HP*") {
         }
 
         if (Get-Package -scope allusers -Name $app -ErrorAction SilentlyContinue) {
-            Get-Package -scope allusers -Name $app | Uninstall-Package -AllUsers
+            Get-Package -scope allusers -Name $app | Uninstall-Package -scope AllUsers
             write-output "Removed $app."
         }
         else {
@@ -2938,12 +2939,12 @@ Stop-Transcript
 
 ##Adding random padding to stop it removing actual useful text
 ##More padding
-##And more paddi
+##And more padd
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCEu5VQQTzRvv1R
-# vRoZ3hRLq5THGA1uCbhoq451Egc2NKCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC1rT2v+4jPOyUd
+# GVTO8HX0ACUYM7j7D0TLzSt/cApkV6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3126,34 +3127,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDsFr8CSgwuChPnINuhC9czS2XQG5+ZffOo
-# l9nVubgruzANBgkqhkiG9w0BAQEFAASCAgAV8j/tt+fiuu/6TxnDSnNXp0g0aKsc
-# 2zwcbP5oSLMzES2fZ5aF0isbkbrM6Ot0/lUMri1XxLbdDJ9aKs6hYOAjaaZVFSDQ
-# d/oREPFDZiXi6TDM/V2rG6YlcbES+fEZ0w9wbl+ete3QY24RvfhIXuxGOODxHkc8
-# o8DtpE7k76DKxayYTJNXpAa3R/W8lFzUCP6adlvXC7RR3CupHWpVtTvPXqKQGt6X
-# i4Bf+VzcxVRUqgVJzNVs2mxEaFyvS3t8JfNHtf9QKxQgPy3joZQwz4REcTzdzftM
-# MPYW9tVoCxUHNLaAstNtzXKjIxo5C95AP09CCwDE9wpRbgmRjnaUR/SoLfTUcGNu
-# juGGdUj0W5SIitPUOvWqb16mMZP2u5Vv53pd0noBXXWREHmpdX8njcCrCnHrkmVu
-# mpvzKtXL2p2dSUQ47fSj+90GifIc/PSajpFfQhh0/RjuFiIynzG2aUJvgzqg9/93
-# i/qkNcH+gRZ/CVml73SqkFlXeBZIJ4tecb99OUuTGfCPdg109SC9x5sIsy8xS/En
-# VwVShOMTmBWBleOj5lCVGEHboUkj8FMxN9UlZKaLNpKb5xqSieg5es+VJTBrstf9
-# NV0vuomNTTkl3iqaplDsftL2lTwsZVmFX3AdiouBqKn5hHi3lnEUQWVzQC7t/Ikx
-# Ih0ZbfOLE3p2RqGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCD5E/4rbK+3+uL0fOuaffKfyhhspgzKnhG9
+# ttp2AZPYKDANBgkqhkiG9w0BAQEFAASCAgBzSVd15pZk/rVaqazCXaV3+tLHN8MW
+# LFmLUpn3JBQDLcUzOlWXEffeg65chHiNothuoWAennSCSQnbEJUKi9m83FBaFAEm
+# BcBnzeVt1UI3sreRCdcaX8dinhyJuE7TQOT+omziK5Vhp/dLt+RR4VvZxjBunGid
+# HS7OYy9PpMIpo9gpoXyHYanoV188YRtNO+vt0H917oOcZ8+1uQ+EgLRoAAOAZUcd
+# ZZWDf159I3yIXTViqR99zPlCAC9myB7o4LWg71q5e75OMfJ1dREmJIlQXPNFjE4D
+# KHbzRNn7wd3AdDPPedjEBXZRK3E2rr6sfFfaJxU2ZnAwxveTrETfhaLQ2Ym2xn0L
+# AoQJYv3NL27Z3MomJyMSylttRkirfEP4m4K1n9AzPgz6ZF4gOnRvb4yo19Nkxn5u
+# /ldnrKQxggcu0YjtLA0v+d/TUJzhq6vQEDdmPEv7+I3OfokC71Nh5YsJQ3JCYO8W
+# R49lOwt6voDh+D5l0jKuNysRFO7S0kqKhvM/GzBU6Z0cecAKXGswrf6xWGuuP1Cp
+# /f5Hjz8Cd5y6XuHn4PKwDVCAIrh0DTa41J0AbPChQptjXZUZ22EiYMLaOqGD4401
+# e/J+Qu+2s4S8XLQjooi3laRPexw+89Im+BmXVX8rH21Qs9abUL5scqYfd4jIJrjy
+# eVogWFJtHf8Q/6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMTIxMTE2MTla
-# MC8GCSqGSIb3DQEJBDEiBCCjL5QIfrEp/TYEeWheP1flqviP1OjOjepoywkDUSso
-# MDANBgkqhkiG9w0BAQEFAASCAgBIaNLFF8yO2v1XS1kkbVHZ650wKg2iZGwhyddd
-# EXSEYxf0Wm24YNGjp5aPZYa8gq7RRJjloTHa0RFC3OeQbQc/dicCUhvIXAdvx46n
-# 5rW+dWU+0MIVwgm/ldA+RZoEIWY8OSSZ6nJlaZa6XO6bbmhtW8zVMzKohExt1Fmx
-# nZ8hgN2vhV6WY9LYJN1zWtUZXJorAkLiA7clY03P1OVOX8xRT16oyV2IIb1Ecaxx
-# hnbFkitPbWpDZ7qYkYRYWTxO/WhkyfmW/1L+q0D9HOwhWgIVviY4YG9dZjfaC0hl
-# baIwZS7mz2FDyYymfBlnFaX0452hSIJ1vUBcGVl2/DE7wOtyixR1q6QRCRPc4CsR
-# 8jPgtZMY+EjGNyZSqXzipy4t2TDfLCcNeX3Tc6X4yXAT+BfiU5w1TDqsdj9Q2Bed
-# K5z+l4AMYVhVsu7KK6FXkqFBdSH6RuJj5O7zc7DmbhwPJrTMCfnrifEyn93khISm
-# I1orG+G0uhNi0yyvxyXWshdHY4nKAw7Mcf20ine5IGnAjp0BmD4EL40NIvhI0xbo
-# CbaScyiKJIs05U7klKItoeS55KJaiFDX139zHLwQ1EmdAJ1LAAnDNJXF3XSReKaK
-# 38XAfYJ6rb77BsxZiAldhmJaQudpcrJ7Iw2hb6IoKfzU2KQY4dOE/nR6oBqwxCYa
-# jesABw==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMTMwODI2MDVa
+# MC8GCSqGSIb3DQEJBDEiBCBD9m2ZV4WNqr35UbfksSQaTpOf1hGTi4oj96OdSG6q
+# MDANBgkqhkiG9w0BAQEFAASCAgBQC8SElZyXZ27rKokZLML2qZeB92Rb7MFpcv02
+# 1aOBKOIllsnVuMVyER89BquPAM78UmL/c/kC4LBHRsL0GTBxC/7rOtx4TRWMNCjM
+# xZjNevrkWEJDov94MPn73m4kStMixpn/LUK1RS60NAyrQPFWc4B1xNdeLpDXHgSm
+# KVKq43WSSQSVRwwAtrdqhV7nbgkhg/lHZbHGf7/qqEPW6woEVONhDv3O6BMWSHsK
+# u7pWdYCXSvCdx3rKLb0m7vkEvUDajXl5rpg30bYUfw02pJlGLNAzEBvZV8XhiOtB
+# fGqQZ3wl4RVqLUbNkAi6QFGRlgF0f0tFhZ08MvkSie81AUY9CEde6vFPcl3e0n+7
+# ewGPi2QxkksyRn9p8sl+MZF416rbYYWIB5p7N0OfSZDXo/yijGmdCyi8ilmiFNNN
+# uFhwfTVvhc1gTIaXyGQkqTAioNiLIsYk0FjQu3hlyJTzjl3Wm8Z1SBINS2fJVceE
+# dZDBBYkp1i7lEiofEMrpWTCvo6Ec61o5S8vtymdd9L9+qVh+/64bymXk/smiSkn7
+# rRQiKx9KFkCE7Bwxv/rKSQlh7yyTMmYQgNgY5XIA3OP0MdPwBuC24TvS4prN2hP1
+# 0btOTIlSodUf5sBOTqI8YBkNzUwgPdwwRHvAT+z0itMMvLJIpOLiPcAKOjhV70Nw
+# +g/Qjw==
 # SIG # End signature block
