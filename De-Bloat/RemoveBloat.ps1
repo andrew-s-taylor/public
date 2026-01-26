@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.3.1
+  Version:        5.3.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -168,6 +168,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 12/12/2025 - Various fixes with help from tlit60608-NKenny
   Change 12/12/2025 - Added custom bloat list parameter
   Change 13/01/2026 - HP get-package parameter fix
+  Change 20/01/2025 - Added Dell Optimizer
 N/A
 #>
 
@@ -2073,7 +2074,7 @@ foreach ($pattern in $uninstallPrograms) {
 
     ##Manual Removals
 
-    ##Dell Optimizer
+    ##Dell Optimizer Core
     $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell*Optimizer*Core" } | Select-Object -Property UninstallString
 
     ForEach ($sa in $dellSA) {
@@ -2086,6 +2087,21 @@ foreach ($pattern in $uninstallPrograms) {
             }
         }
     }
+
+        ##Dell Optimizer
+    $dellSA = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object { $_.DisplayName -like "Dell*Optimizer" } | Select-Object -Property UninstallString
+
+    ForEach ($sa in $dellSA) {
+        If ($sa.UninstallString) {
+            try {
+                cmd.exe /c $sa.UninstallString -silent
+            }
+            catch {
+                Write-Warning "Failed to uninstall Dell Optimizer"
+            }
+        }
+    }
+
 
 
     ##Dell Dell SupportAssist Remediation
@@ -2445,6 +2461,12 @@ if ($manufacturer -like "Lenovo") {
     else {
         write-output "X-Rite Color Assistant uninstaller not found."
     }
+
+    ##Stop Lenovo UDC Service and Disable it
+    write-output "Stopping and disabling Lenovo UDC Service"
+Stop-Service "UDCService"
+Set-Service "UDCService" -StartupType Disabled
+write-output "Lenovo UDC Service Disabled"
 
 }
 
