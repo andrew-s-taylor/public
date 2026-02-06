@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.3.2
+  Version:        5.4.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -169,6 +169,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 12/12/2025 - Added custom bloat list parameter
   Change 13/01/2026 - HP get-package parameter fix
   Change 20/01/2025 - Added Dell Optimizer
+  Change 06/02/2026 - Added Acer bloat
 N/A
 #>
 
@@ -2663,6 +2664,176 @@ foreach ($pattern in $uninstallPrograms) {
     write-output "Removed Samsung bloat"
 }
 
+if ($manufacturer -like "*Acer*") {
+    write-output "Samsung detected"
+    #Remove Samsung bloat
+
+
+    ##Samsung Specific
+    $UninstallPrograms = @(
+        "Acer Configuration Manager"
+        "Acer Jumpstart"
+        "Acer Product Registration"
+        "Acer ProShield Plus"
+        "Acer ProShield Plus Service"
+        "Acer Purified Voice Console"
+        "Acer Control Centre"
+        "Acer Quick Access"
+        "Acer Quick Access Service"
+        "Password Generator Tool"
+        "Evernote"
+        "Dropbox promotion"
+        "Acer User Experience Improvement Program Service"
+    )
+
+
+
+    $UninstallPrograms = $UninstallPrograms | Where-Object { $appstoignore -notcontains $_ }
+
+
+    $InstalledPrograms = $allstring | Where-Object { $UninstallPrograms -contains $_.Name }
+    foreach ($app in $UninstallPrograms) {
+
+        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
+            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
+            write-output "Removed provisioned package for $app."
+        }
+        else {
+            write-output "Provisioned package for $app not found."
+        }
+
+        if (Get-AppxPackage -allusers -Name $app -ErrorAction SilentlyContinue) {
+            Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
+            write-output "Removed $app."
+        }
+        else {
+            write-output "$app not found."
+        }
+
+        UninstallAppFull -appName $app
+
+
+    }
+
+
+
+# Process each package pattern
+foreach ($pattern in $uninstallPrograms) {
+    $patternName = $pattern
+    $minVersion = $pattern.MinVersion
+    Write-Output "Checking for packages matching pattern: $patternName"
+
+    # Search for matching packages in the registry
+    $matchingPackages = @()
+    
+    # Check in 32-bit and 64-bit registry locations
+    $registryPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    
+    foreach ($registryPath in $registryPaths) {
+        $packages = Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue | 
+                    Where-Object { $_.DisplayName -match $patternName }
+        
+        # Filter by minimum version if specified
+        if ($minVersion -and $packages) {
+            $packages = $packages | Where-Object { 
+                if ($_.DisplayVersion) {
+                    try {
+                        [version]$_.DisplayVersion -ge [version]$minVersion
+                    } catch {
+                        # If version comparison fails, include it anyway for safety
+                        $true
+                    }
+                } else {
+                    # If no version information, include it for safety
+                    $true
+                }
+            }
+        }
+        
+        $matchingPackages += $packages
+    }
+    
+    if ($matchingPackages.Count -eq 0) {
+        Write-Output "No packages found matching pattern: $patternName"
+        continue
+    }
+    
+    Write-Output "Found $($matchingPackages.Count) package(s) matching pattern: $patternName"
+    
+    # Process each matching package
+    foreach ($package in $matchingPackages) {
+        $displayName = $package.DisplayName
+        $uninstallString = $package.UninstallString
+        $quietUninstallString = $package.QuietUninstallString
+        $version = $package.DisplayVersion
+        
+        Write-Output "Attempting to uninstall: $displayName (Version: $version)"
+        
+        # Try to use the UninstallAppFull function first
+        Write-Output "Trying to uninstall via UninstallAppFull..."
+        UninstallAppFull -appName $displayName
+        
+        # If UninstallAppFull doesn't work, fall back to direct uninstallation
+        # Check if uninstall string exists and attempt uninstall
+        if ($quietUninstallString) {
+            Write-Output "Using quiet uninstall string: $quietUninstallString"
+            try {
+                if ($quietUninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    $uninstallCommand = $quietUninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $quietUninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Quiet uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during quiet uninstall: $_"
+            }
+        } elseif ($uninstallString) {
+            Write-Output "Using standard uninstall string: $uninstallString"
+            try {
+                if ($uninstallString -match "msiexec") {
+                    # For MSI-based uninstalls, add /quiet
+                    if ($uninstallString -match "/I{") {
+                        # Change /I to /X for uninstall if needed
+                        $uninstallString = $uninstallString -replace "/I", "/X"
+                    }
+                    $uninstallCommand = $uninstallString + " /quiet"
+                    Start-Process "cmd.exe" -ArgumentList "/c $uninstallCommand" -Wait -NoNewWindow
+                } else {
+                    # For EXE-based uninstalls
+                    $uninstallParts = $uninstallString -split ' ', 2
+                    $uninstallExe = $uninstallParts[0].Trim('"')
+                    $uninstallArgs = if ($uninstallParts.Count -gt 1) { $uninstallParts[1] } else { "" }
+                    
+                    # Add silent parameters for common installers
+                    if ($uninstallString -match "uninstall.exe|uninst.exe|setup.exe|installer.exe") {
+                        $uninstallArgs += " /S /silent /quiet /uninstall"
+                    }
+                    
+                    Start-Process -FilePath $uninstallExe -ArgumentList $uninstallArgs -Wait -NoNewWindow
+                }
+                Write-Output "Standard uninstall completed for: $displayName"
+            } catch {
+                Write-Output "Error during standard uninstall: $_"
+            }
+        } else {
+            Write-Output "No uninstall string found for: $displayName"
+        }
+    }
+}
+
+    write-output "Removed Samsung bloat"
+}
+
 ##Remove bookmarks
 
 ##Enumerate all users
@@ -2961,12 +3132,12 @@ Stop-Transcript
 
 ##Adding random padding to stop it removing actual useful text
 ##More padding
-##And more pa
+##And more p
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD39pE8rlG2YZet
-# HEQO+iVsIFWycf0ySdVC+ZmFl2VtOaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJtCXyIj1YHRgM
+# wQxrhJI3oml73SnnG7XQht0+yMUgDaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3149,34 +3320,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCARpI4kuSzwm0ImTf8rX+vTXVUBArv11eUp
-# 7bZhAVRfljANBgkqhkiG9w0BAQEFAASCAgCci6wm55DitrSUHgR4XjDZAlkjigrZ
-# hfT2lVZNnMYWywRZv5J2IdhYCebaILAlYE0S+ENPx7pzV8UhrvhlXIStx3a9TTSO
-# R+fBaTjTiqgoBTfNWvkXk71S3AkG5i1fx1JLZRHpCk2IgQN/mK79A6CMHnZGjpwt
-# BEzCVK9P5uHIln19xprQGJ/R9mPDa7JfY7s4FUm8zXrP7eB8/15SLvs2NV+jOw/T
-# ZRmcG0vuCKLDNFY4eHaEpV9TtRvs6FXRCA2fQY4Np8vHbk3/rRUXYrVMdFkIwmU/
-# fUdmJvZVli+LUkb5AS1Mqx0BVuFQtB0DBOJNa2G+pf2FucsDwB2YUIT6NAm5wwfW
-# PmcH+REk22sa48c9prmuF8rlTPI5N8Cm30Tt+wil5usYjhOyYZfGa3Dgx17UABp/
-# XltBUVS/WgoZnZdbPq330wjAQ8x3U2GHnr1LnH5Z8hhDnkRWhaXP8+5bjeGvJynL
-# jBq5eUlUxZUgFlELsCQ0BL4JVPnVTCQp2KTTqzqups6pJweCi1edGV23X197IOWb
-# /9vodMXuqYHs+0Tm5Oxq4xmYW/Iz4Fo9vm+syiBrWRNHwuyIRRmrkbXjfMrSz6QQ
-# rPNRYOR370mcSj4mizA/TYqn6DMF5oHOrrG5jjETC1OwBYvSnQ/DU/+QxdEZQ2WQ
-# IomXEVDtVAXHNKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCA9eGHtZsi+JGOEdiNwsnt3M00sN/0IYsjW
+# zZQp7xi5+zANBgkqhkiG9w0BAQEFAASCAgAULbO2V42S+0tehwEarDjo7J+F0vu+
+# wfq4rhCLh4VVwttN8Ac8fm/jrmbhdjbGM4O9JgyRYoScAUVnAvpOHb03wdKBj8NG
+# cJodNr0NwukPCemkZfAlc2UeBSgN95K05lxUnhIBsBetnvnWorajONTSSPkVBa8B
+# jP9ANRVwrus2+DTsYXVhNax56ZcqMrTUsXc8G4isr+4bVJZwvGOWiIwYoH60ckSj
+# prfK10yQol+jD1pg9gxl6KFaeq7ULhz29ITxLU1DB81s8XA7Odp6r3dQ+4hUXay6
+# wfsqDNJHW5qr042s331U1fznQ4H0jlIZ0r1f2z3PYEE/anQPmybecIZ6W3peJplB
+# ZAHk9T39q75PrpBkyzacq8zOZdLtp/WefLx5PzMQuvEWrAJ/CHHX19N8dYx3t3HV
+# g1wnumA1r/4VJn+HOf1jUCTkY8h5ME6Z035BAsurQSNN5jX2s8nchqR7/OAF4kBa
+# K2sA/5NvrPFw7PmNtyuxQ9VPl29BT9YGufC7RGUx8XyqAoWj5dOJrvb0eZfSpznP
+# ykDDK2G6AhWoOAzSzYQ6SN/neooUTTAZeftuSX6jTViWii5VEibwtsknGwJzhytk
+# CfiDz6vfJXxZe4osc8cZ2pzFLULx9Qdwe/oFwu+MFfhdTrN5PoOhUtpF5jtCW7iK
+# p4jtQb9ZQf7Y7KGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAxMjYxNDQzMzha
-# MC8GCSqGSIb3DQEJBDEiBCAIgN+uJgfGhs7YHMg0JiiryyF/LtB/T+ihwfdxTXDN
-# TjANBgkqhkiG9w0BAQEFAASCAgAdSnSRhNTZyGcYFCQZUleKDgP+r+L+g2PE4dPC
-# 2owaEHhTe01vfTMqYEPzZWRdzpIA1fAVV+q6uPY32LdFktNvHxOdQk2nwbsmE/dN
-# fcq0TyzpqYbJAsZzOiy/3Ug6uO2CzQAve5Q6Afwgew8zDJDXRwmdPcCfvXuRnkTY
-# 6o6hvUH8QHuAmVMNaQ/6ZzmvVsKgTO+dbcf+5ikcMfsJxvVvV90VkgK7otTzOieT
-# TIXYIZ1bIwaikdspiSGDcvvPsMy8GMnliWJh6UHsgSRtXhSoRfIkmj2Tma6bPOfK
-# Nvu/8ZkTxr8g1rEFk39OWJO29ZCRGfzLNogKYQH18w5Ua+fCnSXWqmz7abvW/cnu
-# lbBCuvPXYkwMWYhrTOEI1juKc8Eedoo3bRwTCNb+jt4f4SYGJK7+g5Vr6G6Kyanu
-# cy9C8/fNbWfG8UtOz5MiCtXbmbMlkqLPlUwv0TefDlQ45dq6TNN5omL2gLCzlhDm
-# 5ZOSZQPsoOc0zb5HMaMzkJ6a5FjpEfcdSXrk1uDit2RlqIz+5CSy2rlA8nXRpn9U
-# XwR0nMPU3fluumot+xKYAFVVPYJvF5Npe9mIBp0Nzv7NyDpXpSAeFQrRcuTqVjZ5
-# KIo7oPYyDbL0Gjb9oyvOsZwUkWxckhl561+ZkUpdiOLH1lSMpZe7GCkWTjT/Z3xS
-# xZkkAw==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMDYxNDM2MTNa
+# MC8GCSqGSIb3DQEJBDEiBCAV+4bNeWKRlG4z93nnKaZ7QK7iKoknXQl91FZO1Sdn
+# QDANBgkqhkiG9w0BAQEFAASCAgAV7Mh1VbsvsgZ6jyRHJ5CGWs38tYDkPSOqCLsG
+# ZHv66dB/Jt1z7gXwNDSpobsxDEJWnsImU+SQOJ4F04kctI6JNAnQsMFMysmp7yhA
+# g8rEB/jlVNGMXHVRl5NaFE7fZ86mVXotOP8ixISNIfJu6Lf2yiVCyI2r7LXY9YDe
+# 6yYorwSA7LXK8D1rOnQWKxqZqxiXz96WNcNDQX8I9haYaRrYv0hVBCVorl8Sjn+t
+# ZFuZdR2akiLhCAZkOLrw1/A75YYO+Vt9E7PThNvTAPCrehdnspETqAQ8aNl1vlNX
+# ZJiksRXglaZcv87ByfkVoDmsGyqYPXsekaQHV3y9ULr/HG21vJQO+OnbnZleSMwV
+# hm/P3+VsnO1nM/tUYNHXjFRI/EazgM1dUPZqOc5DZlICvrBmAZnqbv5f9QWK31au
+# XNEpX7HJhnpqAF3Af2LdgMHaixSBUHWCz6X1TyKc2zic9d+p71HSpz6ldquyyXQB
+# K9J98slxuJ3tzli9dwR6c8NOmdlLzTwS/SgXqLVUYdrDAazYpdgLHCB9ON+aG9B3
+# hEV7d+x1d1eigFWZDHY31przlz1mNsE8YCiwScsxMzNY8yM91zsnP7c5MqP51/QZ
+# OoaCEkFGEko1Q/e+c4pyPybUVzR1C1JFf2i9u5GX9QH/3J4FOqW1fE8CD6GFEmiS
+# MI4rcw==
 # SIG # End signature block
