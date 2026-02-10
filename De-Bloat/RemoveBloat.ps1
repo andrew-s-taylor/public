@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.4.0
+  Version:        5.5.0
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -170,6 +170,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 13/01/2026 - HP get-package parameter fix
   Change 20/01/2025 - Added Dell Optimizer
   Change 06/02/2026 - Added Acer bloat
+  Change 10/02/2026 - Added Asus bloat and some fixes
 N/A
 #>
 
@@ -387,30 +388,10 @@ $NonRemovable = @(
 ##Combine the two arrays
 $appstoignore = $WhitelistedApps + $NonRemovable
 
+
 ##Bloat list for future reference
 $Bloatware = @(
     #Unnecessary Windows 10/11 AppX Apps
-    "*ActiproSoftwareLLC*"
-    "*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
-    "*BubbleWitch3Saga*"
-    "*CandyCrush*"
-    "*DevHome*"
-    "*Disney*"
-    "*Dolby*"
-    "*Duolingo-LearnLanguagesforFree*"
-    "*EclipseManager*"
-    "*Facebook*"
-    "*Flipboard*"
-    "*gaming*"
-    "*Minecraft*"
-    "*Office*"
-    "*PandoraMediaInc*"
-    "*Royal Revolt*"
-    "*Speed Test*"
-    "*Spotify*"
-    "*Sway*"
-    "*Twitter*"
-    "*Wunderlist*"
     "AD2F1837.HPPrinterControl"
     "AppUp.IntelGraphicsExperience"
     "C27EB4BA.DropboxOEM*"
@@ -496,11 +477,18 @@ $Bloatware = @(
 ##If $customwhitelist is set, split on the comma and add to whitelist
 if ($custombloatlist) {
     $custombloatlistapps = $custombloatlist -split ","
-    foreach ($bloatyapp in $custombloatlistapps) {
-        ##Add to the array
-        $Bloatware += $bloatyapp
+
+    $Bloatware += $custombloatlistapps
+
+    foreach ($pattern in $custombloatlistapps) {
+        $appstoignore = $appstoignore | Where-Object { $_ -notlike $pattern }
     }
 }
+
+
+##Give them a quick de-dup
+$appstoignore = $appstoignore | Sort-Object -Unique
+$Bloatware    = $Bloatware    | Sort-Object -Unique
 
 
 $provisioned = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -in $Bloatware -and $_.DisplayName -notin $appstoignore -and $_.DisplayName -notlike 'MicrosoftWindows.Voice*' -and $_.DisplayName -notlike 'Microsoft.LanguageExperiencePack*' -and $_.DisplayName -notlike 'MicrosoftWindows.Speech*' }
@@ -2665,11 +2653,11 @@ foreach ($pattern in $uninstallPrograms) {
 }
 
 if ($manufacturer -like "*Acer*") {
-    write-output "Samsung detected"
-    #Remove Samsung bloat
+    write-output "Acer detected"
+    #Remove Acer bloat
 
 
-    ##Samsung Specific
+    ##Acer Specific
     $UninstallPrograms = @(
         "Acer Configuration Manager"
         "Acer Jumpstart"
@@ -2848,6 +2836,92 @@ foreach ($user in $users) {
         }
     }
 }
+
+if ($manufacturer -like "*Asus*") {
+    write-output "Asus detected"
+    #Remove Asus bloat
+
+##ASUS OEMcode = B9ECED6F
+	
+    ##ASUS Specific 
+    ##You can decide which, if any, you wish to keep by including in customwhitelist
+	$UninstallPrograms = @(
+		"B9ECED6F.ASUSExpertWidget"											#defines F1-F4 hotkeys on Expertbook
+		"B9ECED6F.ASUSPCAssistant"											#MyAsus App on Expertbook, Vivobook
+		"AppUp.IntelGraphicsExperience"									#Intel Graphic mgmt utility	on Expertbook, Vivobook
+		"AppUp.IntelManagementandSecurityStatus"				#Intel Security mgmt utility on Expertbook
+		"DolbyLaboratories.DolbyAccess"									#Dolby sound utilities on Expertbook, Vivobook
+		"DolbyLaboratories.DolbyDigitalPlusDecoderOEM"	#Dolby sound utilities on Expertbook, Vivobook	
+		"DrivewintechTechnologyCo.DiracAudoManager"			#sound mgmt utility in Vivobook
+		"IntelligoTechnologyInc.541271065CCE8"					#suite of voice/microphone AI and Meeting utilities that Asus packages in Expertbook
+    )	
+
+    $UninstallPrograms = $UninstallPrograms | Where-Object { $appstoignore -notcontains $_ }
+
+    $InstalledPrograms = $allstring | Where-Object { $UninstallPrograms -contains $_.Name }
+    foreach ($app in $UninstallPrograms) {
+
+        if (Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue) {
+            Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app | Remove-AppxProvisionedPackage -Online
+            write-output "Removed provisioned package for $app."
+        }
+        else {
+            write-output "Provisioned package for $app not found."
+        }
+
+        if (Get-AppxPackage -allusers -Name $app -ErrorAction SilentlyContinue) {
+            Get-AppxPackage -allusers -Name $app | Remove-AppxPackage -AllUsers
+            write-output "Removed $app."
+        }
+        else {
+            write-output "$app not found."
+        }
+
+        UninstallAppFull -appName $app
+
+    }
+
+	write-output "Removing Asus Theme and background "
+	##Remove Asus OEM theme and background image
+	$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes"
+
+	# Check and remove ThemeName if it exists
+	if (Get-ItemProperty -Path $registryPath -Name "ThemeName" -ErrorAction SilentlyContinue) {
+		write-output "remove Asus Theme"
+		Remove-ItemProperty -Path $registryPath -Name "ThemeName"
+	}
+
+	# Check and remove DesktopBackground if it exists
+	if (Get-ItemProperty -Path $registryPath -Name "DesktopBackground" -ErrorAction SilentlyContinue) {
+		write-output "Remove Asus deskbkgrnd"
+		Remove-ItemProperty -Path $registryPath -Name "DesktopBackground"
+	}
+
+	#Clear the pre-defined ASUS OEM task bar definition file and registry key or it will override default user settings
+	$tbfile = "C:\Windows\OEM\TaskbarLayoutModification.xml"
+    if ((Test-Path -Path $tbfile -PathType Leaf) -and ((Get-Item $tbfile).LastWriteTimeUTC -lt $startUtc)) {
+		write-output "remove asus taskbar"
+		Remove-Item -Path $tbfile -Force 
+	}
+	$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
+	$reg = Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue
+	if (($reg -and $reg.PSObject.Properties.Name -contains "LayoutXMLPath") -and ($reg.LayoutXMLPath -ieq $tbfile)) {
+		write-output "remove Asus layoutxmlpath"
+		Remove-ItemProperty -Path $registryPath -Name "LayoutXMLPath"
+	}
+
+	$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
+	$reg = Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue
+	if (($reg -and $reg.PSObject.Properties.Name -contains "LayoutXMLPath") -and ($reg.LayoutXMLPath -ieq $tbfile)) {
+		write-output "remove Asus layoutxmlpath"
+		Remove-ItemProperty -Path $registryPath -Name "LayoutXMLPath" -ErrorAction SilentlyContinue
+	}
+
+} 
+#end ASUS specific
+
+
+
 
 
 ############################################################################################################
@@ -3132,12 +3206,12 @@ Stop-Transcript
 
 ##Adding random padding to stop it removing actual useful text
 ##More padding
-##And more p
+##And more 
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJtCXyIj1YHRgM
-# wQxrhJI3oml73SnnG7XQht0+yMUgDaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJSJ/NOdXjp6DB
+# BZ1AxX/MO7iy5iLepbz2/l0eW89XC6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3320,34 +3394,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCA9eGHtZsi+JGOEdiNwsnt3M00sN/0IYsjW
-# zZQp7xi5+zANBgkqhkiG9w0BAQEFAASCAgAULbO2V42S+0tehwEarDjo7J+F0vu+
-# wfq4rhCLh4VVwttN8Ac8fm/jrmbhdjbGM4O9JgyRYoScAUVnAvpOHb03wdKBj8NG
-# cJodNr0NwukPCemkZfAlc2UeBSgN95K05lxUnhIBsBetnvnWorajONTSSPkVBa8B
-# jP9ANRVwrus2+DTsYXVhNax56ZcqMrTUsXc8G4isr+4bVJZwvGOWiIwYoH60ckSj
-# prfK10yQol+jD1pg9gxl6KFaeq7ULhz29ITxLU1DB81s8XA7Odp6r3dQ+4hUXay6
-# wfsqDNJHW5qr042s331U1fznQ4H0jlIZ0r1f2z3PYEE/anQPmybecIZ6W3peJplB
-# ZAHk9T39q75PrpBkyzacq8zOZdLtp/WefLx5PzMQuvEWrAJ/CHHX19N8dYx3t3HV
-# g1wnumA1r/4VJn+HOf1jUCTkY8h5ME6Z035BAsurQSNN5jX2s8nchqR7/OAF4kBa
-# K2sA/5NvrPFw7PmNtyuxQ9VPl29BT9YGufC7RGUx8XyqAoWj5dOJrvb0eZfSpznP
-# ykDDK2G6AhWoOAzSzYQ6SN/neooUTTAZeftuSX6jTViWii5VEibwtsknGwJzhytk
-# CfiDz6vfJXxZe4osc8cZ2pzFLULx9Qdwe/oFwu+MFfhdTrN5PoOhUtpF5jtCW7iK
-# p4jtQb9ZQf7Y7KGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCfZLU7C+eSiLetV+eBxdcxnM5SON7Eaj7l
+# l0i/7gjYZjANBgkqhkiG9w0BAQEFAASCAgCuO1v0I/PRkv1r201nJqNyOMRBrh7H
+# 44iacZEMB2M1TDILeT+F5xDXFj7Eg5MmgbSfb6Vn4duoNWeJ5fWZLnmyx5PhRrY8
+# 50JDBmI9/6vFlySTjYaM+oS7ewwNacSOO2sU68CFbYR+Kg/ZcvkXbjBSunofBGFO
+# iDEKDVJJ84QspJ1vRNsazhgZDgfBq9EfUxCjXKtAs30yOEj9Zhbl0k4bP00h87KZ
+# 7ucz6q2F4w/vZ8UtPNNP1UIMQKr/dckOxcS+hbFF3RI/XUsvf1uRlIgtXFHTGGx6
+# ion68pqmz43oGds56Ynx4xaou3/n907mY4fbebGsSHe9vGo8iI7kHCSxkgJozyAN
+# dpSkb++CuVsV0+hgnYO/UY4NBCapSfnGGzYO8TEIk1PeI3wK2klM1pYzmHPavgb5
+# 696elnL3cNygFt2Nnb5dHqsnKsACfD2giuXFfj948QZbpwaFSt6WzNQhU4Ld7jdO
+# E4P/zz93xrnysYup245OQ/aG6x2sHqYQJMABSwNCgQribAeap05kdoJNkQ5kZqrB
+# sOJinjCo4czqsb8QO1EAblfGj/Z3KJi6R19CJr7unh6QjRuRVQe68GUI4dUtIVeT
+# IriUsZ2Yup8hcS8mGCAm4n3awqSncDt56yyLXfUmwYGLU0AZ51RqN3EeNgww50zJ
+# OeQv/abXUWe3GaGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMDYxNDM2MTNa
-# MC8GCSqGSIb3DQEJBDEiBCAV+4bNeWKRlG4z93nnKaZ7QK7iKoknXQl91FZO1Sdn
-# QDANBgkqhkiG9w0BAQEFAASCAgAV7Mh1VbsvsgZ6jyRHJ5CGWs38tYDkPSOqCLsG
-# ZHv66dB/Jt1z7gXwNDSpobsxDEJWnsImU+SQOJ4F04kctI6JNAnQsMFMysmp7yhA
-# g8rEB/jlVNGMXHVRl5NaFE7fZ86mVXotOP8ixISNIfJu6Lf2yiVCyI2r7LXY9YDe
-# 6yYorwSA7LXK8D1rOnQWKxqZqxiXz96WNcNDQX8I9haYaRrYv0hVBCVorl8Sjn+t
-# ZFuZdR2akiLhCAZkOLrw1/A75YYO+Vt9E7PThNvTAPCrehdnspETqAQ8aNl1vlNX
-# ZJiksRXglaZcv87ByfkVoDmsGyqYPXsekaQHV3y9ULr/HG21vJQO+OnbnZleSMwV
-# hm/P3+VsnO1nM/tUYNHXjFRI/EazgM1dUPZqOc5DZlICvrBmAZnqbv5f9QWK31au
-# XNEpX7HJhnpqAF3Af2LdgMHaixSBUHWCz6X1TyKc2zic9d+p71HSpz6ldquyyXQB
-# K9J98slxuJ3tzli9dwR6c8NOmdlLzTwS/SgXqLVUYdrDAazYpdgLHCB9ON+aG9B3
-# hEV7d+x1d1eigFWZDHY31przlz1mNsE8YCiwScsxMzNY8yM91zsnP7c5MqP51/QZ
-# OoaCEkFGEko1Q/e+c4pyPybUVzR1C1JFf2i9u5GX9QH/3J4FOqW1fE8CD6GFEmiS
-# MI4rcw==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMTAxNzAxNDRa
+# MC8GCSqGSIb3DQEJBDEiBCAi5MmmLJGmriH7MEhjpywtrWnvhGLzXr8j3rbi1mU3
+# XzANBgkqhkiG9w0BAQEFAASCAgCnuwytPOVQlW9S8KeeqodlhNKezQMhd7CuKRb/
+# f2wyIj0hCZRLH1DhAQqdYMP+7Ufg3vTLZSDYuzPeJOUGScCvC5VFFEO/ceMae/TQ
+# kSrJC8QDzuA1P4hHkYUyKFMFiVr/hSNS/4SlBw+U//fGJLYnAa284EUwxNkCcA2r
+# KVxs6PxqIZmplVzSVdGa2Q41OAG4YdOv1AJN8fLltMWw/oIdn6+45G1QemCuXYtA
+# f1hSri8SSB444gexFc7kE7lmjM1B3sYDlno4SFUlSZphqlDfaO+GIcwKTIN7dntu
+# CaY0rA3zdfG+auxZG+TttTeABKCizbAsEC4lcd0mlMhXkbxuhSjpw4M70QdPekqY
+# It0zVO5Wm94gdhMdZ6GjBmrB82LYm3D7RjvxKCONuCcSrTLUc+idCGLhS8nkJi0K
+# TI4HLPpYzcc8EZtyZvUwiT3kZiOjPt7jBTc53uVZJ9OxYwFBoUXXHzCBD4loni3X
+# 0nhPK+CenCaf1Kn41Vjd1NNXsfcvaFsPA/OJE2gZYGONgk4QZ9sxTLtOHe06gu/Y
+# /3Aq1Qxou0bO3flqZtptXAGZMaevK7b3D26tsVRRw5ojNH3NqN8nUQa5smTo43Dl
+# LXpA7dOBfTMWFFWwnkneMiGl1yjidmW5VZYwAJe8+oy9txe0i/DEF3k+w9rbnas4
+# JwPaKw==
 # SIG # End signature block
