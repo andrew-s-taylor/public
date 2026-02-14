@@ -2691,6 +2691,12 @@ if ($manufacturer -like "*Acer*") {
         "McAfee LiveSafe"
         "Quick Access Service"
         "User Experience Improvement Program Service"
+        "McAfee.wps"
+        "McAfeeWPSSparsePackage"
+        "Evernote.Evernote"
+        "C27EB4BA.DropboxOEM"
+        "{2B51C83A-465D-4EA9-9CDC-1ED95ED09AC6}"
+        
     )
 
 
