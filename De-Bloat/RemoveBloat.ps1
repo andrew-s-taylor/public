@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.5.1
+  Version:        5.5.2
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -172,6 +172,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 06/02/2026 - Added Acer bloat
   Change 10/02/2026 - Added Asus bloat and some fixes
   Change 12/02/2026 - Dell and HP fixes
+  Change 20/03/2026 - Added Acer apps and McAfee WebAdvisor
 N/A
 #>
 
@@ -2696,6 +2697,16 @@ if ($manufacturer -like "*Acer*") {
         "Evernote.Evernote"
         "C27EB4BA.DropboxOEM"
         "{2B51C83A-465D-4EA9-9CDC-1ED95ED09AC6}"
+        "InsydeSoftwareCorp.AcerProShieldPlus"
+        "Evernote.Evernote"
+        "DTSInc.DTSAudioProcessing"
+        "C27EB4BA.DropboxOEM"
+        "AppUp.IntelOptaneMemoryandStorageManagement"
+        "AcerIncorporated.QuickAccess"
+        "AcerIncorporated.AcerRegistration"
+        "AcerIncorporated.4703949AD09F"
+        "AcerIncorporated.AcerPurifiedVoiceConsoleR"
+        "55121DominqueTerry.PasswordGeneratorTool"
         
     )
 
@@ -3016,8 +3027,8 @@ if ($mcafeeinstalled -eq "true") {
     start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
     write-output "McAfee Removal Tool has been run"
 
-    $InstalledPrograms = $allstring | Where-Object { ($_.Name -like "*McAfee*") }
-    $InstalledPrograms | ForEach-Object {
+  $InstalledPrograms = $allstring | Where-Object { ($_.Name -like "*McAfee*") -and ($_.Name -notlike "*WebAdvisor*") }
+      $InstalledPrograms | ForEach-Object {
 
         write-output "Attempting to uninstall: [$($_.Name)]..."
         $uninstallcommand = $_.String
@@ -3065,6 +3076,12 @@ if ($mcafeeinstalled -eq "true") {
     get-appxprovisionedpackage -online | sort-object displayname | format-table displayname, packagename
     get-appxpackage -allusers | sort-object name | format-table name, packagefullname
     Get-AppxProvisionedPackage -Online | Where-Object DisplayName -eq "McAfeeWPSSparsePackage" | Remove-AppxProvisionedPackage -Online -AllUsers
+
+##Remove webadvisor
+
+    if (Test-Path "${env:ProgramFiles(x86)}\McAfee\SiteAdvisor\Uninstall.exe") { Start-Process -FilePath "${env:ProgramFiles(x86)}\McAfee\SiteAdvisor\Uninstall.exe" -ArgumentList "/s" -WorkingDirectory "${env:ProgramFiles(x86)}\McAfee\SiteAdvisor" -Wait -NoNewWindow }
+    Start-Sleep -Seconds 5
+    if (Test-Path "${env:ProgramFiles(x86)}\McAfee") { Remove-Item -Path "${env:ProgramFiles(x86)}\McAfee" -Recurse -Force }
 }
 
 
@@ -3232,11 +3249,12 @@ Stop-Transcript
 ##Adding random padding to stop it removing actual useful text
 ##More padding
 ##And more
+##More
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCVzoAeXNvsZj2J
-# obd9IuJpDsFfL2Y/22yThvzP8fPzq6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA9Z2pPOYdZHFr4
+# Ex7cD4cYacUv7KJKji3Zc4iJVbqUB6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3419,34 +3437,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBcMILQLSwsdt16fy9VwjwAZ2H4zEmBOmNi
-# FGfdD1Ik1TANBgkqhkiG9w0BAQEFAASCAgCzKbqlau+oPSWCqJFX+JCUxUZJmDFZ
-# BOtA1+nbneH35uQoXCLlWKIPIG/3XXlIH3glEeG/rNf/mkjhectm42/VtIwLRKLW
-# pIi9A1ANMfqtVxuTOxUxk6SqxGDYNBVVWTfwDutLHy3wK5bNogqTKoe7q4x7Zmsc
-# gk9lhAxsPJXEGKVogix+PHMFP4ju25fNlKjrcvLlcN+4rIaEaj7QQuDZfvd+qrTG
-# 3ZjA93f6/VWrqA8XlxnN/wwrA7ZY0i7C/enwF/32/Wyh1Pju0dzkgZ4lUdC0p/1k
-# WjdGhWeB/GYcWmWqeDMq3oY16gKyRGXUL9rDMhAcYpwg94OwcKG0tMoEVVEKIQBs
-# 5d2Sp4SEdjokd6vGf5da1+dnG2EGQkbdGbRl99WqwIJXpBNP5GxVqudFxgW71Hzd
-# GjLvMgASZvdI4Q06YxN313fHkD5lvgYev8RudIbBszapG3Ved5dNLygluSUahl3w
-# qfjX/0dU8+4zyjiFTT9+EKbaXOAOAfV0x6+pYIStz37dDaV1qWF4n7OHz7W72NKy
-# Ozm7fpTZxwl0x4H2c/qhggzfZsuH5Knj9Lj86zTiwQzJ9ki4cOyt1pA78BkYP7qb
-# ubidUxKfPXxmoiKoiW+RMGa5pRR7pdHgQMJunmWhDmjZqI1eaChZq9dJDYWOxdDH
-# i9i5eyktC80cJKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCrdlUCT0i6hh6kB6IxjWoavroRhpN+o2cQ
+# dlFjNzofKDANBgkqhkiG9w0BAQEFAASCAgBECAu+sOEp/imgGRXtmo/Q7AnXZHrU
+# P3hrZpFj/9oatajfyFfjaRRfh7aI3zXDi0nCpplOJvzxOY6jEDZ0nu+8mIaNMahX
+# t5twaXQcz5bMT9s+7+5H63rxQauYgVUVTJ0dF+VNFzK6hVt5b+N+7qDSWTdtaItA
+# UsjP8nVWIKTf3hS7w0l89qapk9VNePTMMbFI8Y6CyZxdWH7OoSnq61l9RSyLXB/E
+# /u5k2jFxLrEGBbrrG0y5Hl87dGYnZpwIZi4eUDQjcqvOR2scpT9yrckTanEjg5Is
+# 42Q6T4Gu/ep93XEOJxoYIIEI/BWtgvg9Ax3a8jGL5syNs29DFzk0fUfj5GELFH+a
+# AV9AzU/yqeughvum+oCiYEvAa1mgDi8LMypxlYWsF1FjK97MbBtZaz6bEL4KvRaa
+# 3Rjt35X9I/yUqOcUFeCMHW+DxbaoXamOOqNESAqrMk12qksjjB7ErQRH6tm3Chtz
+# bF9MbNYXfXR6YCgQrgTBX2+RB8VBK1CZnHkFDBbJsHSOI5/1fKKbLFvKZz86QISc
+# a3cJM0USW7SEZP3YGvURq7reTPPEhA2VHL/2MoojIofr6VsaaBjVVN2XXH7kRzhc
+# LsSB0UsstqzptS2JMerHdo2DGeorCqVgFgNcLmOGQ9gxmbxvErRRcsqlxiQfo9wr
+# YhYFrDQLnFv/b6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMTIxNjAxMTha
-# MC8GCSqGSIb3DQEJBDEiBCCJOKxQav2fI7PpCHon8YCwGHfNuuugfN9PUgJtsPE8
-# YzANBgkqhkiG9w0BAQEFAASCAgB7qEFaoOjPkoSzJsqwG3pXxXAn/5OCn7aoMrP0
-# tWreqshPtLFKQr5BLIYZFS8ypr9qNAKEXPM/HHU4LzKImIAuf05ksLNlHVnvlQt7
-# ePL4HcH4hh0tdcZT6nl40V9Tkx6eW8SUKNP+rZ+gSEM5FT4gC8cXQ42aSrQZIiyo
-# KuDnttVG/i9Ko6BkYIzstsgEkuHhKoRvF9T0KAzQDq5W4dLopuVUg5yZ1VB4jXMS
-# NWuiwVOqkOzGU5VHngl5BUquwpBQSZoq2EZs2K2xSjI2L638AHYUaq6NlQXwmgoO
-# 4gGZHhWh1r9Pnx4K35cl6oj+fdl7Rj73uK2qmw7lKRMm03CTO8ol+BRXq4mMi9V8
-# h2KNyNYIsEXE9O/vIUodKLi7XtMqeJNLlA2h2KIv3sgiBJPWcgtZQ/LprnY890ig
-# Tp9LTRPSL9WIdA2ts0kKmzR9r7aVuxxw9bahhujqfrbDMIvP+TZqga3WGcrlHknC
-# 0gXIg2haTmZx6gX6Zt22cLZEu/yvJoVAiJuPt4guEdwmRdJSbuSKU9vF9hyMFMAv
-# 4b+a1/wXk4l3wcBi2KTO5Y1uyAjn287uDQhbGeIJla0I7BKwsonYzamtpffKmdV1
-# 0ew0ZzfgLHGl5NdtQeSPeUsnY2+YK2UKb5D1OYSHPudOzXmI1Bi5ONhSomGP/m1N
-# zKdlIg==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAzMjAxODA1NDBa
+# MC8GCSqGSIb3DQEJBDEiBCCw4yYRR5cPX0KlOTBfNcaoggYpWocajM1bBywD6U91
+# tTANBgkqhkiG9w0BAQEFAASCAgBESiDnA8UTSfvViRfx1SAgJ9UYf0HGXhkZyQSa
+# +jsSnc2Q72llOePoUpew+JDaBjbw7/KIb6gDyySjDe4hA3YtWmBPpFu1ZW2AhPkX
+# loamtARLIYyeBZ2cikrWHtwhTtwcC1Lj2u0IwXlUK2qBx7Kad+L/PLmDDKuy9X7w
+# y302IzRoJgrYQSPE3GXGdxGpzB4vySVd917O38AYa0PyihV7cH/myyARKHiMgA3E
+# MSanHmbEe6MdmJP4hEWtuZMOHVcGGdgfCDelClJ/z+o4CmEe69jBgXZ9GKru+Ek2
+# I87xRSlk5DdfGtQtXZeQi+hh0NroVq1WTgUN5oAoNbmZHGn+y08S9Pu9wLyaRcql
+# CYXWJCU6J2cBzDYLA4EnFolUsLyK+q2Xjk3HD/5gcXQrFTONv5Y8y2O+n6gF4e9z
+# 2Y07qhRocJkypGTSx/KYnoqQlBIEvuEGkkQkcUff5GtbdGwBkwiL5jKGENksWBOm
+# JPLhWQGSrpa3mJ7zXa/h7xv2W8JtRn39PPI8DR0Y2QoANQTPHJ3tipVPT00lnhJY
+# xSMHMt2xMbTnhx8kK8AgNpe4WSoZTjp8ovAypf30beCJEgqSkWVoOPZjmlmzg3lj
+# VhXulqbSjS0iXr5acBuqfwddJsZ02/lXi4RY8/jz2y7MOEpCt16sSIX8OstJ3pVK
+# MCZvdA==
 # SIG # End signature block
