@@ -3016,7 +3016,7 @@ if ($mcafeeinstalled -eq "true") {
     start-process "C:\ProgramData\Debloat\mcnew\Mccleanup.exe" -ArgumentList "-p StopServices,MFSY,PEF,MXD,CSP,Sustainability,MOCP,MFP,APPSTATS,Auth,EMproxy,FWdiver,HW,MAS,MAT,MBK,MCPR,McProxy,McSvcHost,VUL,MHN,MNA,MOBK,MPFP,MPFPCU,MPS,SHRED,MPSCU,MQC,MQCCU,MSAD,MSHR,MSK,MSKCU,MWL,NMC,RedirSvc,VS,REMEDIATION,MSC,YAP,TRUEKEY,LAM,PCB,Symlink,SafeConnect,MGS,WMIRemover,RESIDUE -v -s"
     write-output "McAfee Removal Tool has been run"
 
-    $InstalledPrograms = $allstring | Where-Object { ($_.Name -like "*McAfee*") }
+    $InstalledPrograms = $allstring | Where-Object { ($_.Name -like "*McAfee*") -and ($_.Name -notlike "*WebAdvisor*") }
     $InstalledPrograms | ForEach-Object {
 
         write-output "Attempting to uninstall: [$($_.Name)]..."
@@ -3051,6 +3051,9 @@ if ($mcafeeinstalled -eq "true") {
             cmd.exe /c $sc.UninstallString /quiet /norestart
         }
     }
+    if (Test-Path "${env:ProgramFiles(x86)}\McAfee\SiteAdvisor\Uninstall.exe") { Start-Process -FilePath "${env:ProgramFiles(x86)}\McAfee\SiteAdvisor\Uninstall.exe" -ArgumentList "/s" -WorkingDirectory "${env:ProgramFiles(x86)}\McAfee\SiteAdvisor" -Wait -NoNewWindow }
+    Start-Sleep -Seconds 5
+    if (Test-Path "${env:ProgramFiles(x86)}\McAfee") { Remove-Item -Path "${env:ProgramFiles(x86)}\McAfee" -Recurse -Force }
 
     ##
     ##remove some extra leftover Mcafee items from StartMenu-AllApps and uninstall registry keys
