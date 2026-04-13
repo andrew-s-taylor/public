@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.5.2
+  Version:        5.5.3
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -173,6 +173,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 10/02/2026 - Added Asus bloat and some fixes
   Change 12/02/2026 - Dell and HP fixes
   Change 20/03/2026 - Added Acer apps and McAfee WebAdvisor
+  Change 13/04/2026 - Changed admin group lookup for multi-language support
 N/A
 #>
 
@@ -1302,7 +1303,8 @@ if (Test-Path "$env:WinDir\System32\GameBarPresenceWriter.exe") {
     #Take-Ownership -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
     $NewAcl = Get-Acl -Path "$env:WinDir\System32\GameBarPresenceWriter.exe"
     # Set properties
-    $identity = "$builtin\Administrators"
+    $adminGroupName = (Get-CimInstance Win32_Group -Filter "SID='S-1-5-32-544'" -ErrorAction SilentlyContinue).Name
+    $identity = "$builtin\$adminGroupName"    
     $fileSystemRights = "FullControl"
     $type = "Allow"
     # Create new rule
@@ -3249,12 +3251,12 @@ Stop-Transcript
 ##Adding random padding to stop it removing actual useful text
 ##More padding
 ##And more
-##More
+##Mor
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCA9Z2pPOYdZHFr4
-# Ex7cD4cYacUv7KJKji3Zc4iJVbqUB6CCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCnFQLsudtFn5CD
+# IOTb2MemIfGFW2lQsa/Tu2yM4GHEIaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3437,34 +3439,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCCrdlUCT0i6hh6kB6IxjWoavroRhpN+o2cQ
-# dlFjNzofKDANBgkqhkiG9w0BAQEFAASCAgBECAu+sOEp/imgGRXtmo/Q7AnXZHrU
-# P3hrZpFj/9oatajfyFfjaRRfh7aI3zXDi0nCpplOJvzxOY6jEDZ0nu+8mIaNMahX
-# t5twaXQcz5bMT9s+7+5H63rxQauYgVUVTJ0dF+VNFzK6hVt5b+N+7qDSWTdtaItA
-# UsjP8nVWIKTf3hS7w0l89qapk9VNePTMMbFI8Y6CyZxdWH7OoSnq61l9RSyLXB/E
-# /u5k2jFxLrEGBbrrG0y5Hl87dGYnZpwIZi4eUDQjcqvOR2scpT9yrckTanEjg5Is
-# 42Q6T4Gu/ep93XEOJxoYIIEI/BWtgvg9Ax3a8jGL5syNs29DFzk0fUfj5GELFH+a
-# AV9AzU/yqeughvum+oCiYEvAa1mgDi8LMypxlYWsF1FjK97MbBtZaz6bEL4KvRaa
-# 3Rjt35X9I/yUqOcUFeCMHW+DxbaoXamOOqNESAqrMk12qksjjB7ErQRH6tm3Chtz
-# bF9MbNYXfXR6YCgQrgTBX2+RB8VBK1CZnHkFDBbJsHSOI5/1fKKbLFvKZz86QISc
-# a3cJM0USW7SEZP3YGvURq7reTPPEhA2VHL/2MoojIofr6VsaaBjVVN2XXH7kRzhc
-# LsSB0UsstqzptS2JMerHdo2DGeorCqVgFgNcLmOGQ9gxmbxvErRRcsqlxiQfo9wr
-# YhYFrDQLnFv/b6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBdw9POcJ5K0UB2ThuoHE0qn7hF1AUGDsY+
+# I0rGfjS+lzANBgkqhkiG9w0BAQEFAASCAgBUdkfUzfEClO3IgjJ13lCaEf9+cuHE
+# yVYh8QqCr+246k/mjGjeRVzKQHyOXDU8EES1+1q8ra36RZ1qZMcJlLLzxIKiOrep
+# 1uU3hryWftUnOh1BA+ErvZL1yZD0s2wNv51FCnbEoBcnbHWAHoUf76J2LQbD2mg6
+# r4cfFAYxTH9DQS1w3949/8ydQWBCvhzBGJsjYTaXTvqpMzySrSiL27IlbzDIChYJ
+# q5RncR4JX50d0+v5ydTRXqh259KJNmUYO8M+kM8nXVPyRXn6FAyJB/T4R0dAMjC/
+# XGwb1/gexGZPL8OZtWJMw01t0y8Edx7Lpoh0QnExNdwhLdQN9p8Zsw2njOS4AfH1
+# o50Vtyq7L3WdHkpEnYRw0PguczWXiF4JlGl8WYXu95FIWxMAMTyurqHBJNX9gZt4
+# zNKYJXYJAyKbBTVlCzXjIObQaXjnhWXCq5LOXeKaqQdqK6vXXnfnguzNaDeuZ/ZJ
+# 8U33W7RF59sNqIxtkiyLW5XHOMURkTMqu8n7hOPisz96rKtyJ3iGgaueFz7lcpIX
+# Sv1bE4kd+oJQoCfsDR0ewkVsKCE/rWPI75zhsRqX4+937UF4hsuJqxs7wcL1wZe6
+# e7J5vF59xwgi26qw3j8f+sJgzOeVueoYMGpldPs5F1pASPLATS4rNJB9HQYXGB6i
+# t9aFUSod946YMKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAzMjAxODA1NDBa
-# MC8GCSqGSIb3DQEJBDEiBCCw4yYRR5cPX0KlOTBfNcaoggYpWocajM1bBywD6U91
-# tTANBgkqhkiG9w0BAQEFAASCAgBESiDnA8UTSfvViRfx1SAgJ9UYf0HGXhkZyQSa
-# +jsSnc2Q72llOePoUpew+JDaBjbw7/KIb6gDyySjDe4hA3YtWmBPpFu1ZW2AhPkX
-# loamtARLIYyeBZ2cikrWHtwhTtwcC1Lj2u0IwXlUK2qBx7Kad+L/PLmDDKuy9X7w
-# y302IzRoJgrYQSPE3GXGdxGpzB4vySVd917O38AYa0PyihV7cH/myyARKHiMgA3E
-# MSanHmbEe6MdmJP4hEWtuZMOHVcGGdgfCDelClJ/z+o4CmEe69jBgXZ9GKru+Ek2
-# I87xRSlk5DdfGtQtXZeQi+hh0NroVq1WTgUN5oAoNbmZHGn+y08S9Pu9wLyaRcql
-# CYXWJCU6J2cBzDYLA4EnFolUsLyK+q2Xjk3HD/5gcXQrFTONv5Y8y2O+n6gF4e9z
-# 2Y07qhRocJkypGTSx/KYnoqQlBIEvuEGkkQkcUff5GtbdGwBkwiL5jKGENksWBOm
-# JPLhWQGSrpa3mJ7zXa/h7xv2W8JtRn39PPI8DR0Y2QoANQTPHJ3tipVPT00lnhJY
-# xSMHMt2xMbTnhx8kK8AgNpe4WSoZTjp8ovAypf30beCJEgqSkWVoOPZjmlmzg3lj
-# VhXulqbSjS0iXr5acBuqfwddJsZ02/lXi4RY8/jz2y7MOEpCt16sSIX8OstJ3pVK
-# MCZvdA==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjA0MTMxNDIxMDla
+# MC8GCSqGSIb3DQEJBDEiBCBTiHmhcqYrzVrdkhXv4KQ7z61rVA5sl/4dw2a/F/3A
+# ETANBgkqhkiG9w0BAQEFAASCAgABbxNV9ZBN8EfAHrDOAeinYTrirTB79qLD6v38
+# s+6cXeRLnYYSSXTkT0zwdJraLgw/ntcS+cZdL4DSRcBwRsXitrGxj9GcBqNkxe0k
+# SWm6YYtWneIS7iMgsPJpdZ/PS0Q0t80KdUk0Og6pnXOxODoDzGR3YzqxaJ8ssNwS
+# H+nQKQYxLhA6dZxJC3sqEBem0gq/PZPm+p7figXXAFgIyeuM6nRO9WEWBn5sJPgv
+# Q6dkq/p1QANUyz+ZJgo8fpE4vOVi0uUaMEYAHSB9UAwD97TOtZgAZTY0DeQhlbZq
+# TYKBVa/VcNyU1BtEUMAWLZWmtH5sSFEtYhyPzuJMr4RfRqjWvpcOGpWxPKPlWRdm
+# LZ5nAMO4cfva5ublqzjMKWJYrTQI0jB5EuQq4UUe8HLXNmPQcD4bQutL8dbgssN7
+# kIzFHQQTJJpz2anqYBRAxT4yyBjbv6qG6zBNvWKplaPBnr932DTFLjOE6d6RfvLK
+# Yx1Mif5UMvOJ8CNex5hf41GOWLgpKNNTxK3g9KxdPMBDM5q2KlH5h3dijNP0eRjD
+# zLbuQcHacoNVhAHUVe+zKdC4xMtIBTP9H1/yUERBQmE+7j3RvinGl4kbbOIptg9j
+# qwJlqapYK2w2a9xzI5pjUYb2k8sugjEjVh8xYchxkBycDXbBt8ru+Vt85cl7wWQA
+# zfJcVg==
 # SIG # End signature block
