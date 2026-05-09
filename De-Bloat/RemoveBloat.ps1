@@ -17,7 +17,7 @@
 .OUTPUTS
 C:\ProgramData\Debloat\Debloat.log
 .NOTES
-  Version:        5.5.3
+  Version:        5.5.4
   Author:         Andrew Taylor
   Twitter:        @AndrewTaylor_2
   WWW:            andrewstaylor.com
@@ -174,6 +174,7 @@ C:\ProgramData\Debloat\Debloat.log
   Change 12/02/2026 - Dell and HP fixes
   Change 20/03/2026 - Added Acer apps and McAfee WebAdvisor
   Change 13/04/2026 - Changed admin group lookup for multi-language support
+  Change 09/05/2026 - Dell update
 N/A
 #>
 
@@ -1907,7 +1908,7 @@ if ($manufacturer -like "*Dell*") {
         "SupportAssist Recovery Assistant"
         "Dell SupportAssist OS Recovery Plugin for Dell Update"
         "Dell SupportAssistAgent"
-        "Dell Update - SupportAssist Update Plugin"
+        ##"Dell Update - SupportAssist Update Plugin"
         "Dell Core Services"
         "Dell Pair"
         "Dell Display Manager 2.0"
@@ -1916,6 +1917,25 @@ if ($manufacturer -like "*Dell*") {
         "DellInc.PartnerPromo"
         "Dell Trusted Device"
     )
+
+        ##Stop Running Processes
+
+    $processnames = @(
+"DellEnterpriseClientFrameworkSubAgent.exe",
+"DellOptimizer.exe",
+"DellOptimizer.Systray.exe",
+"DellPair.exe",
+"DellPairService.exe",
+"DellSupportAssistRemedationService.exe",
+"DellSupportAssistRemediationServiceInstaller.exe",
+"DellUpdateSupportAssistPlugin.exe"
+    )
+
+    foreach ($process in $processnames) {
+        write-output "Stopping Process $process"
+        Get-Process -Name $process | Stop-Process -Force
+        write-output "Process $process Stopped"
+    }
 
 
 
@@ -2159,6 +2179,14 @@ foreach ($pattern in $uninstallPrograms) {
     }
     catch {
         Write-Warning "Failed to uninstall Dell Pair"
+    }
+
+    ##Dell Update Assist Plugin
+    try {
+        start-process c:\windows\system32\cmd.exe '/c "C:\ProgramData\Package Cache\{0a5aa116-8736-4571-b49d-739020affb16}\DellUpdateSupportAssistPlugin.exe" /uninstall /quiet'
+    }
+    catch {
+        Write-Warning "Failed to uninstall Dell Update Assist Plugin"
     }
 
 }
@@ -3251,12 +3279,12 @@ Stop-Transcript
 ##Adding random padding to stop it removing actual useful text
 ##More padding
 ##And more
-##Mor
+##Mo
 # SIG # Begin signature block
 # MIIoUAYJKoZIhvcNAQcCoIIoQTCCKD0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCnFQLsudtFn5CD
-# IOTb2MemIfGFW2lQsa/Tu2yM4GHEIaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDc+xNam7ek+I/C
+# FChz+N8jCB/frWIZtcIgbG+NNmt+ZaCCIU0wggWNMIIEdaADAgECAhAOmxiO+dAt
 # 5+/bUOIIQBhaMA0GCSqGSIb3DQEBDAUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0yMjA4MDEwMDAwMDBa
@@ -3439,34 +3467,34 @@ Stop-Transcript
 # U2lnbmluZyBSU0E0MDk2IFNIQTM4NCAyMDIxIENBMQIQCLGfzbPa87AxVVgIAS8A
 # 6TANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBdw9POcJ5K0UB2ThuoHE0qn7hF1AUGDsY+
-# I0rGfjS+lzANBgkqhkiG9w0BAQEFAASCAgBUdkfUzfEClO3IgjJ13lCaEf9+cuHE
-# yVYh8QqCr+246k/mjGjeRVzKQHyOXDU8EES1+1q8ra36RZ1qZMcJlLLzxIKiOrep
-# 1uU3hryWftUnOh1BA+ErvZL1yZD0s2wNv51FCnbEoBcnbHWAHoUf76J2LQbD2mg6
-# r4cfFAYxTH9DQS1w3949/8ydQWBCvhzBGJsjYTaXTvqpMzySrSiL27IlbzDIChYJ
-# q5RncR4JX50d0+v5ydTRXqh259KJNmUYO8M+kM8nXVPyRXn6FAyJB/T4R0dAMjC/
-# XGwb1/gexGZPL8OZtWJMw01t0y8Edx7Lpoh0QnExNdwhLdQN9p8Zsw2njOS4AfH1
-# o50Vtyq7L3WdHkpEnYRw0PguczWXiF4JlGl8WYXu95FIWxMAMTyurqHBJNX9gZt4
-# zNKYJXYJAyKbBTVlCzXjIObQaXjnhWXCq5LOXeKaqQdqK6vXXnfnguzNaDeuZ/ZJ
-# 8U33W7RF59sNqIxtkiyLW5XHOMURkTMqu8n7hOPisz96rKtyJ3iGgaueFz7lcpIX
-# Sv1bE4kd+oJQoCfsDR0ewkVsKCE/rWPI75zhsRqX4+937UF4hsuJqxs7wcL1wZe6
-# e7J5vF59xwgi26qw3j8f+sJgzOeVueoYMGpldPs5F1pASPLATS4rNJB9HQYXGB6i
-# t9aFUSod946YMKGCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCDS+xdy6HgW8zSrlpUiOyHzI5FUB5uwFl7M
+# 0zlQRPCuRjANBgkqhkiG9w0BAQEFAASCAgB0tH7nekoClGUYUsh+WkakgzMbM/N5
+# fmX3KtmWCRvH+Snk+DVjr6/gdqzzX2/n79XsPgOZQ5zwoSEZidaghukAC3mpTonH
+# 10nhNiiWENWVS7qA06M5u1YkBAe+dhRs3b3MwSwJq86+UzMaiNMpKkXfpo/Rtymg
+# BALoDojNzOElT0hv6UdQQnMVH7aVw9lQ4XI3ybVmlctNONz2eH6CrFj5wK7flEp+
+# Mal0eRlHnP392Fz39ppd11ucDtyq6JM/c9/2nspJl1We5KtQHJf1kXK2VAIwIfZL
+# TVV9sxtLuX5Q2B+BBEpUCrVprdexJOb8aVpZCUGJ3UQkoxtbA5hNf4sHA6WogrkB
+# aXjdANqklgiR6l/7LguEML3fUj12Zr+udcMrJHOrOr0jInBfjk2+K0Sbvvnb9kCz
+# kHKAv7THcYW4Jec8roADtAGxhjzmue2l/SB77X+OVuvvRgjCT6epK9tExb7sOHNv
+# IDaqaMOnrH+wog8icufvtZL03VkcWsKL438RC6es/R/Kh3J3vmtuu38f0wyQ0qQG
+# VSaJ7aZ1DtieAuP2atOq1w+iGfcM/EJo94vT3kgwO9mlnLOUx5FU6ARUVyr8Lxk7
+# Qd3UL+R69uTEUTdR0F4mrLS1d//iqOQLOloCqoDjL373FP1trX18BNTGqzfRe4Qk
+# 08S97wCCz+kiC6GCAyYwggMiBgkqhkiG9w0BCQYxggMTMIIDDwIBATB9MGkxCzAJ
 # BgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwgSW5jLjFBMD8GA1UEAxM4RGln
 # aUNlcnQgVHJ1c3RlZCBHNCBUaW1lU3RhbXBpbmcgUlNBNDA5NiBTSEEyNTYgMjAy
 # NSBDQTECEAqA7xhLjfEFgtHEdqeVdGgwDQYJYIZIAWUDBAIBBQCgaTAYBgkqhkiG
-# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjA0MTMxNDIxMDla
-# MC8GCSqGSIb3DQEJBDEiBCBTiHmhcqYrzVrdkhXv4KQ7z61rVA5sl/4dw2a/F/3A
-# ETANBgkqhkiG9w0BAQEFAASCAgABbxNV9ZBN8EfAHrDOAeinYTrirTB79qLD6v38
-# s+6cXeRLnYYSSXTkT0zwdJraLgw/ntcS+cZdL4DSRcBwRsXitrGxj9GcBqNkxe0k
-# SWm6YYtWneIS7iMgsPJpdZ/PS0Q0t80KdUk0Og6pnXOxODoDzGR3YzqxaJ8ssNwS
-# H+nQKQYxLhA6dZxJC3sqEBem0gq/PZPm+p7figXXAFgIyeuM6nRO9WEWBn5sJPgv
-# Q6dkq/p1QANUyz+ZJgo8fpE4vOVi0uUaMEYAHSB9UAwD97TOtZgAZTY0DeQhlbZq
-# TYKBVa/VcNyU1BtEUMAWLZWmtH5sSFEtYhyPzuJMr4RfRqjWvpcOGpWxPKPlWRdm
-# LZ5nAMO4cfva5ublqzjMKWJYrTQI0jB5EuQq4UUe8HLXNmPQcD4bQutL8dbgssN7
-# kIzFHQQTJJpz2anqYBRAxT4yyBjbv6qG6zBNvWKplaPBnr932DTFLjOE6d6RfvLK
-# Yx1Mif5UMvOJ8CNex5hf41GOWLgpKNNTxK3g9KxdPMBDM5q2KlH5h3dijNP0eRjD
-# zLbuQcHacoNVhAHUVe+zKdC4xMtIBTP9H1/yUERBQmE+7j3RvinGl4kbbOIptg9j
-# qwJlqapYK2w2a9xzI5pjUYb2k8sugjEjVh8xYchxkBycDXbBt8ru+Vt85cl7wWQA
-# zfJcVg==
+# 9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjA1MDkxMjA3MTBa
+# MC8GCSqGSIb3DQEJBDEiBCBguEyvu6fm5ri/1JrgQzZ+6c4BL8REwSDC7NOT7oFz
+# wDANBgkqhkiG9w0BAQEFAASCAgAA+e/vWr2uUnGeJIWGKfgAPVTqL3Hx2gxZYw08
+# LfQ9jKDdD0fCfYG5fQ8DQUBCUEVCRLFgKjUIdDl6bTLKy+eb8Sn64tPRxOrFkZhe
+# KUsBxU+XoNEScLjlye48rYxPQjR8rpY3UKKZyR3YmGBptQg6LJjto2b37o3N9lbJ
+# w0w/52wksDnJl867PunBo3Lg3vgLvVmzHUJlNiLu26dLQ2+SxzhCvubiS2L+5kuK
+# wKmr6T1b6Ed4XD9gcfV79JmbA1pUUtR56Mo7vujs1ULh5J+4PfKt7GJzrMGJsS5H
+# hbat/8PoXWnVbZCwuL3JZM5NiYZEjLd2U1eRCHplobvtyAJRvljL2AtIQk9fhBO6
+# uyFA1e7fnGCzwQrB7oUJZlEmb0Uc0u/J/u0EK9tDo1BTwVJilLAKNd42ksfPr33G
+# 6S3gnNy4QrbQKuR7KekDc2XR8Jxk9a0Xz1T5BRVUdPxzzwmuK/gBr6eHerz/M0Bs
+# tK7jNT5wMhwPPMQltTMy+UQmufWSsyV+aNAMG/jJJoTYHRaK2kvDlQmIp17F50V/
+# qk5Y+JCXMHAn39js5AgncsnxZfN5rKpXjteMDO5rz1aywyTlAky7DFZQ1izfCk8q
+# uEYpL6eB3aoJ1HF4viE60xd1qh4myp8elzgFdfPDvfE2KjvUKPAbmRoDRNlHJloG
+# rwDgUg==
 # SIG # End signature block
